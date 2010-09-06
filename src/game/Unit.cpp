@@ -14561,7 +14561,7 @@ void Unit::UpdateModelData()
         else
         {
             // we expect values in database to be relative to scale = 1.0
-            SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, (radius > combat_reach) ? combat_reach : radius;
+            SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, (radius > combat_reach) ? combat_reach : radius);
             SetFloatValue(UNIT_FIELD_COMBATREACH, combat_reach); 
         }
     }

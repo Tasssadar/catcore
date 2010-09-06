@@ -1168,7 +1168,7 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
                     //Guessed
                     float coeff = 0.55f;
                     int32 sp = int32(owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_NATURE)) - owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + SPELL_SCHOOL_NATURE);
-                    bonusAp += coeff * sp;
+                    bonusAP += coeff * sp;
                     break;    
                 }
             }

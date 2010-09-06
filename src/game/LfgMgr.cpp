@@ -294,7 +294,7 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
         if(leader->GetGroup() && !leader->GetGroup()->isLfgGroup())
         {
            Group *baseGrp = leader->GetGroup();
-           for(member_citerator citr = baseGrp->GetMemberSlots().begin(); citr != baseGrp->GetMemberSlots().end(); ++citr)
+           for(Group::member_citerator citr = baseGrp->GetMemberSlots().begin(); citr != baseGrp->GetMemberSlots().end(); ++citr)
            {
                group->RemoveMember(citr->guid, 0);
                Player *member = sObjectMgr.GetPlayer(citr->guid);
