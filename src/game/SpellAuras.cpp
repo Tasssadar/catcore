@@ -8801,7 +8801,8 @@ void Aura::PeriodicDummyTick()
                 // Killing Spree
                 case 51690:
                 {
-                    if (target->hasUnitState(UNIT_STAT_STUNNED) || target->isFeared())
+                    Unit* caster = GetCaster();
+                    if (!caster || caster->hasUnitState(UNIT_STAT_STUNNED) || caster->isFeared())
                         return;
 
                     std::list<Unit*> targets;
@@ -8809,9 +8810,9 @@ void Aura::PeriodicDummyTick()
                         // eff_radius ==0
                         float radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spell->rangeIndex));
 
-                        MaNGOS::AnyUnfriendlyVisibleUnitInObjectRangeCheck u_check(target, target, radius);
-                        MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyVisibleUnitInObjectRangeCheck> checker(target, targets, u_check);
-                        Cell::VisitAllObjects(target, checker, radius);
+                        MaNGOS::AnyUnfriendlyVisibleUnitInObjectRangeCheck u_check(caster, caster, radius);
+                        MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyVisibleUnitInObjectRangeCheck> checker(caster, targets, u_check);
+                        Cell::VisitAllObjects(caster, checker, radius);
                     }
 
                     if (targets.empty())
@@ -8821,8 +8822,8 @@ void Aura::PeriodicDummyTick()
                     std::advance(itr, rand()%targets.size());
                     Unit* victim = *itr;
 
-                    target->CastSpell(victim, 57840, true);
-                    target->CastSpell(victim, 57841, true);
+                    caster->CastSpell(victim, 57840, true);
+                    caster->CastSpell(victim, 57841, true);
                     return;
                 }
                 default:

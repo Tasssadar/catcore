@@ -5657,7 +5657,6 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
     // some dummy spells have trigger spell in spell data already (from 3.0.3)
     uint32 triggered_spell_id = dummySpell->EffectApplyAuraName[effIndex] == SPELL_AURA_DUMMY ? dummySpell->EffectTriggerSpell[effIndex] : 0;
     Unit* target = pVictim;
-    Unit* caster = this;
     int32  basepoints[MAX_EFFECT_INDEX] = {0, 0, 0};
 
     switch(dummySpell->SpellFamilyName)
@@ -6085,13 +6084,12 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 case 62933:
                 case 62337:
                 {
-                    if (procSpell->DmgClass != SPELL_DAMAGE_CLASS_MELEE)
+                    if (procSpell && procSpell->DmgClass != SPELL_DAMAGE_CLASS_MELEE)
                         return false;
 
-                    caster = pVictim;
-                    triggered_spell_id = 62379;
                     basepoints[EFFECT_INDEX_0] = damage;
-                    break;
+                    target->CastCustomSpell(target, 62379, &basepoints[EFFECT_INDEX_0], 0, 0, true, castItem, triggeredByAura);
+                    return true;
                 }
             }
             break;
@@ -6232,11 +6230,13 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     target = triggeredByAura->GetCaster(); 
                     if (target && target->GetTypeId() == TYPEID_PLAYER)
                     {
-                        caster = target; 
                         // Get Empowered Fire talent 
                         SpellEntry const *talent = ((Player*)target)->GetKnownTalentRankById(1734); 
-                        if (talent && roll_chance_i(talent->procChance)) 
-                            triggered_spell_id = 67545;
+                        if (talent && roll_chance_i(talent->procChance))
+                        {
+                            target->CastCustomSpell(target, 67545, NULL, NULL, NULL, true, castItem, triggeredByAura);
+                            return true;
+                        }
                     }
                     break;
                 }
@@ -8001,13 +8001,13 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
         return false;
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
-        caster->CastCustomSpell(target, triggered_spell_id,
+        CastCustomSpell(target, triggered_spell_id,
             basepoints[EFFECT_INDEX_0] ? &basepoints[EFFECT_INDEX_0] : NULL,
             basepoints[EFFECT_INDEX_1] ? &basepoints[EFFECT_INDEX_1] : NULL,
             basepoints[EFFECT_INDEX_2] ? &basepoints[EFFECT_INDEX_2] : NULL,
             true, castItem, triggeredByAura);
     else
-        caster->CastSpell(target, triggered_spell_id, true, castItem, triggeredByAura);
+        CastSpell(target, triggered_spell_id, true, castItem, triggeredByAura);
 
     if (cooldown && GetTypeId()==TYPEID_PLAYER)
         ((Player*)this)->AddSpellCooldown(triggered_spell_id,0,time(NULL) + cooldown);
