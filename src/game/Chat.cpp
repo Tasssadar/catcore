@@ -99,7 +99,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "send",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleBroadCastSendCommand,       "", NULL },
         { "reset",          SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleBroadCastResetTimerCommand, "", NULL },
         { NULL,             0,                  false, NULL,                                           "", NULL }
-    }
+    };
 
     static ChatCommand baninfoCommandTable[] =
     {

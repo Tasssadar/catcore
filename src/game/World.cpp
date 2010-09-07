@@ -61,6 +61,8 @@
 #include "GMTicketMgr.h"
 #include "Util.h"
 #include "CharacterDatabaseCleaner.h"
+#include "ProgressBar.h"
+#include "Language.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -2357,7 +2359,7 @@ bool World::configNoReload(bool reload, eConfigBoolValues index, char const* fie
 void World::LoadBroadCastMessages()
 {
     // In case of reload
-    for(BroadCastSet::iterator itr = m_broadcastMessages.begin(); itr != m_broadcastMessages.end(); +itr)
+    for(BroadCastSet::iterator itr = m_broadcastMessages.begin(); itr != m_broadcastMessages.end(); ++itr)
         delete *itr;
     m_broadcastMessages.clear();
 
@@ -2402,7 +2404,7 @@ void World::LoadBroadCastMessages()
 
 void World::UpdateBroadCast()
 {
-    for(BroadCastSet::iterator itr = m_broadcastMessages.begin(); itr != m_broadcastMessages.end(); +itr)
+    for(BroadCastSet::iterator itr = m_broadcastMessages.begin(); itr != m_broadcastMessages.end(); ++itr)
     {
         --(*itr)->timeLeft;
         if((*itr)->timeLeft)
