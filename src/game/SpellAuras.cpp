@@ -5259,13 +5259,13 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             if (spell->Id == 62717 ||                       // Slag Pot
                 spell->Id == 63477)                         // Slag Pot(h)
             {
-                Unit *target = GetTarget();
-                if (!target)
-                    return;
-                
-                // leaving vehicle
+                if (apply)
+                {
+                    target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                }
                 if (!apply)
                 {
+                    target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
                     target->ExitVehicle();
                     if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                     {
