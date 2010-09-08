@@ -5168,7 +5168,10 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                     if (Unit* pCaster = GetCaster())
                         pCaster->CastSpell(target, GetSpellProto()->EffectTriggerSpell[GetEffIndex()], true, NULL, this);
                 }
-
+                return;
+            case 63024:                                     // Void Zone
+            case 64234:                                     // Void Zone (h)
+                target->CastSpell(target, GetId() == 63024 ? 64203 : 64235, true);
                 return;
             default:
                 break;
