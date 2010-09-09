@@ -8719,6 +8719,15 @@ void Aura::PeriodicDummyTick()
                         caster->CastSpell(m_target, 65723, true);
                     return;
                 }
+                case 64412:                                 // Phase Punch
+                {
+                    if(GetStackAmount() >= 5)
+                    {
+                        target->RemoveAurasDueToSpell(spell->Id);
+                        target->CastSpell(target, 64417, true);
+                    }
+                    return;
+                }
 // Exist more after, need add later
                 default:
                     break;
