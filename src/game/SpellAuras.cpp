@@ -5290,16 +5290,30 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
                 if (apply)
                 {
                     target->CastSpell(target, 62794, true);
+                    WorldPacket data(12);
+                    data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+                    data << target->GetPackGUID();
+                    data << uint32(0);
+                    target->SendMessageToSet(&data, true);
                 }
                 if (!apply)
                 {
                     target->RemoveAurasDueToSpell(62794);
+                    WorldPacket data(12);
+                    data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                    data << target->GetPackGUID();
+                    data << uint32(0);
+                    target->SendMessageToSet(&data, true);
                     target->ExitVehicle();
                     if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                     {
                         // cast Slag Imbued on target
                         target->CastSpell(target, 63536, true);
-                        // TODO: complete achievement part
+                        if (target->GetTypeId() == TYPEID_PLAYER)
+                        {
+                            uint32 AchievementId = spell->Id == 62717 ? 2927 : 2928;
+                            ((Player*)target)->CompletedAchievement(AchievementId);
+                        }
                     }
                  }
 
