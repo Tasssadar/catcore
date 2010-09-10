@@ -152,4 +152,22 @@ void SpellMgr::ApplySpellHacks()
     sfix21->EffectImplicitTargetB[EFFECT_INDEX_0] = 31;
     sfix21->EffectImplicitTargetB[EFFECT_INDEX_1] = 31;
     sfix21->EffectImplicitTargetB[EFFECT_INDEX_2] = 31;
+
+    // Stone Grip
+    SpellEntry *sfix22 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62166));
+    sfix22->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
+    sfix22->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
+    sfix22->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
+
+    // Stone Grip (h)
+    SpellEntry *sfix23 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63981));
+    sfix23->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
+    sfix23->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
+    sfix23->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+    sfix22->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
 }

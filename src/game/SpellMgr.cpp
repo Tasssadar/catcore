@@ -1885,6 +1885,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if (spellInfo_1->SpellIconID == 3087 && spellInfo_2->SpellIconID == 3087)
                         return false;
 
+                    // Stone Grips
+                    if (spellInfo_1->SpellIconID == 1997 && spellInfo_2->SpellIconID == 1997)
+                        return false;
+
                     break;
                 }
                 case SPELLFAMILY_MAGE:
