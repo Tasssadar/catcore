@@ -4345,6 +4345,15 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             else
                 delete pObj;
         }
+        // Stone Grip
+        if (GetId() == 62056 || GetId() == 63981)
+        {
+            WorldPacket data(12);
+            data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+            data << target->GetPackGUID();
+            data << uint32(0);
+            target->SendMessageToSet(&data, true);
+        }
     }
     else
     {
@@ -4418,6 +4427,15 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
             caster->CastSpell(target,spellInfo,true,NULL,this);
             return;
+        }
+        // Stone Grip
+        if (GetId() == 62056 || GetId() == 63981)
+        {
+            WorldPacket data(12);
+            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+            data << target->GetPackGUID();
+            data << uint32(0);
+            target->SendMessageToSet(&data, true);
         }
     }
 }
@@ -5271,11 +5289,11 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             {
                 if (apply)
                 {
-                    target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                    target->CastSpell(target, 62794, true);
                 }
                 if (!apply)
                 {
-                    target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+                    target->RemoveAurasDueToSpell(62794);
                     target->ExitVehicle();
                     if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                     {
