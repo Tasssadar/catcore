@@ -7842,7 +7842,12 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                         
             }
         }
+        if (spellProto->Id == 62274)                        // Shield of Runes
+            target->CastSpell(target, 62277, true);
+        else if (spellProto->Id == 63489)                   // Shield of Runes (h)
+            target->CastSpell(target, 63967, true);
     }
+
 }
 
 void Aura::PeriodicTick()
