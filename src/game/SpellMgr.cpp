@@ -1889,6 +1889,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if (spellInfo_1->SpellIconID == 1997 && spellInfo_2->SpellIconID == 1997)
                         return false;
 
+                    // Aegis(pala T8 4P) and Increased Block(libram)
+                    if((spellInfo_2->Id == 64883 && spellInfo_1->Id == 65182) ||
+                       (spellInfo_1->Id == 64883 && spellInfo_2->Id == 65182) )
+                        return false;
                     break;
                 }
                 case SPELLFAMILY_MAGE:
