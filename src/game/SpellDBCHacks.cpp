@@ -170,4 +170,9 @@ void SpellMgr::ApplySpellHacks()
     sfix22->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
     sfix22->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
     sfix22->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
+
+    // Slam triggered - needs to set rage requierement to 0 otherwise total cost is 30 rage instead of 15...
+    SpellEntry *sfix24 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(50782));
+    sfix24->powerType = 0;
+    sfix24->manaCost = 0;
 }
