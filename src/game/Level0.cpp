@@ -94,20 +94,23 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     char const* valhalla_rev = REVISION_VP;
     char const* valhalla_rev_date = REVISION_VP_DATE;
 
-    char const* full;
-    if (m_session)
-        full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,"|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
-    else
-        full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
-
-    SendSysMessage(full);
+    PSendSysMessage("CatCore [%s][%s] - MaNGOS modified for Valhalla Server", valhalla_rev, valhalla_rev_date);
+    
     if (GetAccessLevel() > SEC_PLAYER)
     {
+        //Dont use mangos revision anymore since we backport only few commits
+        char const* full;
+        if (m_session)
+            full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,"|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
+        else
+            full = _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID);
+
+        SendSysMessage(full);
+    
         PSendSysMessage(LANG_USING_SCRIPT_LIB,sWorld.GetScriptsVersion());
         PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
         PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
     }
-    PSendSysMessage("CatCore [%s][%s] - MaNGOS modified for Valhalla Server", valhalla_rev, valhalla_rev_date);
     SendSysMessage("Changelog: http://valhalla-team.com/web/changelog.php");
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
