@@ -119,7 +119,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleFeignDeath,                                // 66 SPELL_AURA_FEIGN_DEATH
     &Aura::HandleAuraModDisarm,                             // 67 SPELL_AURA_MOD_DISARM
     &Aura::HandleAuraModStalked,                            // 68 SPELL_AURA_MOD_STALKED
-    &Aura::HandleSchoolAbsorb,                              // 69 SPELL_AURA_SCHOOL_ABSORB implemented in Unit::CalculateAbsorbAndResist
+    &Aura::HandleSchoolAbsorb,                              // 69 SPELL_AURA_SCHOOL_ABSORB implemented in Unit::CalculateDamageAbsorbAndResist
     &Aura::HandleUnused,                                    // 70 SPELL_AURA_EXTRA_ATTACKS      Useless, used by only one spell 41560 that has only visual effect (3.2.2a)
     &Aura::HandleModSpellCritChanceShool,                   // 71 SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL
     &Aura::HandleModPowerCostPCT,                           // 72 SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT
@@ -131,7 +131,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleAuraMounted,                               // 78 SPELL_AURA_MOUNTED
     &Aura::HandleModDamagePercentDone,                      // 79 SPELL_AURA_MOD_DAMAGE_PERCENT_DONE
     &Aura::HandleModPercentStat,                            // 80 SPELL_AURA_MOD_PERCENT_STAT
-    &Aura::HandleNoImmediateEffect,                         // 81 SPELL_AURA_SPLIT_DAMAGE_PCT       implemented in Unit::CalculateAbsorbAndResist
+    &Aura::HandleNoImmediateEffect,                         // 81 SPELL_AURA_SPLIT_DAMAGE_PCT       implemented in Unit::CalculateDamageAbsorbAndResist
     &Aura::HandleWaterBreathing,                            // 82 SPELL_AURA_WATER_BREATHING
     &Aura::HandleModBaseResistance,                         // 83 SPELL_AURA_MOD_BASE_RESISTANCE
     &Aura::HandleModRegen,                                  // 84 SPELL_AURA_MOD_REGEN
@@ -147,7 +147,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNoImmediateEffect,                         // 94 SPELL_AURA_INTERRUPT_REGEN implemented in Player::RegenerateAll
     &Aura::HandleAuraGhost,                                 // 95 SPELL_AURA_GHOST
     &Aura::HandleNoImmediateEffect,                         // 96 SPELL_AURA_SPELL_MAGNET implemented in Unit::SelectMagnetTarget
-    &Aura::HandleManaShield,                                // 97 SPELL_AURA_MANA_SHIELD implemented in Unit::CalculateAbsorbAndResist
+    &Aura::HandleManaShield,                                // 97 SPELL_AURA_MANA_SHIELD implemented in Unit::CalculateDamageAbsorbAndResist
     &Aura::HandleAuraModSkill,                              // 98 SPELL_AURA_MOD_SKILL_TALENT
     &Aura::HandleAuraModAttackPower,                        // 99 SPELL_AURA_MOD_ATTACK_POWER
     &Aura::HandleUnused,                                    //100 SPELL_AURA_AURAS_VISIBLE obsolete 3.x? all player can see all auras now, but still have 2 spells including GM-spell (1852,2855)
@@ -203,7 +203,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleShieldBlockValue,                          //150 SPELL_AURA_MOD_SHIELD_BLOCKVALUE_PCT
     &Aura::HandleAuraTrackStealthed,                        //151 SPELL_AURA_TRACK_STEALTHED
     &Aura::HandleNoImmediateEffect,                         //152 SPELL_AURA_MOD_DETECTED_RANGE         implemented in Creature::GetAttackDistance
-    &Aura::HandleNoImmediateEffect,                         //153 SPELL_AURA_SPLIT_DAMAGE_FLAT          implemented in Unit::CalculateAbsorbAndResist
+    &Aura::HandleNoImmediateEffect,                         //153 SPELL_AURA_SPLIT_DAMAGE_FLAT          implemented in Unit::CalculateDamageAbsorbAndResist
     &Aura::HandleNoImmediateEffect,                         //154 SPELL_AURA_MOD_STEALTH_LEVEL          implemented in Unit::isVisibleForOrDetect
     &Aura::HandleNoImmediateEffect,                         //155 SPELL_AURA_MOD_WATER_BREATHING        implemented in Player::getMaxTimer
     &Aura::HandleNoImmediateEffect,                         //156 SPELL_AURA_MOD_REPUTATION_GAIN        implemented in Player::CalculateReputationGain
@@ -351,7 +351,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleUnused,                                    //298 unused (3.2.2a)
     &Aura::HandleUnused,                                    //299 unused (3.2.2a)
     &Aura::HandleNULL,                                      //300 3 spells (share damage?)
-    &Aura::HandleNULL,                                      //301 5 spells
+    &Aura::HandleNULL,                                      //301 SPELL_AURA_HEAL_ABSORB 5 spells
     &Aura::HandleUnused,                                    //302 unused (3.2.2a)
     &Aura::HandleNULL,                                      //303 17 spells
     &Aura::HandleNULL,                                      //304 2 spells (alcohol effect?)
@@ -1690,8 +1690,10 @@ void Aura::TriggerSpell()
                     // Restoration
                     case 23493:
                     {
-                        int32 heal = triggerTarget->GetMaxHealth() / 10;
-                        triggerTarget->DealHeal(triggerTarget, heal, auraSpellInfo);
+                        uint32 heal = triggerTarget->GetMaxHealth() / 10;
+                        uint32 absorb = 0;
+                        triggerTarget->CalculateHealAbsorb(heal, &absorb);
+                        triggerTarget->DealHeal(triggerTarget, heal - absorb, auraSpellInfo, false, absorb);
 
                         if (int32 mana = triggerTarget->GetMaxPower(POWER_MANA))
                         {
@@ -7654,7 +7656,7 @@ void Aura::HandleModTargetResistance(bool apply, bool Real)
     if (!Real)
         return;
     Unit *target = GetTarget();
-    // applied to damage as HandleNoImmediateEffect in Unit::CalculateAbsorbAndResist and Unit::CalcArmorReducedDamage
+    // applied to damage as HandleNoImmediateEffect in Unit::CalculateDamageAbsorbAndResist and Unit::CalcArmorReducedDamage
     // show armor penetration
     if (target->GetTypeId() == TYPEID_PLAYER && (m_modifier.m_miscvalue & SPELL_SCHOOL_MASK_NORMAL))
         target->ApplyModInt32Value(PLAYER_FIELD_MOD_TARGET_PHYSICAL_RESISTANCE, m_modifier.m_amount, apply);
@@ -8064,7 +8066,7 @@ void Aura::PeriodicTick()
             if (pCaster->GetTypeId() == TYPEID_PLAYER)
                 pdamage -= target->GetSpellDamageReduction(pdamage);
 
-            target->CalculateAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, true);
+            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, true);
 
             DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %u (TypeId: %u) attacked %u (TypeId: %u) for %u dmg inflicted by %u abs is %u",
                 GUID_LOPART(GetCasterGUID()), GuidHigh2TypeId(GUID_HIPART(GetCasterGUID())), target->GetGUIDLow(), target->GetTypeId(), pdamage, GetId(),absorb);
@@ -8155,7 +8157,7 @@ void Aura::PeriodicTick()
             if (IS_PLAYER_GUID(GetCasterGUID()))
                 pdamage -= target->GetSpellDamageReduction(pdamage);
 
-            target->CalculateAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, true);
+            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, true);
 
             if (target->GetHealth() < pdamage)
                 pdamage = uint32(target->GetHealth());
@@ -8190,7 +8192,10 @@ void Aura::PeriodicTick()
 
             int32 heal = pCaster->SpellHealingBonusTaken(pCaster, spellProto, int32(new_damage * multiplier), DOT, GetStackAmount());
 
-            int32 gain = pCaster->DealHeal(pCaster, heal, spellProto);
+            uint32 absorbHeal = 0;
+            pCaster->CalculateHealAbsorb(heal, &absorbHeal);
+
+            int32 gain = pCaster->DealHeal(pCaster, heal, spellProto, false, absorbHeal);
             pCaster->getHostileRefManager().threatAssist(pCaster, gain * 0.5f, spellProto);
             break;
         }

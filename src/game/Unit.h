@@ -1297,7 +1297,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint16 GetMaxSkillValueForLevel(Unit const* target = NULL) const { return (target ? getLevelForTarget(target) : getLevel()) * 5; }
         void DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb);
         uint32 DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const *spellProto, bool durabilityLoss, uint32 absorb = 0);
-        int32 DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellProto, bool critical = false);
+        int32 DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellProto, bool critical = false, uint32 absorb = 0));
 
         void ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procEx, uint32 amount, WeaponAttackType attType = BASE_ATTACK, SpellEntry const *procSpell = NULL);
         void ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const * procSpell, uint32 damage );
@@ -1419,7 +1419,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool IsUnderWater() const;
         bool isInAccessablePlaceFor(Creature const* c) const;
 
-        void SendHealSpellLog(Unit *pVictim, uint32 SpellID, uint32 Damage, uint32 OverHeal, bool critical = false);
+        void SendHealSpellLog(Unit *pVictim, uint32 SpellID, uint32 Damage, uint32 OverHeal, bool critical = false, uint32 absorb = 0);
         void SendEnergizeSpellLog(Unit *pVictim, uint32 SpellID, uint32 Damage,Powers powertype);
         void EnergizeBySpell(Unit *pVictim, uint32 SpellID, uint32 Damage, Powers powertype);
         uint32 SpellNonMeleeDamageLog(Unit *pVictim, uint32 spellID, uint32 damage);
@@ -1824,8 +1824,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
                                                             // redefined in Creature
 
         uint32 CalcArmorReducedDamage(Unit* pVictim, const uint32 damage);
-        void CalculateAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32 *absorb, uint32 *resist, bool canReflect = false);
+        void CalculateDamageAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32 *absorb, uint32 *resist, bool canReflect = false);
         void CalculateAbsorbResistBlock(Unit *pCaster, SpellNonMeleeDamage *damageInfo, SpellEntry const* spellProto, WeaponAttackType attType = BASE_ATTACK);
+        void CalculateHealAbsorb(uint32 heal, uint32 *absorb);
 
         void  UpdateWalkMode(Unit* source, bool self = true);
         void  UpdateSpeed(UnitMoveType mtype, bool forced, float ratio = 1.0f);
