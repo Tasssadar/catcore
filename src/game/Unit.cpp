@@ -6873,8 +6873,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     target = this;
                     RemoveAurasDueToSpell(57934);
                     break;
-                }			
-
+                }
             }
             // Cut to the Chase
             if (dummySpell->SpellIconID == 2909)
@@ -7000,6 +6999,13 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
             {
                 pVictim->CastSpell(pVictim, 57894, true, NULL, NULL, GetGUID());
                 return true;
+            }
+            // Misdirection
+            else if(dummySpell->Id == 34477)
+            {
+                triggered_spell_id = 35079;                 // 4 sec buff on self
+                target = this;
+                break;
             }
             break;
         }
@@ -12497,18 +12503,6 @@ void Unit::AddThreat(Unit* pVictim, float threat /*= 0.0f*/, bool crit /*= false
 
     if (!pVictim->isAlive())
         return;
-
-    //Misdirection hack
-    if (pVictim->GetTypeId() == TYPEID_PLAYER && pVictim->HasAura(34477, EFFECT_INDEX_1))
-        if (Group *pGroup = ((Player*)pVictim)->GetGroup())
-            for (GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
-                if (Unit* realVictim = itr->getSource())
-                    if (Aura* misdirection = realVictim->GetDummyAura(35079))
-                        if (pVictim->GetGUID() == misdirection->GetCasterGUID() && realVictim->IsInMap(pVictim))
-                        {
-                            pVictim = realVictim;
-                            break;
-                        }
 
     // Only mobs can manage threat lists
     if (CanHaveThreatList())

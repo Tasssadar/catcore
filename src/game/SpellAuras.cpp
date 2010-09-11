@@ -3082,22 +3082,50 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             break;
         }
         case SPELLFAMILY_ROGUE:
-            // Honor Among Thieves 
-            if (m_spellProto->Id == 52916) 
-            { 
-               // prevent multiple casting of 51699 
-               if (m_target->GetGUID() != GetCasterGUID()) 
-                   return; 
-               Unit *caster = GetCaster(); 
-               Unit *unitVictim = NULL; 
-               if (caster && caster->GetTypeId() == TYPEID_PLAYER) 
-                   unitVictim = ObjectAccessor::GetUnit(*caster,((Player*)caster)->GetComboTarget()); 
-               // roll proc chance 
-               if (unitVictim && roll_chance_i(m_modifier.m_amount)) 
-                   caster->CastSpell(unitVictim, 51699, true); 
+            switch(GetId())
+            {
+                case 57934:                                 // Tricks of the Trade, main spell
+                {
+                    if (apply)
+                        GetHolder()->SetAuraCharges(1);     // not have proper chnarges set in spell data
+                    else
+                    {
+                        // used for direct in code aura removes and rpoc event charges expire
+                        if (m_removeMode != AURA_REMOVE_BY_DEFAULT)
+                            target->getHostileRefManager().ResetThreatRedirection();
+                    }
+                    return;
+                }
+                // Honor Among Thieves
+                case 52916:
+                   if (m_target->GetGUID() != GetCasterGUID()) 
+                       return; 
+                   Unit *caster = GetCaster(); 
+                   Unit *unitVictim = NULL; 
+                   if (caster && caster->GetTypeId() == TYPEID_PLAYER) 
+                       unitVictim = ObjectAccessor::GetUnit(*caster,((Player*)caster)->GetComboTarget()); 
+                   // roll proc chance 
+                   if (unitVictim && roll_chance_i(m_modifier.m_amount)) 
+                       caster->CastSpell(unitVictim, 51699, true); 
+                   break;
             }
             break;
         case SPELLFAMILY_HUNTER:
+            switch(GetId())
+            {
+                case 34477:                                 // Misdirection, main spell
+                {
+                    if (apply)
+                        GetHolder()->SetAuraCharges(1);     // not have proper charges set in spell data
+                    else
+                    {
+                        // used for direct in code aura removes and rpoc event charges expire
+                        if (m_removeMode != AURA_REMOVE_BY_DEFAULT)
+                            target->getHostileRefManager().ResetThreatRedirection();
+                    }
+                    return;
+                }
+            }
             break;
         case SPELLFAMILY_PALADIN:
             switch(GetId())
