@@ -11345,12 +11345,8 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     }
 
     // ..taken pct (aoe avoidance)
-<<<<<<< HEAD
     if (spellProto && IsAreaOfEffectSpell(spellProto))
-=======
-    if(spellProto && IsAreaOfEffectSpell(spellProto))
     {
->>>>>>> 5fcde44... [10472] Implement SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE (310)
         TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
         if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
             TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE);
