@@ -5303,39 +5303,46 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
     {
         case SPELLFAMILY_GENERIC:
         {
-            if (spell->Id == 62717 ||                       // Slag Pot
-                spell->Id == 63477)                         // Slag Pot(h)
+            switch(spell->Id)
             {
-                if (apply)
+                case 62717:                       // Slag Pot
+                case 63477:                       // Slag Pot(h)
                 {
-                    target->CastSpell(target, 62794, true);
-                    WorldPacket data(12);
-                    data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
-                    data << target->GetPackGUID();
-                    data << uint32(0);
-                    target->SendMessageToSet(&data, true);
-                }
-                if (!apply)
-                {
-                    target->RemoveAurasDueToSpell(62794);
-                    WorldPacket data(12);
-                    data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
-                    data << target->GetPackGUID();
-                    data << uint32(0);
-                    target->SendMessageToSet(&data, true);
-                    target->ExitVehicle();
-                    if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                    if (apply)
                     {
-                        // cast Slag Imbued on target
-                        target->CastSpell(target, 63536, true);
-                        if (target->GetTypeId() == TYPEID_PLAYER)
+                        target->CastSpell(target, 62794, true);
+                        WorldPacket data(12);
+                        data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+                        data << target->GetPackGUID();
+                        data << uint32(0);
+                        target->SendMessageToSet(&data, true);
+                    }
+                    if (!apply)
+                    {
+                        target->RemoveAurasDueToSpell(62794);
+                        WorldPacket data(12);
+                        data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                        data << target->GetPackGUID();
+                        data << uint32(0);
+                        target->SendMessageToSet(&data, true);
+                        target->ExitVehicle();
+                        if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                         {
-                            uint32 AchievementId = spell->Id == 62717 ? 2927 : 2928;
-                            ((Player*)target)->CompletedAchievement(AchievementId);
+                            // cast Slag Imbued on target
+                            target->CastSpell(target, 63536, true);
+                            if (target->GetTypeId() == TYPEID_PLAYER)
+                            {
+                                uint32 AchievementId = spell->Id == 62717 ? 2927 : 2928;
+                                ((Player*)target)->CompletedAchievement(AchievementId);
+                            }
                         }
                     }
-                 }
-
+                    break;                        
+                }
+                case 63276:                       // Mark of Faceless
+                    target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_HEALTH_LEECH, apply);
+                    break;
+                }
             }
             break;
         }
