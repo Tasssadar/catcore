@@ -31,7 +31,6 @@ void Camera::UpdateForCurrentViewPoint()
     if (GridType* grid = m_source->GetViewPoint().m_grid)
         grid->AddWorldObject(this);
 
-    m_owner.SetUInt64Value(PLAYER_FARSIGHT, (m_source == &m_owner ? 0 : m_source->GetGUID()));
     UpdateVisibilityForOwner();
 }
 
@@ -66,6 +65,9 @@ void Camera::SetView(WorldObject *obj)
 
     m_source->GetViewPoint().Attach(this);
 
+    if (update_far_sight_field)
+        m_owner.SetUInt64Value(PLAYER_FARSIGHT, (m_source == &m_owner ? 0 : m_source->GetGUID()));
+
     UpdateForCurrentViewPoint();
 }
 
@@ -75,9 +77,9 @@ void Camera::Event_ViewPointVisibilityChanged()
         ResetView();
 }
 
-void Camera::ResetView()
+void Camera::ResetView(bool update_far_sight_field /*= true*/)
 {
-    SetView(&m_owner);
+    SetView(&m_owner, update_far_sight_field);
 }
 
 void Camera::Event_AddedToWorld()
