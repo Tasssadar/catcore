@@ -5581,7 +5581,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                              ++itr; 
                      }  */
                     Unit::AuraMap& auras = unitTarget->GetAuras();
-                    for(Unit::AuraMap::iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    for(Unit::AuraMap::iterator itr = auras.begin(); itr != auras.end();)
                     {
                         if (itr->second->GetSpellProto()->Dispel == DISPEL_DISEASE && 
                              itr->second->GetCasterGUID() == m_caster->GetGUID())
