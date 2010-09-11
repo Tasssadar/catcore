@@ -2103,7 +2103,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             {
                 m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
                 if (m_spellInfo->Id == 63322)
-                    FillAreaTargets(targetUnitMap, caster->GetPositionX(), caster->GetPositionY(), radius, PUSH_TARGET_CENTER, SPELL_TARGETS_NOT_FRIENDLY);
+                    FillAreaTargets(targetUnitMap, caster->GetPositionX(), caster->GetPositionY(), radius, PUSH_TARGET_CENTER, SPELL_TARGETS_PLAYERS);
             }
             break;
         }
