@@ -507,33 +507,33 @@ void LfgMgr::UpdateQueues()
                 if (!player || !player->GetSession())
                     continue;
                 uint64 guid = *plritr;
-                bool into = false;
                 //Try to put him into group with most players
                 LfgGroup *bigGrp = NULL;
                 uint8 maxPlayers = 0;
-                uint8 role = TANK;
+                uint8 role = 0;
                 for(GroupsList::iterator grpitr = itr->second->groups.begin(); grpitr != itr->second->groups.end(); ++grpitr)
                 {
                     if (!(*grpitr)->HasCorrectLevel(player->getLevel()) // Check level, this is needed only for Classic and BC normal I think...
                         || maxPlayers >= (*grpitr)->GetMembersCount())   // We want group with most players
                         continue;
 
-                     
-                    for(role = TANK, bool correct = false; role <= DAMAGE && !correct; role*=2)
+                    uint8 checkRole = TANK;
+                    bool correct = false;
+                    for(;checkRole <= DAMAGE && !correct; checkRole*=2)
                     {
-                        if (!(player->m_lookingForGroup.roles & role) // Player must have this role
-                            || !(*grpitr)->HasFreeRole(role))        // and role must be free
+                        if (!(player->m_lookingForGroup.roles & checkRole) // Player must have this role
+                            || !(*grpitr)->HasFreeRole(checkRole))        // and role must be free
                             continue;
                         correct = true;
+                        role = checkRole;
                     }
                     if(correct)
                     {
                         maxPlayers = (*grpitr)->GetMembersCount();
                         bigGrp = *grpitr;
-                        into = true;
                     }
                 }
-                if(into)
+                if(role)
                 {
                     LfgLog("Add member - update queue - to party");
                     if(!bigGrp->AddMember(guid, player->GetName()))
@@ -545,16 +545,14 @@ void LfgMgr::UpdateQueues()
                 {
                     LfgGroup *newGroup = new LfgGroup();
                     newGroup->SetDungeonInfo(itr->second->dungeonInfo);
+                    newGroup->SetGroupId(sObjectMgr.GenerateGroupId());
+                    sObjectMgr.AddGroup(newGroup);
                     LfgLog("Add member - update queue - create new party");
                     if (!newGroup->AddMember(guid, player->GetName()))
                     {
                         delete newGroup;
                         continue;
                     }
-                    
-                    newGroup->SetGroupId(sObjectMgr.GenerateGroupId());
-                    sObjectMgr.AddGroup(newGroup);
-
                     for(role = TANK; role <= DAMAGE; role*=2)
                     {
                         if (player->m_lookingForGroup.roles & role)

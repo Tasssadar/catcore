@@ -119,9 +119,9 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
             fclose(arenaLogfile);
         arenaLogfile = NULL;
 
-        if ( lfgLogfile != NULL)
-            fclose(lfgLogfile);
-        lfgLogfile = NULL;
+        if ( lfgLogFile != NULL)
+            fclose(lfgLogFile);
+        lfgLogFile = NULL;
     }
     public:
         void Initialize();

@@ -104,9 +104,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         {
             switch(role)
             {
-                case TANK:   if(!(*grpitr)->GetTank()) return true;
-                case HEALER: if(!(*grpitr)->GetHeal()) return true;
-                case DAMAGE: if((*grpitr)->GetDps()->size() != LFG_DPS_COUNT) return true;
+                case TANK:   if(!m_tank) return true;
+                case HEALER: if(!m_heal) return true;
+                case DAMAGE: if(dps.size() != LFG_DPS_COUNT) return true;
             }
             return false;
         }

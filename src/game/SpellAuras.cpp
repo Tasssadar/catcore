@@ -5342,7 +5342,6 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
                 case 63276:                       // Mark of Faceless
                     target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_HEALTH_LEECH, apply);
                     break;
-                }
             }
             break;
         }

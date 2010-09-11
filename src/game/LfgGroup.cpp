@@ -47,7 +47,6 @@ LfgGroup::LfgGroup(bool premade) : Group()
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
     randomDungeonEntry = 0;
-    m_members.clear();
 }
 LfgGroup::~LfgGroup()
 {
@@ -190,7 +189,7 @@ bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after ch
                 if(group)
                 {
                     sLfgMgr.RemoveFromQueue(plr, false);
-                    return;
+                    return true;
                 }
             }
             for(PlayerList::iterator prm = premadePlayers.begin(); prm != premadePlayers.end(); ++prm)
