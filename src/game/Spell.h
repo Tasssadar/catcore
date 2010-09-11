@@ -223,6 +223,8 @@ enum SpellTargets
     SPELL_TARGETS_FRIENDLY,
     SPELL_TARGETS_AOE_DAMAGE,
     SPELL_TARGETS_ALL
+    SPELL_TARGETS_PLAYERS
+    SPELL_TARGETS_UNITS
 };
 
 #define SPELL_SPELL_CHANNEL_UPDATE_INTERVAL (1*IN_MILLISECONDS)
@@ -768,9 +770,17 @@ namespace MaNGOS
                             if (!i_originalCaster->IsHostileTo( itr->getSource() ))
                                 continue;
                         }
+                        break;
                     }
-                    break;
                     case SPELL_TARGETS_ALL:
+                        break;
+                    case SPELL_TARGETS_PLAYERS:
+                        if (itr->getSource()->GetTypeId() != TYPEID_PLAYER)
+                            continue;
+                        break;
+                    case SPELL_TARGETS_UNITS:
+                        if (itr->getSource()->GetTypeId() != TYPEID_UNIT)
+                            continue;
                         break;
                     default: continue;
                 }
