@@ -358,7 +358,7 @@ struct GameObjectInfo
         {
             uint32 intactNumHits;                           //0
             uint32 damagedHealth;                           //0
-            uint32 creditProxyCreature;                     //1
+            //uint32 creditProxyCreature;                     //1
             uint32 empty1;                                  //2
             uint32 intactEvent;                             //3
             uint32 damagedDisplayId;                        //4

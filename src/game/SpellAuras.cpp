@@ -3093,7 +3093,26 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             break;
         case SPELLFAMILY_SHAMAN:
+        {
+            switch(GetId())
+            {
+                case 6495:                                  // Sentry Totem
+                {
+                    if (target->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    Totem* totem = target->GetTotem(TOTEM_SLOT_AIR);
+
+                    if (totem && apply)
+                        ((Player*)target)->GetCamera().SetView(totem);
+                    else
+                        ((Player*)target)->GetCamera().ResetView(totem);
+
+                    return;
+                }
+            }
             break;
+        }
     }
 
     // pet auras
@@ -4345,6 +4364,15 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             else
                 delete pObj;
         }
+        // Stone Grip
+        if (GetId() == 62056 || GetId() == 63981)
+        {
+            WorldPacket data(12);
+            data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+            data << target->GetPackGUID();
+            data << uint32(0);
+            target->SendMessageToSet(&data, true);
+        }
     }
     else
     {
@@ -4418,6 +4446,15 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
             caster->CastSpell(target,spellInfo,true,NULL,this);
             return;
+        }
+        // Stone Grip
+        if (GetId() == 62056 || GetId() == 63981)
+        {
+            WorldPacket data(12);
+            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+            data << target->GetPackGUID();
+            data << uint32(0);
+            target->SendMessageToSet(&data, true);
         }
     }
 }
@@ -5168,8 +5205,18 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                     if (Unit* pCaster = GetCaster())
                         pCaster->CastSpell(target, GetSpellProto()->EffectTriggerSpell[GetEffIndex()], true, NULL, this);
                 }
-
                 return;
+            case 63024:                                     // Void Zone
+            case 64234:                                     // Void Zone (h)
+            {
+                Unit* caster = GetCaster();
+                if (!caster)
+                    return;
+
+                if (caster->HasAura(65737) || caster->HasAura(64193))
+                    target->CastSpell(target, GetId() == 63024 ? 64203 : 64235, true);
+                return;
+            }
             default:
                 break;
         }
@@ -5256,25 +5303,46 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
     {
         case SPELLFAMILY_GENERIC:
         {
-            if (spell->Id == 62717 ||                       // Slag Pot
-                spell->Id == 63477)                         // Slag Pot(h)
+            switch(spell->Id)
             {
-                Unit *target = GetTarget();
-                if (!target)
-                    return;
-                
-                // leaving vehicle
-                if (!apply)
+                case 62717:                       // Slag Pot
+                case 63477:                       // Slag Pot(h)
                 {
-                    target->ExitVehicle();
-                    if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                    if (apply)
                     {
-                        // cast Slag Imbued on target
-                        target->CastSpell(target, 63536, true);
-                        // TODO: complete achievement part
+                        target->CastSpell(target, 62794, true);
+                        WorldPacket data(12);
+                        data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+                        data << target->GetPackGUID();
+                        data << uint32(0);
+                        target->SendMessageToSet(&data, true);
                     }
-                 }
-
+                    if (!apply)
+                    {
+                        target->RemoveAurasDueToSpell(62794);
+                        WorldPacket data(12);
+                        data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                        data << target->GetPackGUID();
+                        data << uint32(0);
+                        target->SendMessageToSet(&data, true);
+                        target->ExitVehicle();
+                        if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                        {
+                            // cast Slag Imbued on target
+                            target->CastSpell(target, 63536, true);
+                            if (target->GetTypeId() == TYPEID_PLAYER)
+                            {
+                                uint32 AchievementId = spell->Id == 62717 ? 2927 : 2928;
+                                ((Player*)target)->CompletedAchievement(AchievementId);
+                            }
+                        }
+                    }
+                    break;                        
+                }
+                case 63276:                       // Mark of Faceless
+                    target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_HEALTH_LEECH, apply);
+                    break;
+                }
             }
             break;
         }
@@ -7814,7 +7882,12 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                         
             }
         }
+        if (spellProto->Id == 62274)                        // Shield of Runes
+            target->CastSpell(target, 62277, true);
+        else if (spellProto->Id == 63489)                   // Shield of Runes (h)
+            target->CastSpell(target, 63967, true);
     }
+
 }
 
 void Aura::PeriodicTick()
@@ -8707,6 +8780,15 @@ void Aura::PeriodicDummyTick()
                         caster->CastSpell(m_target, 65722, true);
                     else 
                         caster->CastSpell(m_target, 65723, true);
+                    return;
+                }
+                case 64412:                                 // Phase Punch
+                {
+                    if(GetStackAmount() >= 5)
+                    {
+                        target->RemoveAurasDueToSpell(spell->Id);
+                        target->CastSpell(target, 64417, true);
+                    }
                     return;
                 }
 // Exist more after, need add later

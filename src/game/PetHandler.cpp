@@ -99,7 +99,26 @@ void WorldSession::SendPetNameQuery( uint64 petguid, uint32 petnumber)
 {
     Creature* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*_player, petguid);
     if (!pet || !pet->GetCharmInfo() || pet->GetCharmInfo()->GetPetNumber() != petnumber)
+    {
+        std::string name = "NoPetName";
+
+        WorldPacket data(SMSG_PET_NAME_QUERY_RESPONSE, (4+4+name.size()+1));
+        data << uint32(petnumber);
+        data << name.c_str();
+        data << uint32(time(0));
+        data << uint8(0);
+
+        _player->GetSession()->SendPacket(&data);
+
+        // looking for errors
+        if (!pet)
+            sLog.outError("SendPetNameQuery:: Pet not found, not exist or not in world");
+        else if (!pet->GetCharmInfo())
+            sLog.outError("SendPetNameQuery:: Pet CharmInfo() not found");
+        else if (pet->GetCharmInfo()->GetPetNumber() != petnumber)
+            sLog.outError("SendPetNameQuery:: Pet number is not equal to requested petnumber");
         return;
+    }
 
     std::string name = pet->GetName();
 
