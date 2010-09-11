@@ -34,7 +34,7 @@ void Camera::UpdateForCurrentViewPoint()
     UpdateVisibilityForOwner();
 }
 
-void Camera::SetView(WorldObject *obj)
+void Camera::SetView(WorldObject *obj, bool update_far_sight_field /*= true*/)
 {
     ASSERT(obj);
 
