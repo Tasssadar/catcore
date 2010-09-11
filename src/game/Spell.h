@@ -362,6 +362,7 @@ class Spell
         void EffectRestoreItemCharges(SpellEffectIndex eff_idx);
         void EffectTeachTaxiNode(SpellEffectIndex eff_idx);
         void EffectBreakPlayerTargeting(SpellEffectIndex eff_idx);
+        void EffectRedirectThreat(SpellEffectIndex eff_idx);
 
 
         Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );

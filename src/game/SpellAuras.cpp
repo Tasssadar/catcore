@@ -2056,11 +2056,10 @@ void Aura::TriggerSpell()
                 triggerTarget->CastCustomSpell(triggerTarget, trigger_spell_id, &m_modifier.m_amount, NULL, NULL, true, NULL, this);
                 return;
             }
-<<<<<<< HEAD
             // Ground Slam
             case 33525:
                 triggerTarget->CastSpell(triggerTarget, trigger_spell_id, true, NULL, this, casterGUID);
-=======
+                return;
             case 34477:                                     // Misdirection, main spell
             case 57934:                                     // Tricks of the Trade, main spell
             {
@@ -2080,8 +2079,8 @@ void Aura::TriggerSpell()
             case 36730:                                     // Flame Strike
             {
                 target->CastSpell(target, 36731, true, NULL, this);
->>>>>>> aab568b... [10466] Proper reset threat rediraction for existed spells.
                 return;
+            }
             // Rod of Purification - for quest 10839 (Veil Skith: Darkstone of Terokk)
             case 38736:
             {
