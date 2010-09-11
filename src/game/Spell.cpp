@@ -2102,8 +2102,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (WorldObject *caster = GetCastingObject())
             {
                 m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
-                if (m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_AREAEFFECT_INSTANT)
-                    FillAreaTargets(targetUnitMap, caster->GetPositionX(), caster->GetPositionY(), radius, PUSH_TARGET_CENTER, SPELL_TARGETS_AOE_DAMAGE);
+                if (m_spellInfo->Id == 63322)
+                    FillAreaTargets(targetUnitMap, caster->GetPositionX(), caster->GetPositionY(), radius, PUSH_TARGET_CENTER, SPELL_TARGETS_NOT_FRIENDLY);
             }
             break;
         }
