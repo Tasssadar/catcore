@@ -348,6 +348,7 @@ class Spell
         void EffectKillCreditPersonal(SpellEffectIndex eff_id);
         void EffectKillCredit(SpellEffectIndex eff_id);
         void EffectQuestFail(SpellEffectIndex eff_id);
+        void EffectQuestStart(SpellEffectIndex eff_idx);
         void EffectActivateRune(SpellEffectIndex eff_id);
         void EffectWMODamage(SpellEffectIndex eff_idx);
         void EffectWMORepair(SpellEffectIndex eff_idx);
