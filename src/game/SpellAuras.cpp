@@ -1420,6 +1420,10 @@ bool Aura::modStackAmount(int32 num)
         return true; // need remove aura
     }
 
+    //Get max duration again, spell may have combo points which makes it longer/shorter
+    if(Unit *caster = GetCaster())
+        m_maxduration = caster->CalculateSpellDuration(m_spellProto, m_effIndex, GetTarget());
+
     // Update stack amount
     SetStackAmount(stackAmount);
     return false;
