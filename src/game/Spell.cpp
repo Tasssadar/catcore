@@ -405,6 +405,10 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
     {
         for(int j = 0; j < MAX_EFFECT_INDEX; ++j)
         {
+            // Shadowflame is somehow bugged :/ let's see if this helps
+            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags2 & 0x00000002)
+                break;
+
             if (m_spellInfo->Effect[j] == 0)
                 continue;
 
