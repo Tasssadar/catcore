@@ -22,6 +22,7 @@
 #include "DBCStructure.h"
 #include "SpellMgr.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 
 HostileRefManager::HostileRefManager( Unit *pOwner ) : iOwner(pOwner), m_redirectionMod(0.0f)
 {
