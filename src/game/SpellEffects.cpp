@@ -3549,6 +3549,9 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "HealthLeech :%i", damage);
 
+    if (m_spellInfo->Id == 63278)
+        m_caster = m_originalCaster;
+
     uint32 curHealth = unitTarget->GetHealth();
     damage = m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, damage );
     if ((int32)curHealth < damage)

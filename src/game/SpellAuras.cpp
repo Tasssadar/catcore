@@ -8757,7 +8757,7 @@ void Aura::PeriodicDummyTick()
                         return;
 
                     int32 bp1 = m_spellProto->CalculateSimpleValue(EFFECT_INDEX_0);
-                    caster->CastCustomSpell(m_target, 63278, 0, &bp1, 0, true);
+                    m_target->CastCustomSpell(m_target, 63278, 0, &bp1, 0, true, 0, 0, caster->GetGUID());
                     return;
                 }
                 case 62717:                                 // Slag Pot
