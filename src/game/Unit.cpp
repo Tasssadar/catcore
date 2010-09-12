@@ -3630,7 +3630,7 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit *pVict
     crit += (int32(GetMaxSkillValueForLevel(pVictim)) - int32(pVictim->GetDefenseSkillValue(this))) * 0.04f;
 
     // freaky hack for Master Poisoner :P (applies aura SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE, but the triggered spell does not exist...)
-    /*AuraList const& auraList = GetAurasByType(SPELL_AURA_MOD_DURATION_OF_EFFECTS_BY_DISPEL);
+    AuraList const& auraList = GetAurasByType(SPELL_AURA_MOD_DURATION_OF_EFFECTS_BY_DISPEL);
     for(AuraList::const_iterator iter = auraList.begin(); iter!=auraList.end(); ++iter)
     {
         if ((*iter)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE && (*iter)->GetSpellProto()->SpellIconID == 1960)
@@ -3641,14 +3641,13 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit *pVict
                 if (itr->second->GetSpellProto()->Dispel == DISPEL_POISON && 
                     itr->second->GetCasterGUID() == GetGUID())
                 {
-                    (*iter)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
-                    crit += itr->second->GetModifier()->m_amount;
+                    crit += (*iter)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
                     break;
                 }
             }
             break;
         }
-    }*/
+    }
     // we need to keep this non-capped by null, because of further calculations in IsSpellCrit()
     return crit;
 }
