@@ -804,15 +804,24 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
                 SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED), missingLevel);
             return;
         }
-        //Remove from lfg
-        if (Group *group = _player->GetGroup())
+        //Lfg teleport
+        Group *group = _player->GetGroup();
+        if (group && group->isLfgGroup() && _player->GetMap()->IsDungeon())
         {
-            if (group->isLfgGroup() && ((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED)
+            WorldLocation teleLoc = _player->m_lookingForGroup.joinLoc;
+            if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
             {
+                _player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
+                _player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
                 _player->RemoveAurasDueToSpell(LFG_BOOST);
-                group->RemoveMember(_player->GetGUID(), 0);
+                _player->TeleportTo(teleLoc);
+                if (((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED)
+                    group->RemoveMember(_player->GetGUID(), 0);
+                return;
             }
         }
+        else if(group && group->isLfgGroup())
+            _player->ScheduleDelayedOperation(DELAYED_LFG_ENTER_DUNGEON);
     }
 
     GetPlayer()->TeleportTo(at->target_mapId, at->target_X, at->target_Y, at->target_Z, at->target_Orientation, TELE_TO_NOT_LEAVE_TRANSPORT);
