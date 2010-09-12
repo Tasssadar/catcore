@@ -1,7 +1,11 @@
 /*
 GUID OVERFLOW FIXER
 =============================================================
- *Changes biggest guids to lower which are free
+ - Changes biggest guids to lower which are free
+ - look at line 36
+
+ For compile use:
+     g++ -o guid $(mysql_config --cflags) guid.cpp $(mysql_config --libs) -g
 
 */
 
@@ -48,8 +52,7 @@ int main()
     MYSQL_ROW row;
     
     std::stringstream file;
-    file << "guidlog_";
-    file << time(NULL);
+    file << "guidlog_" << time(NULL);
     FILE *log = fopen(file.str().c_str(), "a");
 
     char *server = "localhost";
@@ -78,7 +81,6 @@ int main()
     fprintf(log, "\nLOADING GUIDS FROM DB \n ");
     fprintf(log, "============================ \n");
         
-    
     while ((row = mysql_fetch_row(res)) != NULL)
     {
         int a = atoi(row[0]);
@@ -87,9 +89,9 @@ int main()
     mysql_free_result(res);
 
     printf("\nASSEMBLING FREE GUIDS \n ");
-    printf("================================ \n");
+    printf("============================ \n");
     fprintf(log, "\nASSEMBLING FREE GUIDS \n ");
-    fprintf(log, "================================= \n");        
+    fprintf(log, "============================ \n");        
     std::list<long> free;
 
     long lastGuid = *(guids.begin())-1;
@@ -119,9 +121,7 @@ int main()
     {
         printf("\n coze? \n");
         std::stringstream ss;
-        ss << "UPDATE creature SET guid = ";
-        ss << *(free.begin());
-        ss <<  " WHERE guid=0"; 
+        ss << "UPDATE creature SET guid = " << *(free.begin()) <<  " WHERE guid=0"; 
         fprintf(log, "\n %s \n", ss.str().c_str());
         mysql_free_result(res);
         mysql_query(conn, ss.str().c_str());
@@ -129,9 +129,9 @@ int main()
         guids.pop_front();
     } 
     fprintf(log, " \n error %s \n", mysql_error(conn));
-        guids.reverse();
-     bool can = true;
-    int counta = 1;
+    guids.reverse();
+    bool can = true;
+    int counta = 0;
     
     printf("\nCHANGING GUIDS \n ");
     printf("============================ \n");
@@ -147,14 +147,8 @@ int main()
         for(int y = 0; y < 6; ++y)
         {
              std::stringstream ss;
-             ss << "SELECT ";
-             ss << tabulky[y].column;
-             ss << " FROM ";
-             ss << tabulky[y].name;
-             ss << " WHERE ";
-             ss << tabulky[y].column;
-             ss <<  "=";
-             ss << *itr;
+             ss << "SELECT " << tabulky[y].column << " FROM " << tabulky[y].name << " WHERE "
+                 << tabulky[y].column <<  "=" << *itr;
              mysql_query(conn, ss.str().c_str());
              res = mysql_use_result(conn);
              if(!res)
@@ -169,16 +163,8 @@ int main()
                     fprintf(log, "\n edit %s for creature %u", (tabulky[y].name).c_str(), *itr);
                     mysql_free_result(res);
                     std::stringstream sss;
-                    sss << "UPDATE ";
-                    sss << tabulky[y].name;
-                    sss << " SET ";
-                    sss << tabulky[y].column;
-                    sss << "=";
-                    sss << *(free.begin());
-                    sss << " WHERE ";
-                    sss << tabulky[y].column;
-                    sss << "=";
-                    sss << *itr;
+                    sss << "UPDATE " << tabulky[y].name << " SET " << tabulky[y].column << "="
+                        << *(free.begin())<< " WHERE " << tabulky[y].column << "=" << *itr;
                     mysql_query(conn, sss.str().c_str());
                  }
                  else
@@ -193,12 +179,8 @@ int main()
         if(!can)
             continue;
         std::stringstream ss;
-        ss << "UPDATE creature SET guid = ";
-        ss << *(free.begin());
-        ss << " WHERE guid =  ";
-        ss << *itr;
+        ss << "UPDATE creature SET guid = " << *(free.begin()) << " WHERE guid =  " << *itr;
         fprintf(log, "\n \n %s", ss.str().c_str());
-        
         
         mysql_query(conn, ss.str().c_str()); 
 
@@ -221,5 +203,6 @@ int main()
     mysql_free_result(res);
     mysql_close(conn);
     fclose(log);
+    return 0;
 }
 
