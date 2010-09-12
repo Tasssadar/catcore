@@ -360,6 +360,7 @@ class Spell
         void EffectCastButtons(SpellEffectIndex eff_id);
         void EffectBind(SpellEffectIndex eff_idx);
         void EffectRestoreItemCharges(SpellEffectIndex eff_idx);
+        void EffectRemoveAura(SpellEffectIndex eff_idx);
         void EffectTeachTaxiNode(SpellEffectIndex eff_idx);
         void EffectBreakPlayerTargeting(SpellEffectIndex eff_idx);
         void EffectRedirectThreat(SpellEffectIndex eff_idx);
