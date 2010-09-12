@@ -3075,11 +3075,11 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
         }
         case TARGET_BEHIND_VICTIM:
         {
-            Unit *pTarget = NULL;
+            Unit* pTarget = NULL;
 
             // explicit cast data from client or server-side cast
             // some spell at client send caster
-            if (m_targets.getUnitTarget() && m_targets.getUnitTarget()!=unitTarget)
+            if (m_targets.getUnitTarget() && m_targets.getUnitTarget()/*!=unitTarget*/)
                 pTarget = m_targets.getUnitTarget();
             else if (unitTarget->getVictim())
                 pTarget = unitTarget->getVictim();
@@ -3091,7 +3091,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
             float y = m_targets.m_destY;
             float z = m_targets.m_destZ;
             float orientation = pTarget ? pTarget->GetOrientation() : unitTarget->GetOrientation();
-            unitTarget->NearTeleportTo(x,y,z,orientation,unitTarget==m_caster);
+            m_caster->NearTeleportTo(x,y,z,orientation,unitTarget==m_caster);
             return;
         }
         default:
