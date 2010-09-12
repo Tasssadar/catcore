@@ -2674,7 +2674,7 @@ void Unit::CalculateHealAbsorb(const uint32 heal, uint32 *absorb)
 
         // Reduce aura amount
         mod->m_amount -= currentAbsorb;
-        if ((*i)->GetHolder()->DropAuraCharge())
+        if ((*i)->modStackAmount(-1))
             mod->m_amount = 0;
         // Need remove it later
         if (mod->m_amount<=0)
@@ -7802,7 +7802,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 // 1 dummy aura for dismiss rune blade
                 if (effIndex != EFFECT_INDEX_1)
                     return false;
-				
+                
                 Pet* runeBlade = FindGuardianWithEntry(27893);
                 if (!runeBlade)
                     return false;
@@ -10356,7 +10356,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
         } 
     }
     // .. taken pct: SPELL_AURA_284 
-    AuraList const& mAuraListAura284 = GetAurasByType(SPELL_AURA_284); 
+    AuraList const& mAuraListAura284 = GetAurasByType(SPELL_AURA_LINKED); 
     for(AuraList::const_iterator i = mAuraListAura284.begin(); i != mAuraListAura284.end(); ++i) 
     { 
         // Crypt Fever and Ebon Plague 
@@ -11461,7 +11461,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     } 
  
     // .. taken (SPELL_AURA_284) 
-    AuraList const& mAuraListAura284 = GetAurasByType(SPELL_AURA_284); 
+    AuraList const& mAuraListAura284 = GetAurasByType(SPELL_AURA_LINKED); 
     for(AuraList::const_iterator i = mAuraListAura284.begin(); i != mAuraListAura284.end(); ++i) 
     { 
         // Crypt Fever and Ebon Plague 

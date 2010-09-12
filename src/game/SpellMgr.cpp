@@ -1893,6 +1893,12 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if((spellInfo_2->Id == 64883 && spellInfo_1->Id == 65182) ||
                        (spellInfo_1->Id == 64883 && spellInfo_2->Id == 65182) )
                         return false;
+
+                    if (spellInfo_1->SpellIconID == 2920 && spellInfo_2->Id == 62532)
+                    {
+                        error_log("vlezlo to sem");
+                        return true;
+                    }
                     break;
                 }
                 case SPELLFAMILY_MAGE:

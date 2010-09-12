@@ -187,7 +187,7 @@ void HostileRefManager::setOnlineOfflineState(Unit *pCreature,bool pIsOnline)
 
 Unit* HostileRefManager::GetThreatRedirectionTarget() const
 {
-    return !m_redirectionTargetGuid.IsEmpty() ? iOwner->GetMap()->GetUnit(m_redirectionTargetGuid) : NULL;
+    return !m_redirectionTargetGuid.IsEmpty() ? ObjectAccessor::GetUnit((*iOwner), m_redirectionTargetGuid) : NULL;
 }
 
 
