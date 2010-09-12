@@ -5696,7 +5696,6 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
     {
         if(m_modifier.m_miscvalue & int32(1<<x))
         {
-            GetTarget()->HandleStatModifier(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_VALUE, float(m_modifier.m_amount), apply);
             float current = m_target->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), NONSTACKING_VALUE);
             float temp = 0;
 
@@ -5723,7 +5722,6 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
         }
     }
 }
-
 void Aura::HandleAuraModResistance(bool apply, bool /*Real*/)
 {
     for(int8 x = SPELL_SCHOOL_NORMAL; x < MAX_SPELL_SCHOOL;x++)
