@@ -4401,6 +4401,11 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
     uint32 dispel_type = m_spellInfo->EffectMiscValue[eff_idx];
     uint32 dispelMask  = GetDispellMask( DispelType(dispel_type) );
     Unit::AuraMap const& auras = unitTarget->GetAuras();
+
+    //Unholy Blight
+    if(dispel_type == DISPEL_DISEASE && unitTarget->HasAura(50536))
+        return;
+
     for(Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
     {
         Aura *aur = (*itr).second;
@@ -4419,6 +4424,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 if (positive == unitTarget->IsFriendlyTo(m_caster))
                     continue;
             }
+
             // Add aura to dispel list (all stack cases)
             for(int k = 0; k < aur->GetStackAmount(); ++k)
                 dispel_list.push_back(aur);
