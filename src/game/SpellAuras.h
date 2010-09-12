@@ -121,6 +121,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraModResistance(bool Apply, bool Real);
         void HandleAuraModRoot(bool Apply, bool Real);
         void HandleAuraModSilence(bool Apply, bool Real);
+        void HandleAuraModReflectSpells(bool Apply, bool Real);
         void HandleAuraModStat(bool Apply, bool Real);
         void HandleAuraModIncreaseSpeed(bool Apply, bool Real);
         void HandleAuraModIncreaseMountedSpeed(bool Apply, bool Real);
@@ -222,6 +223,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleIgnoreUnitState(bool Apply, bool Real);
         void HandleModTargetArmorPct(bool Apply, bool Real);
         void HandleAuraModAllCritChance(bool Apply, bool Real);
+        void HandleAuraLinked(bool Apply, bool Real);
         void HandleAllowOnlyAbility(bool Apply, bool Real);
         void HandleAuraInitializeImages(bool Apply, bool Real);
         void HandleAuraCloneCaster(bool Apply, bool Real);
@@ -334,6 +336,7 @@ class MANGOS_DLL_SPEC Aura
         bool IsRemovedOnShapeLost() const { return m_isRemovedOnShapeLost; }
         bool IsInUse() const { return m_in_use;}
         bool IsDeleted() const { return m_deleted;}
+        bool IsStacking() const { return m_stacking;}
 
         void SetInUse(bool state)
         {
@@ -429,6 +432,7 @@ class MANGOS_DLL_SPEC Aura
         bool m_isRemovedOnShapeLost:1;
         bool m_deleted:1;                                   // true if RemoveAura(iterator) called while in Aura::ApplyModifier call (added to Unit::m_deletedAuras)
         bool m_isSingleTargetAura:1;                        // true if it's a single target spell and registered at caster - can change at spell steal for example
+        bool m_stacking:1;                                  // Aura is not overwritten, but effects are not cumulative with similar effects
 
         uint32 m_in_use;                                    // > 0 while in Aura::ApplyModifier call/Aura::Update/etc
     private:

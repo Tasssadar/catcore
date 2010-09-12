@@ -348,6 +348,7 @@ class Spell
         void EffectKillCreditPersonal(SpellEffectIndex eff_id);
         void EffectKillCredit(SpellEffectIndex eff_id);
         void EffectQuestFail(SpellEffectIndex eff_id);
+        void EffectQuestStart(SpellEffectIndex eff_idx);
         void EffectActivateRune(SpellEffectIndex eff_id);
         void EffectWMODamage(SpellEffectIndex eff_idx);
         void EffectWMORepair(SpellEffectIndex eff_idx);
@@ -360,8 +361,10 @@ class Spell
         void EffectCastButtons(SpellEffectIndex eff_id);
         void EffectBind(SpellEffectIndex eff_idx);
         void EffectRestoreItemCharges(SpellEffectIndex eff_idx);
+        void EffectRemoveAura(SpellEffectIndex eff_idx);
         void EffectTeachTaxiNode(SpellEffectIndex eff_idx);
         void EffectBreakPlayerTargeting(SpellEffectIndex eff_idx);
+        void EffectRedirectThreat(SpellEffectIndex eff_idx);
 
 
         Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );

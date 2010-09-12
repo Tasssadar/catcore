@@ -50,6 +50,7 @@ LfgGroup::LfgGroup(bool premade) : Group()
 }
 LfgGroup::~LfgGroup()
 {
+    sLfgMgr.LfgLog("group %u delete", GetId());
     sObjectMgr.RemoveGroup(this);
 }
 
@@ -85,7 +86,7 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     
     if (GetMembersCount() == 0)
         m_baseLevel = player->getLevel();
-    error_log("Add member %u , guid %u", GetId(), guid);
+    sLfgMgr.LfgLog("Add member %u , guid %u", GetId(), guid);
     MemberSlot member;
     member.guid      = guid;
     member.name      = name;
@@ -108,7 +109,7 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
 
         m_memberSlots.erase(slot);
     }
-    error_log("Remove member %u , guid %u", GetId(), guid);
+    sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
     if (Player *player = sObjectMgr.GetPlayer(guid))
     {
         player->m_lookingForGroup.groups.erase(m_dungeonInfo->ID);
@@ -154,34 +155,57 @@ uint8 LfgGroup::GetPlayerRole(uint64 guid, bool withLeader, bool joinedAs) const
 
 bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after check
 {
-    error_log("Remove Offline %u", GetId());
+    sLfgMgr.LfgLog("Remove Offline %u", GetId());
     if (m_memberSlots.empty())
     {
-        error_log("Group %u add to delete", GetId());
+        sLfgMgr.LfgLog("Group %u add to delete", GetId());
         sLfgMgr.AddGroupToDelete(this);
         return true;
     }
     PlayerList toRemove;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
-         error_log("guid %u", citr->guid);
+        sLfgMgr.LfgLog("guid %u", citr->guid);
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
-        if ((!plr || (!plr->GetSession() && !plr->IsBeingTeleported())) && premadePlayers.find(citr->guid) == premadePlayers.end())
+        if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()))
         {
-            error_log("Add to remove");
+            sLfgMgr.LfgLog("Add to remove");
             toRemove.insert(citr->guid);
         }
     }
     for(PlayerList::iterator itr = toRemove.begin(); itr != toRemove.end(); ++itr)
     {
-        error_log("Remove %u", *itr);
+        sLfgMgr.LfgLog("Check for premade %u", *itr);
+        PlayerList::iterator premade = premadePlayers.find(*itr);
+        if(premade != premadePlayers.end())
+        {
+            sLfgMgr.LfgLog("premade yes");
+            for(PlayerList::iterator prm = premadePlayers.begin(); prm != premadePlayers.end(); ++prm)
+            {
+                Player *plr = sObjectMgr.GetPlayer(*prm);
+                if(!plr || !plr->GetSession())
+                    continue;
+                Group* group = plr->GetGroup();
+                if(group)
+                {
+                    sLfgMgr.RemoveFromQueue(plr, false);
+                    return true;
+                }
+            }
+            for(PlayerList::iterator prm = premadePlayers.begin(); prm != premadePlayers.end(); ++prm)
+                RemoveMember(*prm, 0);
+        }
+    }
+    for(PlayerList::iterator itr = toRemove.begin(); itr != toRemove.end(); ++itr)
+    {
+        sLfgMgr.LfgLog("Remove %u", *itr);
         RemoveMember(*itr, 0);
     }
     toRemove.clear();
     //flush empty group
     if (GetMembersCount() == 0)
     {
-        error_log("Group %u add to delete 2", GetId());
+        sLfgMgr.LfgLog("Group %u add to delete 2", GetId());
         sLfgMgr.AddGroupToDelete(this);
         return true;
     }
@@ -255,62 +279,10 @@ void LfgGroup::TeleportToDungeon()
         return;
     }
     //If random, then select here
-    uint32 originalDungeonId = m_dungeonInfo->ID;
-    if (m_dungeonInfo->type == LFG_TYPE_RANDOM)
-    {
-        randomDungeonEntry = m_dungeonInfo->Entry();
-        m_isRandom = true;
-        LfgLocksMap *groupLocks = GetLocksList();
-        std::vector<LFGDungeonEntry const*> options;
-        options.clear();
-        LFGDungeonEntry const *currentRow = NULL;
-        //Possible dungeons
-        for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
-        {
-            currentRow = sLFGDungeonStore.LookupEntry(i);
-            if (!currentRow)
-                continue;
-            if (currentRow->type != LFG_TYPE_RANDOM && currentRow->grouptype == m_dungeonInfo->grouptype)
-                options.push_back(currentRow);
-        }
-        //And now get only without locks
-        for(LfgLocksMap::iterator itr = groupLocks->begin(); itr != groupLocks->end(); ++itr)
-        {
-            for(LfgLocksList::iterator itr2 = itr->second->begin(); itr2 != itr->second->end(); ++itr2)
-            {
-                for(std::vector<LFGDungeonEntry const*>::iterator itrDung = options.begin(); itrDung != options.end(); ++itrDung)
-                {
-                    if ((*itrDung)->ID != (*itr2)->dungeonInfo->ID)
-                        continue;
-                    DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo((*itr2)->dungeonInfo->ID);
-                    if (dungeonInfo->locked || (*itr2)->lockType != LFG_LOCKSTATUS_RAID_LOCKED)
-                    {
-                        options.erase(itrDung);
-                        break;
-                    }                   
-                }
-            }
-        }
-        //This should not happen
-        if (options.empty())
-        {
-            for(member_witerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
-            {
-                Player *plr = sObjectMgr.GetPlayer(itr->guid);
-                if (!plr)
-                    continue;
-                sLfgMgr.SendLfgUpdatePlayer(plr, LFG_UPDATETYPE_GROUP_DISBAND);
-                sLog.outError("LfgMgr: Cannot find any random dungeons for player %s", plr->GetName());
-                plr->GetSession()->SendNotification("Cannot find any random dungeons for this group, you have to find new group. We are sorry");
-                RemoveMember(plr->GetGUID(), 0);
-            }
-            sLfgMgr.AddGroupToDelete(this);
-            return;
-        }
-        //Select dungeon, there should be also bind check
-        uint32 tmp = urand(0, options.size()-1);
-        m_dungeonInfo = options[tmp];
-    }
+    if (m_dungeonInfo->type == LFG_TYPE_RANDOM && !SelectRandomDungeon())
+        return;
+
+    uint32 originalDungeonId = m_isRandom ? (randomDungeonEntry & 0x00FFFFFF) : m_dungeonInfo->ID;
 
     DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
     //Set Leader
@@ -365,38 +337,10 @@ void LfgGroup::TeleportToDungeon()
     m_inDungeon = true;
 }
 
-void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId)
+void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId, bool newPlr)
 {
-    if (m_inDungeon && premadePlayers.find(plr->GetGUID()) != premadePlayers.end())
+    if(newPlr)
     {
-        for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
-        {
-            Player *player = itr->getSource();
-            if (!player)
-                continue;
-            if (player->GetMapId() == GetDungeonInfo()->map)
-            {
-                WorldLocation loc;
-                player->GetPosition(loc);
-                plr->TeleportTo(loc);
-                return;
-            }
-        }
-        plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
-            dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
-    }
-    else
-    {
-        for(GroupMap::iterator itr = plr->m_lookingForGroup.groups.begin(); itr != plr->m_lookingForGroup.groups.end(); ++itr)
-        {
-            if (itr->first != originalDungeonId)
-            {
-                itr->second->RemoveMember(plr->GetGUID(), 0);
-                if (itr->second->GetMembersCount() == 0)
-                    sLfgMgr.AddGroupToDelete(itr->second);
-            }
-        }
-
         if (Group *group = plr->GetGroup())
         {
             if (!group->isLfgGroup())
@@ -421,43 +365,50 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         }
         plr->SetGroup(this, 0);
         plr->SetGroupInvite(NULL);
-    }
 
-    uint32 taxi_start = 0;
-    uint32 taxi_end = 0;
-    uint32 mount_spell = 0;
-    WorldLocation joinLoc;
-    if (!plr->m_taxi.empty())
-    {
-       taxi_start = plr->m_taxi.GetTaxiSource();
-       taxi_end = plr->m_taxi.GetTaxiDestination();
-       joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
-    }
-    else
-    {
-        // Mount spell id storing
-        if (plr->IsMounted())
+        uint32 taxi_start = 0;
+        uint32 taxi_end = 0;
+        uint32 mount_spell = 0;
+        WorldLocation joinLoc;
+        if (!plr->m_taxi.empty())
         {
-            Unit::AuraList const& auras = plr->GetAurasByType(SPELL_AURA_MOUNTED);
-            if (!auras.empty())
-                mount_spell = (*auras.begin())->GetId();
+           taxi_start = plr->m_taxi.GetTaxiSource();
+           taxi_end = plr->m_taxi.GetTaxiDestination();
+           joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
         }
-        //Nearest graveyard if in dungeon
-        if (plr->GetMap()->IsDungeon())
+        else
         {
-            if (const WorldSafeLocsEntry* entry = sObjectMgr.GetClosestGraveYard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId(), plr->GetTeam()))
-                joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.0f);
+            // Mount spell id storing
+            if (plr->IsMounted())
+            {
+                Unit::AuraList const& auras = plr->GetAurasByType(SPELL_AURA_MOUNTED);
+                if (!auras.empty())
+                    mount_spell = (*auras.begin())->GetId();
+            }
+            //Nearest graveyard if in dungeon
+            if (plr->GetMap()->IsDungeon())
+            {
+                if (const WorldSafeLocsEntry* entry = sObjectMgr.GetClosestGraveYard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId(), plr->GetTeam()))
+                    joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.0f);
+                else
+                    joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+            }
             else
                 joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
         }
-        else
-            joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+        CharacterDatabase.PExecute("DELETE FROM group_member WHERE memberGuid='%u'", GUID_LOPART(plr->GetGUID()));
+        CharacterDatabase.PExecute("INSERT INTO group_member(groupId,memberGuid,assistant,subgroup,lfg_join_x,lfg_join_y,lfg_join_z,lfg_join_o,lfg_join_map,taxi_start,taxi_end,mount_spell) "
+            "VALUES('%u','%u','%u','%u','%f','%f','%f','%f','%u','%u','%u','%u')",
+            m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.coord_x, joinLoc.coord_y, joinLoc.coord_z, joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
+        
+        //Set info to player
+        plr->m_lookingForGroup.joinLoc = joinLoc;
+        plr->m_lookingForGroup.taxi_start = taxi_start;
+        plr->m_lookingForGroup.taxi_end = taxi_end;
+        plr->m_lookingForGroup.mount_spell = mount_spell;
+        plr->m_lookingForGroup.queuedDungeons.clear();
+        plr->m_lookingForGroup.roles = GetPlayerRole(plr->GetGUID());
     }
-    //Set info to player
-    plr->m_lookingForGroup.joinLoc = joinLoc;
-    plr->m_lookingForGroup.taxi_start = taxi_start;
-    plr->m_lookingForGroup.taxi_end = taxi_end;
-    plr->m_lookingForGroup.mount_spell = mount_spell;
 
     // resurrect the player
     if (!plr->isAlive())
@@ -472,15 +423,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         plr->GetMotionMaster()->Clear(false, true);
         plr->m_taxi.ClearTaxiDestinations();
     }
-    CharacterDatabase.PExecute("DELETE FROM group_member WHERE memberGuid='%u'", GUID_LOPART(plr->GetGUID()));
-    CharacterDatabase.PExecute("INSERT INTO group_member(groupId,memberGuid,assistant,subgroup,lfg_join_x,lfg_join_y,lfg_join_z,lfg_join_o,lfg_join_map,taxi_start,taxi_end,mount_spell) "
-        "VALUES('%u','%u','%u','%u','%f','%f','%f','%f','%u','%u','%u','%u')",
-        m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.coord_x, joinLoc.coord_y, joinLoc.coord_z, joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
-
-    //TELEPORT
-    LfgDungeonList *queuedList = &plr->m_lookingForGroup.queuedDungeons;
-    queuedList->clear();
-    plr->m_lookingForGroup.roles = GetPlayerRole(plr->GetGUID());
+    
     plr->ScheduleDelayedOperation(DELAYED_LFG_ENTER_DUNGEON);
     plr->ScheduleDelayedOperation(DELAYED_SAVE_PLAYER);
     if (!m_inDungeon)
@@ -506,6 +449,62 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
             dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
     }
+}
+
+bool LfgGroup::SelectRandomDungeon()
+{
+    randomDungeonEntry = m_dungeonInfo->Entry();
+    m_isRandom = true;
+    LfgLocksMap *groupLocks = GetLocksList();
+    std::vector<LFGDungeonEntry const*> options;
+    LFGDungeonEntry const *currentRow = NULL;
+    //Possible dungeons
+    for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
+    {
+        currentRow = sLFGDungeonStore.LookupEntry(i);
+        if (!currentRow)
+            continue;
+        if (currentRow->type != LFG_TYPE_RANDOM && currentRow->grouptype == m_dungeonInfo->grouptype)
+            options.push_back(currentRow);
+    }
+    //And now get only without locks
+    for(LfgLocksMap::iterator itr = groupLocks->begin(); itr != groupLocks->end(); ++itr)
+    {
+        for(LfgLocksList::iterator itr2 = itr->second->begin(); itr2 != itr->second->end(); ++itr2)
+        {
+            for(std::vector<LFGDungeonEntry const*>::iterator itrDung = options.begin(); itrDung != options.end(); ++itrDung)
+            {
+                if ((*itrDung)->ID != (*itr2)->dungeonInfo->ID)
+                    continue;
+                DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo((*itr2)->dungeonInfo->ID);
+                if (dungeonInfo->locked || (*itr2)->lockType != LFG_LOCKSTATUS_RAID_LOCKED)
+                {
+                    options.erase(itrDung);
+                    break;
+                }                   
+            }
+        }
+    }
+    //This should not happen
+    if (options.empty())
+    {
+        for(member_witerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
+        {
+            Player *plr = sObjectMgr.GetPlayer(itr->guid);
+            if (!plr)
+                continue;
+            sLfgMgr.SendLfgUpdatePlayer(plr, LFG_UPDATETYPE_GROUP_DISBAND);
+            sLog.outError("LfgMgr: Cannot find any random dungeons for player %s", plr->GetName());
+            plr->GetSession()->SendNotification("Cannot find any random dungeons for this group, you have to find new group. We are sorry");
+            RemoveMember(plr->GetGUID(), 0);
+        }
+        sLfgMgr.AddGroupToDelete(this);
+        return false;
+    }
+    //Select dungeon, there should be also bind check
+    uint32 tmp = urand(0, options.size()-1);
+    m_dungeonInfo = options[tmp];
+    return true;
 }
 
 bool LfgGroup::HasCorrectLevel(uint8 level)
@@ -712,7 +711,7 @@ void LfgGroup::SendProposalUpdate(uint8 state)
         {
             if (Player *plr2 = sObjectMgr.GetPlayer(citr->guid))
             {
-                //error_log("Player %s", plr2->GetName());
+                //sLfgMgr.LfgLog("Player %s", plr2->GetName());
                 uint8 roles = GetPlayerRole(plr2->GetGUID());
                 //Something got wrong
                 if (roles < 2)
@@ -883,6 +882,10 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
 
     LfgDungeonList *queued = &leader->m_lookingForGroup.queuedDungeons;
 
+    m_tank = TankOnly;
+    m_heal = HealOnly;
+    dps = dpsOnly;
+
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *player = sObjectMgr.GetPlayer(citr->guid);
@@ -898,15 +901,15 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
             player->GetSession()->SendPacket(&data);
         }
         else
+        {
+            player->m_lookingForGroup.roles = GetPlayerRole(player->GetGUID());
+            player->m_lookingForGroup.comment = "";
+            player->m_lookingForGroup.joinTime = getMSTime();
             player->m_lookingForGroup.queuedDungeons = *queued;
+        }
         if (m_inDungeon)
             premadePlayers.insert(player->GetGUID());
-
     } 
-    m_tank = TankOnly;
-    m_heal = HealOnly;
-    dps = dpsOnly;
-
     sLfgMgr.AddCheckedGroup(this, true);
 }
 
@@ -1041,6 +1044,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
     {
         
         Player *victim = sObjectMgr.GetPlayer(m_voteToKick.victim);
+         sLfgMgr.LfgLog("Remove member - afk rolecheck");
         RemoveMember(m_voteToKick.victim, 1);
         if (victim && victim->GetSession())
         {
@@ -1096,3 +1100,4 @@ void LfgGroup::SendBootPlayer(Player *plr)
 
     plr->GetSession()->SendPacket(&data);
 }
+

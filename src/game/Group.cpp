@@ -309,9 +309,6 @@ bool Group::AddMember(const uint64 &guid, const char* name)
         // quest related GO state dependent from raid membership
         if (isRaidGroup())
             player->UpdateForQuestWorldObjects();
-
-        //Remove player from LFG
-        sLfgMgr.RemovePlayer(player);
     }
 
     return true;
@@ -1173,7 +1170,8 @@ bool Group::_removeMember(const uint64 &guid)
     if (player)
     {
         //Remove player from LFG
-        sLfgMgr.RemovePlayer(player);
+        if (!player->m_lookingForGroup.queuedDungeons.empty())
+            sLfgMgr.RemoveFromQueue(player);
         if (isLfgGroup() && ((LfgGroup*)this)->IsInDungeon())
         {
             if (!player->isAlive())

@@ -370,6 +370,7 @@ GmLogTimestamp = 0
 GmLogPerAccount = 0
 RaLogFile = ""
 ArenaRatedLogFile = "Arena.log"
+LfgLogFile = "LfgLog.log"
 LogColors = ""
 
 ###################################################################################################################
@@ -1462,11 +1463,16 @@ Arena.LoserHalfChange = 0
 #         Time between two queue updates in MS
 #         Default: 180000
 #
+#    Lfg.Log
+#         Enable or disable LFG debug log
+#         Default: false
+#
 ###################################################################################################################
 
 Lfg.AllowJoin = 1
 Lfg.ImmidiateQueueUpdate = 1
 Lfg.QueueUpdateTime = 180000
+Lfg.Log = false
 
 ###################################################################################################################
 # NETWORK CONFIG

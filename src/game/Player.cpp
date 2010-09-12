@@ -966,9 +966,9 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     uint32 absorb = 0;
     uint32 resist = 0;
     if (type == DAMAGE_LAVA)
-        CalculateAbsorbAndResist(this, SPELL_SCHOOL_MASK_FIRE, DIRECT_DAMAGE, damage, &absorb, &resist);
+        CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_FIRE, DIRECT_DAMAGE, damage, &absorb, &resist);
     else if (type == DAMAGE_SLIME)
-        CalculateAbsorbAndResist(this, SPELL_SCHOOL_MASK_NATURE, DIRECT_DAMAGE, damage, &absorb, &resist);
+        CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_NATURE, DIRECT_DAMAGE, damage, &absorb, &resist);
 
     damage-=absorb+resist;
 
@@ -4834,7 +4834,7 @@ void Player::RepopAtGraveyard()
     AreaTableEntry const *zone = GetAreaEntryByAreaID(GetAreaId());
 
     // Such zones are considered unreachable as a ghost and the player must be automatically revived
-    if ((!isAlive() && zone && zone->flags & AREA_FLAG_NEED_FLY) || GetTransport())
+    if ((!isAlive() && zone && zone->flags & AREA_FLAG_NEED_FLY) || GetTransport() || GetPositionZ() < -500.0f)
     {
         ResurrectPlayer(0.5f);
         SpawnCorpseBones();
@@ -19654,6 +19654,46 @@ void Player::UpdatePotionCooldown(Spell* spell)
         SendCooldownEvent(spell->m_spellInfo,m_lastPotionId,spell);
 
     m_lastPotionId = 0;
+}
+
+bool Player::HasGlobalCooldown(SpellEntry const* spellInfo) const
+{
+    GlobalCooldowns::const_iterator itr = m_globalCooldowns.find(spellInfo->StartRecoveryCategory);
+    return itr != m_globalCooldowns.end() && itr->second > getMSTime();
+}
+
+uint32 Player::GetGlobalCooldownDelay(SpellEntry const* spellInfo) const
+{
+    GlobalCooldowns::const_iterator itr = m_globalCooldowns.find(spellInfo->StartRecoveryCategory);
+    if (itr == m_globalCooldowns.end())
+        return 0;
+    uint32 t = getMSTime();
+    return itr->second > t ? itr->second - t : 0;
+}
+
+void Player::AddGlobalCooldown(SpellEntry const* spellInfo)
+{
+    int32 gcd = spellInfo->StartRecoveryTime;
+    if (gcd)
+    {
+        // gcd modifier auras
+        ApplySpellMod(spellInfo->Id, SPELLMOD_CASTING_TIME_OLD, gcd);
+        // apply haste rating
+        gcd = int32(float(gcd) * GetFloatValue(UNIT_MOD_CAST_SPEED));
+        if (gcd < 0)
+            gcd = 0;
+        // substract player latency from total time
+        int32 latency = GetSession()->GetLatency();
+        if (latency < gcd)
+            gcd -= latency;
+        else
+        {
+            sLog.outError("Player::AddGlobalCooldown: Player %s (guid: %u, account %u) has latency of %u ms that invalidates GCD check for spell %u (%u ms)",
+               GetName(), GetGUIDLow(), GetSession()->GetAccountId(), latency, spellInfo->Id, gcd);
+            gcd = 0;
+        }
+    }
+    m_globalCooldowns[spellInfo->StartRecoveryCategory] = gcd + getMSTime();
 }
 
                                                            //slot to be excluded while counting

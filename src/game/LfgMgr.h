@@ -288,10 +288,24 @@ class MANGOS_DLL_SPEC LfgMgr
 
         bool IsPlayerInQueue(uint64 guid, uint32 id);
 
+        void LfgLog( const char * err, ...)
+        {
+            if(!log)
+                return;
+            char buf[256];
+            va_list ap;
+            va_start(ap, err);
+            vsnprintf(buf,256, err, ap);
+            va_end(ap);
+            sLog.outLfgLog("%s", buf);
+        }
+
     private:
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueues();
         void UpdateFormedGroups();
+
+        bool log;
 
         LfgRewardList m_rewardsList;
         DungeonInfoMap m_dungeonInfoMap;       

@@ -100,6 +100,16 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint64 GetTank() const { return m_tank; };
         uint64 GetHeal() const { return m_heal; };
         PlayerList *GetDps() { return &dps; };
+        bool HasFreeRole(uint8 role)
+        {
+            switch(role)
+            {
+                case TANK:   if(!m_tank) return true;
+                case HEALER: if(!m_heal) return true;
+                case DAMAGE: if(dps.size() != LFG_DPS_COUNT) return true;
+            }
+            return false;
+        }
         ProposalAnswersMap *GetProposalAnswers() { return &m_answers; }
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
         void UpdateRoleCheck(uint32 diff = 0);
@@ -108,6 +118,15 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SetTank(uint64 tank) { m_tank = tank; }
         void SetHeal(uint64 heal) { m_heal = heal; }
         void SetLeader(uint64 guid) { _setLeader(guid); }
+        void SetAsRole(uint8 role, uint64 guid)
+        {
+            switch(role)
+            {
+                case TANK:   SetTank(guid); break;
+                case HEALER: SetHeal(guid); break;
+                case DAMAGE: dps.insert(guid); break;
+            }
+        }
 
         void SetDungeonInfo(LFGDungeonEntry const *dungeonInfo) { m_dungeonInfo = dungeonInfo; }
         LFGDungeonEntry const *GetDungeonInfo() { return m_dungeonInfo; }
@@ -116,7 +135,8 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool RemoveOfflinePlayers();
         bool UpdateCheckTimer(uint32 time);
         void TeleportToDungeon();
-        void TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId = 0);
+        void TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId = 0, bool newPlr = true);
+        bool SelectRandomDungeon();
         bool HasCorrectLevel(uint8 level);
         bool IsInDungeon() const { return m_inDungeon; }
         void SetInstanceStatus(uint8 status) { m_instanceStatus = status; }
@@ -129,7 +149,6 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendBootPlayer(Player *plr);
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
-        
     private:
         //ACE_Thread_Mutex m_queueLock;
 

@@ -72,7 +72,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         }    
     }
     //TODO: Implement this
-    else if (count > 1 && _player->GetGroup())
+    else if (count > 1)
         error = LFG_JOIN_DUNGEON_INVALID;
 
     if (error != LFG_JOIN_OK)
@@ -219,7 +219,7 @@ void WorldSession::HandleLfgTeleport(WorldPacket& recv_data)
         {
             if (!group->isLfgGroup() || !((LfgGroup*)group)->GetDungeonInfo())
                 return;
-            ((LfgGroup*)group)->TeleportPlayer(_player, sLfgMgr.GetDungeonInfo(((LfgGroup*)group)->GetDungeonInfo()->ID));
+            ((LfgGroup*)group)->TeleportPlayer(_player, sLfgMgr.GetDungeonInfo(((LfgGroup*)group)->GetDungeonInfo()->ID), 0, false);
         }
         return;
     }

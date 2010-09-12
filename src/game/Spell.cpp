@@ -1071,13 +1071,16 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         else
             procEx |= PROC_EX_NORMAL_HIT;
 
+        uint32 absorb = 0;
+        unitTarget->CalculateHealAbsorb(addhealth, &absorb);
+        addhealth -= absorb;
         // Do triggers for unit (reflect triggers passed on hit phase for correct drop charge)
         if (m_canTrigger && missInfo != SPELL_MISS_REFLECT)
         {
             caster->ProcDamageAndSpell(unitTarget, real_caster ? procAttacker : PROC_FLAG_NONE, procVictim, procEx, addhealth, m_attackType, m_spellInfo);
         }
 
-        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, crit);
+        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, crit, absorb);
 
         if (real_caster)
             unitTarget->getHostileRefManager().threatAssist(real_caster, float(gain) * 0.5f, m_spellInfo);
@@ -2088,6 +2091,29 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 FillRaidOrPartyHealthPriorityTargets(targetUnitMap, m_caster, m_caster, radius, 1, true, false, true);
             else if (m_spellInfo->Id == 54171)              // Divine Storm (healing part) 
                 FillRaidOrPartyHealthPriorityTargets(targetUnitMap, m_caster, m_caster, radius, 3, true, false, true);
+            else if (m_spellInfo->Id == 59725)              // Improved Spell Reflection
+            {
+                if (m_caster->HasAura(23920, EFFECT_INDEX_0) )
+                    m_caster->RemoveAurasDueToSpell(23920);                     // will be replaced by imp. spell refl. aura
+
+                Unit::AuraList const& lDummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                for(Unit::AuraList::const_iterator i = lDummyAuras.begin(); i != lDummyAuras.end(); ++i)
+                {
+                    if((*i)->GetSpellProto()->SpellIconID == 1935)
+                    {
+                        unMaxTargets = (*i)->GetModifier()->m_amount + 1;       // +1 because we are also applying this to the caster
+                        break;
+                    }
+                }
+
+                radius = 20.0f;                                                 // as mentioned in the spell's tooltip (data doesn't appear in dbc)
+
+                FillRaidOrPartyTargets(targetUnitMap, m_caster, m_caster, radius, false, false, true);
+                targetUnitMap.sort(TargetDistanceOrder(m_caster));
+                if (targetUnitMap.size() > unMaxTargets)
+                    targetUnitMap.resize(unMaxTargets);
+                break;
+            }
             else
                 FillRaidOrPartyTargets(targetUnitMap, m_caster, m_caster, radius, true, true, true);
             break;
@@ -2920,6 +2946,10 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
 
         // will show cast bar
         SendSpellStart();
+        // trigger global cooldown
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);
+
     }
     // execute triggered without cast time explicitly in call point
     else if (m_timer == 0)
@@ -3462,8 +3492,12 @@ void Spell::finish(bool ok)
             healAmount = int32(m_healthLeech * healAmount / 100); 
             m_caster->CastCustomSpell(m_caster, 54171, &healAmount, NULL, NULL, true); 
         } 
-        else 
-            m_caster->DealHeal(m_caster, uint32(m_healthLeech), m_spellInfo); 
+        else
+        {
+            uint32 absorb = 0;
+            m_caster->CalculateHealAbsorb(uint32(m_healthLeech), &absorb);
+            m_caster->DealHeal(m_caster, uint32(m_healthLeech) - absorb, m_spellInfo, false, absorb);
+        }
     }
 
     if (IsMeleeAttackResetSpell())
@@ -4476,6 +4510,11 @@ SpellCastResult Spell::CheckCast(bool strict)
         else
             return SPELL_FAILED_NOT_READY;
     }
+    // check global cooldown
+    if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
+        static_cast<Player*>(m_caster)->HasGlobalCooldown(m_spellInfo))
+        return SPELL_FAILED_NOT_READY;
+
 
     // Lock and Load Marker - sets Lock and Load cooldown
     if (m_caster->HasAura(67544) && m_spellInfo->Id == 56453)

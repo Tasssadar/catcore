@@ -190,7 +190,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectProspecting,                              //127 SPELL_EFFECT_PROSPECTING              Prospecting spell
     &Spell::EffectApplyAreaAura,                            //128 SPELL_EFFECT_APPLY_AREA_AURA_FRIEND
     &Spell::EffectApplyAreaAura,                            //129 SPELL_EFFECT_APPLY_AREA_AURA_ENEMY
-    &Spell::EffectNULL,                                     //130 SPELL_EFFECT_REDIRECT_THREAT
+    &Spell::EffectRedirectThreat,                           //130 SPELL_EFFECT_REDIRECT_THREAT
     &Spell::EffectUnused,                                   //131 SPELL_EFFECT_131                      used in some test spells
     &Spell::EffectPlayMusic,                                //132 SPELL_EFFECT_PLAY_MUSIC               sound id in misc value (SoundEntries.dbc)
     &Spell::EffectUnlearnSpecialization,                    //133 SPELL_EFFECT_UNLEARN_SPECIALIZATION   unlearn profession specialization
@@ -210,7 +210,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
     &Spell::EffectNULL,                                     //148 SPELL_EFFECT_148                      single spell: Inflicts Fire damage to an enemy.
     &Spell::EffectCharge2,                                  //149 SPELL_EFFECT_CHARGE2                  swoop
-    &Spell::EffectNULL,                                     //150 SPELL_EFFECT_150                      2 spells in 3.3.2
+    &Spell::EffectQuestStart,                               //150 SPELL_EFFECT_QUEST_START
     &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_152                      summon Refer-a-Friend
     &Spell::EffectNULL,                                     //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
@@ -224,7 +224,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectSpecCount,                                //161 SPELL_EFFECT_TALENT_SPEC_COUNT        second talent spec (learn/revert)
     &Spell::EffectActivateSpec,                             //162 SPELL_EFFECT_TALENT_SPEC_SELECT       activate primary/secondary spec
     &Spell::EffectNULL,                                     //163
-    &Spell::EffectNULL,                                     //164 cancel's some aura...
+    &Spell::EffectRemoveAura,                               //164 SPELL_EFFECT_REMOVE_AURA
 };
 
 void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
@@ -285,7 +285,7 @@ void Spell::EffectEnvironmentalDMG(SpellEffectIndex eff_idx)
     // currently each enemy selected explicitly and self cast damage, we prevent apply self casted spell bonuses/etc
     damage = m_spellInfo->CalculateSimpleValue(eff_idx);
 
-    m_caster->CalculateAbsorbAndResist(m_caster, GetSpellSchoolMask(m_spellInfo), SPELL_DIRECT_DAMAGE, damage, &absorb, &resist);
+    m_caster->CalculateDamageAbsorbAndResist(m_caster, GetSpellSchoolMask(m_spellInfo), SPELL_DIRECT_DAMAGE, damage, &absorb, &resist);
 
     m_caster->SendSpellNonMeleeDamageLog(m_caster, m_spellInfo->Id, damage, GetSpellSchoolMask(m_spellInfo), absorb, resist, false, 0, false);
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
@@ -3509,8 +3509,10 @@ void Spell::EffectHealPct(SpellEffectIndex /*eff_idx*/)
         
         addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, addhealth, HEAL);
         addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
+        uint32 absorb = 0;
+        unitTarget->CalculateHealAbsorb(addhealth, &absorb);
 
-        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo);
+        int32 gain = caster->DealHeal(unitTarget, addhealth - absorb, m_spellInfo, false, absorb);
         unitTarget->getHostileRefManager().threatAssist(m_caster, float(gain) * 0.5f, m_spellInfo);
     }
 }
@@ -3528,7 +3530,10 @@ void Spell::EffectHealMechanical(SpellEffectIndex /*eff_idx*/)
         uint32 addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, damage, HEAL);
         addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
 
-        caster->DealHeal(unitTarget, addhealth, m_spellInfo);
+        uint32 absorb = 0;
+        unitTarget->CalculateHealAbsorb(addhealth, &absorb);
+
+        caster->DealHeal(unitTarget, addhealth, m_spellInfo, false, absorb);
     }
 }
 
@@ -3559,7 +3564,10 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
     {
         heal = m_caster->SpellHealingBonusTaken(m_caster, m_spellInfo, heal, HEAL);
 
-        m_caster->DealHeal(m_caster, heal, m_spellInfo);
+        uint32 absorb = 0;
+        m_caster->CalculateHealAbsorb(heal, &absorb);
+
+        m_caster->DealHeal(m_caster, heal - absorb, m_spellInfo, false, absorb);
     }
 }
 
@@ -5573,7 +5581,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                              ++itr; 
                      }  */
                     Unit::AuraMap& auras = unitTarget->GetAuras();
-                    for(Unit::AuraMap::iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    for(Unit::AuraMap::iterator itr = auras.begin(); itr != auras.end();)
                     {
                         if (itr->second->GetSpellProto()->Dispel == DISPEL_DISEASE && 
                              itr->second->GetCasterGUID() == m_caster->GetGUID())
@@ -8616,6 +8624,12 @@ void Spell::EffectRestoreItemCharges( SpellEffectIndex eff_idx )
     item->RestoreCharges();
 }
 
+void Spell::EffectRedirectThreat(SpellEffectIndex eff_idx)
+{
+    if (unitTarget)
+        m_caster->getHostileRefManager().SetThreatRedirection(unitTarget->GetObjectGuid(), uint32(damage));
+}
+
 void Spell::EffectTeachTaxiNode( SpellEffectIndex eff_idx )
 {
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -8636,6 +8650,28 @@ void Spell::EffectTeachTaxiNode( SpellEffectIndex eff_idx )
         data << uint64( m_caster->GetGUID() );
         data << uint8( 1 );
         player->SendDirectMessage( &data );
+    }
+}
+
+void Spell::EffectRemoveAura(SpellEffectIndex eff_idx)
+{
+    if (unitTarget)
+        return;
+    // there may be need of specifying casterguid of removed auras
+    unitTarget->RemoveAurasDueToSpell(m_spellInfo->EffectTriggerSpell[eff_idx]);
+}
+
+void Spell::EffectQuestStart(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player * player = (Player*)unitTarget;
+
+    if (Quest const* qInfo = sObjectMgr.GetQuestTemplate(m_spellInfo->EffectMiscValue[eff_idx]))
+    {
+        if (player->CanTakeQuest(qInfo, false) && player->CanAddQuest(qInfo, false))
+            player->AddQuest(qInfo, NULL);
     }
 }
 
