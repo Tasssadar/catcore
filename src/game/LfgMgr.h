@@ -285,7 +285,6 @@ class MANGOS_DLL_SPEC LfgMgr
 
         uint32 GetAvgWaitTime(uint32 dugeonId, uint8 slot, uint8 roles);
         LfgReward *GetDungeonReward(uint32 dungeon, bool done, uint8 level);
-
         bool IsPlayerInQueue(uint64 guid, uint32 id);
 
         void LfgLog( const char * err, ...)
@@ -304,6 +303,9 @@ class MANGOS_DLL_SPEC LfgMgr
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueues();
         void UpdateFormedGroups();
+        void MergeGroups(GroupsList *groups);
+        void UpdateWaitTime(LfgGroup *group);
+        void MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId = 0);
 
         bool log;
 

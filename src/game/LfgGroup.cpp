@@ -426,12 +426,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
     
     plr->ScheduleDelayedOperation(DELAYED_LFG_ENTER_DUNGEON);
     plr->ScheduleDelayedOperation(DELAYED_SAVE_PLAYER);
-    if (!m_inDungeon)
-    {
-        plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
-            dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
-    }
-    else
+    if (m_inDungeon)
     {
         for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
         {
@@ -446,9 +441,9 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
                 return;
             }
         }
-        plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
-            dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
     }
+    plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
+        dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
 }
 
 bool LfgGroup::SelectRandomDungeon()
@@ -891,7 +886,6 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         Player *player = sObjectMgr.GetPlayer(citr->guid);
         if (!player || !player->GetSession())
             continue;
-        sLfgMgr.SendLfgUpdateParty(player,  LFG_UPDATETYPE_ADDED_TO_QUEUE);
         
         if (player->GetGUID() == GetLeaderGUID())
         {

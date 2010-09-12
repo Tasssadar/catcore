@@ -4475,6 +4475,11 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     // update visibility of player for nearby cameras
     UpdateObjectVisibility();
 
+    //Apply boost when in lfg dungeon
+    if(GetGroup() && GetGroup()->isLfgGroup())
+        if(((LfgGroup*)GetGroup())->GetDungeonInfo()->map == GetMapId())
+            CastSpell(this, LFG_BOOST, true);
+
     if (!applySickness)
         return;
 
