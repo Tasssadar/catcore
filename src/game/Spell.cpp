@@ -2030,6 +2030,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 default:
                     FillAreaTargets(targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
 
+                    if (m_spellInfo->Id == 63278)
+                        if (!targetUnitMap.empty())
+                            for (UnitList::const_iterator iter = targetUnitMap.begin(); iter != targetUnitMap.end(); ++iter)
+                                if ((*iter)->HasAura(63276))
+                                    targetUnitMap.remove((*iter));
+                    
                     // exclude caster (this can be important if this not original caster)
                     targetUnitMap.remove(m_caster);
                     break;
