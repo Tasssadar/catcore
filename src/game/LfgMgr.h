@@ -304,7 +304,7 @@ class MANGOS_DLL_SPEC LfgMgr
         void UpdateQueues();
         void UpdateFormedGroups();
         void MergeGroups(GroupsList *groups);
-        void UpdateWaitTime(LfgGroup *group);
+        void UpdateWaitTime(LfgGroup *group, uint32 dungeonId);
         void MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId = 0);
 
         bool log;

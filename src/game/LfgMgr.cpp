@@ -684,7 +684,7 @@ void LfgMgr::UpdateFormedGroups()
 
 void LfgMgr::MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId)
 {
-    const LfgDungeonEntry *entry = DungId ? sLFGDungeonStore.LookupEntry(DungId) : group->GetDungeonInfo();
+    LFGDungeonEntry const *entry = DungId ? sLFGDungeonStore.LookupEntry(DungId) : group->GetDungeonInfo();
 
     for(Group::member_citerator citr = group->GetMemberSlots().begin(); citr != group->GetMemberSlots().end(); ++citr)
     {
@@ -1140,7 +1140,7 @@ void LfgMgr::UpdateWaitTime(LfgGroup *group, uint32 dungeonId)
             if(!member || !member->GetSession())
                 continue;
             uint32 currentTime = getMSTimeDiff(member->m_lookingForGroup.joinTime, getMSTime());
-            if (currentTankTime < 5000) // 5s cooldown
+            if (currentTime < 5000) // 5s cooldown
                 continue;
             WaitTimeMap::iterator waitItr = m_waitTimes[slot].find(dungeonId);
             avgWaitTime += (waitItr->second+currentTime)/2;
@@ -1166,7 +1166,7 @@ void LfgMgr::UpdateWaitTime(LfgGroup *group, uint32 dungeonId)
         }
     }
     if (timescount != 0)
-        m_waitTimes[LFG_WAIT_TIME].find(itr->second->dungeonInfo->ID)->second = (avgWaitTime/timescount);
+        m_waitTimes[LFG_WAIT_TIME].find(dungeonId)->second = (avgWaitTime/timescount);
 }
 
 void LfgMgr::DeleteGroups()
