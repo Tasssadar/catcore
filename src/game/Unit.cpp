@@ -7801,20 +7801,24 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
             if (dummySpell->Id == 49028)
             {
                 // 1 dummy aura for dismiss rune blade
-                if (effIndex != EFFECT_INDEX_2)
+                if (effIndex != EFFECT_INDEX_1)
                     return false;
-                // TODO: wite script for this "fights on its own, doing the same attacks"
-                // NOTE: Trigger here on every attack and spell cast
+				
                 Pet* runeBlade = FindGuardianWithEntry(27893);
                 if (!runeBlade)
-                   return false;
-                else
+                    return false;
+
+                runeBlade->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                runeBlade->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                if (runeBlade->getVictim() && damage && procSpell)
                 {
-                    // only melee based spells?
-                    if (procSpell)
-                        runeBlade->CastSpell(pVictim,procSpell,true,castItem,triggeredByAura);
-                    return true;
+                    uint32 procDmg = damage / 2;
+                    runeBlade->SendSpellNonMeleeDamageLog(runeBlade->getVictim(),procSpell->Id,procDmg,GetSpellSchoolMask(procSpell),0,0,false,0,false);
+                    runeBlade->DealDamage(runeBlade->getVictim(),procDmg,NULL,SPELL_DIRECT_DAMAGE,GetSpellSchoolMask(procSpell),procSpell,true);
+                    break;
                 }
+                else 
+                    return false;
             }
             // Mark of Blood
             if (dummySpell->Id == 49005)
