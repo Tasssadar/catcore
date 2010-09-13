@@ -328,6 +328,7 @@ bool ChatHandler::HandleLitakCommand(const char* args)
         player->Unmount();
     player->clearUnitState(UNIT_STAT_IN_FLIGHT);
     player->GetMotionMaster()->Clear(false, true);
+    player->GetMotionMaster()->MoveIdle();
 
     if (argstr == "textura")
     {

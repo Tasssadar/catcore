@@ -421,6 +421,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
     {
         plr->GetMotionMaster()->MovementExpired(false);
         plr->GetMotionMaster()->Clear(false, true);
+        plr->GetMotionMaster()->MoveIdle();
         plr->m_taxi.ClearTaxiDestinations();
     }
     
