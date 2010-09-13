@@ -6063,8 +6063,9 @@ SpellCastResult Spell::CheckPower()
         {
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
                 ((Player*)m_caster)->RegenerateAll(diff);
-            else
-                m_caster->Regenerate(m_caster->getPowerType(), diff);
+            // temporarily disabled, probably makes some problems in ghoul eergy regen...
+            /*else
+                m_caster->Regenerate(m_caster->getPowerType(), diff);*/
         }
     }
 
