@@ -7972,6 +7972,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 basepoints[0] /= (GetSpellDuration(triggeredEntry) / triggeredEntry->EffectAmplitude[EFFECT_INDEX_0]); 
                 break;
             }
+             // Rune strike
+            if (dummySpell->Id == 56817)
+            {
+            //Must proc only from Rune strike (56815)
+                if (procSpell)
+                    if (procSpell->Id!= 56815)
+                        return false;
+            }
             // Sudden Doom
             if (dummySpell->SpellIconID == 1939)
             {
