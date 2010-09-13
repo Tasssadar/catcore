@@ -489,6 +489,9 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
     if (!pet->HasSpell(spellid) || IsPassiveSpell(spellInfo))
         return;
 
+    // Interrupt previous spell
+    pet->InterruptNonMeleeSpells(true);
+
     SpellCastTargets targets;
 
     //float elevation, speed;
