@@ -87,6 +87,12 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     if (GetMembersCount() == 0)
         m_baseLevel = player->getLevel();
     sLfgMgr.LfgLog("Add member %u , guid %u", GetId(), guid);
+    member_witerator slot = _getMemberWSlot(guid);
+    if (slot != m_memberSlots.end())
+    {
+        sLfgMgr.LfgLog("Player already in group, aborting!");
+        return true;
+    }
     MemberSlot member;
     member.guid      = guid;
     member.name      = name;
