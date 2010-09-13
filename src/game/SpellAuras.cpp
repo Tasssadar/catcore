@@ -3023,8 +3023,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 }
                 else
                 {
-                    // Final heal only on dispelled or duration end
-                    if (!(GetAuraDuration() <= 0 || m_removeMode == AURA_REMOVE_BY_DISPEL))
+                    // Final heal only on dispelled or duration end, using AURA_REMOVE_BY_DEFAULT because dummy aura can not get dispeled and it is probably removed somehow else
+                    if (!(GetAuraDuration() <= 0 || m_removeMode == AURA_REMOVE_BY_DISPEL || m_removeMode == AURA_REMOVE_BY_DEFAULT))
                         return;
 
                     // have a look if there is still some other Lifebloom dummy aura
