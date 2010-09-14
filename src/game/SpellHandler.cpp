@@ -367,8 +367,6 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     {
         uint8 unk1;
 
-        recvPacket >> Unused<float>();                      // unk1, coords?
-        recvPacket >> Unused<float>();                      // unk1, coords?
         recvPacket >> unk1;                                 // >> 1 or 0
         if (unk1)
         {
