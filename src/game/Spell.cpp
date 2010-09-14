@@ -2949,6 +2949,13 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
             static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);
 
     }
+    // Slam suspends attack timer
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
+    {
+        m_caster->setAttackTimer(BASE_ATTACK, (m_caster->getAttackTimer(BASE_ATTACK) + m_casttime));
+        if (m_caster->haveOffhandWeapon())
+            m_caster->setAttackTimer(OFF_ATTACK, (m_caster->getAttackTimer(OFF_ATTACK) + m_casttime));
+    }
     // execute triggered without cast time explicitly in call point
     else if (m_timer == 0)
         cast(true);
@@ -3498,10 +3505,11 @@ void Spell::finish(bool ok)
         }
     }
 
-    if (IsMeleeAttackResetSpell())
+    // Slam has special calculation in Spell::prepare
+    if (IsMeleeAttackResetSpell() && !(m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000)))
     {
         m_caster->resetAttackTimer(BASE_ATTACK);
-        if (m_caster->haveOffhandWeapon())
+        if(m_caster->haveOffhandWeapon())
             m_caster->resetAttackTimer(OFF_ATTACK);
     }
 
