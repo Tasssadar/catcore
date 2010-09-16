@@ -38,6 +38,7 @@
 #include "InstanceSaveMgr.h"
 #include "VMapFactory.h"
 #include "BattleGroundMgr.h"
+#include "TemporarySummon.h"
 
 struct ScriptAction
 {
@@ -663,7 +664,7 @@ void Map::Update(const uint32 &t_diff)
         }
     }
 
-	///- Process necessary scripts
+    ///- Process necessary scripts
     if (!m_scriptSchedule.empty())
         ScriptsProcess();
 }
@@ -3031,4 +3032,30 @@ bool Map::IsNextZcoordOK(float x, float y, float oldZ, float maxDiff) const
             return false;
     }
     return true;
+}
+
+Creature* Map::SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime)
+{
+    TemporarySummon* pCreature = new TemporarySummon(0);
+
+    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), this, 0, id, 0))
+    {
+        delete pCreature;
+        return NULL;
+    }
+
+    pCreature->Relocate(x, y, z, ang);
+    pCreature->SetSummonPoint(x, y, z, ang);
+
+    if (!pCreature->IsPositionValid())
+    {
+        sLog.outError("Creature (guidlow %d, entry %d) not summoned. Suggested coordinates isn't valid (X: %f Y: %f)",pCreature->GetGUIDLow(),pCreature->GetEntry(),pCreature->GetPositionX(),pCreature->GetPositionY());
+        delete pCreature;
+        return NULL;
+    }
+
+    pCreature->Summon(spwtype, despwtime);
+
+    // return the creature therewith the summoner has access to it
+    return pCreature;
 }

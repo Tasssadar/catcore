@@ -311,6 +311,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         void SendObjectUpdates();
         std::set<Object *> i_objectsToClientUpdate;
+
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
     protected:
         void SetUnloadReferenceLock(const GridPair &p, bool on)
         {
