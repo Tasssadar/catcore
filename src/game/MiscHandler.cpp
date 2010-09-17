@@ -42,6 +42,7 @@
 #include "SocialMgr.h"
 #include "DBCEnums.h"
 #include "LfgGroup.h"
+#include "MapManager.h"
 #include "InstanceData.h"
 
 void WorldSession::HandleRepopRequestOpcode( WorldPacket & recv_data )
