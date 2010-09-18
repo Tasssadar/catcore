@@ -185,7 +185,7 @@ class MANGOS_DLL_SPEC Group
 
     public:
         Group();
-        ~Group();
+        virtual ~Group();
 
         // group manipulation methods
         bool   Create(const uint64 &guid, const char * name);

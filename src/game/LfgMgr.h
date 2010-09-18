@@ -285,7 +285,6 @@ class MANGOS_DLL_SPEC LfgMgr
 
         uint32 GetAvgWaitTime(uint32 dugeonId, uint8 slot, uint8 roles);
         LfgReward *GetDungeonReward(uint32 dungeon, bool done, uint8 level);
-        bool IsPlayerInQueue(uint64 guid, uint32 id);
 
         void LfgLog( const char * err, ...)
         {
@@ -297,6 +296,14 @@ class MANGOS_DLL_SPEC LfgMgr
             vsnprintf(buf,256, err, ap);
             va_end(ap);
             sLog.outLfgLog("%s", buf);
+        }
+
+        void SendJoinResult(Player *player, uint8 result)
+        {
+            WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
+            data << uint32(result);                                  
+            data << uint32(0);
+            player->GetSession()->SendPacket(&data);
         }
 
     private:

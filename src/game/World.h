@@ -482,7 +482,7 @@ struct BroadCastMessage
     uint32 Id;
     uint32 RepeatMins;
     uint32 timeLeft;   // not in db
-    const char *text;
+    std::string text;
     //bool enabled;    //in db only
 };
 

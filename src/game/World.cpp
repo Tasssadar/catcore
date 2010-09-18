@@ -2391,7 +2391,7 @@ void World::LoadBroadCastMessages()
         message->Id                   = fields[0].GetUInt32();
         message->RepeatMins           = fields[1].GetUInt32();
         message->timeLeft             = fields[1].GetUInt32();
-        message->text                 = fields[2].GetString();
+        message->text                 = fields[2].GetCppString();
 
         m_broadcastMessages.insert(message);
         ++count;
@@ -2413,6 +2413,6 @@ void World::UpdateBroadCast()
 
         (*itr)->timeLeft = (*itr)->RepeatMins;
 
-        SendWorldText(LANG_SYSTEMMESSAGE,(*itr)->text);
+        SendWorldText(LANG_SYSTEMMESSAGE,(*itr)->text.c_str());
     }
 }

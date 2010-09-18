@@ -371,6 +371,7 @@ GmLogPerAccount = 0
 RaLogFile = ""
 ArenaRatedLogFile = "Arena.log"
 LfgLogFile = "LfgLog.log"
+LfgLogTimestamp = 0
 LogColors = ""
 
 ###################################################################################################################
