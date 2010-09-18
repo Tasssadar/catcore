@@ -16097,11 +16097,11 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
 bool Player::isAllowedToLoot(Creature* creature)
 {
+    if(GetGUID() == creature->GetLootRecipientGuid())
+        return true;
+
     if (Player* recipient = creature->GetLootRecipient())
     {
-        if (recipient == this)
-            return true;
-
         if (Group* otherGroup = recipient->GetGroup())
         {
             Group* thisGroup = GetGroup();
