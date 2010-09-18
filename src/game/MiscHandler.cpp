@@ -42,6 +42,8 @@
 #include "SocialMgr.h"
 #include "DBCEnums.h"
 #include "LfgGroup.h"
+#include "MapManager.h"
+#include "InstanceData.h"
 
 void WorldSession::HandleRepopRequestOpcode( WorldPacket & recv_data )
 {
@@ -790,6 +792,19 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
             if (at->requiredQuest && !GetPlayer()->GetQuestRewardStatus(at->requiredQuest))
                 missingQuest = at->requiredQuest;
         }
+		
+        bool instanceInCombat = false;
+        Map *map = sMapMgr.FindMap(at->target_mapId);
+        if (map && map->IsDungeon())
+        {
+            InstanceMap* instance = (InstanceMap*)map;
+            if (instance)
+            {
+                InstanceData* data = instance->GetInstanceData();
+                if (data && data->IsInstanceInCombat())
+                    instanceInCombat = true;
+            }
+        }
 
         if (missingLevel || missingItem || missingKey || missingQuest)
         {
@@ -802,6 +817,8 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
                 SendAreaTriggerMessage("%s", at->requiredFailedText.c_str());
             else if (missingLevel)
                 SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED), missingLevel);
+            else if (instanceInCombat)
+                SendAreaTriggerMessage("AreaTrigger::Player cannot enter, instance is in combat");
             return;
         }
         //Lfg teleport
