@@ -176,4 +176,9 @@ void SpellMgr::ApplySpellHacks()
     sfix24->powerType = 0;
     sfix24->manaCost = 0;
     sfix24->CastingTimeIndex = 0;
+
+    // Warrior T9 protection 4P bonus triggered - spell icon and spell name
+    SpellEntry *sfix25 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64934));
+    sfix25->SpellIconID = 2097;
+    sfix25->SpellName[0] = "Hustej spell co snizi magical spell dymydz";
 }
