@@ -51,6 +51,7 @@ LfgMgr::~LfgMgr()
             for(GroupsList::iterator grpitr = itr->second->groups.begin(); grpitr != itr->second->groups.end();++grpitr)
             {
                 (*grpitr)->Disband(true);
+                sObjectMgr.RemoveGroup(*grpitr);
                 delete *grpitr;
             }
             delete itr->second;
@@ -87,29 +88,14 @@ void LfgMgr::Update(uint32 diff)
         m_updateProposalTimer = LFG_TIMER_UPDATE_PROPOSAL;
     }
     else m_updateProposalTimer -= diff;
-
-    //Delete invalid groups
-  /*  if (m_deleteInvalidTimer <= diff)
-    {
-        for(GroupsList::iterator itr = groupsForDelete.begin(); itr != groupsForDelete.end(); ++itr)
-        {
-            (*itr)->Disband(true);
-            delete *itr;
-            groupsForDelete.erase(itr);
-        }
-        m_deleteInvalidTimer = LFG_TIMER_DELETE_INVALID_GROUPS;
-    }else m_deleteInvalidTimer -= diff;*/
-
 }
 
 void LfgMgr::AddToQueue(Player *player, bool updateQueue)
 {
-    //ACE_Guard<ACE_Thread_Mutex> guard(m_queueLock);
     //Already checked that group is fine
+    //TODO: join to multiple dungeons
     if (Group *group = player->GetGroup())
     {
-        //TODO: group join to multiple dungeons
-
         LfgGroup* lfgGroup = NULL;
         if(group->isLfgGroup())
             lfgGroup = (LfgGroup*)group;
@@ -199,15 +185,17 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 if(grp == player->m_lookingForGroup.groups.end())
                     continue;
                 LfgGroup *lfgGroup = grp->second;
-                LfgLog("Remove group %u from queue", lfgGroup->GetId())
+                LfgLog("Remove group %u from queue, id %u", lfgGroup->GetId(), grp->first);
+                uint64 guid = 0;
                 for(PlayerList::iterator plritr = lfgGroup->GetPremadePlayers()->begin(); plritr != lfgGroup->GetPremadePlayers()->end(); ++plritr)
                 {
+                    guid = *plritr;
                     if(!group->isLfgGroup())
                     {
                         LfgLog("Remove member - remove from queue if join as not lfg party");
-                        lfgGroup->RemoveMember(*plritr, 0);
+                        lfgGroup->RemoveMember(guid, 0);
                     }
-                    Player *member = sObjectMgr.GetPlayer(*plritr);
+                    Player *member = sObjectMgr.GetPlayer(guid);
                     if (member && member->GetSession())
                     {
                         SendLfgUpdateParty(member, LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
@@ -234,6 +222,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 {
                     lfgGroup->Disband(true);
                     itr->second->groups.erase(lfgGroup);
+                    sObjectMgr.RemoveGroup(lfgGroup);
                     delete lfgGroup;
                 }
                 if (itr->second->groups.empty() && itr->second->players.empty())
@@ -265,6 +254,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
 
                 if ((*grpitr)->GetMembersCount() == 0)
                 {
+                    sObjectMgr.RemoveGroup(*grpitr);
                     delete *grpitr;
                     itr->second->groups.erase(grpitr);
                 }
@@ -344,14 +334,13 @@ void LfgMgr::UpdateQueues()
                 LfgGroup *bigGrp = NULL;
                 uint8 maxPlayers = 0;
                 uint8 role = 0;
+                uint8 checkRole = TANK;
+                bool correct = false;
                 for(GroupsList::iterator grpitr = itr->second->groups.begin(); grpitr != itr->second->groups.end(); ++grpitr)
                 {
                     if (!(*grpitr)->HasCorrectLevel(player->getLevel()) // Check level, this is needed only for Classic and BC normal I think...
                         || maxPlayers >= (*grpitr)->GetMembersCount())   // We want group with most players
                         continue;
-
-                    uint8 checkRole = TANK;
-                    bool correct = false;
                     for(;checkRole <= DAMAGE && !correct; checkRole*=2)
                     {
                         if (!(player->m_lookingForGroup.roles & checkRole) // Player must have this role
@@ -382,7 +371,8 @@ void LfgMgr::UpdateQueues()
                     sObjectMgr.AddGroup(newGroup);
                     if (!newGroup->AddMember(guid, player->GetName()))
                     {
-                        delete newGroup;
+                        sObjectMgr.RemoveGroup(newGroup);
+                        delete newGroup;                 
                         continue;
                     }
                     for(role = TANK; role <= DAMAGE; role*=2)
@@ -547,6 +537,7 @@ void LfgMgr::MergeGroups(GroupsList *groups)
             //Delete empty groups
             if ((*grpitr2)->GetMembersCount() == 0)
             { 
+                sObjectMgr.RemoveGroup(*grpitr2);
                 delete *grpitr2;
                 groups->erase(grpitr2);
             }
@@ -626,9 +617,15 @@ void LfgMgr::UpdateFormedGroups()
                 for(PlayerList::iterator rm = toRemove.begin(); rm != toRemove.end(); ++rm)
                     (*grpitr)->RemoveMember(*rm, 0);
                 toRemove.clear();
+                removeFromFormed.insert(*grpitr);
+                //Remove empty group
+                if((*grpitr)->GetMembersCount() == 0)
+                {
+                    AddGroupToDelete(*grpitr);
+                    continue;
+                }
                 //Move group to queue
                 MoveGroupToQueue(*grpitr, i);
-                removeFromFormed.insert(*grpitr);
                 continue;
             }
             //all player responded
@@ -1190,6 +1187,7 @@ void LfgMgr::DeleteGroups()
             formedGroups[i].erase(*group);
         }
         (*group)->Disband(true);
+        sObjectMgr.RemoveGroup(*group);
         delete *group;
     }
     groupsForDelete.clear();

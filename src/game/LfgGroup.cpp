@@ -70,7 +70,8 @@ LfgGroup::~LfgGroup()
         for(BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
             itr2->second.save->RemoveGroup(this);
 
-    sObjectMgr.RemoveGroup(this);
+    // Mangos structure expect that this is called separately
+    //sObjectMgr.RemoveGroup(this);
 }
 
 void LfgGroup::ResetGroup()
@@ -263,7 +264,6 @@ void LfgGroup::KilledCreature(Creature *creature)
             plr->CompleteQuest(reward->questInfo->GetQuestId());
         }
     }  
-
     SendUpdate();
 }
 

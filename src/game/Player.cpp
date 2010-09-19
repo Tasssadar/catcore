@@ -2462,7 +2462,7 @@ void Player::RemoveFromGroup(Group* group, uint64 guid)
 {
     if (group)
     {
-        if (group->RemoveMember(guid, 0) <= 1)
+        if (group->RemoveMember(guid, 0) <= 1 && !group->isLfgGroup())
         {
             // group->Disband(); already disbanded in RemoveMember
             sObjectMgr.RemoveGroup(group);
