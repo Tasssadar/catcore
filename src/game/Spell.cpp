@@ -1046,18 +1046,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
             DoSpellHitOnUnit(m_caster, mask);
         else if (missInfo != SPELL_MISS_EVADE && target->reflectResult != SPELL_MISS_EVADE && real_caster)   // We still need to start combat (not for evade...)
         {
-            if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
-                unit->SetStandState(UNIT_STAND_STATE_STAND);
+            if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NO_INITIAL_AGGRO) && 
+                (!IsPositiveSpell(m_spellInfo->Id) || IsDispelSpell(m_spellInfo)) &&
+                m_caster->isVisibleForOrDetect(unit, unit, false))
+            {
+                if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
+                    unit->SetStandState(UNIT_STAND_STATE_STAND);
 
-            if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
-                ((Creature*)unit)->AI()->AttackedBy(real_caster);
+                if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
+                    ((Creature*)unit)->AI()->AttackedBy(real_caster);
 
-            unit->AddThreat(real_caster);
-            unit->SetInCombatWith(real_caster);
-            real_caster->SetInCombatWith(unit);
+                unit->AddThreat(real_caster);
+                unit->SetInCombatWith(real_caster);
+                real_caster->SetInCombatWith(unit);
 
-            if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
-                real_caster->SetContestedPvP(attackedPlayer);
+                if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    real_caster->SetContestedPvP(attackedPlayer);
+            }
         }
     }
 
