@@ -2026,6 +2026,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
         {
+            // We dont wanna target enemy targets here...
+            if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_CURRENT_ENEMY_COORDINATES)
+                break;
+
             // targets the ground, not the units in the area
             switch(m_spellInfo->Effect[effIndex])
             {
