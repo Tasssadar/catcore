@@ -2948,9 +2948,9 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
 
         // will show cast bar
         SendSpellStart();
-        // trigger global cooldown
+        /*// trigger global cooldown
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
-            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);
+            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);*/
 
     }
     // Slam suspends attack timer
@@ -4521,9 +4521,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_NOT_READY;
     }
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
+    /*if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
         static_cast<Player*>(m_caster)->HasGlobalCooldown(m_spellInfo))
-        return SPELL_FAILED_NOT_READY;
+        return SPELL_FAILED_NOT_READY;*/
 
 
     // Lock and Load Marker - sets Lock and Load cooldown
