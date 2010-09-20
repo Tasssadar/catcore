@@ -71,12 +71,16 @@ void LfgMgr::Update(uint32 diff)
     {
         UpdateFormedGroups(); 
 
+        GroupsList::iterator grpitr, grpitr_next;
         //Rolechecks
-        for(GroupsList::iterator grpitr = rolecheckGroups.begin(); grpitr != rolecheckGroups.end(); ++grpitr)
+        for(grpitr = rolecheckGroups.begin(); grpitr != rolecheckGroups.end(); grpitr = grpitr_next)
+        {
+            grpitr_next = grpitr;
+            ++grpitr_next;
             (*grpitr)->UpdateRoleCheck(diff);
+        }
 
         //Vote to kick
-        GroupsList::iterator grpitr, grpitr_next;
         for(grpitr = voteKickGroups.begin(); grpitr != voteKickGroups.end(); grpitr = grpitr_next)
         {
             grpitr_next = grpitr;
@@ -276,15 +280,22 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
     rolecheckGroups.erase(group);
     if (!toQueue)
     {
-        Player *leader = sObjectMgr.GetPlayer(group->GetLeaderGUID());
-        if (!leader || !leader->GetSession() || !leader->GetGroup()
-            || leader->GetGroup()->isLfgGroup())
+        LfgLog("Group %u UpdateRoleCheck fail", group->GetId());
+        Player *leader = NULL;
+
+        for(Group::member_citerator citr = group->GetMemberSlots().begin(); citr != group->GetMemberSlots().end(); ++citr)
+        {
+            leader = sObjectMgr.GetPlayer(citr->guid);
+            if (leader && leader->GetSession() && leader->GetGroup() && !leader->GetGroup()->isLfgGroup())
+                break;
+        }
+        if (!leader || !leader->GetSession() || !leader->GetGroup() || leader->GetGroup()->isLfgGroup())
             return;
 
         Group *baseGrp = leader->GetGroup();
         for(Group::member_citerator citr = baseGrp->GetMemberSlots().begin(); citr != baseGrp->GetMemberSlots().end(); ++citr)
         {
-            LfgLog("Remove member - Add checked Group");
+            LfgLog("Remove member %u from group %u- Add checked Group", citr->guid, group->GetId());
             group->RemoveMember(citr->guid, 0);
             Player *member = sObjectMgr.GetPlayer(citr->guid);
             if(member && member->IsInWorld())
