@@ -1429,7 +1429,7 @@ bool Aura::modStackAmount(int32 num)
     if (!m_spellProto->StackAmount)
         return true;
 
-    // Lifebloom - this is needed for proper heal/mana return because when is m_stackAmount set to 0 it will never pass through the "&& GetStackAmount() > 0" condition in its dummy aura...
+    // Lifebloom - this is needed for proper heal/mana return because if m_stackAmount is set to 0 it will never pass through the "&& GetStackAmount() > 0" condition in its dummy aura...
     if (m_spellProto->SpellFamilyName != SPELLFAMILY_DRUID && !(m_spellProto->SpellFamilyFlags & UI64LIT(0x1000000000)))
     {
         if (Unit *target = GetTarget())

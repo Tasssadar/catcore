@@ -2847,7 +2847,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst (const Unit *pVictim, WeaponAttack
             dodge_chance -= GetTotalAuraModifier(SPELL_AURA_MOD_EXPERTISE)*25;
 
         // Modify dodge chance by attacker SPELL_AURA_MOD_COMBAT_RESULT_CHANCE
-        dodge_chance+= GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_DODGE);
+        dodge_chance+= GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_DODGE)*100;
 
         tmp = dodge_chance;
         if (   (tmp > 0)                                        // check if unit _can_ dodge
@@ -10311,17 +10311,14 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
     if (!spellProto || !pCaster || damagetype==DIRECT_DAMAGE )
         return pdamage;
 
+    uint32 schoolMask = spellProto->SchoolMask;
+
     // Taken total percent damage auras
     float TakenTotalMod = 1.0f;
     int32 TakenTotal = 0;
 
     // ..taken
-    AuraList const& mModDamagePercentTaken = GetAurasByType(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN);
-    for(AuraList::const_iterator i = mModDamagePercentTaken.begin(); i != mModDamagePercentTaken.end(); ++i)
-    {
-        if ((*i)->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellProto))
-            TakenTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
-    }
+    TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, schoolMask);
 
     // .. taken (dummy auras) 
     AuraList const& mDummyAuras = GetAurasByType(SPELL_AURA_DUMMY); 
@@ -10404,9 +10401,9 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
     // Mod damage taken from AoE spells
     if (IsAreaOfEffectSpell(spellProto))
     {
-        TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
-        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
-            TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE);
+        TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE, schoolMask);
+        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet() && pCaster->GetTypeId() != TYPEID_PLAYER)
+            TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE, schoolMask);
     }
 
     // Taken fixed damage bonus auras
@@ -11423,9 +11420,9 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     // ..taken pct (aoe avoidance)
     if (spellProto && IsAreaOfEffectSpell(spellProto))
     {
-        TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
-        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
-            TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE);
+        TakenPercent *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE, schoolMask);
+        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet() && pCaster->GetTypeId() != TYPEID_PLAYER)
+            TakenPercent *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_PET_AOE_DAMAGE_AVOIDANCE, schoolMask);
     }
 
     // special dummys/class scripts and other effects
