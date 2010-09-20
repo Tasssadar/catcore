@@ -1412,7 +1412,7 @@ void Aura::SetChargesAmount(uint8 chargesAmount)
         return;
     // now used only for charge decreasing but...
     bool refresh = chargesAmount >= m_procCharges;
-    if (chargesAmount != m_stackAmount)
+    if (chargesAmount != m_procCharges)
         m_procCharges= chargesAmount;
 
     if (refresh)
