@@ -4851,7 +4851,7 @@ void Unit::RemoveAurasWithDispelType( DispelType type )
 void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
-    if (i->second->modStackAmount(-1) && i->second->modChargesAmount(-1))
+    if (i->second->modStackAmount(-1)/* && i->second->modChargesAmount(-1)*/)
     {
         RemoveAura(i,mode);
     }
