@@ -1497,6 +1497,8 @@ void Aura::RefreshAura()
 
 bool Aura::isAffectedOnSpell(SpellEntry const *spell) const
 {
+    if(!spell)
+        return false;
     // Check family name
     if (spell->SpellFamilyName != m_spellProto->SpellFamilyName)
         return false;
@@ -2169,7 +2171,7 @@ void Aura::TriggerSpell()
     }
 
     // some triggered spells require specific equipment
-    if (triggeredSpellInfo->EquippedItemClass >=0 && triggerTarget->GetTypeId()==TYPEID_PLAYER)
+    if (triggeredSpellInfo && triggeredSpellInfo->EquippedItemClass >=0 && triggerTarget->GetTypeId()==TYPEID_PLAYER)
     {
         // main hand weapon required
         if (triggeredSpellInfo && triggeredSpellInfo->AttributesEx3 & SPELL_ATTR_EX3_MAIN_HAND)
