@@ -46,8 +46,17 @@ int32 GetSpellDuration(SpellEntry const *spellInfo)
     if (!spellInfo)
         return 0;
     SpellDurationEntry const *du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
+
+    // Item - Warrior T8 Protection 4P Bonus
+    if(spellInfo->Id == 64934)
+    {
+        //Shield Block spellinfo
+        SpellEntry const *shieldBlockInfo = sSpellStore.LookupEntry(2565);
+        du = sSpellDurationStore.LookupEntry(shieldBlockInfo->DurationIndex);
+    }
     if (!du)
         return 0;
+
     return (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
 }
 
