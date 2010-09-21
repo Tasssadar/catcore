@@ -657,6 +657,8 @@ class World
         void UpdateBroadCast();
         BroadCastSet *GetBroadCastMessages() { return &m_broadcastMessages; }
 
+        bool   apFlushWaitingForConfirm;
+        uint32 apFlushWaitingForConfirmTimer;
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters

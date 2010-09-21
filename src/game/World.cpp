@@ -96,6 +96,9 @@ World::World()
     m_NextWeeklyQuestReset = 0;
     m_scheduledScripts = 0;
 
+    apFlushWaitingForConfirm = false;
+    apFlushWaitingForConfirmTimer = 0;
+
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
 
@@ -1584,6 +1587,12 @@ void World::Update(uint32 diff)
 
     // And last, but not least handle the issued cli commands
     ProcessCliCommands();
+
+    // After a period off time bool should get false again
+    if (apFlushWaitingForConfirm)
+        if (apFlushWaitingForConfirmTimer < diff)
+            apFlushWaitingForConfirm = false;
+        else apFlushWaitingForConfirmTimer -= diff;
 }
 
 /// Send a packet to all players (except self if mentioned)
@@ -2118,8 +2127,8 @@ void World::ResetWeeklyQuests()
 
 void World::SelectRandomDungeonDaily()
 {
-	//Delay all events
-	for(uint8 eventId = 0; eventId < MAX_RandomDungeon_Daily_EVENT; ++eventId)
+    //Delay all events
+    for(uint8 eventId = 0; eventId < MAX_RandomDungeon_Daily_EVENT; ++eventId)
     {
         sGameEventMgr.StopEvent(RandomDungeon_Daily_Ingvar+eventId);
         WorldDatabase.PExecute("UPDATE game_event SET occurence = 5184000 WHERE entry = %u", RandomDungeon_Daily_Ingvar+eventId);
@@ -2136,8 +2145,8 @@ void World::SelectRandomDungeonDaily()
 
 void World::SelectRandomTimearForeseesDaily()
 {
-	//Delay all events
-	for(uint8 eventId = 0; eventId < MAX_RandomTimearForesees_Daily_EVENT; ++eventId)
+    //Delay all events
+    for(uint8 eventId = 0; eventId < MAX_RandomTimearForesees_Daily_EVENT; ++eventId)
     {
         sGameEventMgr.StopEvent(RandomTimearForesees_Daily_Centrifuge+eventId);
         WorldDatabase.PExecute("UPDATE game_event SET occurence = 5184000 WHERE entry = %u",RandomTimearForesees_Daily_Centrifuge+eventId);
