@@ -320,9 +320,7 @@ class MANGOS_DLL_SPEC Aura
 
         uint8 GetStackAmount() {return m_stackAmount;}
         void SetStackAmount(uint8 num);
-        void SetChargesAmount (uint8 num);
         bool modStackAmount(int32 num); // return true if last charge dropped
-        bool modChargesAmount(int32 num); // return true if last charge dropped
         void RefreshAura();
 
         bool IsPositive() { return m_positive; }

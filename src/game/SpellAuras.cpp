@@ -1404,25 +1404,6 @@ void Aura::SetStackAmount(uint8 stackAmount)
         SendAuraUpdate(false);
 }
 
-void Aura::SetChargesAmount(uint8 chargesAmount)
-{
-    Unit *target = GetTarget();
-    Unit *caster = GetCaster();
-    if (!target || !caster)
-        return;
-    // now used only for charge decreasing but...
-    bool refresh = chargesAmount >= m_procCharges;
-    if (chargesAmount != m_procCharges)
-        m_procCharges= chargesAmount;
-
-    if (refresh)
-        // Stack increased refresh duration
-        RefreshAura();
-    else
-        // Stack decreased only send update
-        SendAuraUpdate(false);
-}
-
 bool Aura::modStackAmount(int32 num)
 {
     // Can`t mod
@@ -1464,28 +1445,6 @@ bool Aura::modStackAmount(int32 num)
 
     // Update stack amount
     SetStackAmount(stackAmount);
-    return false;
-}
-
-bool Aura::modChargesAmount(int32 num)
-{
-    // Can`t mod
-    if (!m_spellProto->procCharges)
-        return true;
-
-    // Modify stack but limit it
-    int32 chargesAmount = m_procCharges + num;
-    // now used only for charge decreasing but...
-    if (chargesAmount > (int32)m_spellProto->procCharges)
-        chargesAmount = m_spellProto->procCharges;
-    else if (chargesAmount <=0) // Last aura from stack removed
-    {
-        m_procCharges = 0;
-        return true; // need remove aura
-    }
-
-    // Update stack amount
-    SetChargesAmount(chargesAmount);
     return false;
 }
 
