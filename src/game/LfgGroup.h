@@ -102,13 +102,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         PlayerList *GetDps() { return &dps; };
         bool HasFreeRole(uint8 role)
         {
-            switch(role)
-            {
-                case TANK:   if(!m_tank) return true;
-                case HEALER: if(!m_heal) return true;
-                case DAMAGE: if(dps.size() != LFG_DPS_COUNT) return true;
-            }
-            return false;
+            return ((role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role = DAMAGE && dps.size() != LFG_DPS_COUNT));
         }
         ProposalAnswersMap *GetProposalAnswers() { return &m_answers; }
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
@@ -151,6 +145,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool UpdateVoteToKick(uint32 diff = 0);
     private:
         //ACE_Thread_Mutex m_queueLock;
+        void SendRoleCheckFail(uint8 error);
 
         uint64 m_tank;
         uint64 m_heal;

@@ -46,8 +46,17 @@ int32 GetSpellDuration(SpellEntry const *spellInfo)
     if (!spellInfo)
         return 0;
     SpellDurationEntry const *du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
+
+    // Item - Warrior T8 Protection 4P Bonus
+    if(spellInfo->Id == 64934)
+    {
+        //Shield Block spellinfo
+        SpellEntry const *shieldBlockInfo = sSpellStore.LookupEntry(2565);
+        du = sSpellDurationStore.LookupEntry(shieldBlockInfo->DurationIndex);
+    }
     if (!du)
         return 0;
+
     return (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
 }
 
@@ -4042,6 +4051,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     switch(spellproto->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
+        {
             // some generic arena related spells have by some strange reason MECHANIC_TURN
             if  (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
@@ -4049,11 +4059,14 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             else if (spellproto->SpellIconID == 20)
                 return DIMINISHING_ENTRAPMENT;
             break;
+        }
         case SPELLFAMILY_MAGE:
+        {
             // Dragon's Breath
             if  (spellproto->SpellIconID == 1548)
                 return DIMINISHING_DISORIENT;
             break;
+        }
         case SPELLFAMILY_ROGUE:
         {
             // Blind
@@ -4159,7 +4172,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_DISORIENT;
     if (mechanic & (1<<(MECHANIC_ROOT-1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
-    if (mechanic & ((1<<(MECHANIC_FEAR-1))|(1<<(MECHANIC_CHARM-1))))
+    if (mechanic & ((1<<(MECHANIC_FEAR-1))|(1<<(MECHANIC_CHARM-1))|(1<<(MECHANIC_TURN-1))))
         return DIMINISHING_FEAR_BLIND;
     if (mechanic & ((1<<(MECHANIC_SILENCE-1))|(1<<(MECHANIC_INTERRUPT-1))))
         return DIMINISHING_SILENCE;
@@ -4191,7 +4204,10 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
             if (spellproto->SpellFamilyFlags & UI64LIT(0x0800000000000000))
                 return 6000;
             // Warlock Curses
-            if (spellproto->Dispel == DISPEL_CURSE)
+            // Curse of Tongues
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
+                return 12000;
+            else if (spellproto->Dispel == DISPEL_CURSE)
                 return 120000;
             break;
         }

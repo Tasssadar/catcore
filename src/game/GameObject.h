@@ -641,6 +641,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
             m_respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
         }
+        void SetRespawnDelay(uint32 delay) { m_respawnDelayTime = delay; }
         void Respawn();
         bool isSpawned() const
         {

@@ -32,10 +32,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
     DEBUG_LOG("WORLD: Received CMSG_LFG_JOIN");
     if (!sWorld.getConfig(CONFIG_BOOL_ALLOW_JOIN_LFG))
     {
-        WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
-        data << uint32(LFG_JOIN_INTERNAL_ERROR);                // Check Result
-        data << uint32(0);                                      // Check Value
-        SendPacket(&data);
+        sLfgMgr.SendJoinResult(player, LFG_JOIN_INTERNAL_ERROR);
         return;
     }
 
@@ -77,10 +74,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
 
     if (error != LFG_JOIN_OK)
     {
-        WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
-        data << uint32(error);                                  // Check Result
-        data << uint32(0);                                      // Check Value
-        SendPacket(&data);
+        sLfgMgr.SendJoinResult(player, error);
         return;
     }
     // for every dungeon check also if theres some error
@@ -130,10 +124,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         }
         if (error != LFG_JOIN_OK)
         {
-            WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
-            data << uint32(error);                                  // Check Result
-            data << uint32(0);                                      // Check Value
-            SendPacket(&data);
+            sLfgMgr.SendJoinResult(player, error);
             return;
         }
         //Already queued for this dungeon, dunno how this can happen, but it happens
@@ -256,15 +247,22 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
 
     if (Group *group = _player->GetGroup())
     {
-        LfgGroup *lfgGroup;
+        LfgGroup *lfgGroup = NULL;
         if (group->isLfgGroup())
-            lfgGroup = (LfgGroup*)group;
-        else
         {
+            sLfgMgr.LfgLog("Set roles LfgGroup id %u, guid %u", group->GetId(), _player->GetGUID());
+            lfgGroup = (LfgGroup*)group;
+        }
+        else if(!_player->m_lookingForGroup.groups.empty())
+        {
+            sLfgMgr.LfgLog("Set roles Normal group dung %u, group %u, player %u", itr->first, itr->second->GetId(), _player->GetGUID());
             GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin();
             lfgGroup = itr->second;
         }
-
+        //Failed...
+        if(!lfgGroup)
+            return;
+        lfgGroup->GetRoleAnswers()->erase(_player->GetGUID()); 
         lfgGroup->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));                
         lfgGroup->UpdateRoleCheck();
     } 

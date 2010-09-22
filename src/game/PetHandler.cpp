@@ -87,7 +87,7 @@ void WorldSession::HandlePetNameQuery( WorldPacket & recv_data )
     DETAIL_LOG( "HandlePetNameQuery. CMSG_PET_NAME_QUERY" );
 
     uint32 petnumber;
-    uint64 petguid;
+    ObjectGuid petguid;
 
     recv_data >> petnumber;
     recv_data >> petguid;
@@ -95,9 +95,27 @@ void WorldSession::HandlePetNameQuery( WorldPacket & recv_data )
     SendPetNameQuery(petguid,petnumber);
 }
 
-void WorldSession::SendPetNameQuery( uint64 petguid, uint32 petnumber)
+void WorldSession::SendPetNameQuery( ObjectGuid petguid, uint32 petnumber)
 {
-    Creature* pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*_player, petguid);
+    //Client asks for data before add to map (or we have wrong teleport sequence), so we cant use GetCreatureOrPetOrVehicle()
+    Creature* pet = NULL;
+    
+    if(_player->IsBeingTeleported())
+    {
+        Map *map = sMapMgr.FindMap(_player->GetTeleportDest().mapid);
+        if(map)
+        {
+            if (petguid.IsPet())
+                pet = map->GetPet(petguid);
+            else if(petguid.IsVehicle())
+                pet = map->GetVehicle(petguid);
+            else
+                pet = map->GetCreature(petguid);
+        }
+    }
+    else
+        pet = ObjectAccessor::GetCreatureOrPetOrVehicle(*_player, petguid);
+
     if (!pet || !pet->GetCharmInfo() || pet->GetCharmInfo()->GetPetNumber() != petnumber)
     {
         std::string name = "NoPetName";

@@ -1046,18 +1046,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
             DoSpellHitOnUnit(m_caster, mask);
         else if (missInfo != SPELL_MISS_EVADE && target->reflectResult != SPELL_MISS_EVADE && real_caster)   // We still need to start combat (not for evade...)
         {
-            if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
-                unit->SetStandState(UNIT_STAND_STATE_STAND);
+            if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NO_INITIAL_AGGRO) && 
+                (!IsPositiveSpell(m_spellInfo->Id) || IsDispelSpell(m_spellInfo)) &&
+                m_caster->isVisibleForOrDetect(unit, unit, false))
+            {
+                if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
+                    unit->SetStandState(UNIT_STAND_STATE_STAND);
 
-            if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
-                ((Creature*)unit)->AI()->AttackedBy(real_caster);
+                if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
+                    ((Creature*)unit)->AI()->AttackedBy(real_caster);
 
-            unit->AddThreat(real_caster);
-            unit->SetInCombatWith(real_caster);
-            real_caster->SetInCombatWith(unit);
+                unit->AddThreat(real_caster);
+                unit->SetInCombatWith(real_caster);
+                real_caster->SetInCombatWith(unit);
 
-            if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
-                real_caster->SetContestedPvP(attackedPlayer);
+                if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    real_caster->SetContestedPvP(attackedPlayer);
+            }
         }
     }
 
@@ -2026,6 +2031,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
         {
+            // We dont wanna target enemy targets here...
+            if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_CURRENT_ENEMY_COORDINATES)
+                break;
+
             // targets the ground, not the units in the area
             switch(m_spellInfo->Effect[effIndex])
             {
@@ -2944,17 +2953,10 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
 
         // will show cast bar
         SendSpellStart();
-        // trigger global cooldown
+        /*// trigger global cooldown
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
-            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);
+            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);*/
 
-    }
-    // Slam suspends attack timer
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
-    {
-        m_caster->setAttackTimer(BASE_ATTACK, (m_caster->getAttackTimer(BASE_ATTACK) + m_casttime));
-        if (m_caster->haveOffhandWeapon())
-            m_caster->setAttackTimer(OFF_ATTACK, (m_caster->getAttackTimer(OFF_ATTACK) + m_casttime));
     }
     // execute triggered without cast time explicitly in call point
     else if (m_timer == 0)
@@ -2962,6 +2964,13 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     // else triggered with cast time will execute execute at next tick or later
     // without adding to cast type slot
     // will not show cast bar but will show effects at casting time etc
+    // Slam suspends attack timer
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
+    {
+        m_caster->setAttackTimer(BASE_ATTACK, (m_caster->getAttackTimer(BASE_ATTACK) + m_casttime));
+        if (m_caster->haveOffhandWeapon())
+            m_caster->setAttackTimer(OFF_ATTACK, (m_caster->getAttackTimer(OFF_ATTACK) + m_casttime));
+    }
 }
 
 void Spell::cancel()
@@ -4517,9 +4526,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_NOT_READY;
     }
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
+    /*if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
         static_cast<Player*>(m_caster)->HasGlobalCooldown(m_spellInfo))
-        return SPELL_FAILED_NOT_READY;
+        return SPELL_FAILED_NOT_READY;*/
 
 
     // Lock and Load Marker - sets Lock and Load cooldown

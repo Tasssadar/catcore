@@ -231,7 +231,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendUpdateTrade(bool trader_state = true);
 
         //pet
-        void SendPetNameQuery(uint64 guid, uint32 petnumber);
+        void SendPetNameQuery(ObjectGuid guid, uint32 petnumber);
 
         // Account Data
         AccountData *GetAccountData(AccountDataType type) { return &m_accountData[type]; }
