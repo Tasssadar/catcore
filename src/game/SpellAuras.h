@@ -106,7 +106,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraModIncreaseEnergyPercent(bool Apply, bool Real);
         void HandleAuraModIncreaseHealthPercent(bool Apply, bool Real);
         void HandleAuraModRegenInterrupt(bool Apply, bool Real);
-        void HandleHaste(bool Apply, bool Real);
+        void HandleAuraModMeleeHaste(bool Apply, bool Real);
         void HandlePeriodicTriggerSpell(bool Apply, bool Real);
         void HandlePeriodicTriggerSpellWithValue(bool apply, bool Real);
         void HandlePeriodicEnergize(bool Apply, bool Real);
@@ -353,6 +353,9 @@ class MANGOS_DLL_SPEC Aura
         void UpdateAura(uint32 diff) { SetInUse(true); Update(diff); SetInUse(false); }
         void _AddAura();
         bool _RemoveAura();
+
+        bool IsEffectStacking();
+
 
         bool IsSingleTarget() {return m_isSingleTargetAura;}
         void SetIsSingleTarget(bool val) { m_isSingleTargetAura = val;}
