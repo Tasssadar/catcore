@@ -451,29 +451,9 @@ m_isRemovedOnShapeLost(true), m_in_use(0), m_deleted(false)
 
     SetModifier(AuraType(m_spellProto->EffectApplyAuraName[eff]), damage, m_spellProto->EffectAmplitude[eff], m_spellProto->EffectMiscValue[eff]);
 
-    bool applyHaste = false;
-    if ((GetSpellProto()->AttributesEx & (SPELL_ATTR_EX_CHANNELED_1 | SPELL_ATTR_EX_CHANNELED_2)) // All channeled spells
-        || (GetSpellProto()->AttributesEx5 & SPELL_ATTR_EX5_AFFECTED_BY_HASTE))                    // Some auras from 3.3.3
-        applyHaste = true;
-    //SPELL_AURA_APPLY_HASTE_TO_AURA implentation
-    if (caster)
-    {
-        Unit::AuraList const& stateAuras = caster->GetAurasByType(SPELL_AURA_APPLY_HASTE_TO_AURA);
-        for(Unit::AuraList::const_iterator j = stateAuras.begin();j != stateAuras.end(); ++j)
-        {
-            if ((*j)->isAffectedOnSpell(GetSpellProto()))
-            {
-                applyHaste = true;
-                break;
-            }
-        }
-    }
-
-    //Apply haste
-    if (applyHaste && m_modifier.periodictime)
-        ApplyHasteToPeriodic();
-    // Apply periodic time mod, for channeled spells its in Aura::ApplyHasteToPeriodic()
-    else if (modOwner && m_modifier.periodictime)
+    //Apply haste, SPELL_AURA_APPLY_HASTE_TO_AURA and channeled spells are checked there
+    if (!ApplyHasteToPeriodic() && modOwner && m_modifier.periodictime)
+        // Apply periodic time mod, for channeled spells its in Aura::ApplyHasteToPeriodic()
         modOwner->ApplySpellMod(GetId(), SPELLMOD_ACTIVATION_TIME, m_modifier.periodictime);
 
     //Must be after haste
@@ -1452,7 +1432,10 @@ bool Aura::modStackAmount(int32 num)
 
 void Aura::RefreshAura()
 {
-    m_duration = m_maxduration;
+    // Haste affected spells need to be recalculated there
+    if (!ApplyHasteToPeriodic())
+        m_duration = m_maxduration;
+
     SendAuraUpdate(false);
 }
 
@@ -9729,30 +9712,55 @@ void Aura::HandleAuraOpenStable(bool apply, bool Real)
     ((Player*)caster)->GetSession()->HandleListStabledPetsOpcode(data);
 } 
 
-void Aura::ApplyHasteToPeriodic()
+//returns if we applied haste
+bool Aura::ApplyHasteToPeriodic()
 {
+    Unit* caster = GetCaster();
+
+    if (!caster)
+        return false;
+
+    bool applyHaste = false;
+    if ((GetSpellProto()->AttributesEx & (SPELL_ATTR_EX_CHANNELED_1 | SPELL_ATTR_EX_CHANNELED_2)) // All channeled spells
+        || (GetSpellProto()->AttributesEx5 & SPELL_ATTR_EX5_AFFECTED_BY_HASTE))                    // Some auras from 3.3.3
+        applyHaste = true;
+    //SPELL_AURA_APPLY_HASTE_TO_AURA implentation
+    if (caster)
+    {
+        Unit::AuraList const& stateAuras = caster->GetAurasByType(SPELL_AURA_APPLY_HASTE_TO_AURA);
+        for(Unit::AuraList::const_iterator j = stateAuras.begin();j != stateAuras.end(); ++j)
+        {
+            if ((*j)->isAffectedOnSpell(GetSpellProto()))
+            {
+                applyHaste = true;
+                break;
+            }
+        }
+    }
+    if (!applyHaste || !m_modifier.periodictime)
+        return false;
+
     int32 periodic = m_modifier.periodictime;
     int32 duration = m_origDuration;
     if (duration == 0 || periodic == 0)
-        return;
+        return false;
 
     int32 ticks = duration / periodic;
 
-    if (!GetCaster())
-        return;
-
-    Player* modOwner = GetCaster()->GetSpellModOwner();
+    Player* modOwner = caster->GetSpellModOwner();
 
     if (modOwner)
         modOwner->ApplySpellMod(GetId(), SPELLMOD_ACTIVATION_TIME, periodic);
 
     if ( !(GetSpellProto()->Attributes & (SPELL_ATTR_UNK4|SPELL_ATTR_TRADESPELL)) )
-        duration = int32(duration * GetCaster()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+        duration = int32(duration * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
 
     if (m_origDuration != duration)
     {
-        periodic = int32(periodic * GetCaster()->GetFloatValue(UNIT_MOD_CAST_SPEED));
+        periodic = int32(periodic * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
         m_maxduration = periodic * ticks;
     }
     m_modifier.periodictime = periodic;
+
+    return true;
 }
