@@ -1372,7 +1372,7 @@ void Aura::SetStackAmount(uint8 stackAmount)
             ApplyModifier(false, true);
 
             // Lifebloom has special amount calculation in final bloom
-            if (m_spellProto->SpellFamilyName != SPELLFAMILY_DRUID && !(m_spellProto->SpellFamilyFlags & UI64LIT(0x1000000000)))
+            if (m_spellProto->SpellFamilyName != SPELLFAMILY_DRUID || !(m_spellProto->SpellFamilyFlags & UI64LIT(0x1000000000)))
                 m_modifier.m_amount = amount;
             ApplyModifier(true, true);
         }
