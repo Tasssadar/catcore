@@ -106,7 +106,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraModIncreaseEnergyPercent(bool Apply, bool Real);
         void HandleAuraModIncreaseHealthPercent(bool Apply, bool Real);
         void HandleAuraModRegenInterrupt(bool Apply, bool Real);
-        void HandleHaste(bool Apply, bool Real);
+        void HandleAuraModMeleeHaste(bool Apply, bool Real);
         void HandlePeriodicTriggerSpell(bool Apply, bool Real);
         void HandlePeriodicTriggerSpellWithValue(bool apply, bool Real);
         void HandlePeriodicEnergize(bool Apply, bool Real);
@@ -320,9 +320,7 @@ class MANGOS_DLL_SPEC Aura
 
         uint8 GetStackAmount() {return m_stackAmount;}
         void SetStackAmount(uint8 num);
-        void SetChargesAmount (uint8 num);
         bool modStackAmount(int32 num); // return true if last charge dropped
-        bool modChargesAmount(int32 num); // return true if last charge dropped
         void RefreshAura();
 
         bool IsPositive() { return m_positive; }
@@ -356,6 +354,9 @@ class MANGOS_DLL_SPEC Aura
         void _AddAura();
         bool _RemoveAura();
 
+        bool IsEffectStacking();
+
+
         bool IsSingleTarget() {return m_isSingleTargetAura;}
         void SetIsSingleTarget(bool val) { m_isSingleTargetAura = val;}
 
@@ -377,7 +378,7 @@ class MANGOS_DLL_SPEC Aura
         uint32 const *getAuraSpellClassMask() const { return  m_spellProto->GetEffectSpellClassMask(m_effIndex); }
         bool isAffectedOnSpell(SpellEntry const *spell) const;
         bool isWeaponBuffCoexistableWith(Aura* ref);
-        void ApplyHasteToPeriodic();
+        bool ApplyHasteToPeriodic();
     protected:
         Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
 

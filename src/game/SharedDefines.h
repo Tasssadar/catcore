@@ -446,7 +446,7 @@ const uint32 ItemQualityColors[MAX_ITEM_QUALITY] = {
 #define SPELL_ATTR_EX6_UNK23                      0x00800000            // 23 not set in 3.0.3
 #define SPELL_ATTR_EX6_UNK24                      0x01000000            // 24 not set in 3.0.3
 #define SPELL_ATTR_EX6_UNK25                      0x02000000            // 25 not set in 3.0.3
-#define SPELL_ATTR_EX6_UNK26                      0x04000000            // 26 not set in 3.0.3
+#define SPELL_ATTR_EX6_UNK26                      0x04000000            // 26 May also have something to do with spell with special healing coefficient calculation
 #define SPELL_ATTR_EX6_NO_HEAL_PERCENT_MODS       0x08000000            // 27 do not apply heal percent mods (usually in cases where it has already been applied)
 #define SPELL_ATTR_EX6_UNK28                      0x10000000            // 28 not set in 3.0.3
 #define SPELL_ATTR_EX6_NO_DMG_PERCENT_MODS        0x20000000            // 29 do not apply damage percent mods (usually in cases where it has already been applied)
@@ -936,7 +936,7 @@ enum Mechanics
     MECHANIC_FEAR             = 5,
     MECHANIC_GRIP             = 6,
     MECHANIC_ROOT             = 7,
-    MECHANIC_SLOWATTACK       = 8,                          //0 spells use this mechanic, but some SPELL_AURA_MOD_HASTE and SPELL_AURA_MOD_RANGED_HASTE use as effect mechanic
+    MECHANIC_SLOWATTACK       = 8,                          //0 spells use this mechanic, but some SPELL_AURA_MOD_MELEE_HASTE and SPELL_AURA_MOD_RANGED_HASTE use as effect mechanic
     MECHANIC_SILENCE          = 9,
     MECHANIC_SLEEP            = 10,
     MECHANIC_SNARE            = 11,
@@ -1029,7 +1029,11 @@ enum WeaponAttackType
 {
     BASE_ATTACK   = 0,
     OFF_ATTACK    = 1,
-    RANGED_ATTACK = 2
+    RANGED_ATTACK = 2,
+
+    // leave these greater than or equal to MAX_ATTACK
+    NONSTACKING_MOD_MELEE = 3,
+    NONSTACKING_MOD_ALL = 4
 };
 
 #define MAX_ATTACK  3

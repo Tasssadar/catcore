@@ -46,8 +46,17 @@ int32 GetSpellDuration(SpellEntry const *spellInfo)
     if (!spellInfo)
         return 0;
     SpellDurationEntry const *du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
+
+    // Item - Warrior T8 Protection 4P Bonus
+    if(spellInfo->Id == 64934)
+    {
+        //Shield Block spellinfo
+        SpellEntry const *shieldBlockInfo = sSpellStore.LookupEntry(2565);
+        du = sSpellDurationStore.LookupEntry(shieldBlockInfo->DurationIndex);
+    }
     if (!du)
         return 0;
+
     return (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
 }
 
@@ -2084,6 +2093,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // (Corruption or Unstable Affliction) and (Curse of Agony or Curse of Doom)
                 if ( (spellInfo_1->SpellIconID == 313 || spellInfo_1->SpellIconID == 2039) && (spellInfo_2->SpellIconID == 544  || spellInfo_2->SpellIconID == 91) ||
                     (spellInfo_2->SpellIconID == 313 || spellInfo_2->SpellIconID == 2039) && (spellInfo_1->SpellIconID == 544  || spellInfo_1->SpellIconID == 91) )
+                    return false;
+
+                // Nether Protection effects
+                if( spellInfo_2->SpellIconID==1985 && spellInfo_1->SpellIconID==1985 && spellInfo_1->SpellVisual[0]==9750 )
                     return false;
 
                 // Metamorphosis, diff effects
