@@ -5583,13 +5583,12 @@ void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
         //Lifebloom special stacking
         if (m_spellProto->SpellFamilyName == SPELLFAMILY_DRUID && (m_spellProto->SpellFamilyFlags & UI64LIT(0x1000000000)))
         {
-            if (GetStackAmount() > 1)
-                m_modifier.m_amount += (GetStackAmount() == 2) ? m_modifier.m_amount : (m_modifier.m_amount / 2);
-            else
-            {
-                m_modifier.m_amount = caster->CalculateSpellDamage(target, m_spellProto, m_effIndex, &m_currentBasePoints);
-                m_modifier.m_amount = caster->SpellHealingBonusDone(m_target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount());
-            }
+            // Calculate base amount
+            m_modifier.m_amount = caster->CalculateSpellDamage(target, m_spellProto, m_effIndex, &m_currentBasePoints);
+            // Calculate amount for 1 stack
+            m_modifier.m_amount = caster->SpellHealingBonusDone(m_target, GetSpellProto(), m_modifier.m_amount, DOT, 1);
+            // Multiply by number of stacks...
+            m_modifier.m_amount *= GetStackAmount();
         }
         else
             m_modifier.m_amount = caster->SpellHealingBonusDone(m_target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount());
