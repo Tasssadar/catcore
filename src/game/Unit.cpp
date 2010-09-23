@@ -4873,6 +4873,29 @@ void Unit::RemoveSingleAuraDueToSpellByDispel(uint32 spellId, uint64 casterGUID,
             }
         }
     }
+    // Lifebloom heal and mana return on dispel
+    else if (spellEntry->SpellFamilyName == SPELLFAMILY_DRUID && (spellEntry->SpellFamilyFlags & UI64LIT(0x1000000000)))
+    {
+        if (Aura *hot = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, UI64LIT(0x1000000000), 0x00000000, casterGUID))
+        {
+            // final heal
+            if (Unit* target = hot->GetTarget())
+            {
+                //Heal - basepoints for 1 stack
+                int32 heal_bp0 = hot->GetModifier()->m_amount / hot->GetStackAmount();
+                target->CastCustomSpell(target, 33778, &heal_bp0, NULL, NULL, true, NULL, hot, casterGUID);
+                //Return mana
+                if (Unit* caster = hot->GetCaster())
+                {
+                    int32 returnmana = (spellEntry->ManaCostPercentage * caster->GetCreateMana() / 100) * (hot->GetStackAmount() / 2);
+                    caster->CastCustomSpell(caster, 64372, &returnmana, NULL, NULL, true, NULL, hot, casterGUID);
+                }
+            }
+            // Remove spell auras from stack
+            RemoveSingleSpellAurasByCasterSpell(spellId, casterGUID, AURA_REMOVE_BY_DISPEL);
+            return;
+        }
+    }
 
     RemoveSingleSpellAurasByCasterSpell(spellId, casterGUID, AURA_REMOVE_BY_DISPEL);
 }
