@@ -841,7 +841,8 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         }
     }
     //Failed
-    if(!more_roles.empty())
+    Player *leader = sObjectMgr.GetPlayer(GetLeaderGUID());
+    if(!leader || !leader->IsInWorld() || !more_roles.empty())
     {
         SendRoleCheckFail(LFG_ROLECHECK_WRONG_ROLES);
         return;
@@ -849,7 +850,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
 
     //Move group to queue
     SendRoleCheckUpdate(LFG_ROLECHECK_FINISHED);
-
+ 
     LfgDungeonList *queued = &leader->m_lookingForGroup.queuedDungeons;
 
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)

@@ -28,6 +28,7 @@
 #include "CreatureAI.h"
 #include "Util.h"
 #include "Pet.h"
+#include "MapManager.h"
 
 void WorldSession::HandlePetAction( WorldPacket & recv_data )
 {
@@ -108,7 +109,7 @@ void WorldSession::SendPetNameQuery( ObjectGuid petguid, uint32 petnumber)
             if (petguid.IsPet())
                 pet = map->GetPet(petguid);
             else if(petguid.IsVehicle())
-                pet = map->GetVehicle(petguid);
+                pet = (Creature*)map->GetVehicle(petguid);
             else
                 pet = map->GetCreature(petguid);
         }

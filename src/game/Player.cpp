@@ -16097,7 +16097,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
 bool Player::isAllowedToLoot(Creature* creature)
 {
-    if(GetGUID() == creature->GetLootRecipientGuid())
+    if(GetGUID() == creature->GetLootRecipientGuid().GetRawValue())
         return true;
 
     if (Player* recipient = creature->GetLootRecipient())

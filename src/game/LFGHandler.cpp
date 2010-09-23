@@ -32,7 +32,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
     DEBUG_LOG("WORLD: Received CMSG_LFG_JOIN");
     if (!sWorld.getConfig(CONFIG_BOOL_ALLOW_JOIN_LFG))
     {
-        sLfgMgr.SendJoinResult(player, LFG_JOIN_INTERNAL_ERROR);
+        sLfgMgr.SendJoinResult(_player, LFG_JOIN_INTERNAL_ERROR);
         return;
     }
 
@@ -255,8 +255,8 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
         }
         else if(!_player->m_lookingForGroup.groups.empty())
         {
-            sLfgMgr.LfgLog("Set roles Normal group dung %u, group %u, player %u", itr->first, itr->second->GetId(), _player->GetGUID());
             GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin();
+            sLfgMgr.LfgLog("Set roles Normal group dung %u, group %u, player %u", itr->first, itr->second->GetId(), _player->GetGUID());   
             lfgGroup = itr->second;
         }
         //Failed...

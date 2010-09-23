@@ -1223,3 +1223,11 @@ void LfgMgr::RemovePlayer(Player *player)
     if (!player->m_lookingForGroup.queuedDungeons.empty())
         RemoveFromQueue(player);
 }
+
+void LfgMgr::SendJoinResult(Player *player, uint8 result)
+{
+    WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
+    data << uint32(result);
+    data << uint32(0);
+    player->GetSession()->SendPacket(&data);
+}
