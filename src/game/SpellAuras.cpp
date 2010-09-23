@@ -3081,13 +3081,13 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         // prevent double apply bonuses
                         if (target->GetTypeId() != TYPEID_PLAYER || !((Player*)target)->GetSession()->PlayerLoading())
                         {
-                            if (m_stackAmount <= 1)
-                            {
-                                const SpellEntry* finalBloomEntry = sSpellStore.LookupEntry(33778);
-                                m_modifier.m_amount = caster->SpellHealingBonusDone(m_target, finalBloomEntry, m_modifier.m_amount, HEAL);
-                                m_modifier.m_amount = m_target->SpellHealingBonusTaken(caster, finalBloomEntry, m_modifier.m_amount, HEAL);
-                            }else
-                                m_modifier.m_amount += (m_stackAmount == 2) ? m_modifier.m_amount : (m_modifier.m_amount / 2);
+                            const SpellEntry* finalBloomEntry = sSpellStore.LookupEntry(33778);
+                            // Calculate base amount
+                            m_modifier.m_amount = caster->CalculateSpellDamage(target, m_spellProto, m_effIndex, &m_currentBasePoints);
+                            // Calculate amount for 1 stack - coefficient must be hardcoded and in DB must be set to 0 to avoid double bonuses while using CastCustomSpell()
+                            m_modifier.m_amount += caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(finalBloomEntry)) * 0.3857f;
+                            // Multiply by number of stacks...
+                            m_modifier.m_amount *= GetStackAmount();
                         } 
                     }
                 }
