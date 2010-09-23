@@ -2150,22 +2150,8 @@ void Aura::TriggerSpell()
             }
             // Ground Slam
             case 33525:
+            {
                 triggerTarget->CastSpell(triggerTarget, trigger_spell_id, true, NULL, this, casterGUID);
-                return;
-            case 34477:                                     // Misdirection, main spell
-            case 57934:                                     // Tricks of the Trade, main spell
-            {
-                if (m_removeMode != AURA_REMOVE_BY_DEFAULT) // used for direct in code aura removes
-                    if (Unit* pCaster = GetCaster())
-                        pCaster->getHostileRefManager().ResetThreatRedirection();
-                return;
-            }
-            case 35079:                                     // Misdirection, triggered buff
-            case 59628:                                     // Tricks of the Trade, triggered buff
-            case 59665:                                     // Vigilance, redirection spell
-            {
-                if (Unit* pCaster = GetCaster())
-                    pCaster->getHostileRefManager().ResetThreatRedirection();
                 return;
             }
             case 36730:                                     // Flame Strike
@@ -2627,6 +2613,22 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                     target->CastSpell(target, 32301, true, NULL, this);
 
+                return;
+            }
+            case 34477:                                     // Misdirection, main spell
+            case 57934:                                     // Tricks of the Trade, main spell
+            {
+                if (m_removeMode != AURA_REMOVE_BY_DEFAULT) // used for direct in code aura removes
+                    if (Unit* pCaster = GetCaster())
+                        pCaster->getHostileRefManager().ResetThreatRedirection();
+                return;
+            }
+            case 35079:                                     // Misdirection, triggered buff
+            case 59628:                                     // Tricks of the Trade, triggered buff
+            case 59665:                                     // Vigilance, redirection spell
+            {
+                if (Unit* pCaster = GetCaster())
+                    pCaster->getHostileRefManager().ResetThreatRedirection();
                 return;
             }
             case 36730:                                     // Flame Strike
