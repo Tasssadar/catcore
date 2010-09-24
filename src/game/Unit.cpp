@@ -75,6 +75,9 @@ static bool isNonTriggerAura[TOTAL_AURAS];
 // Prepare lists
 static bool procPrepared = InitTriggerAuraData();
 
+////////////////////////////////////////////////////////////
+// Methods of class MovementInfo
+
 void MovementInfo::Read(ByteBuffer &data)
 {
     data >> moveFlags;
@@ -164,6 +167,27 @@ void MovementInfo::Write(ByteBuffer &data) const
         data << u_unk1;
     }
 }
+////////////////////////////////////////////////////////////
+// Methods of class GlobalCooldownMgr
+
+bool GlobalCooldownMgr::HasGlobalCooldown(SpellEntry const* spellInfo) const
+{
+    GlobalCooldownList::const_iterator itr = m_GlobalCooldowns.find(spellInfo->StartRecoveryCategory);
+    return itr != m_GlobalCooldowns.end() && itr->second.duration && getMSTimeDiff(itr->second.cast_time, getMSTime()) < itr->second.duration;
+}
+
+void GlobalCooldownMgr::AddGlobalCooldown(SpellEntry const* spellInfo, uint32 gcd)
+{
+    m_GlobalCooldowns[spellInfo->StartRecoveryCategory] = GlobalCooldown(gcd, getMSTime());
+}
+
+void GlobalCooldownMgr::CancelGlobalCooldown(SpellEntry const* spellInfo)
+{
+    m_GlobalCooldowns[spellInfo->StartRecoveryCategory].duration = 0;
+}
+
+////////////////////////////////////////////////////////////
+// Methods of class Unit
 
 Unit::Unit()
 : WorldObject(), i_motionMaster(this), m_ThreatManager(this), m_HostileRefManager(this)
@@ -13945,8 +13969,6 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
         case ACT_ENABLED:                                   // 0xC1    spell
         {
             Unit* unit_target = NULL;
-            if (((Creature*)this)->GetGlobalCooldown() > 0)
-                return;
 
             if(guid2)
                 unit_target = ObjectAccessor::GetUnit(*owner,guid2);
@@ -13958,6 +13980,9 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                 sLog.outError("WORLD: unknown PET spell id %i", spellid);
                 return;
             }
+
+            if (GetCharmInfo() && GetCharmInfo()->GetGlobalCooldownMgr().HasGlobalCooldown(spellInfo))
+                return;
 
             for(int i = 0; i < MAX_EFFECT_INDEX;++i)
             {

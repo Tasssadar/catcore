@@ -501,7 +501,7 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
         return;
     }
 
-    if (pet->GetGlobalCooldown() > 0 && spellInfo->StartRecoveryCategory > 0)
+    if (pet->GetCharmInfo() && pet->GetCharmInfo()->GetGlobalCooldownMgr().HasGlobalCooldown(spellInfo))
         return;
 
     // do not cast not learned spells
