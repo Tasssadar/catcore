@@ -1122,6 +1122,8 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
 
     Player *player = sObjectMgr.GetPlayer(guid);
 
+    sLfgMgr.LfgLog("Player %u add to group %u, not lfg", guid, GetId());
+
     MemberSlot member;
     member.guid      = guid;
     member.name      = name;
@@ -1129,7 +1131,8 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
     member.assistant = isAssistant;
     m_memberSlots.push_back(member);
 
-    SubGroupCounterIncrease(group);
+    if(!isLfgGroup())
+        SubGroupCounterIncrease(group);
 
     if (player)
     {
@@ -1210,7 +1213,8 @@ bool Group::_removeMember(const uint64 &guid)
     member_witerator slot = _getMemberWSlot(guid);
     if (slot != m_memberSlots.end())
     {
-        SubGroupCounterDecrease(slot->group);
+        if(!isLfgGroup())
+            SubGroupCounterDecrease(slot->group);
 
         m_memberSlots.erase(slot);
     }
@@ -1664,7 +1668,7 @@ void Group::ResetInstances(uint8 method, bool isRaid, Player* SendMsgTo)
     {
         InstanceSave *p = itr->second.save;
         const MapEntry *entry = sMapStore.LookupEntry(itr->first);
-        if (!entry || entry->IsRaid() != isRaid || (!p->CanReset() && method != INSTANCE_RESET_GROUP_DISBAND))
+        if (!entry || !p || entry->IsRaid() != isRaid || (!p->CanReset() && method != INSTANCE_RESET_GROUP_DISBAND))
         {
             ++itr;
             continue;

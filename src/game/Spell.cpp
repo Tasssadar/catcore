@@ -1046,18 +1046,23 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
             DoSpellHitOnUnit(m_caster, mask);
         else if (missInfo != SPELL_MISS_EVADE && target->reflectResult != SPELL_MISS_EVADE && real_caster)   // We still need to start combat (not for evade...)
         {
-            if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
-                unit->SetStandState(UNIT_STAND_STATE_STAND);
+            if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NO_INITIAL_AGGRO) && 
+                (!IsPositiveSpell(m_spellInfo->Id) || IsDispelSpell(m_spellInfo)) &&
+                m_caster->isVisibleForOrDetect(unit, unit, false))
+            {
+                if (!unit->IsStandState() && !unit->hasUnitState(UNIT_STAT_STUNNED))
+                    unit->SetStandState(UNIT_STAND_STATE_STAND);
 
-            if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
-                ((Creature*)unit)->AI()->AttackedBy(real_caster);
+                if (!unit->isInCombat() && unit->GetTypeId() != TYPEID_PLAYER && ((Creature*)unit)->AI())
+                    ((Creature*)unit)->AI()->AttackedBy(real_caster);
 
-            unit->AddThreat(real_caster);
-            unit->SetInCombatWith(real_caster);
-            real_caster->SetInCombatWith(unit);
+                unit->AddThreat(real_caster);
+                unit->SetInCombatWith(real_caster);
+                real_caster->SetInCombatWith(unit);
 
-            if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
-                real_caster->SetContestedPvP(attackedPlayer);
+                if (Player *attackedPlayer = unit->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    real_caster->SetContestedPvP(attackedPlayer);
+            }
         }
     }
 
@@ -2026,6 +2031,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
         {
+            // We dont wanna target enemy targets here...
+            if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_CURRENT_ENEMY_COORDINATES)
+                break;
+
             // targets the ground, not the units in the area
             switch(m_spellInfo->Effect[effIndex])
             {
@@ -2944,17 +2953,8 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
 
         // will show cast bar
         SendSpellStart();
-        // trigger global cooldown
-        if (m_caster->GetTypeId() == TYPEID_PLAYER)
-            static_cast<Player*>(m_caster)->AddGlobalCooldown(m_spellInfo);
 
-    }
-    // Slam suspends attack timer
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
-    {
-        m_caster->setAttackTimer(BASE_ATTACK, (m_caster->getAttackTimer(BASE_ATTACK) + m_casttime));
-        if (m_caster->haveOffhandWeapon())
-            m_caster->setAttackTimer(OFF_ATTACK, (m_caster->getAttackTimer(OFF_ATTACK) + m_casttime));
+        TriggerGlobalCooldown();
     }
     // execute triggered without cast time explicitly in call point
     else if (m_timer == 0)
@@ -2962,6 +2962,13 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     // else triggered with cast time will execute execute at next tick or later
     // without adding to cast type slot
     // will not show cast bar but will show effects at casting time etc
+    // Slam suspends attack timer
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000200000))
+    {
+        m_caster->setAttackTimer(BASE_ATTACK, (m_caster->getAttackTimer(BASE_ATTACK) + m_casttime));
+        if (m_caster->haveOffhandWeapon())
+            m_caster->setAttackTimer(OFF_ATTACK, (m_caster->getAttackTimer(OFF_ATTACK) + m_casttime));
+    }
 }
 
 void Spell::cancel()
@@ -2973,6 +2980,9 @@ void Spell::cancel()
     switch (m_spellState)
     {
         case SPELL_STATE_PREPARING:
+            CancelGlobalCooldown();
+
+            //(no break)
         case SPELL_STATE_DELAYED:
         {
             SendInterrupted(0);
@@ -4516,11 +4526,10 @@ SpellCastResult Spell::CheckCast(bool strict)
         else
             return SPELL_FAILED_NOT_READY;
     }
-    // check global cooldown
-    if (strict && !m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER &&
-        static_cast<Player*>(m_caster)->HasGlobalCooldown(m_spellInfo))
-        return SPELL_FAILED_NOT_READY;
 
+    // check global cooldown
+    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
+        return SPELL_FAILED_NOT_READY;
 
     // Lock and Load Marker - sets Lock and Load cooldown
     if (m_caster->HasAura(67544) && m_spellInfo->Id == 56453)
@@ -7220,6 +7229,65 @@ void Spell::ClearCastItem()
 
     m_CastItem = NULL;
 }
+
+bool Spell::HasGlobalCooldown()
+{
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        return m_caster->GetCharmInfo()->GetGlobalCooldownMgr().HasGlobalCooldown(m_spellInfo);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        return ((Player*)m_caster)->GetGlobalCooldownMgr().HasGlobalCooldown(m_spellInfo);
+    else
+        return false;
+}
+
+void Spell::TriggerGlobalCooldown()
+{
+    int32 gcd = m_spellInfo->StartRecoveryTime;
+    if (!gcd)
+        return;
+
+    // global cooldown can't leave range 1..1.5 secs (if it it)
+    // exist some spells (mostly not player directly casted) that have < 1 sec and > 1.5 sec global cooldowns
+    // but its as test show not affected any spell mods.
+    if (m_spellInfo->StartRecoveryTime >= 1000 && m_spellInfo->StartRecoveryTime <= 1500)
+    {
+        // gcd modifier auras applied only to self spells and only player have mods for this
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            ((Player*)m_caster)->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
+
+        // apply haste rating
+        gcd = int32(float(gcd) * m_caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+
+        if (gcd < 1000)
+            gcd = 1000;
+        else if (gcd > 1500)
+            gcd = 1500;
+    }
+
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        m_caster->GetCharmInfo()->GetGlobalCooldownMgr().AddGlobalCooldown(m_spellInfo, gcd);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)m_caster)->GetGlobalCooldownMgr().AddGlobalCooldown(m_spellInfo, gcd);
+}
+
+void Spell::CancelGlobalCooldown()
+{
+    if (!m_spellInfo->StartRecoveryTime)
+        return;
+
+    // cancel global cooldown when interrupting current cast
+    if (m_caster->GetCurrentSpell(CURRENT_GENERIC_SPELL) != this)
+        return;
+
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        m_caster->GetCharmInfo()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)m_caster)->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
+}
+
 bool Spell::isCausingAura(AuraType aura)
 {
     bool found = false;

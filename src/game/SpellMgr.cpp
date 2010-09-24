@@ -46,8 +46,17 @@ int32 GetSpellDuration(SpellEntry const *spellInfo)
     if (!spellInfo)
         return 0;
     SpellDurationEntry const *du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
+
+    // Item - Warrior T8 Protection 4P Bonus
+    if(spellInfo->Id == 64934)
+    {
+        //Shield Block spellinfo
+        SpellEntry const *shieldBlockInfo = sSpellStore.LookupEntry(2565);
+        du = sSpellDurationStore.LookupEntry(shieldBlockInfo->DurationIndex);
+    }
     if (!du)
         return 0;
+
     return (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
 }
 
@@ -1622,6 +1631,10 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const * spellP
     // Check for extra req (if none) and hit/crit
     if (procEvent_procEx == PROC_EX_NONE)
     {
+        // Don't allow proc from periodic heal if no extra requirement is defined
+        if (EventProcFlag & (PROC_FLAG_ON_DO_PERIODIC | PROC_FLAG_ON_TAKE_PERIODIC) && (procExtra & PROC_EX_PERIODIC_POSITIVE))
+            return false;
+
         // No extra req, so can trigger only for active (damage/healing present) and hit/crit
         if ((procExtra & (PROC_EX_NORMAL_HIT|PROC_EX_CRITICAL_HIT)) && active)
             return true;
@@ -2084,6 +2097,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // (Corruption or Unstable Affliction) and (Curse of Agony or Curse of Doom)
                 if ( (spellInfo_1->SpellIconID == 313 || spellInfo_1->SpellIconID == 2039) && (spellInfo_2->SpellIconID == 544  || spellInfo_2->SpellIconID == 91) ||
                     (spellInfo_2->SpellIconID == 313 || spellInfo_2->SpellIconID == 2039) && (spellInfo_1->SpellIconID == 544  || spellInfo_1->SpellIconID == 91) )
+                    return false;
+
+                // Nether Protection effects
+                if( spellInfo_2->SpellIconID==1985 && spellInfo_1->SpellIconID==1985 && spellInfo_1->SpellVisual[0]==9750 )
                     return false;
 
                 // Metamorphosis, diff effects
@@ -4042,6 +4059,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     switch(spellproto->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
+        {
             // some generic arena related spells have by some strange reason MECHANIC_TURN
             if  (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
@@ -4049,11 +4067,14 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             else if (spellproto->SpellIconID == 20)
                 return DIMINISHING_ENTRAPMENT;
             break;
+        }
         case SPELLFAMILY_MAGE:
+        {
             // Dragon's Breath
             if  (spellproto->SpellIconID == 1548)
                 return DIMINISHING_DISORIENT;
             break;
+        }
         case SPELLFAMILY_ROGUE:
         {
             // Blind
@@ -4159,7 +4180,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_DISORIENT;
     if (mechanic & (1<<(MECHANIC_ROOT-1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
-    if (mechanic & ((1<<(MECHANIC_FEAR-1))|(1<<(MECHANIC_CHARM-1))))
+    if (mechanic & ((1<<(MECHANIC_FEAR-1))|(1<<(MECHANIC_CHARM-1))|(1<<(MECHANIC_TURN-1))))
         return DIMINISHING_FEAR_BLIND;
     if (mechanic & ((1<<(MECHANIC_SILENCE-1))|(1<<(MECHANIC_INTERRUPT-1))))
         return DIMINISHING_SILENCE;
@@ -4191,7 +4212,10 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
             if (spellproto->SpellFamilyFlags & UI64LIT(0x0800000000000000))
                 return 6000;
             // Warlock Curses
-            if (spellproto->Dispel == DISPEL_CURSE)
+            // Curse of Tongues
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
+                return 12000;
+            else if (spellproto->Dispel == DISPEL_CURSE)
                 return 120000;
             break;
         }

@@ -205,4 +205,3 @@ int main()
     fclose(log);
     return 0;
 }
-

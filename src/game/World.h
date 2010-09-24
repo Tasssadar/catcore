@@ -482,7 +482,7 @@ struct BroadCastMessage
     uint32 Id;
     uint32 RepeatMins;
     uint32 timeLeft;   // not in db
-    const char *text;
+    std::string text;
     //bool enabled;    //in db only
 };
 
@@ -657,6 +657,8 @@ class World
         void UpdateBroadCast();
         BroadCastSet *GetBroadCastMessages() { return &m_broadcastMessages; }
 
+        bool   apFlushWaitingForConfirm;
+        uint32 apFlushWaitingForConfirmTimer;
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters

@@ -109,7 +109,7 @@ enum SpellModOp
     SPELLMOD_CHANCE_OF_SUCCESS      = 18,                   // Only used with SPELL_AURA_ADD_FLAT_MODIFIER and affects proc spells
     SPELLMOD_ACTIVATION_TIME        = 19,
     SPELLMOD_EFFECT_PAST_FIRST      = 20,
-    SPELLMOD_CASTING_TIME_OLD       = 21,
+    SPELLMOD_GLOBAL_COOLDOWN        = 21,
     SPELLMOD_DOT                    = 22,
     SPELLMOD_EFFECT3                = 23,
     SPELLMOD_SPELL_BONUS_DAMAGE     = 24,
@@ -396,6 +396,7 @@ enum BaseModGroup
     RANGED_CRIT_PERCENTAGE,
     OFFHAND_CRIT_PERCENTAGE,
     SHIELD_BLOCK_VALUE,
+    NONSTACKING_CRIT_PERCENTAGE,
     BASEMOD_END
 };
 
@@ -974,6 +975,29 @@ enum CurrentSpellTypes
 #define CURRENT_FIRST_NON_MELEE_SPELL 1
 #define CURRENT_MAX_SPELL             4
 
+struct GlobalCooldown
+{
+    explicit GlobalCooldown(uint32 _dur = 0, uint32 _time = 0) : duration(_dur), cast_time(_time) {}
+
+    uint32 duration;
+    uint32 cast_time;
+};
+
+typedef UNORDERED_MAP<uint32 /*category*/, GlobalCooldown> GlobalCooldownList;
+
+class GlobalCooldownMgr                                     // Shared by Player and CharmInfo
+{
+    public:
+        GlobalCooldownMgr() {}
+
+    public:
+        bool HasGlobalCooldown(SpellEntry const* spellInfo) const;
+        void AddGlobalCooldown(SpellEntry const* spellInfo, uint32 gcd);
+        void CancelGlobalCooldown(SpellEntry const* spellInfo);
+
+    private:
+        GlobalCooldownList m_GlobalCooldowns;
+};
 
 enum ActiveStates
 {
@@ -1079,6 +1103,8 @@ struct CharmInfo
         void ToggleCreatureAutocast(uint32 spellid, bool apply);
 
         CharmSpellEntry* GetCharmSpell(uint8 index) { return &(m_charmspells[index]); }
+
+        GlobalCooldownMgr& GetGlobalCooldownMgr() { return m_GlobalCooldownMgr; }
     private:
 
         Unit* m_unit;
@@ -1087,6 +1113,7 @@ struct CharmInfo
         CommandStates   m_CommandState;
         ReactStates     m_reactState;
         uint32          m_petnumber;
+        GlobalCooldownMgr m_GlobalCooldownMgr;
 };
 
 // for clearing special attacks
@@ -1545,6 +1572,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         bool AddAura(Aura *aur);
 
+        float CheckAuraStackingAndApply(Aura *Aur, UnitMods unitMod, UnitModifierType modifierType, float amount, bool apply, int32 miscMask = 0, int32 miscValue = 0);
+
         // removing specific aura stack
         void RemoveAura(Aura* aura, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
@@ -1590,15 +1619,25 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void DelayAura(uint32 spellId, SpellEffectIndex effindex, int32 delaytime);
 
         float GetResistanceBuffMods(SpellSchools school, bool positive) const { return GetFloatValue(positive ? UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school : UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school ); }
-        void SetResistanceBuffMods(SpellSchools school, bool positive, float val) { SetFloatValue(positive ? UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school : UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school,val); }
-        void ApplyResistanceBuffModsMod(SpellSchools school, bool positive, float val, bool apply) { ApplyModSignedFloatValue(positive ? UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school : UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school, val, apply); }
+        void ApplyResistanceBuffModsMod(SpellSchools school, float val, bool apply) {
+            val *= GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START+school), TOTAL_PCT);
+            ApplyModSignedFloatValue((val > 0 ? UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school : UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school), val, apply);
+        }
+        void ApplyResistanceBuffModsPercentMod(SpellSchools school, float val, bool apply)
+        {
+            ApplyPercentModFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school, val, apply);
+            ApplyPercentModFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school, val, apply);
+        }
         void ApplyResistanceBuffModsPercentMod(SpellSchools school, bool positive, float val, bool apply) { ApplyPercentModFloatValue(positive ? UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE+school : UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE+school, val, apply); }
         void InitStatBuffMods()
         {
             for(int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(UNIT_FIELD_POSSTAT0+i, 0);
             for(int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(UNIT_FIELD_NEGSTAT0+i, 0);
         }
-        void ApplyStatBuffMod(Stats stat, float val, bool apply) { ApplyModSignedFloatValue((val > 0 ? UNIT_FIELD_POSSTAT0+stat : UNIT_FIELD_NEGSTAT0+stat), val, apply); }
+        void ApplyStatBuffMod(Stats stat, float val, bool apply) {
+            val *= GetModifierValue(UnitMods(UNIT_MOD_STAT_STRENGTH+stat), TOTAL_PCT);
+            ApplyModSignedFloatValue((val > 0 ? UNIT_FIELD_POSSTAT0+stat : UNIT_FIELD_NEGSTAT0+stat), val, apply);
+        }
         void ApplyStatPercentBuffMod(Stats stat, float val, bool apply)
         {
             ApplyPercentModFloatValue(UNIT_FIELD_POSSTAT0+stat, val, apply);
@@ -1649,7 +1688,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         int32 m_baseSpellCritChance;
 
         float m_threatModifier[MAX_SPELL_SCHOOL];
-        float m_modAttackSpeedPct[3];
+        float m_modAttackSpeedPct[MAX_ATTACK + 2];
 
         // Event handler
         EventProcessor m_Events;
@@ -1741,18 +1780,18 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         int32 GetTotalAuraModifier(AuraType auratype) const;
         float GetTotalAuraMultiplier(AuraType auratype) const;
-        int32 GetMaxPositiveAuraModifier(AuraType auratype) const;
-        int32 GetMaxNegativeAuraModifier(AuraType auratype) const;
+        int32 GetMaxPositiveAuraModifier(AuraType auratype, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifier(AuraType auratype, bool nonStackingOnly = false) const;
 
         int32 GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
         float GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask) const;
-        int32 GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
-        int32 GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) const;
+        int32 GetMaxPositiveAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask, bool nonStackingOnly = false) const;
 
         int32 GetTotalAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
         float GetTotalAuraMultiplierByMiscValue(AuraType auratype, int32 misc_value) const;
-        int32 GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
-        int32 GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 misc_value) const;
+        int32 GetMaxPositiveAuraModifierByMiscValue(AuraType auratype, int32 misc_value, bool nonStackingOnly = false) const;
+        int32 GetMaxNegativeAuraModifierByMiscValue(AuraType auratype, int32 misc_value, bool nonStackingOnly = false) const;
 
         // misc have plain value but we check it fit to provided values mask (mask & (1 << (misc-1)))
         float GetTotalAuraMultiplierByMiscValueForMask(AuraType auratype, uint32 mask) const;
