@@ -405,7 +405,7 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
     {
         for(int j = 0; j < MAX_EFFECT_INDEX; ++j)
         {
-            // Shadowflame is somehow bugged :/ let's see if this helps
+            // Shadowflame triggered DoT part does not have AoE target
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags2 & 0x00000002)
                 break;
 
@@ -2284,7 +2284,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_GENERIC || (m_spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && (m_spellInfo->SpellIconID == 2838 || m_spellInfo->SpellIconID == 15)))
                 FillAreaTargets(targetUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(), radius, PUSH_IN_FRONT_30, SPELL_TARGETS_AOE_DAMAGE);
             else
-                FillAreaTargets(targetUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(), radius, PUSH_IN_FRONT, SPELL_TARGETS_AOE_DAMAGE);
+                FillAreaTargets(targetUnitMap,m_caster->GetPositionX(), m_caster->GetPositionY(), radius, PUSH_IN_FRONT_90, SPELL_TARGETS_AOE_DAMAGE);
              break;
         }
         case TARGET_DUELVSPLAYER:
@@ -4682,7 +4682,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             if (target->isInFlight())
                 return SPELL_FAILED_BAD_TARGETS;
 
-            if (!m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target))
+            if (!m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target) && !IsAreaOfEffectSpell(m_spellInfo))
                 return SPELL_FAILED_LINE_OF_SIGHT;
             
             if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->InBattleGround())
