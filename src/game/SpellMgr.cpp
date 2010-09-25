@@ -1820,6 +1820,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     if ((spellInfo_1->Id == SPELL_ID_PASSIVE_RESURRECTION_SICKNESS) != (spellInfo_2->Id==SPELL_ID_PASSIVE_RESURRECTION_SICKNESS))
         return false;
 
+    // Enrage spells
+    if (spellInfo_1->SpellName[0] = "Enrage" || spellInfo_2->SpellName[0] = "Enrage" ||
+        spellInfo_1->SpellName[0] = "Berserk" || spellInfo_2->SpellName[0] = "Berserk")
+        return false;
+
     // Allow stack passive and not passive spells
     if ((spellInfo_1->Attributes & SPELL_ATTR_PASSIVE)!=(spellInfo_2->Attributes & SPELL_ATTR_PASSIVE))
         return false;
