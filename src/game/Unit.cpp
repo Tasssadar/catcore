@@ -10148,6 +10148,10 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     if (!spellProto || !pVictim || damagetype==DIRECT_DAMAGE )
         return pdamage;
 
+    // Wandering plague does not benefit here
+    if (spellProto->Id == 50526)
+        return pdamage;
+
     // For totems get damage bonus from owner (statue isn't totem in fact)
     if ( GetTypeId()==TYPEID_UNIT && ((Creature*)this)->isTotem() && ((Totem*)this)->GetTotemType()!=TOTEM_STATUE)
     {
@@ -10479,6 +10483,9 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
     if (!spellProto || !pCaster || damagetype==DIRECT_DAMAGE )
         return pdamage;
 
+    // Wandering plague does not benefit here
+    if (spellProto->Id == 50526)
+        return pdamage;
     uint32 schoolMask = spellProto->SchoolMask;
 
     // Taken total percent damage auras
