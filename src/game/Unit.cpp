@@ -719,6 +719,10 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         return damage;
     }
 
+    // huge typo
+    if (GetMap() == 603 && GetTypeId() == TYPEID_UNIT)
+        damage *= 1.2f;
+
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
 
     if (pVictim->GetTypeId() == TYPEID_PLAYER && GetTypeId() == TYPEID_PLAYER)
