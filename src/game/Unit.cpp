@@ -11037,7 +11037,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
-    TakenTotalMod *= pVictim->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
+    TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
 
     // No heal amount for this class spells
     if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)

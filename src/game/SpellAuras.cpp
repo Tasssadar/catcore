@@ -1457,7 +1457,7 @@ bool Aura::IsEffectStacking()
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_PRIEST) )
                 return false;
             break;
-+        case SPELL_AURA_MOD_CRIT_PERCENT:
+        case SPELL_AURA_MOD_CRIT_PERCENT:
             // Rampage
             if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR && GetSpellProto()->SpellIconID == 2006)
                 return false;
@@ -6504,8 +6504,8 @@ void Aura::HandleModCombatSpeedPct(bool apply, bool /*Real*/)
             target->ApplyAttackTimePercentMod(RANGED_ATTACK, target->m_modAttackSpeedPct[NONSTACKING_MOD_ALL], false);
         }
 
-        if(!apply)
-            amount = target->GetMaxPositiveAuraModifier(SPELL_AURA_MELEE_SLOW, true);
+        if (!apply)
+            amount = target->GetMaxPositiveAuraModifier(SPELL_AURA_HASTE_ALL, true) > target->GetMaxPositiveAuraModifier(SPELL_AURA_SLOW_ALL, true) ? target->GetMaxPositiveAuraModifier(SPELL_AURA_HASTE_ALL, true) : target->GetMaxPositiveAuraModifier(SPELL_AURA_SLOW_ALL, true);
 
         target->ApplyCastTimePercentMod(amount, true);
         target->ApplyAttackTimePercentMod(BASE_ATTACK, amount, true);
@@ -6521,7 +6521,7 @@ void Aura::HandleModAttackSpeed(bool apply, bool /*Real*/)
     GetTarget()->ApplyAttackTimePercentMod(BASE_ATTACK,float(m_modifier.m_amount),apply);
 }
 
-void Aura::HandleHaste(bool apply, bool /*Real*/)
+void Aura::HandleAuraModMeleeHaste(bool apply, bool /*Real*/)
 {
     Unit *target = GetTarget();
     if (IsStacking())
