@@ -459,6 +459,8 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket &recv_data)
             _player->GetMover()->GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
         return;
     }
+    if(!_player->GetMover() || !_player->GetMover()->IsInWorld())
+        _player->SetMover(_player);
 }
 
 void WorldSession::HandleMoveNotActiveMover(WorldPacket &recv_data)
