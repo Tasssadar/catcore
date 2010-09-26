@@ -178,7 +178,7 @@ void SpellMgr::ApplySpellHacks()
     sfix24->CastingTimeIndex = 0;
 
     // Item - Warrior T8 Protection 4P Bonus bonus triggered - spell icon and spell name
-    SpellEntry *sfix25 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64934));
+    /*SpellEntry *sfix25 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64934));
     sfix25->SpellIconID = 2097;
-    sfix25->SpellName[0] = "Hustej spell co snizi magical spell dymydz";
+    sfix25->SpellName[0] = "Hustej spell co snizi magical spell dymydz";*/
 }
