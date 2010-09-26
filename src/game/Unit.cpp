@@ -4915,7 +4915,7 @@ void Unit::RemoveSingleAuraDueToSpellByDispel(uint32 spellId, uint64 casterGUID,
                 //Return mana
                 if (Unit* caster = hot->GetCaster())
                 {
-                    int32 returnmana = (spellEntry->ManaCostPercentage * caster->GetCreateMana() / 100) / 2;
+                    int32 returnmana = spellEntry->ManaCostPercentage * caster->GetCreateMana() / 200;
                     caster->CastCustomSpell(caster, 64372, &returnmana, NULL, NULL, true, NULL, hot, casterGUID);
                 }
             }
