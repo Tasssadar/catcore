@@ -973,7 +973,7 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
         if (!plr || !plr->GetSession())
             continue;
         if(state == LFG_ROLECHECK_INITIALITING)
-            player->m_lookingForGroup.roles = 255;
+            plr->m_lookingForGroup.roles = 255;
         plr->GetSession()->SendPacket(&data);
     }
 }

@@ -759,7 +759,7 @@ void Vehicle::InstallAllAccessories()
                 veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[cPassanger->seat_idx]);
             if(ve && veSeat)
             {
-                pPassenger->m_movementInfo.SetTransportData(transport->GetGUID(),
+                pPassenger->m_movementInfo.SetTransportData(GetGUID(),
                     (veSeat->m_attachmentOffsetX + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),
                     (veSeat->m_attachmentOffsetY + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),
                     (veSeat->m_attachmentOffsetZ + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),

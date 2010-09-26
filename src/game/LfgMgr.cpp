@@ -77,7 +77,7 @@ void LfgMgr::Update(uint32 diff)
 
         GroupsList::iterator grpitr, grpitr_next;
         //Rolechecks
-        GroupList tmpGroupList = rolecheckGroups;
+        GroupsList tmpGroupList = rolecheckGroups;
         for(grpitr = tmpGroupList.begin(); grpitr != tmpGroupList.end(); grpitr = grpitr_next)
         {
             grpitr_next = grpitr;
@@ -324,7 +324,10 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
 void LfgMgr::UpdateQueue(uint8 side)
 {
     if (m_queuedDungeons[side].empty())
-        continue;
+    {
+        m_updateQueuesTimer[side] = m_updateQueuesBaseTime;
+        return;
+    }
     //dungeons...
     for(QueuedDungeonsMap::iterator itr = m_queuedDungeons[side].begin(); itr != m_queuedDungeons[side].end(); ++itr)
     {

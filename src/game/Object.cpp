@@ -1796,7 +1796,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
         VehicleEntry const *ve = sVehicleStore.LookupEntry(transport->GetVehicleId());
         VehicleSeatEntry const *veSeat = NULL;
         if(ve)
-            veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[seat_id]);
+            veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[seatId]);
         if(ve && veSeat)
         {
             v->m_movementInfo.SetTransportData(transport->GetGUID(),
