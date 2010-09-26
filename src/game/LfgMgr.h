@@ -197,6 +197,7 @@ struct LfgReward
     uint8 GroupType;                 // reward type from LfgGroupType
     Quest *questInfo;                // rewards are quests
     uint32 flags;                    //__LfgQuestFlags
+    uint32 DungeonId;                // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
 
     bool isDaily() const { return (flags & LFG_QUEST_DAILY); }
 };
@@ -298,7 +299,7 @@ class MANGOS_DLL_SPEC LfgMgr
             sLog.outLfgLog("%s", buf);
         }
 
-        void SendJoinResult(Player *player, uint8 result);
+        void SendJoinResult(Player *player, uint8 result, uint32 value = 0);
 
     private:
         ACE_Thread_Mutex m_queueLock;

@@ -73,7 +73,8 @@ void LfgMgr::Update(uint32 diff)
 
         GroupsList::iterator grpitr, grpitr_next;
         //Rolechecks
-        for(grpitr = rolecheckGroups.begin(); grpitr != rolecheckGroups.end(); grpitr = grpitr_next)
+        GroupList tmpGroupList = rolecheckGroups;
+        for(grpitr = tmpGroupList.begin(); grpitr != tmpGroupList.end(); grpitr = grpitr_next)
         {
             grpitr_next = grpitr;
             ++grpitr_next;
@@ -81,7 +82,9 @@ void LfgMgr::Update(uint32 diff)
         }
 
         //Vote to kick
-        for(grpitr = voteKickGroups.begin(); grpitr != voteKickGroups.end(); grpitr = grpitr_next)
+        tmpGroupList.clear();
+        tmpGroupList = voteKickGroups;
+        for(grpitr = tmpGroupList.begin(); grpitr != tmpGroupList.end(); grpitr = grpitr_next)
         {
             grpitr_next = grpitr;
             ++grpitr_next;
@@ -226,6 +229,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 {
                     lfgGroup->Disband(true);
                     itr->second->groups.erase(lfgGroup);
+                    formedGroups[side].erase(lfgGroup);
                     sObjectMgr.RemoveGroup(lfgGroup);
                     delete lfgGroup;
                 }
@@ -350,7 +354,7 @@ void LfgMgr::UpdateQueues()
                 for(GroupsList::iterator grpitr = itr->second->groups.begin(); grpitr != itr->second->groups.end(); ++grpitr)
                 {
                     if (!(*grpitr)->HasCorrectLevel(player->getLevel()) // Check level, this is needed only for Classic and BC normal I think...
-                        || maxPlayers >= (*grpitr)->GetMembersCount())   // We want group with most players
+                        || maxPlayers >= (*grpitr)->GetMembersCount() || (*grpitr)->GetMembersCount() >= 5)   // We want group with most players
                         continue;
                     for(;checkRole <= DAMAGE && !correct; checkRole*=2)
                     {
@@ -434,7 +438,7 @@ void LfgMgr::MergeGroups(GroupsList *groups)
 {
     for(GroupsList::iterator grpitr1 = groups->begin(); grpitr1 != groups->end(); ++grpitr1)
     {
-        //We can expect that there will be less tanks and healers than dps
+        // We can expect that there will be less tanks and healers than dps
         // grpitr1 = Group which gets new members 
         // grpitr2 = Group from which we take members
         GroupsList::iterator grpitr2, grpitr2next;
@@ -463,7 +467,7 @@ void LfgMgr::MergeGroups(GroupsList *groups)
                 uint8 merge = 0;  // 0 = nothin, 1 = just remove and add as same role, 2 sort roles
                 uint64 mergeGuid = 0;
                 uint8 mergeAs = 0;
-                for(int ii = 0; ii < 3; ++ii, checkRole *= 2)
+                for(int ii = 0; ii < 3 && merge == 0; ++ii, checkRole *= 2)
                 {
                     if (!(playerRoles & checkRole))
                         continue;
@@ -497,12 +501,9 @@ void LfgMgr::MergeGroups(GroupsList *groups)
                             merge = 1;
                         else if ((*grpitr1)->GetPlayerRole(mergeGuid, false, true) != checkRole)
                         {
-                            uint8 role = TANK;
-                            for(int iii = 0; iii < 3 && merge == 0; ++iii, role*=2)
+                            for(uint8 role = TANK; role <= DAMAGE && merge == 0; role*=2)
                             {
-                                if (role == checkRole)
-                                    continue;
-                                if (!((*grpitr1)->GetPlayerRole(mergeGuid, false, true) & role))
+                                if (role == checkRole || !((*grpitr1)->GetPlayerRole(mergeGuid, false, true) & role))
                                     continue;
 
                                 if((*grpitr1)->HasFreeRole(role))
@@ -792,6 +793,7 @@ void LfgMgr::SendLfgUpdatePlayer(Player *plr, uint8 updateType)
             data << uint32((*it)->Entry());
         data << plr->m_lookingForGroup.comment;
     }
+    plr->m_lookingForGroup.update_data[0] = &data;
     plr->GetSession()->SendPacket(&data);
 }
 
@@ -841,6 +843,7 @@ void LfgMgr::SendLfgUpdateParty(Player *plr, uint8 updateType)
             data << uint32((*it)->Entry());
         data << plr->m_lookingForGroup.comment;
     }
+    plr->m_lookingForGroup.update_data[1] = &data;
     plr->GetSession()->SendPacket(&data);
 }
 
@@ -879,13 +882,18 @@ LfgReward* LfgMgr::GetDungeonReward(uint32 dungeon, bool done, uint8 level)
 
     for(LfgRewardList::iterator itr = m_rewardsList.begin(); itr != m_rewardsList.end(); ++itr)
     {
-        if ((*itr)->type == dungeonInfo->type && (*itr)->GroupType == dungeonInfo->grouptype &&
+        if ((*itr)->type != dungeonInfo->type || (*itr)->GroupType != dungeonInfo->grouptype ||
             (*itr)->isDaily() == done)
-        {
-            Quest *rewQuest = (*itr)->questInfo;
-            if (level >= (*itr)->questInfo->GetMinLevel() &&  level <= (*itr)->questInfo->GetQuestLevel())  // ...mostly, needs some adjusting in db, blizz q level are without order
-                return *itr;
-        }
+            continue;
+
+        //World event check
+        if(dungeonInfo->grouptype == LFG_GROUPTYPE_WORLD_EVENT &&
+            (*itr)->DungeonId != dungeonInfo->ID && (*itr)->DungeonId != -1)
+            continue;
+
+        Quest *rewQuest = (*itr)->questInfo;
+        if (level >= (*itr)->questInfo->GetMinLevel() &&  level <= (*itr)->questInfo->GetQuestLevel())  // ...mostly, needs some adjusting in db, blizz q level are without order
+            return *itr;
     }
     return NULL;
 }
@@ -897,7 +905,7 @@ LfgDungeonList* LfgMgr::GetRandomDungeons(Player *plr)
     for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
     {
         currentRow = sLFGDungeonStore.LookupEntry(i);
-        if (currentRow && currentRow->type == LFG_TYPE_RANDOM &&
+        if (currentRow && (currentRow->type == LFG_TYPE_RANDOM || currentRow->grouptype == LFG_GROUPTYPE_WORLD_EVENT) &&
             currentRow->minlevel <= plr->getLevel() && currentRow->maxlevel >= plr->getLevel() &&
             currentRow->expansion <= plr->GetSession()->Expansion())
             dungeons->insert(currentRow);
@@ -978,15 +986,13 @@ void LfgMgr::LoadDungeonRewards()
 {
     // In case of reload
     for(LfgRewardList::iterator itr = m_rewardsList.begin(); itr != m_rewardsList.end(); ++itr)
-    {
-        delete (*itr)->questInfo;
         delete *itr; 
-    }
+
     m_rewardsList.clear();
 
     uint32 count = 0;
-    //                                                0     1          2           3       
-    QueryResult *result = WorldDatabase.Query("SELECT type, groupType, questEntry, flags FROM quest_lfg_relation");
+    //                                                0     1          2           3      4 
+    QueryResult *result = WorldDatabase.Query("SELECT type, groupType, questEntry, flags, DungeonId FROM quest_lfg_relation");
 
     if ( !result )
     {
@@ -1011,6 +1017,7 @@ void LfgMgr::LoadDungeonRewards()
         reward->type                  = fields[0].GetUInt8();
         reward->GroupType             = fields[1].GetUInt8();
         reward->flags                 = fields[3].GetUInt32();
+        reward->DungeonId             = fields[4].GetInt32();
 
         if (Quest *rewardQuest = const_cast<Quest*>(sObjectMgr.GetQuestTemplate(fields[2].GetUInt32())))
             reward->questInfo = rewardQuest;
@@ -1224,10 +1231,10 @@ void LfgMgr::RemovePlayer(Player *player)
         RemoveFromQueue(player);
 }
 
-void LfgMgr::SendJoinResult(Player *player, uint8 result)
+void LfgMgr::SendJoinResult(Player *player, uint8 result, uint32 value)
 {
     WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
     data << uint32(result);
-    data << uint32(0);
+    data << uint32(value);
     player->GetSession()->SendPacket(&data);
 }

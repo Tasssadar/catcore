@@ -20322,6 +20322,10 @@ void Player::SendInitialPacketsAfterAddToMap()
         aura_update << uint8(0);
         GetSession()->SendPacket(&aura_update);
     }
+    // Dungeon finder stuff
+    for(uint8 i = 0; i < 2; ++i)
+        if(m_lookingForGroup.update_data[i])
+            GetSession()->SendPacket(m_lookingForGroup.update_data[i]);
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()

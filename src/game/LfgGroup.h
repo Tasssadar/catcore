@@ -102,7 +102,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         PlayerList *GetDps() { return &dps; };
         bool HasFreeRole(uint8 role)
         {
-            return ((role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role = DAMAGE && dps.size() != LFG_DPS_COUNT));
+            return ((role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role == DAMAGE && dps.size() < LFG_DPS_COUNT));
         }
         ProposalAnswersMap *GetProposalAnswers() { return &m_answers; }
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
