@@ -1821,8 +1821,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         return false;
 
     // Enrage spells
-    if (spellInfo_1->SpellName[0] = "Enrage" || spellInfo_2->SpellName[0] = "Enrage" ||
-        spellInfo_1->SpellName[0] = "Berserk" || spellInfo_2->SpellName[0] = "Berserk")
+    if (spellInfo_1->SpellName[0] == "Enrage" || spellInfo_2->SpellName[0] == "Enrage" ||
+        spellInfo_1->SpellName[0] == "Berserk" || spellInfo_2->SpellName[0] == "Berserk")
         return false;
 
     // Allow stack passive and not passive spells
