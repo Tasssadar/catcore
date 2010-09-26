@@ -753,18 +753,31 @@ void Vehicle::InstallAllAccessories()
                 continue;
             }
             pPassenger->LoadFromDB(guid, GetMap());
+            VehicleEntry const *ve = sVehicleStore.LookupEntry(GetVehicleId());
+            VehicleSeatEntry const *veSeat = NULL;
+            if(ve)
+                veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[cPassanger->seat_idx]);
+            if(ve && veSeat)
+            {
+                pPassenger->m_movementInfo.SetTransportData(transport->GetGUID(),
+                    (veSeat->m_attachmentOffsetX + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                    (veSeat->m_attachmentOffsetY + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                    (veSeat->m_attachmentOffsetZ + GetObjectBoundingRadius()) * pPassenger->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                    veSeat->m_passengerYaw, GetCreationTime(), cPassanger->seat_idx, veSeat->m_ID,
+                    sObjectMgr.GetSeatFlags(veSeat->m_ID), GetVehicleFlags());
+            }
             pPassenger->Relocate(GetPositionX(), GetPositionY(), GetPositionZ());
             GetMap()->Add(pPassenger);
             pPassenger->AIM_Initialize();
         }
         else
-            pPassenger = (Creature*)SummonVehicle(cPassanger->entry, GetPositionX(), GetPositionY(), GetPositionZ(), 0);
+            pPassenger = (Creature*)SummonVehicle(cPassanger->entry, GetPositionX(), GetPositionY(), GetPositionZ(), 0, 0, this, cPassanger->seat_idx);
         // Enter vehicle...
         pPassenger->EnterVehicle(this, cPassanger->seat_idx, true);
         // ...and send update. Without this, client wont show this new creature/vehicle...
         WorldPacket data;
         pPassenger->BuildHeartBeatMsg(&data);
-     //   pPassenger->SendMessageToSet(&data, false);
+        pPassenger->SendMessageToSet(&data, false);
     }
 }
 Unit *Vehicle::GetPassenger(int8 seatId) const

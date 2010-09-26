@@ -1772,7 +1772,7 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     return pCreature;
 }
 
-Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId)
+Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId, Vehicle *transport, uint8 seatId)
 {
     Vehicle *v = new Vehicle;
 
@@ -1789,6 +1789,24 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
 
     if (x == 0.0f && y == 0.0f && z == 0.0f)
         GetClosePoint(x, y, z, v->GetObjectBoundingRadius());
+
+    //Set movement info
+    if(transport)
+    {
+        VehicleEntry const *ve = sVehicleStore.LookupEntry(transport->GetVehicleId());
+        VehicleSeatEntry const *veSeat = NULL;
+        if(ve)
+            veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[seat_id]);
+        if(ve && veSeat)
+        {
+            v->m_movementInfo.SetTransportData(transport->GetGUID(),
+                (veSeat->m_attachmentOffsetX + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                (veSeat->m_attachmentOffsetY + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                (veSeat->m_attachmentOffsetZ + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
+                veSeat->m_passengerYaw, transport->GetCreationTime(), seatId, veSeat->m_ID,
+                sObjectMgr.GetSeatFlags(veSeat->m_ID), transport->GetVehicleFlags());
+        }
+    }
 
     v->Relocate(x, y, z, ang);
 
