@@ -93,7 +93,7 @@ inline float Traveller<Creature>::GetMoveDestinationTo(float x, float y, float z
     float dy = y - GetPositionY();
     float dz = z - GetPositionZ();
 
-    if (i_traveller.hasUnitState(UNIT_STAT_IN_FLIGHT))
+    if (i_traveller.canFly())
         return sqrt((dx*dx) + (dy*dy) + (dz*dz));
     else                                                    //Walking on the ground
         return sqrt((dx*dx) + (dy*dy));
