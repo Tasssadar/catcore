@@ -216,8 +216,9 @@ enum QueueFaction
 {
     LFG_ALLIANCE                       = 0,
     LFG_HORDE                          = 1,
+    LFG_MIXED                          = 2
 };
-#define MAX_LFG_FACTION                  2
+#define MAX_LFG_FACTION                  3
 
 typedef std::set<uint64> PlayerList;
 
@@ -300,10 +301,11 @@ class MANGOS_DLL_SPEC LfgMgr
         }
 
         void SendJoinResult(Player *player, uint8 result, uint32 value = 0);
+        uint8 GetSideForPlayer(Player *player);
 
     private:
         ACE_Thread_Mutex m_queueLock;
-        void UpdateQueues();
+        void UpdateQueue(uint8 side);
         void UpdateFormedGroups();
         void MergeGroups(GroupsList *groups);
         void UpdateWaitTime(LfgGroup *group, uint32 dungeonId);
@@ -323,7 +325,7 @@ class MANGOS_DLL_SPEC LfgMgr
 
         uint32 m_groupids;
         uint32 m_updateQueuesBaseTime;
-        uint32 m_updateQueuesTimer;
+        uint32 m_updateQueuesTimer[MAX_LFG_FACTION];
         uint32 m_updateProposalTimer;
         uint32 m_deleteInvalidTimer;
         WaitTimeMap m_waitTimes[LFG_WAIT_TIME_SLOT_MAX];

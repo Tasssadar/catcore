@@ -1468,12 +1468,27 @@ Arena.LoserHalfChange = 0
 #         Enable or disable LFG debug log
 #         Default: false
 #
+#    Lfg.Mixed.Allow
+#         Enable or disable mixed dungeons
+#         Default: false
+#
+#    Lfg.Mixed.MinLevel
+#         Minimum level for mixed dungeons
+#         Default: 15
+#
+#    Lfg.Mixed.MaxLevel
+#         Maximum level for mixed dungeons
+#         Default: 79
+#
 ###################################################################################################################
 
 Lfg.AllowJoin = 1
 Lfg.ImmidiateQueueUpdate = 1
 Lfg.QueueUpdateTime = 180000
 Lfg.Log = false
+Lfg.Mixed.Allow = false
+Lfg.Mixed.MinLevel = 15
+Lfg.Mixed.MaxLevel = 79
 
 ###################################################################################################################
 # NETWORK CONFIG
