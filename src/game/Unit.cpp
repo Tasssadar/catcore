@@ -719,6 +719,10 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         return damage;
     }
 
+    // huge typo
+    if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT)
+        damage *= 1.2f;
+
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
 
     if (pVictim->GetTypeId() == TYPEID_PLAYER && GetTypeId() == TYPEID_PLAYER)
@@ -4911,7 +4915,7 @@ void Unit::RemoveSingleAuraDueToSpellByDispel(uint32 spellId, uint64 casterGUID,
                 //Return mana
                 if (Unit* caster = hot->GetCaster())
                 {
-                    int32 returnmana = (spellEntry->ManaCostPercentage * caster->GetCreateMana() / 100) * (1 / 2);
+                    int32 returnmana = (spellEntry->ManaCostPercentage * caster->GetCreateMana() / 100) / 2;
                     caster->CastCustomSpell(caster, 64372, &returnmana, NULL, NULL, true, NULL, hot, casterGUID);
                 }
             }
@@ -10148,6 +10152,10 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     if (!spellProto || !pVictim || damagetype==DIRECT_DAMAGE )
         return pdamage;
 
+    // Wandering plague does not benefit here
+    if (spellProto->Id == 50526)
+        return pdamage;
+
     // For totems get damage bonus from owner (statue isn't totem in fact)
     if ( GetTypeId()==TYPEID_UNIT && ((Creature*)this)->isTotem() && ((Totem*)this)->GetTotemType()!=TOTEM_STATUE)
     {
@@ -10479,6 +10487,9 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
     if (!spellProto || !pCaster || damagetype==DIRECT_DAMAGE )
         return pdamage;
 
+    // Wandering plague does not benefit here
+    if (spellProto->Id == 50526)
+        return pdamage;
     uint32 schoolMask = spellProto->SchoolMask;
 
     // Taken total percent damage auras
@@ -11037,7 +11048,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
-    TakenTotalMod *= pVictim->GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
+    TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
 
     // No heal amount for this class spells
     if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)

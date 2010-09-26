@@ -806,7 +806,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
             }
         }
 
-        if (missingLevel || missingItem || missingKey || missingQuest)
+        if (missingLevel || missingItem || missingKey || missingQuest || instanceInCombat)
         {
             // TODO: all this is probably wrong
             if (missingItem)

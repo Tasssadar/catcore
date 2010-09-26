@@ -1694,7 +1694,7 @@ bool InstanceMap::CanEnter(Player *player)
 
     // cannot enter while players in the instance are in combat
     Group *pGroup = player->GetGroup();
-    if (GetInstanceData() && GetInstanceData()->IsInstanceInCombat())
+    if (GetInstanceData() && GetInstanceData()->IsInstanceInCombat() && !player->isGameMaster())
         return false;
 
     if (pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
