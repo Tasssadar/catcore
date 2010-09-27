@@ -143,8 +143,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendBootPlayer(Player *plr);
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
+        bool IsActiveRoleCheck() const { return m_isActiveRoleCheck; }
+
     private:
-        //ACE_Thread_Mutex m_queueLock;
         void SendRoleCheckFail(uint8 error);
 
         uint64 m_tank;
@@ -163,6 +164,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint8 m_instanceStatus;
         bool m_inDungeon;
         bool m_isRandom;
+        bool m_isActiveRoleCheck;
         uint32 randomDungeonEntry;
         VoteToKick m_voteToKick;
 };

@@ -507,6 +507,7 @@ class ObjectMgr
 
         void PackGroupIds();
         Group* GetGroupById(uint32 id) const;
+        LfgGroup* GetLfgGroupById(uint32 id) const;
         void AddGroup(Group* group);
         void RemoveGroup(Group* group);
 

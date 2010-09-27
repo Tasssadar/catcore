@@ -44,6 +44,7 @@ LfgGroup::LfgGroup(bool premade) : Group()
     m_instanceStatus = INSTANCE_NOT_SAVED;
     m_inDungeon = false;
     m_isRandom = false;
+    m_isActiveRoleCheck = false;
     m_dungeonInfo = NULL;
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
@@ -120,7 +121,7 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.assistant = false;
     m_memberSlots.push_back(member);
     uint32 ID = IsRandom() ? (GetRandomEntry() & 0x00FFFFFF) : m_dungeonInfo->ID;
-    player->m_lookingForGroup.groups.insert(std::pair<uint32, LfgGroup*>(ID,this));
+    player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(ID,GetId()));
     return true;
 }
 
@@ -771,6 +772,7 @@ void LfgGroup::SendProposalUpdate(uint8 state)
 
 void LfgGroup::UpdateRoleCheck(uint32 diff)
 {
+    sLfgMgr.LfgLog("Updaterolecheck %u, diff %u", GetId(), diff);
     if (diff != 0)
     {
         m_readycheckTimer += diff;
@@ -895,12 +897,14 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         }
         if (m_inDungeon)
             premadePlayers.insert(player->GetGUID());
-    } 
+    }
+    m_isActiveRoleCheck = false;
     sLfgMgr.AddCheckedGroup(this, true);
 }
 
 void LfgGroup::SendRoleCheckFail(uint8 error)
 {
+    m_isActiveRoleCheck = false;
     SendRoleCheckUpdate(error);
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
@@ -919,6 +923,7 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
 {
     if (state == LFG_ROLECHECK_INITIALITING)
     {
+        m_isActiveRoleCheck = true;
         ResetGroup();
         if (m_inDungeon)
             premadePlayers.clear();
