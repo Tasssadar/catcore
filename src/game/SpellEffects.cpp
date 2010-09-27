@@ -6035,22 +6035,43 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 // Giddyup!
                 case 42924:
                 {
+                    if (m_caster->HasAura(43332))
+                        return;
+
                     Aura* pGiddy = m_caster->GetAura(m_spellInfo->Id, EFFECT_INDEX_0);
                     if (!pGiddy)
                         return;
 
-                    uint8 stack = pGiddy->GetStackAmount();
-                    if (stack > 8)
-                        m_caster->CastSpell(m_caster, 42994, true);
-                    else if (stack > 5)
-                        m_caster->CastSpell(m_caster, 42993, true);
-                    else if (stack > 2)
-                        m_caster->CastSpell(m_caster, 42992, true);
-                    else
-                        m_caster->CastSpell(m_caster, 43310, true);
-                    
-                    int8 fatigue = stack - 5;
-                    if (!m_caster->HasAura(43052))
+                    int8 fatigue = 0;
+                    switch(pGiddy->GetStackAmount())
+                    {
+                        case 1:
+                        case 2:
+                            m_caster->CastSpell(m_caster, 43310, true);
+                            fatigue = -5;
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                            m_caster->CastSpell(m_caster, 42992, true);
+                            fatigue = -1;
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            m_caster->CastSpell(m_caster, 42993, true);
+                            fatigue = 1;
+                            break;
+                        case 9:
+                        case 10:
+                        case 11:
+                            m_caster->CastSpell(m_caster, 42994, true);
+                            fatigue = 5;
+                            break;
+                    }
+
+
+                    if (!m_caster->HasAura(43052) && fatigue > 0)
                         m_caster->CastSpell(m_caster, 43052, true);
                     if (Aura* pAura = m_caster->GetDummyAura(43052))
                     {
