@@ -8881,10 +8881,12 @@ void Aura::PeriodicDummyTick()
                     else
                         caster->CastSpell(caster, 43310, true);
                     
-                    int8 removefatigue = (stack - 5)*2;
+                    int8 fatigue = stack - 5;
+                    if (!caster->HasAura(43052))
+                        caster->CastSpell(caster, 43052, true);
                     if (Aura* pAura = caster->GetDummyAura(43052))
                     {
-                        pAura->modStackAmount(removefatigue);
+                        pAura->modStackAmount(fatigue);
                         if (pAura && pAura->GetStackAmount() >= 100)
                             caster->CastSpell(caster, 43332, true);
                     }

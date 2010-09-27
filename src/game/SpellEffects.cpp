@@ -6032,6 +6032,35 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 41131, true);
                     break;
                 }
+                // Giddyup!
+                case 42924:
+                {
+                    Aura* pGiddy = m_caster->GetAura(m_spellInfo->Id, EFFECT_INDEX_0);
+                    if (!pGiddy)
+                        return;
+
+                    uint8 stack = pGiddy->GetStackAmount();
+                    if (stack > 8)
+                        m_caster->CastSpell(m_caster, 42994, true);
+                    else if (stack > 5)
+                        m_caster->CastSpell(m_caster, 42993, true);
+                    else if (stack > 2)
+                        m_caster->CastSpell(m_caster, 42992, true);
+                    else
+                        m_caster->CastSpell(m_caster, 43310, true);
+                    
+                    int8 fatigue = stack - 5;
+                    if (!m_caster->HasAura(43052))
+                        m_caster->CastSpell(m_caster, 43052, true);
+                    if (Aura* pAura = m_caster->GetDummyAura(43052))
+                    {
+                        pAura->modStackAmount(fatigue);
+                        if (pAura && pAura->GetStackAmount() >= 100)
+                            m_caster->CastSpell(m_caster, 43332, true);
+                    }
+
+                    break;
+                }
                 case 43365:                                 // The Cleansing: Shrine Cast
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
