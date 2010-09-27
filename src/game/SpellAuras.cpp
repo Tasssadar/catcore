@@ -3325,6 +3325,8 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
                 target->RemoveAurasDueToSpell(42993);
             if (target->HasAura(42994))
                 target->RemoveAurasDueToSpell(42994);
+            if (target->HasAura(42146))
+                target->RemoveAurasDueToSpell(42146);			
         }
     }
 
@@ -8929,7 +8931,8 @@ void Aura::PeriodicDummyTick()
                     if (Aura* pAura = caster->GetDummyAura(43052))
                     {
                         pAura->modStackAmount(fatigue);
-                        if (pAura && pAura->GetStackAmount() >= 100)
+                        if (pAura && pAura->GetStackAmount() >= 100
+                            && (caster->HasAura(42993) || caster->HasAura(42994)))
                             caster->CastSpell(caster, 43332, true);
                     }
 
