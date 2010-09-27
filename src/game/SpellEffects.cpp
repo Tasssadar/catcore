@@ -6032,6 +6032,56 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 41131, true);
                     break;
                 }
+                // Giddyup!
+                case 42924:
+                {
+                    if (m_caster->HasAura(43332))
+                        return;
+
+                    Aura* pGiddy = m_caster->GetAura(m_spellInfo->Id, EFFECT_INDEX_0);
+                    if (!pGiddy)
+                        return;
+
+                    int8 fatigue = 0;
+                    switch(pGiddy->GetStackAmount())
+                    {
+                        case 1:
+                        case 2:
+                            m_caster->CastSpell(m_caster, 43310, true);
+                            fatigue = -5;
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                            m_caster->CastSpell(m_caster, 42992, true);
+                            fatigue = -1;
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            m_caster->CastSpell(m_caster, 42993, true);
+                            fatigue = 1;
+                            break;
+                        case 9:
+                        case 10:
+                        case 11:
+                            m_caster->CastSpell(m_caster, 42994, true);
+                            fatigue = 5;
+                            break;
+                    }
+
+
+                    if (!m_caster->HasAura(43052) && fatigue > 0)
+                        m_caster->CastSpell(m_caster, 43052, true);
+                    if (Aura* pAura = m_caster->GetDummyAura(43052))
+                    {
+                        pAura->modStackAmount(fatigue);
+                        if (pAura && pAura->GetStackAmount() >= 100)
+                            m_caster->CastSpell(m_caster, 43332, true);
+                    }
+
+                    break;
+                }
                 case 43365:                                 // The Cleansing: Shrine Cast
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)

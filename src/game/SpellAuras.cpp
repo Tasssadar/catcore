@@ -3307,7 +3307,30 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
     else
     {
         target->Unmount();
+
+        // Giddyup ! - removing all related auras
+        if (GetId() == 43880)
+        {
+            if (target->HasAura(43052))
+                target->RemoveAurasDueToSpell(43052);
+            if (target->HasAura(42924))
+                target->RemoveAurasDueToSpell(42924);
+            if (target->HasAura(43332))
+                target->RemoveAurasDueToSpell(43332);
+            if (target->HasAura(43310))
+                target->RemoveAurasDueToSpell(43310);
+            if (target->HasAura(42992))
+                target->RemoveAurasDueToSpell(42992);
+            if (target->HasAura(42993))
+                target->RemoveAurasDueToSpell(42993);
+            if (target->HasAura(42994))
+                target->RemoveAurasDueToSpell(42994);
+            if (target->HasAura(42146))
+                target->RemoveAurasDueToSpell(42146);			
+        }
     }
+
+
 }
 
 void Aura::HandleAuraWaterWalk(bool apply, bool Real)
@@ -8866,8 +8889,58 @@ void Aura::PeriodicDummyTick()
 //              case 42879: break;
 //              // Tricky Treat
 //              case 42919: break;
-//              // Giddyup!
-//              case 42924: break;
+
+                // Giddyup!
+                case 42924:
+                {
+                    Unit* caster = GetCaster();
+                    if (!caster)
+                        return;
+
+                    if (caster->HasAura(43332))
+                        return;
+
+                    int8 fatigue = 0;
+                    switch(GetStackAmount())
+                    {
+                        case 1:
+                        case 2:
+                            caster->CastSpell(caster, 43310, true);
+                            fatigue = -5;
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                            caster->CastSpell(caster, 42992, true);
+                            fatigue = -1;
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            caster->CastSpell(caster, 42993, true);
+                            fatigue = 1;
+                            break;
+                        case 9:
+                        case 10:
+                        case 11:
+                            caster->CastSpell(caster, 42994, true);
+                            fatigue = 5;
+                            break;
+                    }
+
+                    if (!caster->HasAura(43052) && fatigue > 0)
+                        caster->CastSpell(caster, 43052, true);
+                    if (Aura* pAura = caster->GetDummyAura(43052))
+                    {
+                        pAura->modStackAmount(fatigue);
+                        if (pAura && pAura->GetStackAmount() >= 100
+                            && (caster->HasAura(42993) || caster->HasAura(42994)))
+                            caster->CastSpell(caster, 43332, true);
+                    }
+
+                    modStackAmount(-1);
+                    break;
+                }
 //              // Ram - Trot
 //              case 42992: break;
 //              // Ram - Canter
