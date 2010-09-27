@@ -369,7 +369,7 @@ bool Map::Add(Player *player)
         if(player->m_lookingForGroup.mixed_map == GetId())
             player->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
         else
-            player->setFactionForRace(plr->getRace());
+            player->setFactionForRace(player->getRace());
     }
 
     //Lfg boost remove, this is the last fail-safe!

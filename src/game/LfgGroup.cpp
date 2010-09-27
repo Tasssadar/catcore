@@ -144,7 +144,7 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
             player->GetSession()->SendPacket( &data );
         }
         if(m_inDungeon && m_isMixed)
-            plr->m_lookingForGroup.SetMixedDungeon(0, false);
+            player->m_lookingForGroup.SetMixedDungeon(0, false);
     }
     //Remove from any role
     if (m_tank == guid)
@@ -712,7 +712,6 @@ void LfgGroup::SendGroupFormed()
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || !plr->GetSession())
             continue;
-        plr->m_lookingForGroup.update_data[0] = &data;
         plr->GetSession()->SendPacket(&data);
     }
 

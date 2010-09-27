@@ -4289,7 +4289,7 @@ void Aura::HandleModCharm(bool apply, bool Real)
         {
             //TEAMBG check
             if ((((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) ||
-                ((Player*)m_target->m_lookingForGroup.mixed) //BLUE(ali)
+                ((Player*)m_target)->m_lookingForGroup.mixed) //BLUE(ali)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
             else if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 2) //RED(horde)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED));
