@@ -20314,7 +20314,7 @@ void Player::SendInitialPacketsAfterAddToMap()
         aura_update << uint8(255);
         if (HasAura(64976))
             aura_update << uint32(64976);
-        else if (HasAura(57499))
+        else
             aura_update << uint32(57499);
         aura_update << uint8(19);
         aura_update << uint8(getLevel());
@@ -20322,10 +20322,6 @@ void Player::SendInitialPacketsAfterAddToMap()
         aura_update << uint8(0);
         GetSession()->SendPacket(&aura_update);
     }
-    // Dungeon finder stuff
-    for(uint8 i = 0; i < 2; ++i)
-        if(m_lookingForGroup.update_data[i])
-            GetSession()->SendPacket(m_lookingForGroup.update_data[i]);
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()

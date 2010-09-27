@@ -194,7 +194,10 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 GroupMap::iterator grp = player->m_lookingForGroup.groups.find((*it)->ID);
                 if(grp == player->m_lookingForGroup.groups.end())
                     continue;
-                LfgGroup *lfgGroup = grp->second;
+                LfgGroup *lfgGroup = sObjectMgr.GetLfgGroupById(grp->second);
+                if(!lfgGroup)
+                    continue;
+
                 LfgLog("Remove group %u from queue, id %u", lfgGroup->GetId(), grp->first);
                 uint64 guid = 0;
                 for(PlayerList::iterator plritr = lfgGroup->GetPremadePlayers()->begin(); plritr != lfgGroup->GetPremadePlayers()->end(); ++plritr)
@@ -253,9 +256,15 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
             if (itr == m_queuedDungeons[side].end())                 // THIS SHOULD NEVER HAPPEN
                 continue;
             itr->second->players.erase(player->GetGUID());
-            if (itr->second->groups.find(player->m_lookingForGroup.groups.find((*it)->ID)->second) != itr->second->groups.end())
+            GroupMap::iterator grp = player->m_lookingForGroup.groups.find((*it)->ID);
+            if(grp == player->m_lookingForGroup.groups.end())
+                continue;
+            LfgGroup *group = sObjectMgr.GetLfgGroupById(grp->second);
+            if(!group)
+                continue;
+            GroupsList::iterator grpitr = itr->second->groups.find(group);
+            if (grpitr != itr->second->groups.end())
             {
-                GroupsList::iterator grpitr = itr->second->groups.find(player->m_lookingForGroup.groups.find((*it)->ID)->second);
                 if ((*grpitr)->IsMember(player->GetGUID()))
                 {
                     LfgLog("Remove member - remove from queue single");
@@ -498,7 +507,7 @@ void LfgMgr::MergeGroups(GroupsList *groups)
                                 }
                                 break;       
                         }
-                        if (mergeGuid == 0 && playerRoles-checkRole <= LEADER)
+                        if ((*grpitr1)->HasFreeRole(checkRole) && playerRoles-checkRole <= LEADER)
                             merge = 1;
                         else if ((*grpitr1)->GetPlayerRole(mergeGuid, false, true) != checkRole)
                         {
@@ -794,7 +803,6 @@ void LfgMgr::SendLfgUpdatePlayer(Player *plr, uint8 updateType)
             data << uint32((*it)->Entry());
         data << plr->m_lookingForGroup.comment;
     }
-    plr->m_lookingForGroup.update_data[0] = &data;
     plr->GetSession()->SendPacket(&data);
 }
 
@@ -844,7 +852,6 @@ void LfgMgr::SendLfgUpdateParty(Player *plr, uint8 updateType)
             data << uint32((*it)->Entry());
         data << plr->m_lookingForGroup.comment;
     }
-    plr->m_lookingForGroup.update_data[1] = &data;
     plr->GetSession()->SendPacket(&data);
 }
 
@@ -884,7 +891,7 @@ LfgReward* LfgMgr::GetDungeonReward(uint32 dungeon, bool done, uint8 level)
     for(LfgRewardList::iterator itr = m_rewardsList.begin(); itr != m_rewardsList.end(); ++itr)
     {
         if ((*itr)->type != dungeonInfo->type || (*itr)->GroupType != dungeonInfo->grouptype ||
-            (*itr)->isDaily() == done)
+            (*itr)->isDaily() != done)
             continue;
 
         //World event check
@@ -1234,6 +1241,8 @@ void LfgMgr::RemovePlayer(Player *player)
 
 void LfgMgr::SendJoinResult(Player *player, uint8 result, uint32 value)
 {
+    if(!player)
+        return;
     WorldPacket data(SMSG_LFG_JOIN_RESULT, 8);
     data << uint32(result);
     data << uint32(value);

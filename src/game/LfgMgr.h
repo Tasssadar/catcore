@@ -197,7 +197,7 @@ struct LfgReward
     uint8 GroupType;                 // reward type from LfgGroupType
     Quest *questInfo;                // rewards are quests
     uint32 flags;                    //__LfgQuestFlags
-    uint32 DungeonId;                // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
+    int32 DungeonId;                // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
 
     bool isDaily() const { return (flags & LFG_QUEST_DAILY); }
 };
@@ -237,7 +237,7 @@ struct DungeonInfo             //used in db
 typedef std::map<uint32, DungeonInfo*> DungeonInfoMap;
 
 typedef std::set<LfgGroup*> GroupsList;
-typedef std::map<uint32, LfgGroup*> GroupMap;
+typedef std::map<uint32, uint32> GroupMap;
 
 struct QueuedDungeonInfo
 {

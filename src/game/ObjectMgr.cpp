@@ -204,6 +204,16 @@ Group* ObjectMgr::GetGroupById(uint32 id) const
     return NULL;
 }
 
+LfgGroup* ObjectMgr::GetLfgGroupById(uint32 id) const
+{
+    GroupMap::const_iterator itr = mGroupMap.find(id);
+    if (itr != mGroupMap.end())
+        if(itr->second->isLfgGroup())
+            return (LfgGroup*)itr->second;
+
+    return NULL;
+}
+
 Guild* ObjectMgr::GetGuildById(uint32 GuildId) const
 {
     GuildMap::const_iterator itr = mGuildMap.find(GuildId);

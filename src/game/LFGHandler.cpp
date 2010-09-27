@@ -184,11 +184,10 @@ void WorldSession::HandleLfgProposalResult(WorldPacket& recv_data)
     recv_data >> groupid;
     recv_data >> accept; 
     
-    if (LfgGroup *group = (LfgGroup*)sObjectMgr.GetGroupById(groupid))
+    if (LfgGroup *group = sObjectMgr.GetLfgGroupById(groupid))
     {
         group->GetProposalAnswers()->insert(std::pair<uint64, uint8>(_player->GetGUID(), accept));       
         group->SendProposalUpdate(LFG_PROPOSAL_WAITING);
-        _player->m_lookingForGroup.update_data[0] = NULL;
     }
 }
 
@@ -245,37 +244,28 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
     uint8 roles;
     recv_data >> roles;
     _player->m_lookingForGroup.roles = roles;
-    if (_player->GetGroup() && _player->GetGroup()->isLfgGroup())
-        ((LfgGroup*)_player->GetGroup())->UpdateRoleCheck();
 
-    /*if (Group *group = _player->GetGroup())
+    if(!_player->GetGroup())
+        return;
+
+    LfgGroup *group = NULL;
+    for(GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin(); _player->m_lookingForGroup.groups.end(); ++itr)
     {
-        LfgGroup *lfgGroup = NULL;
-        if (group->isLfgGroup())
-        {
-            sLfgMgr.LfgLog("Set roles LfgGroup id %u, guid %u", group->GetId(), _player->GetGUID());
-            lfgGroup = (LfgGroup*)group;
-        }
-        else if(!_player->m_lookingForGroup.groups.empty())
-        {
-            GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin();
-            sLfgMgr.LfgLog("Set roles Normal group dung %u, group %u, player %u", itr->first, itr->second->GetId(), _player->GetGUID());   
-            lfgGroup = itr->second;
-        }
-        //Failed...
-        if(!lfgGroup)
-            return;
-        lfgGroup->GetRoleAnswers()->erase(_player->GetGUID()); 
-        lfgGroup->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));
+        group = sObjectMgr.GetLfgGroupById(itr->second);
+        if(!group || !group->IsActiveRoleCheck())
+            continue;
+        sLfgMgr.LfgLog("Set roles dung %u, group %u, player %u", itr->first, itr->second, _player->GetGUID());   
 
+        group->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
         data << uint64(_player->GetGUID());
         data << uint8(1);
         data << uint32(roles);
-        group->BroadcastPacket(&data, false);
+        _player->GetGroup()->BroadcastPacket(&data, false);
 
-        lfgGroup->UpdateRoleCheck();
-    } */
+        group->UpdateRoleCheck();
+        break;
+    }
 }
 
 void WorldSession::HandleLfgSetBootVote(WorldPacket& recv_data)
