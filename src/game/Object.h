@@ -497,7 +497,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         ViewPoint& GetViewPoint() { return m_viewPoint; }
 
-        Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL);
+        Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL, Vehicle *transport = NULL, uint8 seatId = 0);
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float ang, uint32 respawnTime);
         GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime) {return SummonGameobject(entry,x,y,z,ang,respawnTime);}
     protected:

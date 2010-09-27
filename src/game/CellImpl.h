@@ -136,7 +136,7 @@ inline int CellHelper(const float radius)
 
 inline CellArea Cell::CalculateCellArea(const WorldObject &obj, float radius)
 {
-    if (radius <= 0.0f)
+    if (radius <= 0.0f || !obj.IsInWorld())
         return CellArea();
 
     //we should increase search radius by object's radius, otherwise

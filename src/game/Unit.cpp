@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2010 mangos <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4915,7 +4915,7 @@ void Unit::RemoveSingleAuraDueToSpellByDispel(uint32 spellId, uint64 casterGUID,
                 //Return mana
                 if (Unit* caster = hot->GetCaster())
                 {
-                    int32 returnmana = (spellEntry->ManaCostPercentage * caster->GetCreateMana() / 100) * (1 / 2);
+                    int32 returnmana = spellEntry->ManaCostPercentage * caster->GetCreateMana() / 200;
                     caster->CastCustomSpell(caster, 64372, &returnmana, NULL, NULL, true, NULL, hot, casterGUID);
                 }
             }
@@ -12673,7 +12673,18 @@ void Unit::setDeathState(DeathState s)
 
         // after removing a Fearaura (in RemoveAllAurasOnDeath)
         // Unit::SetFeared is called and makes that creatures attack player again
-        StopMoving();
+        if (GetTypeId() == TYPEID_UNIT)
+        {
+            clearUnitState(UNIT_STAT_MOVING);
+
+            GetMap()->CreatureRelocation((Creature*)this, GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
+            SendMonsterMove(GetPositionX(), GetPositionY(), GetPositionZ(), SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 0);
+        }
+        else
+        {
+            if (!IsStopped())
+                StopMoving();
+        }
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
@@ -15476,21 +15487,12 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     if (!veSeat)
         return;
 
-    if (v->GetVehicleGUID())
-    {
-        MovementInfo mi = v->m_movementInfo;
-        m_movementInfo.SetTransportData(mi.GetTransportGuid(), mi.GetTransportPos()->x, mi.GetTransportPos()->y, mi.GetTransportPos()->z, mi.GetTransportPos()->o,
-            mi.GetTransportTime(), mi.GetTransportSeat(), mi.GetTransportDBCSeat(), mi.GetVehicleSeatFlags(), mi.GetVehicleFlags()); 
-    }
-    else
-    {
-        m_movementInfo.SetTransportData(v->GetGUID(),
-            (veSeat->m_attachmentOffsetX + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
-            (veSeat->m_attachmentOffsetY + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
-            (veSeat->m_attachmentOffsetZ + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
-            veSeat->m_passengerYaw, v->GetCreationTime(), seat_id, veSeat->m_ID,
-            sObjectMgr.GetSeatFlags(veSeat->m_ID), v->GetVehicleFlags());
-    }
+    m_movementInfo.SetTransportData(v->GetGUID(),
+        (veSeat->m_attachmentOffsetX + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
+        (veSeat->m_attachmentOffsetY + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
+        (veSeat->m_attachmentOffsetZ + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
+        veSeat->m_passengerYaw, v->GetCreationTime(), seat_id, veSeat->m_ID,
+        sObjectMgr.GetSeatFlags(veSeat->m_ID), v->GetVehicleFlags());
 
     addUnitState(UNIT_STAT_ON_VEHICLE);
     InterruptNonMeleeSpells(false);

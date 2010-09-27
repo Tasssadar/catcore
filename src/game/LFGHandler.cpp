@@ -129,7 +129,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         }
         //Already queued for this dungeon, dunno how this can happen, but it happens
         if (player->m_lookingForGroup.queuedDungeons.find(dungeonInfo) != player->m_lookingForGroup.queuedDungeons.end())
-            continue;
+            sLfgMgr.RemoveFromQueue(player);
         player->m_lookingForGroup.queuedDungeons.insert(dungeonInfo);
     } 
     recv_data >> unk; // looks like unk from LFGDungeons.dbc, so 0 = raid or zone, 3 = dungeon, 15 = world event. Possibly count of next data? anyway seems unused
@@ -188,6 +188,7 @@ void WorldSession::HandleLfgProposalResult(WorldPacket& recv_data)
     {
         group->GetProposalAnswers()->insert(std::pair<uint64, uint8>(_player->GetGUID(), accept));       
         group->SendProposalUpdate(LFG_PROPOSAL_WAITING);
+        _player->m_lookingForGroup.update_data[0] = NULL;
     }
 }
 
@@ -244,8 +245,10 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
     uint8 roles;
     recv_data >> roles;
     _player->m_lookingForGroup.roles = roles;
+    if (_player->GetGroup() && _player->GetGroup()->isLfgGroup())
+        ((LfgGroup*)_player->GetGroup())->UpdateRoleCheck();
 
-    if (Group *group = _player->GetGroup())
+    /*if (Group *group = _player->GetGroup())
     {
         LfgGroup *lfgGroup = NULL;
         if (group->isLfgGroup())
@@ -263,9 +266,16 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
         if(!lfgGroup)
             return;
         lfgGroup->GetRoleAnswers()->erase(_player->GetGUID()); 
-        lfgGroup->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));                
+        lfgGroup->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));
+
+        WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
+        data << uint64(_player->GetGUID());
+        data << uint8(1);
+        data << uint32(roles);
+        group->BroadcastPacket(&data, false);
+
         lfgGroup->UpdateRoleCheck();
-    } 
+    } */
 }
 
 void WorldSession::HandleLfgSetBootVote(WorldPacket& recv_data)

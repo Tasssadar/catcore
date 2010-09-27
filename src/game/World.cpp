@@ -800,11 +800,13 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_INSTANT_LOGOUT, "InstantLogout", SEC_MODERATOR);
 
-    //LFG config
     setConfig(CONFIG_UINT32_LFG_QUEUE_UPDATETIME, "Lfg.QueueUpdateTime", 180000);
     setConfig(CONFIG_BOOL_ALLOW_JOIN_LFG, "Lfg.AllowJoin", true);
     setConfig(CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE, "Lfg.ImmidiateQueueUpdate", true);
     setConfig(CONFIG_BOOL_LFG_LOG, "Lfg.Log", false);
+    setConfig(CONFIG_BOOL_LFG_ALLOW_MIXED, "Lfg.Mixed.Allow", false);
+    setConfig(CONFIG_UINT32_LFG_MIXED_MINLEVEL, "Lfg.Mixed.MinLevel", 15);
+    setConfig(CONFIG_UINT32_LFG_MIXED_MAXLEVEL, "Lfg.Mixed.MaxLevel", 79);
 
     setConfigMin(CONFIG_UINT32_GUILD_EVENT_LOG_COUNT, "Guild.EventLogRecordsCount", GUILD_EVENTLOG_MAX_RECORDS, GUILD_EVENTLOG_MAX_RECORDS);
     setConfigMin(CONFIG_UINT32_GUILD_BANK_EVENT_LOG_COUNT, "Guild.BankEventLogRecordsCount", GUILD_BANK_MAX_LOGS, GUILD_BANK_MAX_LOGS);
