@@ -188,5 +188,5 @@ void SpellMgr::ApplySpellHacks()
 
     // Giddyup!
     SpellEntry *sfix27 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42924));
-    sfix27->EffectAmplitude[EFFECT_INDEX_] = 1000;
+    sfix27->EffectAmplitude[EFFECT_INDEX_0] = 1000;
 }

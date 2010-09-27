@@ -8894,7 +8894,7 @@ void Aura::PeriodicDummyTick()
                         return;
 
                     if (caster->HasAura(43332))
-                        break;
+                        return;
 
                     int8 fatigue = 0;
                     switch(GetStackAmount())
