@@ -8867,22 +8867,26 @@ void Aura::PeriodicDummyTick()
                 // Giddyup!
                 case 42924:
                 {
+                    Unit* caster = GetCaster();
+                    if (!caster)
+                        return;
+
                     uint8 stack = GetStackAmount();
                     if (stack > 8)
-                        m_caster->CastSpell(m_caster, 42994, true);
+                        caster->CastSpell(caster, 42994, true);
                     else if (stack > 5)
-                        m_caster->CastSpell(m_caster, 42993, true);
+                        caster->CastSpell(caster, 42993, true);
                     else if (stack > 2)
-                        m_caster->CastSpell(m_caster, 42992, true);
+                        caster->CastSpell(caster, 42992, true);
                     else
-                        m_caster->CastSpell(m_caster, 43310, true);
+                        caster->CastSpell(caster, 43310, true);
                     
                     int8 removefatigue = (stack - 5)*2;
-                    if (Aura* pAura = m_caster->GetDummyAura(43052))
+                    if (Aura* pAura = caster->GetDummyAura(43052))
                     {
                         pAura->modStackAmount(removefatigue);
-                        if (pAura && pAura->GetStackAmount() => 100)
-                            m_caster->CastSpell(m_caster, 43332, true);
+                        if (pAura && pAura->GetStackAmount() >= 100)
+                            caster->CastSpell(caster, 43332, true);
                     }
 
                     modStackAmount(-1);
