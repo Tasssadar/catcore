@@ -8873,7 +8873,7 @@ void Aura::PeriodicDummyTick()
                     else if (stack > 5)
                         m_caster->CastSpell(m_caster, 42993, true);
                     else if (stack > 2)
-                        m_caster->CastSpell(m_caster, 42991, true);
+                        m_caster->CastSpell(m_caster, 42992, true);
                     else
                         m_caster->CastSpell(m_caster, 43310, true);
                     
