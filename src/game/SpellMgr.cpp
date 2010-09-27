@@ -1912,6 +1912,12 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                        (spellInfo_1->Id == 64883 && spellInfo_2->Id == 65182) )
                         return false;
 
+                    if ((spellInfo_1->Id == 43310 || spellInfo_1->Id == 42992 || spellInfo_1->Id == 42993 ||
+                        spellInfo_1->Id == 42994 || spellInfo_1->Id == 43332) &&
+                        (spellInfo_2->Id == 43310 || spellInfo_2->Id == 42992 || spellInfo_2->Id == 42993 ||
+                        spellInfo_2->Id == 42994 || spellInfo_2->Id == 43332))
+                        return true;
+
                     break;
                 }
                 case SPELLFAMILY_MAGE:
