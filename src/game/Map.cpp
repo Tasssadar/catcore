@@ -364,6 +364,13 @@ bool Map::Add(Player *player)
         player->SetTeamBG(false, 0);
         sLog.outError("Something is wrong, player %u is not added to bg map but has TeamBG data!", player->GetGUID());
     }
+    if(player->m_lookingForGroup.mixed)
+    {
+        if(player->m_lookingForGroup.mixed_map == GetId())
+            player->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
+        else
+            player->setFactionForRace(plr->getRace());
+    }
 
     //Lfg boost remove, this is the last fail-safe!
     if (!IsDungeon() && player->HasAura(72221))

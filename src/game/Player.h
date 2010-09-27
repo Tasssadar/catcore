@@ -406,8 +406,8 @@ struct LookingForGroup
         taxi_end = 0;
         mount_spell = 0;
         joinTime = 0;
-        update_data[0] = NULL;
-        update_data[1] = NULL;
+        mixed = false;
+        mixed_map = 0;
     }
     
     std::string comment;
@@ -422,7 +422,13 @@ struct LookingForGroup
     uint32 taxi_start;
     uint32 taxi_end;
     uint32 mount_spell;
-    WorldPacket *update_data[2];
+    bool mixed;
+    uint32 mixed_map;
+    void SetMixedDungeon(uint32 map, bool activate = true)
+    {
+        mixed = activate;
+        mixed_map = map;
+    }
 };
 
 enum RaidGroupError

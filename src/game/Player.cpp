@@ -17000,8 +17000,14 @@ void Player::_LoadGroup(QueryResult *result)
                 SetRaidDifficulty(group->GetRaidDifficulty());
             }
             //Prevent group bug
-            if (group->isLfgGroup() && ((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED && group->GetMembersCount() == 1)
-                group->RemoveMember(GetGUID(), 0);
+            if(group->isLfgGroup())
+            {
+                LfgGroup *lfgGroup = (LfgGroup*)group;
+                if (lfgGroup->GetInstanceStatus() == INSTANCE_COMPLETED && group->GetMembersCount() == 1)
+                    group->RemoveMember(GetGUID(), 0);
+                else if(lfgGroup->IsMixed())
+                    m_lookingForGroup.SetMixedDungeon(lfgGroup->GetDungeonInfo()->map);
+            }                
         }
     }
 }

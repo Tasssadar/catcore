@@ -78,7 +78,7 @@ struct VoteToKick
 class MANGOS_DLL_SPEC LfgGroup : public Group
 {
     public:
-        LfgGroup(bool premade = false);
+        LfgGroup(bool premade = false, bool mixed = false);
         ~LfgGroup();
 
         void SetGroupId(uint32 newid) { m_Id = newid; }
@@ -102,7 +102,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         PlayerList *GetDps() { return &dps; };
         bool HasFreeRole(uint8 role)
         {
-            return ((role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role == DAMAGE && dps.size() < LFG_DPS_COUNT));
+            return ( (role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role == DAMAGE && dps.size() < LFG_DPS_COUNT) );
         }
         ProposalAnswersMap *GetProposalAnswers() { return &m_answers; }
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
@@ -144,6 +144,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
         bool IsActiveRoleCheck() const { return m_isActiveRoleCheck; }
+        bool IsMixed() const { return m_isMixed; }
 
     private:
         void SendRoleCheckFail(uint8 error);
@@ -165,6 +166,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool m_inDungeon;
         bool m_isRandom;
         bool m_isActiveRoleCheck;
+        bool m_isMixed;
         uint32 randomDungeonEntry;
         VoteToKick m_voteToKick;
 };

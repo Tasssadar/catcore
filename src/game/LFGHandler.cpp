@@ -249,7 +249,7 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
         return;
 
     LfgGroup *group = NULL;
-    for(GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin(); _player->m_lookingForGroup.groups.end(); ++itr)
+    for(GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin(); itr != _player->m_lookingForGroup.groups.end(); ++itr)
     {
         group = sObjectMgr.GetLfgGroupById(itr->second);
         if(!group || !group->IsActiveRoleCheck())
