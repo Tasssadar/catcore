@@ -10564,7 +10564,10 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
                 break; 
             } 
         } 
-    } 
+    }
+    //Item - Warrior T8 Protection 4P Bonus hack + Shield Block
+    if (HasAura(2565) && HasAura(64936))
+        TakenTotalMod *= 0.8f;
 
     // From caster spells
     AuraList const& mOwnerTaken = GetAurasByType(SPELL_AURA_MOD_DAMAGE_FROM_CASTER);
