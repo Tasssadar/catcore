@@ -1414,8 +1414,9 @@ bool Aura::modStackAmount(int32 num)
 void Aura::RefreshAura()
 {
     // Haste affected spells need to be recalculated there
-    // if (!ApplyHasteToPeriodic())
-        m_duration = m_maxduration;
+    ApplyHasteToPeriodic());
+
+    m_duration = m_maxduration;
 
     SendAuraUpdate(false);
 }
@@ -9808,7 +9809,7 @@ bool Aura::ApplyHasteToPeriodic()
     if (!applyHaste || !m_modifier.periodictime)
         return false;
 
-    int32 periodic = m_modifier.periodictime;
+    int32 periodic = m_spellProto->EffectAmplitude[m_effIndex];
     int32 duration = m_origDuration;
     if (duration == 0 || periodic == 0)
         return false;
