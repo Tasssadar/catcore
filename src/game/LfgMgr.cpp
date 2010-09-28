@@ -113,7 +113,7 @@ void LfgMgr::AddToQueue(Player *player, bool updateQueue)
             lfgGroup = (LfgGroup*)group;
         else
         {
-            lfgGroup = new LfgGroup(true);
+            lfgGroup = new LfgGroup(true, (side == LFG_MIXED));
             Player *leader = sObjectMgr.GetPlayer(group->GetLeaderGUID());
             if (!leader || !leader->GetSession())
                 return;
@@ -391,7 +391,7 @@ void LfgMgr::UpdateQueue(uint8 side)
             //Failed, so create new LfgGroup
             else
             {
-                LfgGroup *newGroup = new LfgGroup();
+                LfgGroup *newGroup = new LfgGroup(false, true);
                 newGroup->SetDungeonInfo(itr->second->dungeonInfo);
                 newGroup->SetGroupId(sObjectMgr.GenerateGroupId());
                 sObjectMgr.AddGroup(newGroup);
@@ -546,7 +546,8 @@ void LfgMgr::MergeGroups(GroupsList *groups)
                         }
                         else
                         {
-                            (*grpitr1)->GetDps()->erase(mergeGuid);
+                            if((*grpitr1)->GetPlayerRole(mergeGuid, false) & DAMAGE)
+                                (*grpitr1)->GetDps()->erase(mergeGuid);
                             LfgLog("Set role merge 2 to %u", mergeAs);
                             (*grpitr1)->SetAsRole(mergeAs, mergeGuid);
                             LfgLog("Set role merge 2 to %u", checkRole);
@@ -741,22 +742,23 @@ void LfgMgr::SendLfgPlayerInfo(Player *plr)
 {
     LfgDungeonList *random = GetRandomDungeons(plr);
     LfgLocksList *locks = GetDungeonsLock(plr);
-    uint32 rsize = random->size();
+    uint8 rsize = 0;
 
     WorldPacket data(SMSG_LFG_PLAYER_INFO);
-    if (rsize == 0)
-        data << uint8(0);
-    else
+    data << uint8(random->size());                             // Random Dungeon count
+    size_t maskPos = data.wpos();
+    for (LfgDungeonList::iterator itr = random->begin(); itr != random->end(); ++itr)
     {
-        data << uint8(rsize);                                      // Random Dungeon count
-        for (LfgDungeonList::iterator itr = random->begin(); itr != random->end(); ++itr)
-        {
-            data << uint32((*itr)->Entry());                       // Entry(ID and type) of random dungeon
-            BuildRewardBlock(data, (*itr)->ID, plr);
-        }
-        random->clear();
-        delete random;
+        if(!GetDungeonReward((*itr)->ID, plr->m_lookingForGroup.DoneDungeon((*itr)->ID, plr), plr->getLevel()))
+            continue;
+        data << uint32((*itr)->Entry());                       // Entry(ID and type) of random dungeon
+        BuildRewardBlock(data, (*itr)->ID, plr);
+        ++rsize;
     }
+    data.put<uint8>(maskPos, rsize);
+    random->clear();
+    delete random;
+
     data << uint32(locks->size());
     for (LfgLocksList::iterator itr = locks->begin(); itr != locks->end(); ++itr)
     {
@@ -864,7 +866,7 @@ void LfgMgr::BuildRewardBlock(WorldPacket &data, uint32 dungeon, Player *plr)
 
     data << uint8(plr->m_lookingForGroup.DoneDungeon(dungeon, plr));  // false = its first run this day, true = it isnt
     if (data.GetOpcode() == SMSG_LFG_PLAYER_REWARD)
-        data << uint32(0);             // ???
+        data << uint32(plr->GetGroup()->GetMembersCount()-1);         // strangers
     data << uint32(reward->questInfo->GetRewOrReqMoney());
     data << uint32((plr->getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)) ? 0 : reward->questInfo->XPValue( plr ));
     data << uint32(0);                                      // some "variable" money?
@@ -1251,11 +1253,10 @@ void LfgMgr::SendJoinResult(Player *player, uint8 result, uint32 value)
 
 uint8 LfgMgr::GetSideForPlayer(Player *player)
 {
-    return (player->GetTeam() == ALLIANCE) ? LFG_ALLIANCE : LFG_HORDE;
-
-    //TODO
-    /*
-    if(sWorld.getConfig(CONFIG_BOOL_LFG_ALLOW_MIXED) && (player->getLevel() > sWorld.getConfig(CONFIG_UINT32_LFG_MIXED_MAXLEVEL) ||
-       player->getLevel() < sWorld.getConfig(CONFIG_UINT32_LFG_MIXED_MINLEVEL)))
-        return (player->GetTeam() == ALLIANCE) ? LFG_ALLIANCE : LFG_HORDE; */
+    if(!sWorld.getConfig(CONFIG_BOOL_LFG_ALLOW_MIXED) || 
+        player->getLevel() > sWorld.getConfig(CONFIG_UINT32_LFG_MIXED_MAXLEVEL) ||
+        player->getLevel() < sWorld.getConfig(CONFIG_UINT32_LFG_MIXED_MINLEVEL))
+        return (player->GetTeam() == ALLIANCE) ? LFG_ALLIANCE : LFG_HORDE;
+    else
+        return LFG_MIXED;
 }

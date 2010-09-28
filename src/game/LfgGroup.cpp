@@ -29,7 +29,7 @@
 #include "SpellAuras.h"
 #include "InstanceSaveMgr.h"
 
-LfgGroup::LfgGroup(bool premade) : Group()
+LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
 {
     dps.clear();
     premadePlayers.clear();
@@ -49,6 +49,7 @@ LfgGroup::LfgGroup(bool premade) : Group()
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
     randomDungeonEntry = 0;
+    m_isMixed = mixed;
 }
 
 LfgGroup::~LfgGroup()
@@ -96,6 +97,7 @@ bool LfgGroup::LoadGroupFromDB(Field *fields)
     if (randomDungeonEntry)
         m_isRandom = true;
     m_instanceStatus = fields[21].GetUInt8();
+    m_isMixed = fields[22].GetBool();
     m_inDungeon = true; 
     return true;
 }
@@ -141,6 +143,8 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
             WorldPacket data(SMSG_GROUP_UNINVITE, 0);
             player->GetSession()->SendPacket( &data );
         }
+        if(m_inDungeon && m_isMixed)
+            player->m_lookingForGroup.SetMixedDungeon(0, false);
     }
     //Remove from any role
     if (m_tank == guid)
@@ -342,10 +346,10 @@ void LfgGroup::TeleportToDungeon()
     //Save to DB
     CharacterDatabase.PExecute("DELETE FROM groups WHERE groupId ='%u' OR leaderGuid='%u'", m_Id, GUID_LOPART(m_leaderGuid));
     CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId ='%u'", m_Id);
-    CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus) "
-        "VALUES ('%u','%u','%u','%u','%u','%u','%u','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','%u','%u','%u','%u','%u','%u','%u')",
+    CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus,LfgIsMixed) "
+        "VALUES ('%u','%u','%u','%u','%u','%u','%u','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','%u','%u','%u','%u','%u','%u','%u','%u')",
         m_Id, GUID_LOPART(m_leaderGuid), GUID_LOPART(m_tank), GUID_LOPART(m_mainAssistant), uint32(m_lootMethod),
-        GUID_LOPART(m_looterGuid), uint32(m_lootThreshold), m_targetIcons[0], m_targetIcons[1], m_targetIcons[2], m_targetIcons[3], m_targetIcons[4], m_targetIcons[5], m_targetIcons[6], m_targetIcons[7], uint8(m_groupType), uint32(m_dungeonDifficulty), uint32(m_raidDifficulty), GUID_LOPART(m_heal), m_dungeonInfo->ID, randomDungeonEntry, m_instanceStatus);    
+        GUID_LOPART(m_looterGuid), uint32(m_lootThreshold), m_targetIcons[0], m_targetIcons[1], m_targetIcons[2], m_targetIcons[3], m_targetIcons[4], m_targetIcons[5], m_targetIcons[6], m_targetIcons[7], uint8(m_groupType), uint32(m_dungeonDifficulty), uint32(m_raidDifficulty), GUID_LOPART(m_heal), m_dungeonInfo->ID, randomDungeonEntry, m_instanceStatus, uint8(m_isMixed));    
     //sort group members...
     UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
@@ -474,6 +478,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         map->Remove(plr, false);
         map->Add(plr);
     }
+    if(m_isMixed)
+        plr->m_lookingForGroup.SetMixedDungeon(dungeonInfo->start_map);
 
     plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
         dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
@@ -706,7 +712,6 @@ void LfgGroup::SendGroupFormed()
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || !plr->GetSession())
             continue;
-        plr->m_lookingForGroup.update_data[0] = &data;
         plr->GetSession()->SendPacket(&data);
     }
 

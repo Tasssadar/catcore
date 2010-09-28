@@ -1414,8 +1414,9 @@ bool Aura::modStackAmount(int32 num)
 void Aura::RefreshAura()
 {
     // Haste affected spells need to be recalculated there
-    if (!ApplyHasteToPeriodic())
-        m_duration = m_maxduration;
+    ApplyHasteToPeriodic());
+
+    m_duration = m_maxduration;
 
     SendAuraUpdate(false);
 }
@@ -4140,7 +4141,8 @@ void Aura::HandleModPossess(bool apply, bool Real)
         if (m_target->GetTypeId() == TYPEID_PLAYER && !m_target->GetVehicleGUID())
         {
             //TEAMBG check
-            if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) //BLUE(ali)
+            if ((((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) ||
+                ((Player*)m_target)->m_lookingForGroup.mixed) //BLUE(ali)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
             else if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 2) //RED(horde)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED));
@@ -4297,7 +4299,8 @@ void Aura::HandleModCharm(bool apply, bool Real)
         if (m_target->GetTypeId() == TYPEID_PLAYER)
         {
             //TEAMBG check
-            if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) //BLUE(ali)
+            if ((((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) ||
+                ((Player*)m_target)->m_lookingForGroup.mixed) //BLUE(ali)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
             else if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 2) //RED(horde)
                 ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED));
@@ -9820,7 +9823,7 @@ bool Aura::ApplyHasteToPeriodic()
     if (!applyHaste || !m_modifier.periodictime)
         return false;
 
-    int32 periodic = m_modifier.periodictime;
+    int32 periodic = m_spellProto->EffectAmplitude[m_effIndex];
     int32 duration = m_origDuration;
     if (duration == 0 || periodic == 0)
         return false;
