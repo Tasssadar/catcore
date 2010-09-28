@@ -6032,6 +6032,16 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 41131, true);
                     break;
                 }
+                // Drink!
+                case 42436:
+                {
+                   Unit* target = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelection());
+                   if (!target)
+                       return;
+                   
+                   m_caster->CastSpell(target, 42535, true);
+                   break;
+                }
                 // Giddyup!
                 case 42924:
                 {
