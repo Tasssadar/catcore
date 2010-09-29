@@ -5014,8 +5014,8 @@ void Unit::RemoveAurasWithDispelType( DispelType type )
 void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
-    // if aura is removed by dispel and has some charges...
-    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges())
+    // if aura is removed by dispel, has some charges and is positive - currently used only for offensive dispel
+    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && i->IsPositive())
     {
         //drop charge and if it was last one, remove aura
         if(i->second->DropAuraCharge())
