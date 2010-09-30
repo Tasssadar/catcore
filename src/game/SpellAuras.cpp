@@ -1414,8 +1414,9 @@ bool Aura::modStackAmount(int32 num)
 void Aura::RefreshAura()
 {
     // Haste affected spells need to be recalculated there
-    if (!ApplyHasteToPeriodic())
-        m_duration = m_maxduration;
+    ApplyHasteToPeriodic());
+
+    m_duration = m_maxduration;
 
     SendAuraUpdate(false);
 }
@@ -3913,6 +3914,16 @@ void Aura::HandleForceReaction(bool apply, bool Real)
     // stop fighting if at apply forced rank friendly or at remove real rank friendly
     if (apply && faction_rank >= REP_FRIENDLY || !apply && player->GetReputationRank(faction_id) >= REP_FRIENDLY)
         player->StopAttackFaction(faction_id);
+
+    if (apply)
+    {
+        // Brewfest - refreshing bucket
+        if (GetId() == 43450)
+        {
+            if (player->HasAura(43052))
+                player->RemoveAurasDueToSpell(43052);
+        }
+    }
 }
 
 void Aura::HandleAuraModSkill(bool apply, bool /*Real*/)
@@ -8897,7 +8908,7 @@ void Aura::PeriodicDummyTick()
                     if (!caster)
                         return;
 
-                    if (caster->HasAura(43332))
+                    if (caster->HasAura(43332) || !caster->HasAura(43880))
                         return;
 
                     int8 fatigue = 0;
@@ -8906,7 +8917,7 @@ void Aura::PeriodicDummyTick()
                         case 1:
                         case 2:
                             caster->CastSpell(caster, 43310, true);
-                            fatigue = -5;
+                            fatigue = -2;
                             break;
                         case 3:
                         case 4:
@@ -8934,11 +8945,15 @@ void Aura::PeriodicDummyTick()
                     {
                         pAura->modStackAmount(fatigue);
                         if (pAura && pAura->GetStackAmount() >= 100
-                            && (caster->HasAura(42993) || caster->HasAura(42994)))
+                            /*&& (caster->HasAura(42993) || caster->HasAura(42994))*/)
+                        {
                             caster->CastSpell(caster, 43332, true);
+                            pAura->modStackAmount(-15);
+                        }
                     }
 
-                    modStackAmount(-1);
+                    if (GetStackAmount() > 1)
+                        modStackAmount(-1);
                     break;
                 }
 //              // Ram - Trot
@@ -9808,7 +9823,7 @@ bool Aura::ApplyHasteToPeriodic()
     if (!applyHaste || !m_modifier.periodictime)
         return false;
 
-    int32 periodic = m_modifier.periodictime;
+    int32 periodic = m_spellProto->EffectAmplitude[m_effIndex];
     int32 duration = m_origDuration;
     if (duration == 0 || periodic == 0)
         return false;

@@ -5014,8 +5014,8 @@ void Unit::RemoveAurasWithDispelType( DispelType type )
 void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
-    // if aura is removed by dispel and has some charges...
-    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges())
+    // if aura is removed by dispel, has some charges and is positive - currently used only for offensive dispel
+    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && i->IsPositive())
     {
         //drop charge and if it was last one, remove aura
         if(i->second->DropAuraCharge())
@@ -10564,7 +10564,10 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
                 break; 
             } 
         } 
-    } 
+    }
+    //Item - Warrior T8 Protection 4P Bonus hack + Shield Block
+    if (HasAura(2565) && HasAura(64936))
+        TakenTotalMod *= 0.8f;
 
     // From caster spells
     AuraList const& mOwnerTaken = GetAurasByType(SPELL_AURA_MOD_DAMAGE_FROM_CASTER);
