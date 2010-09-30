@@ -31,6 +31,16 @@
 
 typedef std::map<uint64, uint8> ProposalAnswersMap; // Guid and accept
 
+// Custom flags
+enum LfgGrpFlags
+{
+    LFG_GRP_RANDOM          = 0x01,
+    LFG_GRP_MIXED           = 0x02,
+    LFG_GRP_IN_DUNGEON      = 0x04,
+    LFG_GRP_ROLECHECK       = 0x08,
+    LFG_GRP_BONUS           = 0x10
+};
+
 struct VoteToKick
 {
     VoteToKick() { Reset(); }
@@ -84,6 +94,11 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SetGroupId(uint32 newid) { m_Id = newid; }
         uint32 GetKilledBosses() { return m_killedBosses; }
         bool LoadGroupFromDB(Field *fields);
+        bool IsInDungeon() const { return (m_lfgFlags & LFG_GRP_IN_DUNGEON); }
+        bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
+        bool IsActiveRoleCheck() const { return (m_lfgFlags & LFG_GRP_ROLECHECK); }
+        bool IsMixed() const { return (m_lfgFlags & LFG_GRP_MIXED); }
+        uint8 GetLfgFlags() const { return m_lfgFlags; }
 
         void SendLfgPartyInfo(Player *plr);
         void SendLfgQueueStatus();
@@ -132,10 +147,10 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId = 0, bool newPlr = true);
         bool SelectRandomDungeon();
         bool HasCorrectLevel(uint8 level);
-        bool IsInDungeon() const { return m_inDungeon; }
+        
         void SetInstanceStatus(uint8 status) { m_instanceStatus = status; }
         uint8 GetInstanceStatus() const { return m_instanceStatus; }
-        bool IsRandom() const { return m_isRandom; }
+        
         uint8 GetPlayerRole(uint64 guid, bool withLeader = true, bool joinedAs = false) const;
         void KilledCreature(Creature *creature);
         void ResetGroup();
@@ -143,8 +158,6 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendBootPlayer(Player *plr);
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
-        bool IsActiveRoleCheck() const { return m_isActiveRoleCheck; }
-        bool IsMixed() const { return m_isMixed; }
 
     private:
         void SendRoleCheckFail(uint8 error);
@@ -163,10 +176,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         int32 m_voteKickTimer;
         uint8 m_baseLevel;
         uint8 m_instanceStatus;
-        bool m_inDungeon;
-        bool m_isRandom;
-        bool m_isActiveRoleCheck;
-        bool m_isMixed;
+        uint8 m_lfgFlags;
         uint32 randomDungeonEntry;
         VoteToKick m_voteToKick;
 };

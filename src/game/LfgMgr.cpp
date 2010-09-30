@@ -93,7 +93,7 @@ void LfgMgr::Update(uint32 diff)
             grpitr_next = grpitr;
             ++grpitr_next;
             if ((*grpitr)->UpdateVoteToKick(diff))
-                voteKickGroups.erase(grpitr);
+                voteKickGroups.erase(*grpitr);
         }
 
         m_updateProposalTimer = LFG_TIMER_UPDATE_PROPOSAL;
@@ -185,7 +185,8 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
             if (!plr || !plr->GetSession())
                 continue;
 
-            for (LfgDungeonList::const_iterator it = player->m_lookingForGroup.queuedDungeons.begin(); it != player->m_lookingForGroup.queuedDungeons.end(); ++it)
+            LfgDungeonList queued = player->m_lookingForGroup.queuedDungeons;
+            for (LfgDungeonList::const_iterator it = queued.begin(); it != queued.end(); ++it)
             {
                 QueuedDungeonsMap::iterator itr = m_queuedDungeons[side].find((*it)->ID);
                 if (itr == m_queuedDungeons[side].end())                 // THIS SHOULD NEVER HAPPEN
@@ -367,7 +368,8 @@ void LfgMgr::UpdateQueue(uint8 side)
                 if (!(*grpitr)->HasCorrectLevel(player->getLevel()) // Check level, this is needed only for Classic and BC normal I think...
                     || maxPlayers >= (*grpitr)->GetMembersCount() || (*grpitr)->GetMembersCount() >= 5)   // We want group with most players
                     continue;
-                for(;checkRole <= DAMAGE && !correct; checkRole*=2)
+
+                for(correct = false; checkRole <= DAMAGE && !correct; checkRole*=2)
                 {
                     if (!(player->m_lookingForGroup.roles & checkRole) // Player must have this role
                         || !(*grpitr)->HasFreeRole(checkRole))        // and role must be free
@@ -745,8 +747,8 @@ void LfgMgr::SendLfgPlayerInfo(Player *plr)
     uint8 rsize = 0;
 
     WorldPacket data(SMSG_LFG_PLAYER_INFO);
-    data << uint8(random->size());                             // Random Dungeon count
-    size_t maskPos = data.wpos();
+    size_t sizePos = data.wpos();
+    data << uint8(0);                                          // Random Dungeon count
     for (LfgDungeonList::iterator itr = random->begin(); itr != random->end(); ++itr)
     {
         if(!GetDungeonReward((*itr)->ID, plr->m_lookingForGroup.DoneDungeon((*itr)->ID, plr), plr->getLevel()))
@@ -755,7 +757,7 @@ void LfgMgr::SendLfgPlayerInfo(Player *plr)
         BuildRewardBlock(data, (*itr)->ID, plr);
         ++rsize;
     }
-    data.put<uint8>(maskPos, rsize);
+    data.put<uint8>(sizePos, rsize);
     random->clear();
     delete random;
 
