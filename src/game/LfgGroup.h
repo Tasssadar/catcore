@@ -34,11 +34,11 @@ typedef std::map<uint64, uint8> ProposalAnswersMap; // Guid and accept
 // Custom flags
 enum LfgGrpFlags
 {
-    LFG_GRP_RANDOM          = 0x01,
-    LFG_GRP_MIXED           = 0x02,
-    LFG_GRP_IN_DUNGEON      = 0x04,
-    LFG_GRP_ROLECHECK       = 0x08,
-    LFG_GRP_BONUS           = 0x10
+    LFG_GRP_RANDOM          = 0x01,   // party has randomly chosen dungeon
+    LFG_GRP_MIXED           = 0x02,   // party has both alliance and horde players
+    LFG_GRP_IN_DUNGEON      = 0x04,   // party is in dungeon
+    LFG_GRP_ROLECHECK       = 0x08,   // rolecheck is in progress
+    LFG_GRP_BONUS           = 0x10    // party has +1 player bonus in queue, added when rolecheck fails
 };
 
 struct VoteToKick

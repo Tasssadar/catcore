@@ -42,7 +42,6 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_baseLevel = 0;
     m_groupType = premade ? GROUPTYPE_LFD_2 : GROUPTYPE_LFD;
     m_instanceStatus = INSTANCE_NOT_SAVED;
-    m_isActiveRoleCheck = false;
     m_dungeonInfo = NULL;
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
@@ -92,8 +91,6 @@ bool LfgGroup::LoadGroupFromDB(Field *fields)
     m_heal = fields[1].GetUInt64();
     m_dungeonInfo = sLFGDungeonStore.LookupEntry(fields[19].GetUInt32());
     randomDungeonEntry = fields[20].GetUInt32();
-    if (randomDungeonEntry)
-        m_isRandom = true;
     m_instanceStatus = fields[21].GetUInt8();
     m_lfgFlags = fields[22].GetUInt8();
     return true;
@@ -306,7 +303,7 @@ void LfgGroup::TeleportToDungeon()
     if (m_dungeonInfo->type == LFG_TYPE_RANDOM && !SelectRandomDungeon())
         return;
 
-    uint32 originalDungeonId = m_isRandom ? (randomDungeonEntry & 0x00FFFFFF) : m_dungeonInfo->ID;
+    uint32 originalDungeonId = IsRandom() ? (randomDungeonEntry & 0x00FFFFFF) : m_dungeonInfo->ID;
 
     DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
     //Set Leader
@@ -901,13 +898,13 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         if (IsInDungeon())
             premadePlayers.insert(player->GetGUID());
     }
-    m_isActiveRoleCheck = false;
+    m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     sLfgMgr.AddCheckedGroup(this, true);
 }
 
 void LfgGroup::SendRoleCheckFail(uint8 error)
 {
-    m_isActiveRoleCheck = false;
+    m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     SendRoleCheckUpdate(error);
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
@@ -926,7 +923,7 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
 {
     if (state == LFG_ROLECHECK_INITIALITING)
     {
-        m_isActiveRoleCheck = true;
+        m_lfgFlags |= LFG_GRP_ROLECHECK;
         ResetGroup();
         if (IsInDungeon())
             premadePlayers.clear();
