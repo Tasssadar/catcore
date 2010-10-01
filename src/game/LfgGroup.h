@@ -98,7 +98,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
         bool IsActiveRoleCheck() const { return (m_lfgFlags & LFG_GRP_ROLECHECK); }
         bool IsMixed() const { return (m_lfgFlags & LFG_GRP_MIXED); }
+        uint8 HasBonus() const { return (m_lfgFlags & LFG_GRP_BONUS) ? 1 : 0; }
         uint8 GetLfgFlags() const { return m_lfgFlags; }
+        void AddLfgFlag(uint8 flag) { m_lfgFlags |= flag; }
 
         void SendLfgPartyInfo(Player *plr);
         void SendLfgQueueStatus();
@@ -123,6 +125,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
         void UpdateRoleCheck(uint32 diff = 0);
         PlayerList *GetPremadePlayers() { return &premadePlayers; }
+        PlayerList *GetRandomPlayers() { return &randomPlayers; }
 
         void SetTank(uint64 tank) { m_tank = tank; }
         void SetHeal(uint64 heal) { m_heal = heal; }
@@ -138,8 +141,8 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         }
 
         void SetDungeonInfo(LFGDungeonEntry const *dungeonInfo) { m_dungeonInfo = dungeonInfo; }
-        LFGDungeonEntry const *GetDungeonInfo() { return m_dungeonInfo; }
-        uint32 GetRandomEntry() const { return randomDungeonEntry; }
+        void SetOriginalDungeonInfo(LFGDungeonEntry const *dungeonInfo) { m_originalInfo = dungeonInfo; }
+        LFGDungeonEntry const *GetDungeonInfo(bool original = false) { return (original && m_originalInfo) ? m_originalInfo : m_dungeonInfo; }
 
         bool RemoveOfflinePlayers();
         bool UpdateCheckTimer(uint32 time);
@@ -158,6 +161,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendBootPlayer(Player *plr);
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
+        bool IsFromRnd(uint64 guid) { return (randomPlayers.find(guid) != randomPlayers.end()); }
 
     private:
         void SendRoleCheckFail(uint8 error);
@@ -166,7 +170,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint64 m_heal;
         PlayerList dps;
         LFGDungeonEntry const *m_dungeonInfo;
+        LFGDungeonEntry const *m_originalInfo;
         PlayerList premadePlayers;
+        PlayerList randomPlayers;
         ProposalAnswersMap m_answers;
         ProposalAnswersMap m_rolesProposal;
         uint8 m_membersBeforeRoleCheck;
@@ -177,7 +183,6 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint8 m_baseLevel;
         uint8 m_instanceStatus;
         uint8 m_lfgFlags;
-        uint32 randomDungeonEntry;
         VoteToKick m_voteToKick;
 };
 

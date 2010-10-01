@@ -43,6 +43,7 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_groupType = premade ? GROUPTYPE_LFD_2 : GROUPTYPE_LFD;
     m_instanceStatus = INSTANCE_NOT_SAVED;
     m_dungeonInfo = NULL;
+    m_originalInfo = NULL;
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
     randomDungeonEntry = 0;
@@ -90,7 +91,7 @@ bool LfgGroup::LoadGroupFromDB(Field *fields)
     m_tank = m_mainTank;
     m_heal = fields[1].GetUInt64();
     m_dungeonInfo = sLFGDungeonStore.LookupEntry(fields[19].GetUInt32());
-    randomDungeonEntry = fields[20].GetUInt32();
+    m_originalInfo = sLFGDungeonStore.LookupEntry(fields[20].GetUInt32());
     m_instanceStatus = fields[21].GetUInt8();
     m_lfgFlags = fields[22].GetUInt8();
     return true;
@@ -116,8 +117,7 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
-    uint32 ID = IsRandom() ? (GetRandomEntry() & 0x00FFFFFF) : m_dungeonInfo->ID;
-    player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(ID,GetId()));
+    player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(GetDungeonInfo(true)->ID,GetId()));
     return true;
 }
 
@@ -130,8 +130,7 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
     sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
     if (Player *player = sObjectMgr.GetPlayer(guid))
     {
-        uint32 ID = IsRandom() ? (GetRandomEntry() & 0x00FFFFFF) : m_dungeonInfo->ID;
-        player->m_lookingForGroup.groups.erase(ID);
+        player->m_lookingForGroup.groups.erase(GetDungeonInfo(true)->ID);
         if (method == 1)
         {
             WorldPacket data(SMSG_GROUP_UNINVITE, 0);
@@ -239,7 +238,7 @@ void LfgGroup::KilledCreature(Creature *creature)
     {
         if (m_instanceStatus == INSTANCE_NOT_SAVED)
             m_instanceStatus = INSTANCE_SAVED;
-        //There are mask values for bosses, this is not correct
+        //There are mask values for bosses from DungeonEncounter.dbc, this is not correct
         m_killedBosses += !m_killedBosses ? 1 : m_killedBosses*2;
     }
     if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
@@ -253,9 +252,10 @@ void LfgGroup::KilledCreature(Creature *creature)
             if (!plr || !plr->IsInWorld())
                 continue;
             WorldPacket data(SMSG_LFG_PLAYER_REWARD);
-            data << uint32(randomDungeonEntry == 0 ? m_dungeonInfo->Entry() : randomDungeonEntry);
+            data << uint32(GetDungeonInfo((IsRandom() || IsFromRnd(plr->GetGUID())))->Entry());
             data << uint32(m_dungeonInfo->Entry());
-            uint32 ID = IsRandom() ? (GetRandomEntry() & 0x00FFFFFF) : m_dungeonInfo->ID;
+
+            uint32 ID = GetDungeonInfo((IsRandom() || IsFromRnd(plr->GetGUID())))->ID;
             sLfgMgr.BuildRewardBlock(data, ID, plr);
             plr->GetSession()->SendPacket(&data);
             LfgReward *reward = sLfgMgr.GetDungeonReward(ID, plr->m_lookingForGroup.DoneDungeon(ID, plr), plr->getLevel());
@@ -303,8 +303,6 @@ void LfgGroup::TeleportToDungeon()
     if (m_dungeonInfo->type == LFG_TYPE_RANDOM && !SelectRandomDungeon())
         return;
 
-    uint32 originalDungeonId = IsRandom() ? (randomDungeonEntry & 0x00FFFFFF) : m_dungeonInfo->ID;
-
     DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
     //Set Leader
     m_leaderGuid = 0;   
@@ -347,7 +345,7 @@ void LfgGroup::TeleportToDungeon()
             continue;
 
         plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);   
-        TeleportPlayer(plr, dungeonInfo, originalDungeonId);
+        TeleportPlayer(plr, dungeonInfo, GetDungeonInfo(true)->ID);
     }
     m_lfgFlags |= LFG_GRP_IN_DUNGEON;
     
@@ -357,7 +355,7 @@ void LfgGroup::TeleportToDungeon()
     CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus,LfgFlags) "
         "VALUES ('%u','%u','%u','%u','%u','%u','%u','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','%u','%u','%u','%u','%u','%u','%u','%u')",
         m_Id, GUID_LOPART(m_leaderGuid), GUID_LOPART(m_tank), GUID_LOPART(m_mainAssistant), uint32(m_lootMethod),
-        GUID_LOPART(m_looterGuid), uint32(m_lootThreshold), m_targetIcons[0], m_targetIcons[1], m_targetIcons[2], m_targetIcons[3], m_targetIcons[4], m_targetIcons[5], m_targetIcons[6], m_targetIcons[7], uint8(m_groupType), uint32(m_dungeonDifficulty), uint32(m_raidDifficulty), GUID_LOPART(m_heal), m_dungeonInfo->ID, randomDungeonEntry, m_instanceStatus, uint8(m_lfgFlags));  
+        GUID_LOPART(m_looterGuid), uint32(m_lootThreshold), m_targetIcons[0], m_targetIcons[1], m_targetIcons[2], m_targetIcons[3], m_targetIcons[4], m_targetIcons[5], m_targetIcons[6], m_targetIcons[7], uint8(m_groupType), uint32(m_dungeonDifficulty), uint32(m_raidDifficulty), GUID_LOPART(m_heal), m_dungeonInfo->ID, GetDungeonInfo(true)->ID, m_instanceStatus, uint8(m_lfgFlags));  
 }
 
 void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId, bool newPlr)
@@ -483,20 +481,16 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
 
 bool LfgGroup::SelectRandomDungeon()
 {
-    randomDungeonEntry = m_dungeonInfo->Entry();
+    m_originalInfo = m_dungeonInfo;
     m_lfgFlags |= LFG_GRP_RANDOM;
     LfgLocksMap *groupLocks = GetLocksList();
     std::vector<LFGDungeonEntry const*> options;
     LFGDungeonEntry const *currentRow = NULL;
     //Possible dungeons
-    for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
-    {
-        currentRow = sLFGDungeonStore.LookupEntry(i);
-        if (!currentRow)
-            continue;
-        if (currentRow->type != LFG_TYPE_RANDOM && currentRow->grouptype == m_dungeonInfo->grouptype)
-            options.push_back(currentRow);
-    }
+    LfgDungeonList* list = sLfgMgr.GetRandomOptions(m_dungeonInfo->ID);
+    for(LfgDungeonList::iterator itr = list->begin(); itr != list->end(); ++itr)
+        options.push_back(*itr);
+
     //And now get only without locks
     for(LfgLocksMap::iterator itr = groupLocks->begin(); itr != groupLocks->end(); ++itr)
     {
@@ -588,7 +582,7 @@ void LfgGroup::SendUpdate()
         data << uint8(GetFlags(*citr));                     // group flags
         data << uint8(GetPlayerRole(citr->guid));           // 2.0.x, isBattleGroundGroup? <--- Its flags or maybe more likely roles....?
         data << uint8(m_instanceStatus);                    // Instance status 0= not saved, 1= saved, 2 = completed
-        data << uint32(m_dungeonInfo->Entry());             // dungeon entry
+        data << uint32(GetDungeonInfo(IsFromRnd(citr->guid))->Entry());// dungeon entry
         data << uint64(0x1F54000004D3B000);                 // related to voice chat?
         data << uint32(0);                                  // 3.3, this value increments every time SMSG_GROUP_LIST is sent
         data << uint32(GetMembersCount()-1);
@@ -671,7 +665,7 @@ void LfgGroup::SendLfgQueueStatus()
 
         uint8 role = plr->m_lookingForGroup.roles;
         WorldPacket data(SMSG_LFG_QUEUE_STATUS, 31);
-        data << uint32(m_dungeonInfo->ID);                              // Dungeon
+        data << uint32(GetDungeonInfo(IsFromRnd(citr->guid))->ID);     // Dungeon
         data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_AVG, role)); // Average Wait time
         data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME, role));     // Wait Time
         data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_TANK, role));// Wait Tanks
@@ -679,7 +673,7 @@ void LfgGroup::SendLfgQueueStatus()
         data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_DPS, role)); // Wait Dps
         data << uint8(m_tank ? 0 : 1);                                  // Tanks needed
         data << uint8(m_heal ? 0 : 1);                                  // Healers needed
-        data << uint8(LFG_DPS_COUNT - dps.size());                     // Dps needed
+        data << uint8(LFG_DPS_COUNT - dps.size());                      // Dps needed
         data << uint32(getMSTimeDiff(plr->m_lookingForGroup.joinTime, getMSTime())/1000);   // Player wait time in queue
         plr->GetSession()->SendPacket(&data);
     }
@@ -693,21 +687,24 @@ void LfgGroup::SendGroupFormed()
             m_answers.insert(std::pair<uint64, uint8>(*itr, 1));
     }
 
+    
+
     //SMSG_LFG_UPDATE_PLAYER -> SMSG_LFG_PROPOSAL_UPDATE
-    WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 10);
-    data << uint8(LFG_UPDATETYPE_PROPOSAL_FOUND);
-    data << uint8(true); //extra info
-    data << uint8(false); //queued
-    data << uint8(0); //unk
-    data << uint8(0); //unk
-    data << uint8(1); //count
-    data << uint32(GetDungeonInfo()->Entry());
-    data << uint8(0);
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || !plr->GetSession())
             continue;
+        WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 10);
+        data << uint8(LFG_UPDATETYPE_PROPOSAL_FOUND);
+        data << uint8(true); //extra info
+        data << uint8(false); //queued
+        data << uint8(0); //unk
+        data << uint8(0); //unk
+        data << uint8(1); //count
+        data << uint32(GetDungeonInfo(IsFromRnd(citr->guid))->Entry());
+        data << uint8(0);
+    
         plr->GetSession()->SendPacket(&data);
     }
 
@@ -724,7 +721,7 @@ void LfgGroup::SendProposalUpdate(uint8 state)
             continue;
         //Correct - 3.3.3a
         WorldPacket data(SMSG_LFG_PROPOSAL_UPDATE);
-        data << uint32(GetDungeonInfo()->Entry());
+        data << uint32(GetDungeonInfo(IsFromRnd(citr->guid))->Entry());
         data << uint8(state); 
         data << uint32(GetId()); 
         data << uint32(GetKilledBosses());
@@ -1114,4 +1111,3 @@ void LfgGroup::SendBootPlayer(Player *plr)
 
     plr->GetSession()->SendPacket(&data);
 }
-
