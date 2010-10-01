@@ -1247,7 +1247,7 @@ void LfgMgr::AssembleRandomInfo()
         LfgDungeonList* list = new LfgDungeonList();
         for (uint32 y = 0; y < sLFGDungeonStore.GetNumRows(); ++y)
         {
-            cur = sLFGDungeonStore.LookupEntry(i);
+            cur = sLFGDungeonStore.LookupEntry(y);
             if(!cur || cur->type == LFG_TYPE_RANDOM || cur->grouptype != random->grouptype)
                 continue;
             curInfo = GetDungeonInfo(cur->ID);
