@@ -53,6 +53,8 @@ void Totem::Update( uint32 time )
 
 void Totem::Summon(Unit* owner)
 {
+    AIM_Initialize();
+
     // Mana Tide Totem should have 10% of caster's health
     if (GetSpell() == 16191)
     {
@@ -61,8 +63,6 @@ void Totem::Summon(Unit* owner)
     }
 
     owner->GetMap()->Add((Creature*)this);
-
-    AIM_Initialize();
 
     if (owner->GetTypeId() == TYPEID_UNIT && ((Creature*)owner)->AI())
         ((Creature*)owner)->AI()->JustSummoned((Creature*)this);
