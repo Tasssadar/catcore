@@ -750,6 +750,30 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                             }
                         }
                         break;
+                    case ACTION_T_MOUNT_TO_ENTRY_OR_MODEL:
+                        if (action.mount.creatureId != 0 || action.mount.modelId != 0)
+                        {
+                            if (action.mount.creatureId && !sCreatureStorage.LookupEntry<CreatureInfo>(action.mount.creatureId))
+                            {
+                                sLog.outErrorDb("CreatureEventAI:  Event %u Action %u uses nonexistent Creature entry %u.", i, j+1, action.mount.creatureId);
+                                action.morph.creatureId = 0;
+                            }
+
+                            if (action.mount.modelId)
+                            {
+                                if (action.mount.creatureId)
+                                {
+                                    sLog.outErrorDb("CreatureEventAI:  Event %u Action %u have unused ModelId %u with also set creature id %u.", i, j+1, action.mount.modelId, action.mount.creatureId);
+                                    action.mount.modelId = 0;
+                                }
+                                else if (!sCreatureDisplayInfoStore.LookupEntry(action.mount.modelId))
+                                {
+                                    sLog.outErrorDb("CreatureEventAI:  Event %u Action %u uses nonexistent ModelId %u.", i, j+1, action.mount.modelId);
+                                    action.mount.modelId = 0;
+                                }
+                            }
+                        }
+                        break;
                     case ACTION_T_SUMMON_GAMEOBJECT:
                         if (m_CreatureEventAI_Summon_Map.find(action.summon_gameobject.spawnId) == m_CreatureEventAI_Summon_Map.end())
                             sLog.outErrorDb("CreatureEventAI:  Event %u Action %u summons missing CreatureEventAI_Summon %u", i, j+1, action.summon_gameobject.spawnId);
