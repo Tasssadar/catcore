@@ -357,7 +357,7 @@ bool ChatHandler::HandleReloadLfgDungeonInfoCommand(const char*)
     sLfgMgr.LoadDungeonsInfo();
     SendGlobalSysMessage("DB table `lfg_dungeon_info` (Lfg Dungeons info) reloaded.");
     
-    sLog.outString( "Re-assembling random dungeons options..."
+    sLog.outString( "Re-assembling random dungeons options..." );
     sLfgMgr.AssembleRandomInfo();
     SendGlobalSysMessage( "Random Dungeon options reassembled");
 
@@ -366,7 +366,7 @@ bool ChatHandler::HandleReloadLfgDungeonInfoCommand(const char*)
 
 bool ChatHandler::HandleReassembleRandomDungeonOptionsCommand(const char*)
 {
-    sLog.outString( "Re-assembling random dungeons options..."
+    sLog.outString( "Re-assembling random dungeons options..." );
     sLfgMgr.AssembleRandomInfo();
     SendGlobalSysMessage( "Random Dungeon options reassembled");
 

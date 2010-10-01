@@ -46,7 +46,6 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_originalInfo = NULL;
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
-    randomDungeonEntry = 0;
     m_lfgFlags = mixed ? LFG_GRP_MIXED : 0;
 }
 
@@ -338,6 +337,7 @@ void LfgGroup::TeleportToDungeon()
 
     //sort group members...
     UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
+    CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId ='%u'", m_Id);
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
@@ -350,8 +350,7 @@ void LfgGroup::TeleportToDungeon()
     m_lfgFlags |= LFG_GRP_IN_DUNGEON;
     
     //Save to DB
-    CharacterDatabase.PExecute("DELETE FROM groups WHERE groupId ='%u' OR leaderGuid='%u'", m_Id, GUID_LOPART(m_leaderGuid));
-    CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId ='%u'", m_Id);
+    CharacterDatabase.PExecute("DELETE FROM groups WHERE groupId ='%u' OR leaderGuid='%u'", m_Id, GUID_LOPART(m_leaderGuid));    
     CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus,LfgFlags) "
         "VALUES ('%u','%u','%u','%u','%u','%u','%u','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','" UI64FMTD "','%u','%u','%u','%u','%u','%u','%u','%u')",
         m_Id, GUID_LOPART(m_leaderGuid), GUID_LOPART(m_tank), GUID_LOPART(m_mainAssistant), uint32(m_lootMethod),

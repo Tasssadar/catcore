@@ -597,7 +597,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
     QueuedDungeonsMap::iterator queue;
     for(LfgDungeonList::iterator itr = options->begin(); itr != options->end(); ++itr)
     {
-        queue = m_queuedDungeons[side].find(options->ID);
+        queue = m_queuedDungeons[side].find(info->ID);
         if(queue == m_queuedDungeons[side].end() || queue->second->groups.empty())
             continue;
 
@@ -611,7 +611,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
 
                 ProposalAnswersMap canMove;
                
-                for(Group::member_citerator citr = (*grpitr1)->GetMemberSlots().begin(); citr != (*grpitr1)->GetMemberSlots().end()); ++citr)
+                for(Group::member_citerator citr = (*grpitr1)->GetMemberSlots().begin(); citr != (*grpitr1)->GetMemberSlots().end(); ++citr)
                 {
                     Player *plr = sObjectMgr.GetPlayer(citr->guid);
                     if (!plr || !plr->GetSession() || !plr->IsInWorld())
@@ -627,7 +627,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         for(uint8 role = TANK; role <= DAMAGE && !can; role*=2)
                         {
                             can = false;
-                            if((*grpitr1)->GetPlayerRole(citr->guid, false, true) & role && (*grpitr)->HasFreeRole(role))
+                            if(((*grpitr1)->GetPlayerRole(citr->guid, false, true) & role) && (*grpitr1)->HasFreeRole(role))
                             {
                                 can = true;
                                 uint8 damage = 0;
@@ -1397,7 +1397,7 @@ uint8 LfgMgr::GetSideForPlayer(Player *player)
         return LFG_MIXED;
 }
 
-QueuedDungeonsMap::iterator LfgMgr::GetOrCreateQueueEntry(LFGDungeonEntry const *info, uint8 side);
+QueuedDungeonsMap::iterator LfgMgr::GetOrCreateQueueEntry(LFGDungeonEntry const *info, uint8 side)
 {
     QueuedDungeonsMap::iterator itr = m_queuedDungeons[side].find(info->ID);
     if (itr != m_queuedDungeons[side].end())
@@ -1406,12 +1406,12 @@ QueuedDungeonsMap::iterator LfgMgr::GetOrCreateQueueEntry(LFGDungeonEntry const 
     {
         QueuedDungeonInfo *newInfo = new QueuedDungeonInfo();
         newInfo->dungeonInfo = info;
-        itr = m_queuedDungeons[side].insert(std::pair<uint32, QueuedDungeonInfo*>(info->ID, newInfo));
+        m_queuedDungeons[side].insert(std::pair<uint32, QueuedDungeonInfo*>(info->ID, newInfo));
         //fill some default data into wait times
         if (m_waitTimes[0].find(info->ID) == m_waitTimes[0].end())
             for(int i = 0; i < LFG_WAIT_TIME_SLOT_MAX; ++i)
                 m_waitTimes[i].insert(std::make_pair<uint32, uint32>(info->ID, 0));
-        return itr;
+        return m_queuedDungeons[side].find(info->ID);
     }
     return m_queuedDungeons[side].end();
 }

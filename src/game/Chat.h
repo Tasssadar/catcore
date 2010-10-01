@@ -363,7 +363,7 @@ class ChatHandler
         bool HandleReloadItemEnchantementsCommand(const char* args);
         bool HandleReloadItemRequiredTragetCommand(const char* args);
         bool HandleReloadLfgDungeonInfoCommand(const char* args);
-        bool HandleReassembleRandomDungeonOptionsCommand(const char*)
+        bool HandleReassembleRandomDungeonOptionsCommand(const char*);
         bool HandleReloadLocalesAchievementRewardCommand(const char* args);
         bool HandleReloadLocalesCreatureCommand(const char* args);
         bool HandleReloadLocalesGameobjectCommand(const char* args);
