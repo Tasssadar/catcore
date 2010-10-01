@@ -17006,7 +17006,11 @@ void Player::_LoadGroup(QueryResult *result)
                 if (lfgGroup->GetInstanceStatus() == INSTANCE_COMPLETED && group->GetMembersCount() == 1)
                     group->RemoveMember(GetGUID(), 0);
                 else if(lfgGroup->IsMixed())
+                {
+                    if(GetMapId() == lfgGroup->GetDungeonInfo()->map)
+                        setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
                     m_lookingForGroup.SetMixedDungeon(lfgGroup->GetDungeonInfo()->map);
+                }
             }                
         }
     }

@@ -31,6 +31,16 @@
 
 typedef std::map<uint64, uint8> ProposalAnswersMap; // Guid and accept
 
+// Custom flags
+enum LfgGrpFlags
+{
+    LFG_GRP_RANDOM          = 0x01,   // party has randomly chosen dungeon
+    LFG_GRP_MIXED           = 0x02,   // party has both alliance and horde players
+    LFG_GRP_IN_DUNGEON      = 0x04,   // party is in dungeon
+    LFG_GRP_ROLECHECK       = 0x08,   // rolecheck is in progress
+    LFG_GRP_BONUS           = 0x10    // party has +1 player bonus in queue, added when rolecheck fails
+};
+
 struct VoteToKick
 {
     VoteToKick() { Reset(); }
@@ -84,6 +94,13 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SetGroupId(uint32 newid) { m_Id = newid; }
         uint32 GetKilledBosses() { return m_killedBosses; }
         bool LoadGroupFromDB(Field *fields);
+        bool IsInDungeon() const { return (m_lfgFlags & LFG_GRP_IN_DUNGEON); }
+        bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
+        bool IsActiveRoleCheck() const { return (m_lfgFlags & LFG_GRP_ROLECHECK); }
+        bool IsMixed() const { return (m_lfgFlags & LFG_GRP_MIXED); }
+        uint8 HasBonus() const { return (m_lfgFlags & LFG_GRP_BONUS) ? 1 : 0; }
+        uint8 GetLfgFlags() const { return m_lfgFlags; }
+        void AddLfgFlag(uint8 flag) { m_lfgFlags |= flag; }
 
         void SendLfgPartyInfo(Player *plr);
         void SendLfgQueueStatus();
@@ -108,6 +125,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
         void UpdateRoleCheck(uint32 diff = 0);
         PlayerList *GetPremadePlayers() { return &premadePlayers; }
+        PlayerList *GetRandomPlayers() { return &randomPlayers; }
 
         void SetTank(uint64 tank) { m_tank = tank; }
         void SetHeal(uint64 heal) { m_heal = heal; }
@@ -123,8 +141,8 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         }
 
         void SetDungeonInfo(LFGDungeonEntry const *dungeonInfo) { m_dungeonInfo = dungeonInfo; }
-        LFGDungeonEntry const *GetDungeonInfo() { return m_dungeonInfo; }
-        uint32 GetRandomEntry() const { return randomDungeonEntry; }
+        void SetOriginalDungeonInfo(LFGDungeonEntry const *dungeonInfo) { m_originalInfo = dungeonInfo; }
+        LFGDungeonEntry const *GetDungeonInfo(bool original = false) { return (original && m_originalInfo) ? m_originalInfo : m_dungeonInfo; }
 
         bool RemoveOfflinePlayers();
         bool UpdateCheckTimer(uint32 time);
@@ -132,10 +150,10 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 originalDungeonId = 0, bool newPlr = true);
         bool SelectRandomDungeon();
         bool HasCorrectLevel(uint8 level);
-        bool IsInDungeon() const { return m_inDungeon; }
+        
         void SetInstanceStatus(uint8 status) { m_instanceStatus = status; }
         uint8 GetInstanceStatus() const { return m_instanceStatus; }
-        bool IsRandom() const { return m_isRandom; }
+        
         uint8 GetPlayerRole(uint64 guid, bool withLeader = true, bool joinedAs = false) const;
         void KilledCreature(Creature *creature);
         void ResetGroup();
@@ -143,8 +161,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendBootPlayer(Player *plr);
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
-        bool IsActiveRoleCheck() const { return m_isActiveRoleCheck; }
-        bool IsMixed() const { return m_isMixed; }
+        bool IsFromRnd(uint64 guid) { return (randomPlayers.find(guid) != randomPlayers.end()); }
 
     private:
         void SendRoleCheckFail(uint8 error);
@@ -153,7 +170,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint64 m_heal;
         PlayerList dps;
         LFGDungeonEntry const *m_dungeonInfo;
+        LFGDungeonEntry const *m_originalInfo;
         PlayerList premadePlayers;
+        PlayerList randomPlayers;
         ProposalAnswersMap m_answers;
         ProposalAnswersMap m_rolesProposal;
         uint8 m_membersBeforeRoleCheck;
@@ -163,11 +182,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         int32 m_voteKickTimer;
         uint8 m_baseLevel;
         uint8 m_instanceStatus;
-        bool m_inDungeon;
-        bool m_isRandom;
-        bool m_isActiveRoleCheck;
-        bool m_isMixed;
-        uint32 randomDungeonEntry;
+        uint8 m_lfgFlags;
         VoteToKick m_voteToKick;
 };
 

@@ -732,6 +732,22 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                     else
                         *data << (m_uint32Values[ index ] & ~UNIT_DYNFLAG_TAPPED);
                 }
+                // Mixed Dungeon Finder
+                else if(index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE && GetTypeId() == TYPEID_PLAYER)
+                {
+                    Player *player = (Player*)this;
+                    if(player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId())
+                    {
+                        if(index == UNIT_FIELD_BYTES_2)
+                            *data << ( m_uint32Values[ index ] | (UNIT_BYTE2_FLAG_SANCTUARY << 8) );
+                        else if(player->GetGroup() == target->GetGroup())
+                            *data << uint32(target->getFaction());
+                        else
+                            *data << m_uint32Values[ index ];
+                    }
+                    else
+                        *data << m_uint32Values[ index ];
+                }
                 else
                 {
                     // send in current format (float as float, uint32 as uint32)

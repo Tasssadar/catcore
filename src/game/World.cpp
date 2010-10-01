@@ -1278,6 +1278,9 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading LFG dungeons info..." );
     sLfgMgr.LoadDungeonsInfo();
 
+    sLog.outString( "Assembling Random Dungeons info..." );
+    sLfgMgr.AssembleRandomInfo();
+
     sLog.outString( "Loading GM tickets...");
     sTicketMgr.LoadGMTickets();
 

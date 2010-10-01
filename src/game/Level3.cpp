@@ -119,10 +119,10 @@ bool ChatHandler::HandleReloadAllNpcCommand(const char* args)
 
 bool ChatHandler::HandleReloadAllQuestCommand(const char* /*args*/)
 {
-    HandleReloadQuestAreaTriggersCommand("a");
-    HandleReloadQuestLfgRelationCommand("a");
+    HandleReloadQuestAreaTriggersCommand("a");  
     HandleReloadQuestPOICommand("a");
     HandleReloadQuestTemplateCommand("a");
+    HandleReloadQuestLfgRelationCommand("a");
 
     sLog.outString( "Re-Loading Quests Relations..." );
     sObjectMgr.LoadQuestRelations();
@@ -356,6 +356,20 @@ bool ChatHandler::HandleReloadLfgDungeonInfoCommand(const char*)
     sLog.outString( "Re-Loading Lfg Dungeons info..." );
     sLfgMgr.LoadDungeonsInfo();
     SendGlobalSysMessage("DB table `lfg_dungeon_info` (Lfg Dungeons info) reloaded.");
+    
+    sLog.outString( "Re-assembling random dungeons options..." );
+    sLfgMgr.AssembleRandomInfo();
+    SendGlobalSysMessage( "Random Dungeon options reassembled");
+
+    return true;
+}
+
+bool ChatHandler::HandleReassembleRandomDungeonOptionsCommand(const char*)
+{
+    sLog.outString( "Re-assembling random dungeons options..." );
+    sLfgMgr.AssembleRandomInfo();
+    SendGlobalSysMessage( "Random Dungeon options reassembled");
+
     return true;
 }
 
@@ -369,6 +383,8 @@ bool ChatHandler::HandleReloadQuestTemplateCommand(const char*)
     sLog.outString( "Re-Loading GameObjects for quests..." );
     sObjectMgr.LoadGameObjectForQuests();
     SendGlobalSysMessage("Data GameObjects for quests reloaded.");
+    // must reload also dungeon rewards because pointers became invalid
+    HandleReloadQuestLfgRelationCommand("a");
     return true;
 }
 

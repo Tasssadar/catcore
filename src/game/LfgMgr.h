@@ -187,8 +187,8 @@ enum LfgGroupType
 //Theres some quest for rewards, but they have not anything different, so make custom flags
 enum __LfgQuestFlags
 {
-    LFG_QUEST_NONE         = 0x00000000,
-    LFG_QUEST_DAILY        = 0x00000001,    // Its only daily quest
+    LFG_QUEST_NONE         = 0x00,
+    LFG_QUEST_DAILY        = 0x01,    // Its only daily quest
 };
 
 struct LfgReward
@@ -197,7 +197,7 @@ struct LfgReward
     uint8 GroupType;                 // reward type from LfgGroupType
     Quest *questInfo;                // rewards are quests
     uint32 flags;                    //__LfgQuestFlags
-    int32 DungeonId;                // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
+    int32 DungeonId;                 // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
 
     bool isDaily() const { return (flags & LFG_QUEST_DAILY); }
 };
@@ -253,6 +253,7 @@ class MANGOS_DLL_SPEC LfgMgr
 {
     public:
         typedef std::map<uint32, uint32> WaitTimeMap;
+        typedef std::map<uint32, LfgDungeonList*> LfgDungeonMap;
         /* Construction */
         LfgMgr();
         ~LfgMgr();
@@ -270,6 +271,7 @@ class MANGOS_DLL_SPEC LfgMgr
 
         void LoadDungeonRewards();
         void LoadDungeonsInfo();
+        void AssembleRandomInfo();
         DungeonInfo* GetDungeonInfo(uint32 id) { return m_dungeonInfoMap.find(id)->second; };
         LfgLocksList *GetDungeonsLock(Player *plr);
 
@@ -287,6 +289,14 @@ class MANGOS_DLL_SPEC LfgMgr
 
         uint32 GetAvgWaitTime(uint32 dugeonId, uint8 slot, uint8 roles);
         LfgReward *GetDungeonReward(uint32 dungeon, bool done, uint8 level);
+
+        LfgDungeonList* GetRandomOptions(uint32 id)
+        {
+            LfgDungeonMap::iterator itr = m_randomsList.find(id);
+            if(itr == m_randomsList.end())
+                return NULL;
+            return itr->second;
+        }
 
         void LfgLog( const char * err, ...)
         {
@@ -307,15 +317,17 @@ class MANGOS_DLL_SPEC LfgMgr
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueue(uint8 side);
         void UpdateFormedGroups();
-        void MergeGroups(GroupsList *groups);
+        void MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 side);
         void UpdateWaitTime(LfgGroup *group, uint32 dungeonId);
         void MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId = 0);
+        QueuedDungeonsMap::iterator GetOrCreateQueueEntry(LFGDungeonEntry const *info, uint8 side);
 
         bool log;
 
         LfgRewardList m_rewardsList;
         DungeonInfoMap m_dungeonInfoMap;       
         LfgDungeonList *GetRandomDungeons(Player *plr);
+        LfgDungeonMap m_randomsList;
 
         QueuedDungeonsMap m_queuedDungeons[MAX_LFG_FACTION];
         GroupsList formedGroups[MAX_LFG_FACTION];

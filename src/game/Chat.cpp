@@ -721,6 +721,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },
         { "litak",          SEC_PLAYER,         true,  &ChatHandler::HandleLitakCommand,               "", NULL },
+        { "assemblerandoms",SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReassembleRandomDungeonOptionsCommand,"", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
