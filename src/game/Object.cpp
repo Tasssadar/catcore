@@ -1815,7 +1815,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
             veSeat = sVehicleSeatStore.LookupEntry(ve->m_seatID[seatId]);
         if(ve && veSeat)
         {
-            v->m_movementInfo.SetTransportData(transport->GetGUID(),
+            v->m_movementInfo.SetTransportData(transport->GetObjectGuid(),
                 (veSeat->m_attachmentOffsetX + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
                 (veSeat->m_attachmentOffsetY + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
                 (veSeat->m_attachmentOffsetZ + transport->GetObjectBoundingRadius()) * v->GetFloatValue(OBJECT_FIELD_SCALE_X),
@@ -1835,6 +1835,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     }
     map->Add((Creature*)v);
     v->AIM_Initialize();
+    v->InstallAllAccessories();
 
     if (GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned((Creature*)v);

@@ -21582,7 +21582,7 @@ void Player::SendEnterVehicle(Vehicle *vehicle, VehicleSeatEntry const *veSeat)
     data << vehicle->GetPackGUID();
     SendMessageToSet(&data, true);
 
-    data.Initialize(MSG_MOVE_TELEPORT_ACK, 30);
+  /*  data.Initialize(MSG_MOVE_TELEPORT_ACK, 30);
     data << GetPackGUID();
     data << uint32(0);                                      // counter?
     data << uint32(MOVEFLAG_ONTRANSPORT);                   // transport
@@ -21602,7 +21602,7 @@ void Player::SendEnterVehicle(Vehicle *vehicle, VehicleSeatEntry const *veSeat)
     data << uint8(0);                                       // seat
     // end of transport part
     data << uint32(0);                                      // fall time
-    GetSession()->SendPacket(&data);
+    GetSession()->SendPacket(&data); */
 }
 
 /*void Player::ExitVehicle(Vehicle *vehicle)

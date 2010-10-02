@@ -180,7 +180,6 @@ bool Vehicle::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, u
     }
     
     SetHealth(GetMaxHealth());
-    InstallAllAccessories();
     return true;
 }
 
@@ -777,7 +776,7 @@ void Vehicle::InstallAllAccessories()
         // ...and send update. Without this, client wont show this new creature/vehicle...
         WorldPacket data;
         pPassenger->BuildHeartBeatMsg(&data);
-        pPassenger->SendMessageToSet(&data, false);
+        SendMessageToSet(&data, false);
     }
 }
 Unit *Vehicle::GetPassenger(int8 seatId) const

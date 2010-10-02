@@ -15490,7 +15490,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     if (!veSeat)
         return;
 
-    m_movementInfo.SetTransportData(v->GetGUID(),
+    m_movementInfo.SetTransportData(v->GetObjectGuid(),
         (veSeat->m_attachmentOffsetX + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
         (veSeat->m_attachmentOffsetY + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
         (veSeat->m_attachmentOffsetZ + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
@@ -15499,6 +15499,10 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
 
     addUnitState(UNIT_STAT_ON_VEHICLE);
     InterruptNonMeleeSpells(false);
+
+    WorldPacket data;
+    v->BuildHeartBeatMsg(&data);
+    v->SendMessageToSet(&data, false);
 
     if (Pet *pet = GetPet())
         pet->Remove(PET_SAVE_AS_CURRENT);
@@ -15514,8 +15518,8 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     data << v->GetPositionX() << v->GetPositionY() << v->GetPositionZ();
     data << uint32(getMSTime());
 
-    data << uint8(4);                                       // unknown
-    data << float(0);                                       // facing angle
+    data << uint8(SPLINETYPE_FACINGANGLE);
+    data << float(v->GetOrientation());
 
     data << uint32(SPLINEFLAG_UNKNOWN5);
 
