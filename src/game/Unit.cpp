@@ -13939,7 +13939,12 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                         if (getVictim())
                             AttackStop();
 
-                        if(GetTypeId() != TYPEID_PLAYER)
+                        if (hasUnitState(UNIT_STAT_CONTROLLED))
+                        {
+                            Attack(TargetUnit, true);
+                            SendPetAIReaction(guid1);
+                        }
+                        else
                         {
                             GetMotionMaster()->Clear();
                             if (((Creature*)this)->AI())
@@ -13953,11 +13958,6 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                                 // 90% chance for pet and 100% chance for charmed creature
                                 SendPetAIReaction(guid1);
                             }
-                        }
-                        else                                // charmed player
-                        {
-                            Attack(TargetUnit,true);
-                            SendPetAIReaction(guid1);
                         }
                     }
                     break;
