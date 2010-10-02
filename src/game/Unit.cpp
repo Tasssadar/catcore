@@ -8895,12 +8895,25 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 return false;
             break;                                   // continue normal case
         }
-        // Finish movies that add combo
+        // Finishing moves that add combo points
         case 14189: // Seal Fate (Netherblade set)
         case 14157: // Ruthlessness
+        case 70802: // Mayhem (Shadowblade sets)
         {
-            // Need add combopoint AFTER finish movie (or they dropped in finish phase)
-            break;
+            // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
+            if (Spell* spell = GetCurrentSpell(CURRENT_GENERIC_SPELL))
+            {
+                if ( cooldown && GetTypeId()==TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(trigger_spell_id))
+                    return false;
+
+                spell->AddTriggeredSpell(trigger_spell_id);
+
+                if ( cooldown && GetTypeId()==TYPEID_PLAYER )
+                    ((Player*)this)->AddSpellCooldown(trigger_spell_id,0,time(NULL) + cooldown);
+
+                return true;
+            }
+            return false;
         }
         // Bloodthirst (($m/100)% of max health)
         case 23880:
@@ -13921,8 +13934,8 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                     break;
                 case COMMAND_ATTACK:                        //spellid=1792  //ATTACK
                 {
-                    const uint64& selguid = owner->GetSelection();
-                    Unit *TargetUnit = ObjectAccessor::GetUnit(*owner, selguid);
+                    // guid2 is target guid
+                    Unit *TargetUnit = ObjectAccessor::GetUnit(*owner, guid2);
                     if(!TargetUnit)
                         return;
 
@@ -13939,7 +13952,12 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                         if (getVictim())
                             AttackStop();
 
-                        if(GetTypeId() != TYPEID_PLAYER)
+                        if (hasUnitState(UNIT_STAT_CONTROLLED))
+                        {
+                            Attack(TargetUnit, true);
+                            SendPetAIReaction(guid1);
+                        }
+                        else
                         {
                             GetMotionMaster()->Clear();
                             if (((Creature*)this)->AI())
@@ -13953,11 +13971,6 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                                 // 90% chance for pet and 100% chance for charmed creature
                                 SendPetAIReaction(guid1);
                             }
-                        }
-                        else                                // charmed player
-                        {
-                            Attack(TargetUnit,true);
-                            SendPetAIReaction(guid1);
                         }
                     }
                     break;
