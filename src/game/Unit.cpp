@@ -13921,8 +13921,8 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                     break;
                 case COMMAND_ATTACK:                        //spellid=1792  //ATTACK
                 {
-                    const uint64& selguid = owner->GetSelection();
-                    Unit *TargetUnit = ObjectAccessor::GetUnit(*owner, selguid);
+                    // guid2 is target guid
+                    Unit *TargetUnit = ObjectAccessor::GetUnit(*owner, guid2);
                     if(!TargetUnit)
                         return;
 
