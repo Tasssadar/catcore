@@ -2806,13 +2806,13 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         // Empower Rune Weapon
         case 53258:
         {
-            // remove cooldown of all runes and send update to client
-            // +25 runic power already added in Spell::CheckOrTakeRunePower() in Spell::cast()
-            if(m_caster->GetTypeId() == TYPEID_PLAYER)
+            // remove cooldown of frost/death, undead/blood activated in main spell
+            if (unitTarget->GetTypeId() == TYPEID_PLAYER)
             {
-                for(uint32 i = 0; i < MAX_RUNES; i++)
-                    ((Player*)m_caster)->SetRuneCooldown(i, 0);
-                ((Player*)m_caster)->ResyncRunes(MAX_RUNES);
+                bool res1 = ((Player*)unitTarget)->ActivateRunes(RUNE_FROST, 2);
+                bool res2 = ((Player*)unitTarget)->ActivateRunes(RUNE_DEATH, 2);
+                if (res1 || res2)
+                    ((Player*)unitTarget)->ResyncRunes();
             }
             return;
         }
@@ -8511,14 +8511,9 @@ void Spell::EffectActivateRune(SpellEffectIndex eff_idx)
     if (plr->getClass() != CLASS_DEATH_KNIGHT)
         return;
 
-    for(uint32 j = 0; j < MAX_RUNES; ++j)
-    {
-        if (plr->GetRuneCooldown(j) && plr->GetCurrentRune(j) == RuneType(m_spellInfo->EffectMiscValue[eff_idx]))
-        {
-            plr->SetRuneCooldown(j, 0);
-        }
-    }
-    plr->ResyncRunes(MAX_RUNES);
+    int32 count = damage;                                   // max amount of reset runes
+    if (plr->ActivateRunes(RuneType(m_spellInfo->EffectMiscValue[eff_idx]), count))
+        plr->ResyncRunes();
 }
 
 void Spell::EffectTitanGrip(SpellEffectIndex /*eff_idx*/)
