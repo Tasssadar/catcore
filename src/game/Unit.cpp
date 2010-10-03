@@ -11190,8 +11190,8 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
                     return true;
             }
             // Bladestorm Immunity custom handling
-            else if ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK ||
-                     (1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))
+            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
                 return true;
         }
     }
@@ -11228,8 +11228,8 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                     return true;
             }
             // Bladestorm Immunity custom handling
-            else if ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK ||
-                     (1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))
+            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
                 return true;
         }
     }
