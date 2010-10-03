@@ -372,7 +372,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
             }
             plr->SetGroup(NULL);
         }
-        plr->m_lookingForGroup.groups.clear();
+
         plr->UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,false);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,true);
@@ -614,6 +614,7 @@ void LfgGroup::SendUpdate()
         player->GetSession()->SendPacket( &data );
     }
 }
+
 LfgLocksMap* LfgGroup::GetLocksList() const
 {
     LfgLocksMap *groupLocks = new LfgLocksMap();
@@ -629,6 +630,7 @@ LfgLocksMap* LfgGroup::GetLocksList() const
     }
     return groupLocks;
 }
+
 void LfgGroup::SendLfgPartyInfo(Player *plr)
 {   
     LfgLocksMap *groupLocks = GetLocksList();
@@ -677,6 +679,7 @@ void LfgGroup::SendLfgQueueStatus()
         plr->GetSession()->SendPacket(&data);
     }
 }
+
 void LfgGroup::SendGroupFormed()
 {
     if (!premadePlayers.empty())
@@ -684,17 +687,17 @@ void LfgGroup::SendGroupFormed()
         ResetGroup();
         for(PlayerList::iterator itr = premadePlayers.begin(); itr != premadePlayers.end(); ++itr)
             m_answers.insert(std::pair<uint64, uint8>(*itr, 1));
-    }
-
-    
+    }   
 
     //SMSG_LFG_UPDATE_PLAYER -> SMSG_LFG_PROPOSAL_UPDATE
+    WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 10);
+    Player *plr = NULL;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
-        Player *plr = sObjectMgr.GetPlayer(citr->guid);
+        plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || !plr->GetSession())
             continue;
-        WorldPacket data(SMSG_LFG_UPDATE_PLAYER, 10);
+        data.clear();
         data << uint8(LFG_UPDATETYPE_PROPOSAL_FOUND);
         data << uint8(true); //extra info
         data << uint8(false); //queued
@@ -706,7 +709,6 @@ void LfgGroup::SendGroupFormed()
     
         plr->GetSession()->SendPacket(&data);
     }
-
     SendProposalUpdate(LFG_PROPOSAL_WAITING);
 }
 
@@ -737,7 +739,6 @@ void LfgGroup::SendProposalUpdate(uint8 state)
         {
             if (Player *plr2 = sObjectMgr.GetPlayer(citr->guid))
             {
-                //sLfgMgr.LfgLog("Player %s", plr2->GetName());
                 uint8 roles = GetPlayerRole(plr2->GetGUID());
                 //Something got wrong
                 if (roles < 2)
