@@ -816,6 +816,14 @@ class MovementInfo
         uint32 GetFallTime() const { return fallTime; }
         void ChangePosition(float x, float y, float z, float o) { pos.x = x; pos.y = y; pos.z = z; pos.o = o; }
         void UpdateTime(uint32 _time) { time = _time; }
+        void SetFallData(float velocity, float sinAngle, float cosAngle, float xyspeed)
+        {
+            j_velocity = velocity;
+            j_sinAngle = sinAngle;
+            j_cosAngle = cosAngle;
+            j_xyspeed  = xyspeed;
+            fallTime = 0;
+        }
 
     private:
         // common
