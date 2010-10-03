@@ -1695,6 +1695,15 @@ void Aura::HandleAddModifier(bool apply, bool Real)
                 }
                 break;
             }
+            // Pandemic also affect Ebon Plague
+            case 49032:
+            {
+                uint32 const* ptr = getAuraSpellClassMask();
+                modMask0 = uint64(ptr[0]);
+                modMask1 = uint64(ptr[1])| UI64LIT(0x800);
+                modMask2 = uint64(ptr[2])| UI64LIT(0x40);
+                break;
+            }
         }
 
         m_spellmod = new SpellModifier(
