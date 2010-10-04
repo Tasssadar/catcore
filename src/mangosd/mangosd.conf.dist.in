@@ -1470,7 +1470,7 @@ Arena.LoserHalfChange = 0
 #
 #    Lfg.Mixed.Allow
 #         Enable or disable mixed dungeons
-#         Default: false
+#         Default: 0
 #
 #    Lfg.Mixed.MinLevel
 #         Minimum level for mixed dungeons
@@ -1486,7 +1486,7 @@ Lfg.AllowJoin = 1
 Lfg.ImmidiateQueueUpdate = 1
 Lfg.QueueUpdateTime = 180000
 Lfg.Log = false
-Lfg.Mixed.Allow = false
+Lfg.Mixed.Allow = 0
 Lfg.Mixed.MinLevel = 15
 Lfg.Mixed.MaxLevel = 79
 
@@ -1611,6 +1611,7 @@ SOAP.Port = 7878
 CharDelete.Method = 0
 CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
+
 ###################################################################################################################
 # HONOR SETTINGS
 #
