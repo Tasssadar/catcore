@@ -2280,6 +2280,9 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     (spellInfo_1->Category == 44 && spellInfo_2->Category == 0 ||
                     spellInfo_2->Category == 44 && spellInfo_1->Category == 0))
                     return false;
+                // Tricks of the Trade
+                if (spellInfo_1->SpellIconID == 3413 && spellInfo_2->SpellIconID == 3413)
+                    return false;
             }
 
             //Overkill
