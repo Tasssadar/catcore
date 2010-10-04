@@ -91,7 +91,7 @@ void WorldSession::HandlePetStopAttack(WorldPacket& recv_data)
     ObjectGuid petGuid;
     recv_data >> petGuid;
 
-    Unit* pet = ObjectAccessor::GetUnit(GetPlayer(), petGuid);    // pet or controlled creature/player
+    Unit* pet = ObjectAccessor::GetUnit(*GetPlayer(), petGuid);    // pet or controlled creature/player
     if (!pet)
     {
         sLog.outError("%s doesn't exist.", petGuid.GetString().c_str());

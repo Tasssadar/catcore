@@ -32,7 +32,7 @@ struct VehicleSeat
     uint32 vs_flags;
 };
 
-enum VehicleSeatFlags
+enum customVehicleSeatFlags
 {
     SEAT_FREE           = 0x01,                             // free seat
     SEAT_FULL           = 0x02,                             // seat occupied by player/creature

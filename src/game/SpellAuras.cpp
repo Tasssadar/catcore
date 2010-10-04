@@ -3307,7 +3307,7 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
         if (target->GetTypeId()==TYPEID_PLAYER)
             team = ((Player*)target)->GetTeam();
 
-        uint32 display_id = Creature::ChooseDisplayId(team,ci);
+        uint32 display_id = Creature::ChooseDisplayId(ci);
         CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(display_id);
         if (minfo)
             display_id = minfo->modelid;
@@ -3816,7 +3816,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_miscvalue, GetId());
             }
             else
-                model_id = Creature::ChooseDisplayId(0,ci); // Will use the default model here
+                model_id = Creature::ChooseDisplayId(ci); // Will use the default model here
 
             // Polymorph (sheep/penguin case)
             if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE && GetSpellProto()->SpellIconID == 82)
@@ -3888,11 +3888,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 uint32 cr_id = target->GetAurasByType(SPELL_AURA_MOUNTED).front()->GetModifier()->m_miscvalue;
                 if (CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(cr_id))
                 {
-                    uint32 team = 0;
-                    if (target->GetTypeId() == TYPEID_PLAYER)
-                        team = ((Player*)target)->GetTeam();
-
-                    uint32 display_id = Creature::ChooseDisplayId(team, ci);
+                    uint32 display_id = Creature::ChooseDisplayId(ci);
                     CreatureModelInfo const *minfo = sObjectMgr.GetCreatureModelRandomGender(display_id);
                     if (minfo)
                         display_id = minfo->modelid;
@@ -9623,29 +9619,30 @@ void Aura::HandleIgnoreUnitState(bool apply, bool Real)
     {
         if (apply)
         {
-            switch(GetId())
+            // Fingers of Frost
+            if(GetId() == 44544)
             {
-                // Fingers of Frost
-                case 44544:
-                    SetAuraCharges(3); // 3 because first is droped on proc
-                    //Visual
-                    const SpellEntry* proto = sSpellStore.LookupEntry(74396);
-                    int32 basepoints = enrageProto->EffectBasePoints[EFFECT_INDEX_0];
-                    Aura *aura = CreateAura(proto, EFFECT_INDEX_0, &basepoints, caster, caster); ,
-                    aura->SetAuraCharges(2);
-                    caster->AddAura(aura);
-                    break;
-                // Juggernaut & Warbringer both need special slot and flag
-                // for alowing charge in combat and Warbringer
-                // for alowing charge in different stances, too
-                case 64976:
-                case 57499:
-                    SetAuraSlot(255);
-                    SetAuraFlags(19);
-                    SendAuraUpdate(false);
-                    break;
+                SetAuraCharges(3); // 3 because first is droped on proc
+                //Visual
+                const SpellEntry* proto = sSpellStore.LookupEntry(74396);
+                int32 basepoints = proto->EffectBasePoints[EFFECT_INDEX_0];
+                Aura *aura = CreateAura(proto, EFFECT_INDEX_0, &basepoints, caster, caster);
+                aura->SetAuraCharges(2);
+                caster->AddAura(aura);
+            }
+            // Juggernaut & Warbringer both need special slot and flag
+            // for alowing charge in combat and Warbringer
+            // for alowing charge in different stances, too
+            else if(GetId() == 64976 || GetId() == 57499)
+            {
+                SetAuraSlot(255);
+                SetAuraFlags(19);
+                SendAuraUpdate(false);
             }
         }
+        // Remove visual
+        else if(GetId() == 44544)
+            caster->RemoveAurasDueToSpell(74396);
     }
 }
 void Aura::UnregisterSingleCastAura()

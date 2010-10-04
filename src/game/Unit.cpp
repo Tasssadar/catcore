@@ -15533,7 +15533,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     if (GetTypeId() == TYPEID_PLAYER)
         ((Player*)this)->SendEnterVehicle(v, veSeat);
 
-    WorldPacket data(SMSG_MONSTER_MOVE_TRANSPORT, 60);
+    data.Initialize(SMSG_MONSTER_MOVE_TRANSPORT, 60);
     data << GetPackGUID();
     data << v->GetPackGUID();
     data << uint8(seat_id);

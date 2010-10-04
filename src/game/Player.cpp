@@ -20266,7 +20266,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
 void Player::SendInitialPacketsAfterAddToMap()
 {
     if (getClass() == CLASS_DEATH_KNIGHT)
-        ResyncRunes(MAX_RUNES);
+        ResyncRunes();
 
     WorldPacket data0(SMSG_SET_PHASE_SHIFT, 4);
     data0 << uint32(GetPhaseMask());

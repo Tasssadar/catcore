@@ -3614,7 +3614,7 @@ void Spell::finish(bool ok)
         {
             case 44544: // Fingers of Frost dissapear after two spells
                 if (!m_IsTriggeredSpell && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_NONE &&
-                    !IsPositiveSpell(m_spellInfo->ID))
+                    !IsPositiveSpell(m_spellInfo->Id))
                 {
                     // drop visual
                     Aura *visual = m_caster->GetAura(74396, EFFECT_INDEX_0);

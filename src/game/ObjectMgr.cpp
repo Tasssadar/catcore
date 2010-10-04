@@ -1045,7 +1045,7 @@ uint32 ObjectMgr::GetModelForRace(uint32 sourceModelId, uint32 racemask)
         if (itr->second.creature_entry)
         {
             const CreatureInfo *cInfo = sObjectMgr.GetCreatureTemplate(itr->second.creature_entry);
-            modelId = Creature::ChooseDisplayId(cInfo);
+            modelId = Creature::ChooseDisplayId(ChooseDisplayId(cInfo);
         }
         else
         {
@@ -5614,7 +5614,7 @@ uint32 ObjectMgr::GetTaxiMountDisplayId( uint32 id, uint32 team, bool allowed_al
     if (!mount_info)
         return 0;
 
-    uint16 mount_id = Creature::ChooseDisplayId(team,mount_info);
+    uint16 mount_id = Creature::ChooseDisplayId(mount_info);
     if (!mount_id)
         return 0;
 

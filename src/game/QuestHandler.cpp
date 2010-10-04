@@ -386,9 +386,9 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recv_data)
             {
                 if (pQuest->HasFlag(QUEST_MANGOS_FLAGS_TIMED))
                     _player->RemoveTimedQuest(quest);
-                if (pQuest->SrcSpell)
-                    if (_player->HasAura(pQuest->SrcSpell))
-                        _player->RemoveAurasDueToSpellByCancel(pQuest->SrcSpell);
+                if (pQuest->GetSrcSpell())
+                    if (_player->HasAura(pQuest->GetSrcSpell()))
+                        _player->RemoveAurasDueToSpellByCancel(pQuest->GetSrcSpell());
             }
 
             _player->SetQuestStatus( quest, QUEST_STATUS_NONE);
