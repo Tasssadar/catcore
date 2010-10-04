@@ -2064,6 +2064,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if ( (spellInfo_1->Id == 22959) && (spellInfo_2->Id == 12579) ||
                     (spellInfo_2->Id == 22959) && (spellInfo_1->Id == 12579) )
                     return false;
+
+                // Fingers of Frost
+                if (spellInfo_1->SpellIconID == 2947 && spellInfo_1->SpellIconID == 2947)
+                    return false;
             }
             //Focus magic(30 min buff) and Praxis (T8 set bonus) (generic family)
             if (spellInfo_1->Id == 54646 && spellInfo_2->Id == 64868)
