@@ -453,14 +453,15 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket &recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
-    if (_player->GetMover()->GetObjectGuid() != guid)
+    if(!_player->GetMover() || !_player->GetMover()->IsInWorld())
+        _player->SetMover(_player);
+
+    if (_player->GetMover()->GetGUID() != guid.GetRawValue())
     {
         sLog.outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is %s and should be %s",
             _player->GetMover()->GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
         return;
     }
-    if(!_player->GetMover() || !_player->GetMover()->IsInWorld())
-        _player->SetMover(_player);
 }
 
 void WorldSession::HandleMoveNotActiveMover(WorldPacket &recv_data)

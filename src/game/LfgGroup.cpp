@@ -815,7 +815,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
 
     //Offline members checked at join
     //Check roles
-    if (m_membersBeforeRoleCheck != m_rolesProposal.size())
+    if (m_membersBeforeRoleCheck > m_rolesProposal.size())
         return;
 
     ProposalAnswersMap more_roles; // two or more roles
@@ -1111,3 +1111,4 @@ void LfgGroup::SendBootPlayer(Player *plr)
 
     plr->GetSession()->SendPacket(&data);
 }
+

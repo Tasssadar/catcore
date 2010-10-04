@@ -156,12 +156,12 @@ void WorldSession::SendPetNameQuery( ObjectGuid petguid, uint32 petnumber)
         _player->GetSession()->SendPacket(&data);
 
         // looking for errors
-        if (!pet)
-            sLog.outError("SendPetNameQuery:: Pet not found, not exist or not in world");
+     /*   if (!pet)
+            sLog.outError("SendPetNameQuery:: Pet not found, not exist or not in world"); <-------
         else if (!pet->GetCharmInfo())
             sLog.outError("SendPetNameQuery:: Pet CharmInfo() not found");
         else if (pet->GetCharmInfo()->GetPetNumber() != petnumber)
-            sLog.outError("SendPetNameQuery:: Pet number is not equal to requested petnumber");
+            sLog.outError("SendPetNameQuery:: Pet number is not equal to requested petnumber"); */
         return;
     }
 

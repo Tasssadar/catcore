@@ -14120,6 +14120,9 @@ void Unit::DoPetCastSpell( Player *owner, uint8 cast_count, SpellCastTargets tar
 
     Creature* pet = dynamic_cast<Creature*>(this);
 
+    if(!pet || !pet->IsInWorld() || GetTypeId() != TYPEID_UNIT)
+        return;
+
     clearUnitState(UNIT_STAT_MOVING);
 
     Spell *spell = new Spell(pet, spellInfo, false);

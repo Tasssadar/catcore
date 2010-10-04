@@ -82,6 +82,7 @@ void LfgMgr::Update(uint32 diff)
         {
             grpitr_next = grpitr;
             ++grpitr_next;
+            //TODO: Find out why this is happening
             if(!(*grpitr)->isLfgGroup())
             {
                 rolecheckGroups.erase(*grpitr);
@@ -89,6 +90,7 @@ void LfgMgr::Update(uint32 diff)
             }
             (*grpitr)->UpdateRoleCheck(diff);
         }
+        DeleteGroups();
 
         //Vote to kick
         tmpGroupList.clear();
@@ -116,7 +118,10 @@ void LfgMgr::AddToQueue(Player *player, bool updateQueue)
     {
         LfgGroup* lfgGroup = NULL;
         if(group->isLfgGroup())
+        {
             lfgGroup = (LfgGroup*)group;
+            LfgLog("lfg group join dung %u, groupid %u", lfgGroup->GetDungeonInfo()->ID, lfgGroup->GetId());
+        }
         else
         {
             lfgGroup = new LfgGroup(true, (side == LFG_MIXED));
@@ -313,7 +318,6 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
                 member->m_lookingForGroup.queuedDungeons.clear();
         }
         AddGroupToDelete(group);
-        DeleteGroups();
         return; 
     }
 
@@ -464,7 +468,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 if (!plr || !plr->GetSession() || !plr->IsInWorld())
                     continue;
                 uint8 rolesCount = 0;
-                uint8 playerRoles = plr->m_lookingForGroup.roles;
+                uint8 playerRoles = (*grpitr2)->GetPlayerRole(citr->guid, false, true);
 
                 if ((*grpitr2)->GetMembersCount() > (*grpitr1)->GetMembersCount() || !(*grpitr1)->HasCorrectLevel(plr->getLevel()) 
                     || (*grpitr2)->GetPremadePlayers()->find(plr->GetGUID()) != (*grpitr2)->GetPremadePlayers()->end())
@@ -504,7 +508,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                                 }
                                 break;       
                         }
-                        if ((*grpitr1)->HasFreeRole(checkRole) && playerRoles-checkRole <= LEADER)
+                        if ((*grpitr1)->HasFreeRole(checkRole) && playerRoles == checkRole)
                             merge = 1;
                         else if ((*grpitr1)->GetPlayerRole(mergeGuid, false, true) != checkRole)
                         {
@@ -1415,3 +1419,4 @@ QueuedDungeonsMap::iterator LfgMgr::GetOrCreateQueueEntry(LFGDungeonEntry const 
     }
     return m_queuedDungeons[side].end();
 }
+

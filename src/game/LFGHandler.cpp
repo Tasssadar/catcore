@@ -245,6 +245,8 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
     recv_data >> roles;
     _player->m_lookingForGroup.roles = roles;
 
+    sLfgMgr.LfgLog("Set roles player %u, role %u", _player->GetGUID(), roles);
+
     if(!_player->GetGroup())
         return;
 
