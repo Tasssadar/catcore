@@ -9231,6 +9231,10 @@ void Aura::PeriodicDummyTick()
                     if (target->hasUnitState(UNIT_STAT_STUNNED) || target->isFeared())
                         return;
 
+                    WorldPacket data(SMSG_CLEAR_TARGET, 8);
+                    data << target->GetObjectGuid();
+                    target->SendMessageToSet(&data, false);
+
                     std::list<Unit*> targets;
                     {
                         // eff_radius ==0
