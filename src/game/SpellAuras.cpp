@@ -9628,6 +9628,12 @@ void Aura::HandleIgnoreUnitState(bool apply, bool Real)
                 // Fingers of Frost
                 case 44544:
                     SetAuraCharges(3); // 3 because first is droped on proc
+                    //Visual
+                    const SpellEntry* proto = sSpellStore.LookupEntry(74396);
+                    int32 basepoints = enrageProto->EffectBasePoints[EFFECT_INDEX_0];
+                    Aura *aura = CreateAura(proto, EFFECT_INDEX_0, &basepoints, caster, caster); ,
+                    aura->SetAuraCharges(2);
+                    caster->AddAura(aura);
                     break;
                 // Juggernaut & Warbringer both need special slot and flag
                 // for alowing charge in combat and Warbringer
