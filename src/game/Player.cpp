@@ -19940,8 +19940,14 @@ void Player::ReportedAfkBy(Player* reporter)
     if (m_bgData.bgAfkReporter.find(reporter->GetGUIDLow()) == m_bgData.bgAfkReporter.end() && !HasAura(43680, EFFECT_INDEX_0) && !HasAura(43681, EFFECT_INDEX_0) && reporter->CanReportAfkDueToLimit())
     {
         m_bgData.bgAfkReporter.insert(reporter->GetGUIDLow());
+        uint8 bgReportsCount = m_bgData.bgAfkReporter.size();
+        uint8 bgReportsNeeded = sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_REPORTS_NEEDED);
+        // send report message to reported
+        ChatHandler(this).PSendSysMessage("You have been reported as AFK, you currently have %u of %u maximum allowed reports", bgReportsCount, bgReportsNeeded);
+        // send report message to reporter
+        ChatHandler(reporter).PSendSysMessage("You have reported player %s, which currently have %u of %u maximum allowed reports on him", this->GetName(), bgReportsCount, bgReportsNeeded);
         // 3 players have to complain to apply debuff
-        if (m_bgData.bgAfkReporter.size() >= sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_REPORTS_NEEDED))
+        if (bgReportsCount >= bgReportsNeeded)
         {
             // cast 'Idle' spell
             CastSpell(this, 43680, true);
