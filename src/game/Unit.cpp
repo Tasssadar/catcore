@@ -8901,19 +8901,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
         case 70802: // Mayhem (Shadowblade sets)
         {
             // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
-            if (Spell* spell = GetCurrentSpell(CURRENT_GENERIC_SPELL))
-            {
-                if ( cooldown && GetTypeId()==TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(trigger_spell_id))
-                    return false;
-
-                spell->AddTriggeredSpell(trigger_spell_id);
-
-                if ( cooldown && GetTypeId()==TYPEID_PLAYER )
-                    ((Player*)this)->AddSpellCooldown(trigger_spell_id,0,time(NULL) + cooldown);
-
-                return true;
-            }
-            return false;
+            break;
         }
         // Bloodthirst (($m/100)% of max health)
         case 23880:
