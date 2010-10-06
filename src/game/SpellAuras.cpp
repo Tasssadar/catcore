@@ -9839,11 +9839,20 @@ bool Aura::ApplyHasteToPeriodic()
             }
         }
     }
-    if (!applyHaste || !m_modifier.periodictime)
+    if (!applyHaste)
         return false;
 
     int32 periodic = m_spellProto->EffectAmplitude[m_effIndex];
     int32 duration = m_origDuration;
+    // if aura is affected but does not have periodic timer, just use on duration and return
+    if (!periodic)
+    {
+        if ( !(GetSpellProto()->Attributes & (SPELL_ATTR_UNK4|SPELL_ATTR_TRADESPELL)) )
+        duration = int32(duration * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+
+        m_maxduration = duration;
+        return false;
+    }
     if (duration == 0 || periodic == 0)
         return false;
 
