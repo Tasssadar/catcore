@@ -2147,13 +2147,13 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             continue;
                         
                         // if target have 5 stack of Deadly poison proc from other weapon
-                        if (combatEntry->SpellFamilyFlags == 0x10000 && combatEntry->SpellFamilyName == SPELLFAMILY_ROGUE &&
+                        if ((combatEntry->SpellFamilyFlags & 0x10000) && combatEntry->SpellFamilyName == SPELLFAMILY_ROGUE &&
                             m_caster->GetTypeId() == TYPEID_PLAYER)
                         {
                             Unit::AuraList const& mAura = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                             for (Unit::AuraList::const_iterator itr = mAura.begin(); itr != mAura.end(); ++itr)
                             {
-                                if ((*itr)->GetSpellProto()->SpellFamilyFlags == 0x10000 &&        // deadly poison
+                                if (((*itr)->GetSpellProto()->SpellFamilyFlags & 0x10000) &&        // deadly poison
                                     (*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE && 
                                     (*itr)->GetCasterGUID() == m_caster->GetGUID() &&              // same caster
                                     (*itr)->GetStackAmount() >= 5)                                 // max stack
