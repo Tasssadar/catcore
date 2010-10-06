@@ -7742,12 +7742,12 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
                 else
                 {
                     // if target have 5 stack of Deadly poison proc from other weapon
-                    if (spellInfo->SpellFamilyFlags == 0x10000 && spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
+                    if ((spellInfo->SpellFamilyFlags & 0x10000) && spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE)
                     {
                         AuraList const& mAura = Target->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                         for (AuraList::const_iterator itr = mAura.begin(); itr != mAura.end(); ++itr)
                         {
-                            if ((*itr)->GetSpellProto()->SpellFamilyFlags == 0x10000 &&
+                            if (((*itr)->GetSpellProto()->SpellFamilyFlags & 0x10000) &&
                                 (*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
                                 (*itr)->GetCasterGUID() == GetGUID() && 
                                 (*itr)->GetStackAmount() >= 5)

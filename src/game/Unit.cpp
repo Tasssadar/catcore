@@ -8445,6 +8445,14 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
+                // Item - Rogue T8 2P Bonus
+                case 64914:
+                {
+                    // Only for Deadly Poison ticks
+                    if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
+                        return false;
+                    break;
+                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
