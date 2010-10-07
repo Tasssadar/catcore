@@ -4544,8 +4544,8 @@ SpellCastResult Spell::CheckCast(bool strict)
     }
 
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
-        return SPELL_FAILED_NOT_READY;
+    /*if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
+        return SPELL_FAILED_NOT_READY;*/
 
     // Lock and Load Marker - sets Lock and Load cooldown
     if (m_caster->HasAura(67544) && m_spellInfo->Id == 56453)
