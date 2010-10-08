@@ -4509,7 +4509,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
         {
             WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8);
             data << m_target->GetPackGUID();
-            data << uint32(0);
+            data << uint32(12);
             m_target->SendMessageToSet(&data,true);
         }
 
@@ -4577,7 +4577,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
             WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 8+4);
             data << target->GetPackGUID();
-            data << uint32(0);
+            data << uint32(12);
             target->SendMessageToSet(&data, true);
         }
 
