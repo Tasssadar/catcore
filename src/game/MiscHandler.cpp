@@ -830,6 +830,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
             {
                 _player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
                 _player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
+                _player->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
                 _player->RemoveAurasDueToSpell(LFG_BOOST);
                 _player->TeleportTo(teleLoc);
                 if (((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED)

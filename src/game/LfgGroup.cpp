@@ -502,6 +502,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
     
     plr->ScheduleDelayedOperation(DELAYED_LFG_ENTER_DUNGEON);
     plr->ScheduleDelayedOperation(DELAYED_SAVE_PLAYER);
+    plr->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
+
     if(IsMixed())
         plr->m_lookingForGroup.SetMixedDungeon(dungeonInfo->start_map);
 

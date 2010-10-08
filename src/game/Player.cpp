@@ -2077,6 +2077,12 @@ void Player::ProcessDelayedOperations()
         }
     }
 
+    if (m_DelayedOperations & DELAYED_LFG_CLEAR_LOCKS)
+    {
+        sLfgMgr.SendLfgUpdatePlayer(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+        sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+    }
+
     //we have executed ALL delayed ops, so clear the flag
     m_DelayedOperations = 0;
 }
@@ -20347,8 +20353,6 @@ void Player::SendInitialPacketsAfterAddToMap()
     }
 
     //Lfg stuff
-    sLfgMgr.SendLfgUpdatePlayer(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
-    sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
     sLfgMgr.SendLfgContinue(this);
 }
 
