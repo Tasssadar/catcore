@@ -29,12 +29,69 @@
 #include "SpellAuras.h"
 #include "InstanceSaveMgr.h"
 
+bool RoleCheck::TryRoles(LfgGroup *group)
+{
+    ProposalAnswersMap more_roles; // two or more roles
+    uint8 error = 0;
+    bool isSingleRole = false;
+
+    for(ProposalAnswersMap::iterator itr = m_rolesProposal.begin(); itr != m_rolesProposal.end() && !error; ++itr)
+    {
+        isSingleRole = false;
+        uint8 role = (itr->second & LEADER) ? itr->second-1 : itr->second;
+        if(role == 0)
+        {
+            error = LFG_ROLECHECK_WRONG_ROLES;
+            break;
+        }
+        for(uint8 y = TANK; y <= DAMAGE && !isSingleRole; y *= 2)
+        {
+            if(role == y)
+            {
+                isSingleRole = true;
+                if(m_roleCheck.HasFreeRole(y))
+                    m_roleCheck.SetAsRole(y);
+                else
+                    error = LFG_ROLECHECK_WRONG_ROLES;
+            }   
+        }
+        if(!isSingleRole)
+            more_roles.insert(std::make_pair<uint64, uint8>(itr->first, itr->second));
+    }
+
+    if(error)
+    {
+        group->SendRoleCheckFail(error);
+        return false;
+    }
+
+    //Two or more roles
+    ProposalAnswersMap::iterator itr, itr_next;
+    for(ProposalAnswersMap::iterator itr = more_roles.begin(); itr != more_roles.end(); itr = itr_next)
+    {
+        itr_next = itr;
+        ++itr_next;
+        for(uint8 y = TANK; y <= DAMAGE; y *= 2)
+        {
+            if((itr->second & y))
+            {
+                if(m_roleCheck.HasFreeRole(y))
+                    m_roleCheck.SetAsRole(y);   
+                more_roles.erase(itr);
+                break;
+            }                
+        }
+    }
+    if(!more_roles.empty())
+        return false;
+    return true;
+}
+
 LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
 {
     dps.clear();
     premadePlayers.clear();
     m_answers.clear();
-    m_rolesProposal.clear();
     m_tank = 0;
     m_heal = 0;
     m_killedBosses = 0;
@@ -44,7 +101,6 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_instanceStatus = INSTANCE_NOT_SAVED;
     m_dungeonInfo = NULL;
     m_originalInfo = NULL;
-    m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
     m_lfgFlags = mixed ? LFG_GRP_MIXED : 0;
 }
@@ -76,7 +132,6 @@ LfgGroup::~LfgGroup()
 void LfgGroup::ResetGroup()
 {
     m_answers.clear();
-    m_rolesProposal.clear();
     m_readycheckTimer = 0;
     m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
@@ -447,6 +502,9 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
     
     plr->ScheduleDelayedOperation(DELAYED_LFG_ENTER_DUNGEON);
     plr->ScheduleDelayedOperation(DELAYED_SAVE_PLAYER);
+    if(IsMixed())
+        plr->m_lookingForGroup.SetMixedDungeon(dungeonInfo->start_map);
+
     if (IsInDungeon())
     {
         for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
@@ -471,9 +529,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         map->Remove(plr, false);
         map->Add(plr);
     }
-    if(IsMixed())
-        plr->m_lookingForGroup.SetMixedDungeon(dungeonInfo->start_map);
-
+    
     plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x,
         dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
 }
@@ -667,11 +723,11 @@ void LfgGroup::SendLfgQueueStatus()
         uint8 role = plr->m_lookingForGroup.roles;
         WorldPacket data(SMSG_LFG_QUEUE_STATUS, 31);
         data << uint32(GetDungeonInfo(IsFromRnd(citr->guid))->ID);     // Dungeon
-        data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_AVG, role)); // Average Wait time
-        data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME, role));     // Wait Time
-        data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_TANK, role));// Wait Tanks
-        data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_HEAL, role));// Wait Healers
-        data << uint32(sLfgMgr.GetAvgWaitTime(m_dungeonInfo->ID, LFG_WAIT_TIME_DPS, role)); // Wait Dps
+        data << uint32(sLfgMgr.GetAvgWaitTime(GetDungeonInfo(true)->ID, LFG_WAIT_TIME_AVG, role)); // Average Wait time
+        data << uint32(sLfgMgr.GetAvgWaitTime(GetDungeonInfo(true)->ID, LFG_WAIT_TIME, role));     // Wait Time
+        data << uint32(sLfgMgr.GetAvgWaitTime(GetDungeonInfo(true)->ID, LFG_WAIT_TIME_TANK, role));// Wait Tanks
+        data << uint32(sLfgMgr.GetAvgWaitTime(GetDungeonInfo(true)->ID, LFG_WAIT_TIME_HEAL, role));// Wait Healers
+        data << uint32(sLfgMgr.GetAvgWaitTime(GetDungeonInfo(true)->ID, LFG_WAIT_TIME_DPS, role)); // Wait Dps
         data << uint8(m_tank ? 0 : 1);                                  // Tanks needed
         data << uint8(m_heal ? 0 : 1);                                  // Healers needed
         data << uint8(LFG_DPS_COUNT - dps.size());                      // Dps needed
@@ -774,7 +830,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     if (diff != 0)
     {
         m_readycheckTimer += diff;
-        if (m_readycheckTimer >= LFG_TIMER_READY_CHECK && m_membersBeforeRoleCheck != m_rolesProposal.size())
+        if (m_readycheckTimer >= LFG_TIMER_READY_CHECK && m_roleCheck.m_beforeCheck != m_rolesProposal.size())
         {
             SendRoleCheckFail(LFG_ROLECHECK_MISSING_ROLE);
             return;
@@ -792,7 +848,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
             break;
         }
     }
-    if (GetMembersCount() != m_membersBeforeRoleCheck || offline)
+    if (GetMembersCount() != m_roleCheck.m_beforeCheck || offline)
     {
         SendRoleCheckFail(LFG_ROLECHECK_ABORTED);
         return;
@@ -805,7 +861,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         if (m_rolesProposal.find(citr->guid) != m_rolesProposal.end() || !player || !player->GetSession() ||
             player->m_lookingForGroup.roles == 255)
             continue;
-        m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
+        m_roleCheck.m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
         data << uint64(player->GetGUID());
         data << uint8(1);
@@ -815,65 +871,20 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
 
     //Offline members checked at join
     //Check roles
-    if (m_membersBeforeRoleCheck > m_rolesProposal.size())
+    if (m_roleCheck.m_beforeCheck > m_roleCheck.m_rolesProposal.size())
         return;
-
-    ProposalAnswersMap more_roles; // two or more roles
-    uint8 error = 0;
-    bool isSingleRole = false;
-    for(ProposalAnswersMap::iterator itr = m_rolesProposal.begin(); itr != m_rolesProposal.end() && !error; ++itr)
-    {
-        isSingleRole = false;
-        uint8 role = (itr->second & LEADER) ? itr->second-1 : itr->second;
-        if(role == 0)
-        {
-            error = LFG_ROLECHECK_WRONG_ROLES;
-            break;
-        }
-        for(uint8 y = TANK; y <= DAMAGE && !isSingleRole; y *= 2)
-        {
-            if(role == y)
-            {
-                isSingleRole = true;
-                if(HasFreeRole(y))
-                    SetAsRole(y, itr->first);
-                else
-                    error = LFG_ROLECHECK_WRONG_ROLES;
-            }   
-        }
-        if(!isSingleRole)
-            more_roles.insert(std::make_pair<uint64, uint8>(itr->first, itr->second));
-    }
-
-    if(error)
-    {
-        SendRoleCheckFail(error);
-        return;
-    }
-
-    //Two or more roles
-    ProposalAnswersMap::iterator itr, itr_next;
-    for(ProposalAnswersMap::iterator itr = more_roles.begin(); itr != more_roles.end(); itr = itr_next)
-    {
-        itr_next = itr;
-        ++itr_next;
-        for(uint8 y = TANK; y <= DAMAGE; y *= 2)
-        {
-            if((itr->second & y) && HasFreeRole(y))
-            {
-                SetAsRole(y, itr->first);
-                more_roles.erase(itr);
-                break;
-            }                
-        }
-    }
-    //Failed
+    
     Player *leader = sObjectMgr.GetPlayer(GetLeaderGUID());
-    if(!leader || !leader->IsInWorld() || !more_roles.empty())
+    if(!leader || !leader->IsInWorld() || !m_roleCheck.TryRoles())
     {
         SendRoleCheckFail(LFG_ROLECHECK_WRONG_ROLES);
         return;
     }
+
+    SetAsRole(TANK, m_roleCheck.tank);
+    SetAsRole(HEALER, m_roleCheck.heal);
+    dps.clear();
+    dps = m_roleCheck.dps;
 
     //Move group to queue
     SendRoleCheckUpdate(LFG_ROLECHECK_FINISHED);
@@ -887,7 +898,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
             sLfgMgr.SendJoinResult(player, LFG_JOIN_OK);
         else
         {
-            player->m_lookingForGroup.roles = GetPlayerRole(player->GetGUID());
+            //player->m_lookingForGroup.roles = GetPlayerRole(player->GetGUID());
             player->m_lookingForGroup.comment = "";
             player->m_lookingForGroup.joinTime = getMSTime();
             player->m_lookingForGroup.queuedDungeons = leader->m_lookingForGroup.queuedDungeons;
@@ -896,6 +907,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
             premadePlayers.insert(player->GetGUID());
     }
     m_lfgFlags &= ~LFG_GRP_ROLECHECK;
+    SendUpdate();
     sLfgMgr.AddCheckedGroup(this, true);
 }
 
@@ -924,7 +936,8 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
         ResetGroup();
         if (IsInDungeon())
             premadePlayers.clear();
-        m_membersBeforeRoleCheck = GetMembersCount();
+        m_roleCheck.Reset();
+        m_roleCheck.m_beforeCheck = GetMembersCount();
     }
     
     Player *leader = sObjectMgr.GetPlayer(GetLeaderGUID());

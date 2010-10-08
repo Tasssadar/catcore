@@ -128,8 +128,10 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
             return;
         }
         //Already queued for this dungeon, dunno how this can happen, but it happens
-        if (player->m_lookingForGroup.queuedDungeons.find(dungeonInfo) != player->m_lookingForGroup.queuedDungeons.end())
-            sLfgMgr.RemoveFromQueue(player);
+        if (player->m_lookingForGroup.queuedDungeons.find(dungeonInfo) != player->m_lookingForGroup.queuedDungeons.end() ||
+            sLfgMgr.IsPlayerInQueue(player->GetGUID()))
+            sLfgMgr.RemovePlayer(player);
+
         player->m_lookingForGroup.queuedDungeons.insert(dungeonInfo);
     } 
     recv_data >> unk; // looks like unk from LFGDungeons.dbc, so 0 = raid or zone, 3 = dungeon, 15 = world event. Possibly count of next data? anyway seems unused
@@ -150,7 +152,7 @@ void WorldSession::HandleLfgLeaveOpcode(WorldPacket & /*recv_data*/)
     DEBUG_LOG("WORLD: Received CMSG_LFG_LEAVE");
 
     if (Group *group = _player->GetGroup())
-        if (group->GetLeaderGUID() != _player->GetGUID())    // Only leader can leave
+        if (group->GetLeaderGUID() != _player->GetGUID() && !group->isLfgGroup())    // Only leader can leave
             return;
 
     sLfgMgr.RemoveFromQueue(_player);

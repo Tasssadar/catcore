@@ -244,7 +244,7 @@ struct QueuedDungeonInfo
     LFGDungeonEntry const *dungeonInfo;
 
     PlayerList players;
-    GroupsList groups;  
+    GroupsList groups;
 };
 
 typedef std::map<uint32, QueuedDungeonInfo*> QueuedDungeonsMap;
@@ -254,6 +254,7 @@ class MANGOS_DLL_SPEC LfgMgr
     public:
         typedef std::map<uint32, uint32> WaitTimeMap;
         typedef std::map<uint32, LfgDungeonList*> LfgDungeonMap;
+        typedef std::map<uint64, uint32> PlayerMap;
         /* Construction */
         LfgMgr();
         ~LfgMgr();
@@ -313,6 +314,17 @@ class MANGOS_DLL_SPEC LfgMgr
         void SendJoinResult(Player *player, uint8 result, uint32 value = 0);
         uint8 GetSideForPlayer(Player *player);
 
+        uint32 IsPlayerInQueue(uint64 guid)
+        {
+            PlayerMap::iterator itr = m_queuedPlayers.find(guid);
+            if(itr != m_queuedPlayers.end())
+                return itr->second;
+            return 0;
+        }
+
+        uint32 GetTotalPlayers() const { return m_queuedPlayers.size(); }
+        void SendLfgContinue(Player *player);
+
     private:
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueue(uint8 side);
@@ -334,6 +346,7 @@ class MANGOS_DLL_SPEC LfgMgr
         GroupsList rolecheckGroups;
         GroupsList voteKickGroups;
         GroupsList groupsForDelete;
+        PlayerMap m_queuedPlayers;
 
         uint32 m_groupids;
         uint32 m_updateQueuesBaseTime;

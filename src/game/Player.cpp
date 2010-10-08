@@ -20339,6 +20339,11 @@ void Player::SendInitialPacketsAfterAddToMap()
         aura_update << uint8(0);
         GetSession()->SendPacket(&aura_update);
     }
+
+    //Lfg stuff
+    sLfgMgr.SendLfgUpdatePlayer(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+    sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+    sLfgMgr.SendLfgContinue(this);
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()

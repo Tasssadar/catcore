@@ -85,6 +85,43 @@ struct VoteToKick
     std::string reason;
 };
 
+struct RoleCheck
+{
+    RoleCheck() { Reset(); }
+
+    void Reset()
+    {
+        tank = 0;
+        heal = 0;
+        dps.clear();
+        m_rolesProposal.clear();
+        m_beforeCheck = 0;
+    }
+
+    bool HasFreeRole(uint8 role)
+    {
+        return ( (role == TANK && !tank) || (role == HEALER && !heal) || (role == DAMAGE && dps.size() < LFG_DPS_COUNT) );
+    }
+
+    void SetAsRole(uint8 role, uint64 guid)
+    {
+        switch(role)
+        {
+            case TANK:   tank = guid; break;
+            case HEALER: heal = guid; break;
+            case DAMAGE: dps.insert(guid); break;
+        }
+    }
+
+    bool TryRoles(LfgGroup *group);
+
+    uint64 tank;
+    uint64 heal;
+    PlayerList dps;
+    uint8 m_beforeCheck;
+    ProposalAnswersMap m_rolesProposal;
+};
+
 class MANGOS_DLL_SPEC LfgGroup : public Group
 {
     public:
@@ -122,7 +159,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
             return ( (role == TANK && !m_tank) || (role == HEALER && !m_heal) || (role == DAMAGE && dps.size() < LFG_DPS_COUNT) );
         }
         ProposalAnswersMap *GetProposalAnswers() { return &m_answers; }
-        ProposalAnswersMap *GetRoleAnswers() { return &m_rolesProposal; }
+        ProposalAnswersMap *GetRoleAnswers() { return &m_roleCheck.m_rolesProposal; }
         void UpdateRoleCheck(uint32 diff = 0);
         PlayerList *GetPremadePlayers() { return &premadePlayers; }
         PlayerList *GetRandomPlayers() { return &randomPlayers; }
@@ -134,8 +171,8 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         {
             switch(role)
             {
-                case TANK:   SetTank(guid); break;
-                case HEALER: SetHeal(guid); break;
+                case TANK:   m_tank = guid; break;
+                case HEALER: m_heal = guid; break;
                 case DAMAGE: dps.insert(guid); break;
             }
         }
@@ -174,8 +211,6 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         PlayerList premadePlayers;
         PlayerList randomPlayers;
         ProposalAnswersMap m_answers;
-        ProposalAnswersMap m_rolesProposal;
-        uint8 m_membersBeforeRoleCheck;
 
         uint32 m_killedBosses;
         int32 m_readycheckTimer;
@@ -184,6 +219,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint8 m_instanceStatus;
         uint8 m_lfgFlags;
         VoteToKick m_voteToKick;
+        RoleCheck m_roleCheck;
 };
 
 #endif

@@ -408,6 +408,8 @@ struct LookingForGroup
         joinTime = 0;
         mixed = false;
         mixed_map = 0;
+        sendAtMapAdd[0] = 0;
+        sendAtMapAdd[1] = 0;
     }
     
     std::string comment;
@@ -424,6 +426,7 @@ struct LookingForGroup
     uint32 mount_spell;
     bool mixed;
     uint32 mixed_map;
+    uint32 sendAtMapAdd[2];
     void SetMixedDungeon(uint32 map, bool activate = true)
     {
         mixed = activate;
