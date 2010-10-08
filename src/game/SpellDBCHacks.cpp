@@ -193,4 +193,8 @@ void SpellMgr::ApplySpellHacks()
     // Giddyup!
     SpellEntry *sfix28 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42436));
     sfix28->EffectImplicitTargetA[EFFECT_INDEX_0] = 21;
+
+    // Ice Block - probably wrong mechanic, disabling its usage while afflicted by Forbearance
+    SpellEntry *sfix29 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42436));
+    sfix29->Mechanic = 0;
 }
