@@ -4507,7 +4507,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
         if (!m_target->hasUnitState(UNIT_STAT_ON_VEHICLE))
         {
-            WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8);
+            WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8+4);
             data << m_target->GetPackGUID();
             data << uint32(12);
             m_target->SendMessageToSet(&data,true);
