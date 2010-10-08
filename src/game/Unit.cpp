@@ -6655,7 +6655,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     triggered_spell_id = 17941;
                     break;
                 }
-                //Soul Leech
+                //Soul Leech & Improved Soul Leech
                 case 30293:
                 case 30295:
                 case 30296:
@@ -6664,6 +6664,27 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     basepoints[0] = int32(damage*triggerAmount/100);
                     target = this;
                     triggered_spell_id = 30294;
+
+                    // check for Improved Soul Leech
+                    AuraList const& pDummyAuras = GetAurasByType(SPELL_AURA_DUMMY);
+                    for (AuraList::const_iterator itr = pDummyAuras.begin(); itr != pDummyAuras.end(); ++itr)
+                    {
+                        SpellEntry const* spellInfo = (*itr)->GetSpellProto();
+                        if (spellInfo->SpellFamilyName != SPELLFAMILY_WARLOCK || (*itr)->GetSpellProto()->SpellIconID != 3176)
+                            continue;
+                        if ((*itr)->GetEffIndex() == EFFECT_INDEX_0)
+                        {
+                            // energize Proc pet (implicit target is pet)
+                            CastCustomSpell(this, 59118, &((*itr)->GetModifier()->m_amount), NULL, NULL, true, NULL, (*itr));
+                            // energize Proc master
+                            CastCustomSpell(this, 59117, &((*itr)->GetModifier()->m_amount), NULL, NULL, true, NULL, (*itr));
+                        }
+                        else if ((*itr)->GetEffIndex() == EFFECT_INDEX_1 && roll_chance_i((*itr)->GetModifier()->m_amount))
+                        {
+                             // Replenishment proc
+                             CastSpell(this, 57669, true, NULL, (*itr));
+                        }
+                    }
                     break;
                 }
                 // Shadowflame (Voidheart Raiment set bonus)
@@ -8424,6 +8445,14 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
+                // Item - Rogue T8 2P Bonus
+                case 64914:
+                {
+                    // Only for Deadly Poison ticks
+                    if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
+                        return false;
+                    break;
+                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
@@ -8901,19 +8930,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
         case 70802: // Mayhem (Shadowblade sets)
         {
             // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
-            if (Spell* spell = GetCurrentSpell(CURRENT_GENERIC_SPELL))
-            {
-                if ( cooldown && GetTypeId()==TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(trigger_spell_id))
-                    return false;
-
-                spell->AddTriggeredSpell(trigger_spell_id);
-
-                if ( cooldown && GetTypeId()==TYPEID_PLAYER )
-                    ((Player*)this)->AddSpellCooldown(trigger_spell_id,0,time(NULL) + cooldown);
-
-                return true;
-            }
-            return false;
+            break;
         }
         // Bloodthirst (($m/100)% of max health)
         case 23880:
@@ -13959,12 +13976,7 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                         if (getVictim())
                             AttackStop();
 
-                        if (hasUnitState(UNIT_STAT_CONTROLLED))
-                        {
-                            Attack(TargetUnit, true);
-                            SendPetAIReaction(guid1);
-                        }
-                        else
+                        if(GetTypeId() != TYPEID_PLAYER)
                         {
                             GetMotionMaster()->Clear();
                             if (((Creature*)this)->AI())
@@ -13978,6 +13990,11 @@ void Unit::DoPetAction( Player* owner, uint8 flag, uint32 spellid, uint64 guid1,
                                 // 90% chance for pet and 100% chance for charmed creature
                                 SendPetAIReaction(guid1);
                             }
+                        }
+                        else                                // charmed player
+                        {
+                            Attack(TargetUnit,true);
+                            SendPetAIReaction(guid1);
                         }
                     }
                     break;

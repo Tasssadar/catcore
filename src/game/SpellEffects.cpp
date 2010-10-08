@@ -2147,13 +2147,13 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             continue;
                         
                         // if target have 5 stack of Deadly poison proc from other weapon
-                        if (combatEntry->SpellFamilyFlags == 0x10000 && combatEntry->SpellFamilyName == SPELLFAMILY_ROGUE &&
+                        if ((combatEntry->SpellFamilyFlags & 0x10000) && combatEntry->SpellFamilyName == SPELLFAMILY_ROGUE &&
                             m_caster->GetTypeId() == TYPEID_PLAYER)
                         {
                             Unit::AuraList const& mAura = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                             for (Unit::AuraList::const_iterator itr = mAura.begin(); itr != mAura.end(); ++itr)
                             {
-                                if ((*itr)->GetSpellProto()->SpellFamilyFlags == 0x10000 &&        // deadly poison
+                                if (((*itr)->GetSpellProto()->SpellFamilyFlags & 0x10000) &&        // deadly poison
                                     (*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE && 
                                     (*itr)->GetCasterGUID() == m_caster->GetGUID() &&              // same caster
                                     (*itr)->GetStackAmount() >= 5)                                 // max stack
@@ -3258,6 +3258,61 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     {
         delete Aur;
         return;
+    }
+    // Mixology: increase duration and effect of elixirs and flasks
+    if (Aur->GetSpellProto()->SpellFamilyName == SPELLFAMILY_POTION &&
+        caster->GetTypeId() == TYPEID_PLAYER && caster->HasAura(53042))
+    {
+        SpellSpecific spellSpec = GetSpellSpecific(Aur->GetId());
+        if ((spellSpec == SPELL_BATTLE_ELIXIR || spellSpec == SPELL_GUARDIAN_ELIXIR || spellSpec == SPELL_FLASK_ELIXIR) &&
+            caster->HasSpell(Aur->GetSpellProto()->EffectTriggerSpell[EFFECT_INDEX_0]))
+        {
+            duration *= 2;
+            int32 amount = 0;
+            switch (Aur->GetId())
+            {
+                case 53749:         // Guru's Elixir
+                    amount = 8;
+                    break;
+                case 28497:         // Elixir of Mighty Agility
+                case 53747:         // Elixir of Spirit
+                case 54212:         // Flask of Pure Mojo
+                case 60340:         // Elixir of Accuracy
+                case 60341:         // Elixir of Deadly Strikes
+                case 60343:         // Elixir of Mighty Defense
+                case 60344:         // Elixir of Expertise
+                case 60345:         // Elixir of Armor Piercing
+                case 60346:         // Elixir of Lightning Speed
+                case 60347:         // Elixir of Mighty Thoughts
+                    amount = 20;
+                    break;
+                case 53752:         // Lesser Flask of Toughness
+                case 62380:         // Lesser Flask of Resistance
+                    amount = 40;
+                    break;
+                case 53755:         // Flask of the Frost Wyrm
+                    amount = 47;
+                    break;
+                case 53760:         // Flask of Endless Rage
+                    amount = 82;
+                    break;
+                case 53751:         // Elixir of Mighty Fortitude
+                    amount = 200;
+                    break;
+                case 53763:         // Elixir of Protection
+                    amount = 280;
+                    break;
+                case 53758:         // Flask of Stoneblood
+                    amount = 650;
+                    break;
+                default:
+                    // default value for all other flasks/elixirs
+                    //TODO: add data to db table or find way of getting it from dbc
+                    amount = Aur->GetModifier()->m_amount * 30 / 100;
+                    break;
+            }
+            Aur->GetModifier()->m_amount += amount;
+        }
     }
 
     if (duration != Aur->GetAuraMaxDuration())

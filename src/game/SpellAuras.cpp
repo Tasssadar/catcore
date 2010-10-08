@@ -6945,12 +6945,6 @@ void Aura::HandleShapeshiftBoosts(bool apply)
         case FORM_SHADOW:
             spellId1 = 49868;
             spellId2 = 71167;
-
-            if (m_target->GetTypeId() == TYPEID_PLAYER)      // Spell 49868 and 71167 have same category as main form spell and share cooldown
-            {
-                ((Player*)m_target)->RemoveSpellCooldown(49868);
-                ((Player*)m_target)->RemoveSpellCooldown(71167);
-            }
             break;
         case FORM_GHOSTWOLF:
             spellId1 = 67116;
@@ -6965,14 +6959,23 @@ void Aura::HandleShapeshiftBoosts(bool apply)
 
     if (apply)
     {
-        if (spellId1)
-            target->CastSpell(target, spellId1, true, NULL, this );
-        if (spellId2)
-            target->CastSpell(target, spellId2, true, NULL, this);
+        Player* plr = target->GetTypeId() == TYPEID_PLAYER ? (Player*)target : NULL;
 
-        if (target->GetTypeId() == TYPEID_PLAYER)
+        if (spellId1)
         {
-            const PlayerSpellMap& sp_list = ((Player *)target)->GetSpellMap();
+            if (plr && plr->HasSpellCooldown(spellId1))
+                plr->RemoveSpellCooldown(spellId1, true);
+            target->CastSpell(target, spellId1, true, NULL, this );
+        }
+        if (spellId2)
+        {
+            if (plr && plr->HasSpellCooldown(spellId2))
+                plr->RemoveSpellCooldown(spellId2, true);
+            target->CastSpell(target, spellId2, true, NULL, this);
+        }
+        if (plr)
+        {
+            const PlayerSpellMap& sp_list = plr->GetSpellMap();
             for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
             {
                 if (itr->second.state == PLAYERSPELL_REMOVED) continue;
@@ -7000,7 +7003,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             }
 
             // Leader of the Pack
-            if (((Player*)target)->HasSpell(17007))
+            if (plr->HasSpell(17007))
             {
                 SpellEntry const *spellInfo = sSpellStore.LookupEntry(24932);
                 if (spellInfo && spellInfo->Stances & (1<<(form-1)))
@@ -7008,7 +7011,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             }
 
             // Savage Roar
-            if (form == FORM_CAT && ((Player*)target)->HasAura(52610))
+            if (form == FORM_CAT && plr->HasAura(52610))
                 target->CastSpell(target, 62071, true);
 
             // Improved Moonkin Form
@@ -9836,11 +9839,20 @@ bool Aura::ApplyHasteToPeriodic()
             }
         }
     }
-    if (!applyHaste || !m_modifier.periodictime)
+    if (!applyHaste)
         return false;
 
     int32 periodic = m_spellProto->EffectAmplitude[m_effIndex];
     int32 duration = m_origDuration;
+    // if aura is affected but does not have periodic timer, just use on duration and return
+    if (!periodic)
+    {
+        if ( !(GetSpellProto()->Attributes & (SPELL_ATTR_UNK4|SPELL_ATTR_TRADESPELL)) )
+        duration = int32(duration * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+
+        m_maxduration = duration;
+        return false;
+    }
     if (duration == 0 || periodic == 0)
         return false;
 
