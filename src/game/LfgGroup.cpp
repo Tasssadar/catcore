@@ -49,8 +49,8 @@ bool RoleCheck::TryRoles(LfgGroup *group)
             if(role == y)
             {
                 isSingleRole = true;
-                if(m_roleCheck.HasFreeRole(y))
-                    m_roleCheck.SetAsRole(y);
+                if(HasFreeRole(y))
+                    SetAsRole(y, itr->first);
                 else
                     error = LFG_ROLECHECK_WRONG_ROLES;
             }   
@@ -75,8 +75,8 @@ bool RoleCheck::TryRoles(LfgGroup *group)
         {
             if((itr->second & y))
             {
-                if(m_roleCheck.HasFreeRole(y))
-                    m_roleCheck.SetAsRole(y);   
+                if(HasFreeRole(y))
+                    SetAsRole(y, itr->first);   
                 more_roles.erase(itr);
                 break;
             }                
@@ -133,8 +133,8 @@ void LfgGroup::ResetGroup()
 {
     m_answers.clear();
     m_readycheckTimer = 0;
-    m_membersBeforeRoleCheck = 0;
     m_voteKickTimer = 0;
+    m_roleCheck.Reset();
 }
 
 bool LfgGroup::LoadGroupFromDB(Field *fields)
@@ -830,7 +830,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     if (diff != 0)
     {
         m_readycheckTimer += diff;
-        if (m_readycheckTimer >= LFG_TIMER_READY_CHECK && m_roleCheck.m_beforeCheck != m_rolesProposal.size())
+        if (m_readycheckTimer >= LFG_TIMER_READY_CHECK && m_roleCheck.m_beforeCheck != m_roleCheck.m_rolesProposal.size())
         {
             SendRoleCheckFail(LFG_ROLECHECK_MISSING_ROLE);
             return;
@@ -858,7 +858,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *player = sObjectMgr.GetPlayer(citr->guid);
-        if (m_rolesProposal.find(citr->guid) != m_rolesProposal.end() || !player || !player->GetSession() ||
+        if (m_roleCheck.m_rolesProposal.find(citr->guid) != m_roleCheck.m_rolesProposal.end() || !player || !player->GetSession() ||
             player->m_lookingForGroup.roles == 255)
             continue;
         m_roleCheck.m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
@@ -875,7 +875,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         return;
     
     Player *leader = sObjectMgr.GetPlayer(GetLeaderGUID());
-    if(!leader || !leader->IsInWorld() || !m_roleCheck.TryRoles())
+    if(!leader || !leader->IsInWorld() || !m_roleCheck.TryRoles(this))
     {
         SendRoleCheckFail(LFG_ROLECHECK_WRONG_ROLES);
         return;
@@ -953,8 +953,8 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
     data << uint8(GetMembersCount());
     //leader first
     data << uint64(GetLeaderGUID());
-    ProposalAnswersMap::iterator itr = m_rolesProposal.find(GetLeaderGUID());
-    if (itr != m_rolesProposal.end())
+    ProposalAnswersMap::iterator itr = m_roleCheck.m_rolesProposal.find(GetLeaderGUID());
+    if (itr != m_roleCheck.m_rolesProposal.end())
     {
         data << uint8(1); //ready
         data << uint32(itr->second); //roles 
@@ -970,10 +970,10 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
         Player *member = sObjectMgr.GetPlayer(citr->guid);
         if (!member || !member->GetSession() || member->GetGUID() == GetLeaderGUID())
             continue;
-        itr = m_rolesProposal.find(citr->guid);
+        itr = m_roleCheck.m_rolesProposal.find(citr->guid);
 
         data << uint64(member->GetGUID());
-        if(itr != m_rolesProposal.end())
+        if(itr != m_roleCheck.m_rolesProposal.end())
         {
             data << uint8(1);
             data << uint32(itr->second);

@@ -199,10 +199,9 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         VoteToKick *GetVoteToKick() { return &m_voteToKick; }
         bool UpdateVoteToKick(uint32 diff = 0);
         bool IsFromRnd(uint64 guid) { return (randomPlayers.find(guid) != randomPlayers.end()); }
-
-    private:
         void SendRoleCheckFail(uint8 error);
 
+    private:
         uint64 m_tank;
         uint64 m_heal;
         PlayerList dps;
