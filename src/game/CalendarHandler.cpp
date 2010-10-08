@@ -37,7 +37,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     // TODO: calendar event output
     data << (uint32) 0;                                     //event count
 
-    data << (uint32) 0;                                     //wtf??
+    data << (uint32) cur_time;                              // server time
     data << (uint32) secsToTimeBitFields(cur_time);         // current time
 
     uint32 counter = 0;
@@ -48,7 +48,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     {
         for (Player::BoundInstancesMap::const_iterator itr = _player->m_boundInstances[i].begin(); itr != _player->m_boundInstances[i].end(); ++itr)
         {
-            if (itr->second.perm)
+            if (itr->second.perm && !itr->second.save->GetMapEntry()->IsRaid())
             {
                 InstanceSave *save = itr->second.save;
                 data << uint32(save->GetMapId());
@@ -61,11 +61,28 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     }
     data.put<uint32>(p_counter,counter);
 
-    data << (uint32) 1135753200;                            //wtf?? (28.12.2005 12:00)
-    data << (uint32) 0;                                     //  unk counter 4
-    data << (uint32) 0;                                     // unk counter 5
-    //DEBUG_LOG("Sending calendar");
-    //data.hexlike();
+    data << (uint32) 1135753200;                            //wtf?? (28.12.2005 12:00) -- yep, still same(8.10.2010)
+    
+    p_counter = data.wpos();
+    counter = 0;
+    data << (uint32) counter;                               // raids
+    for(int i = 0; i < MAX_DIFFICULTY; ++i)
+    {
+        for (Player::BoundInstancesMap::const_iterator itr = _player->m_boundInstances[i].begin(); itr != _player->m_boundInstances[i].end(); ++itr)
+        {
+            if (itr->second.perm && itr->second.save->GetMapEntry()->IsRaid())
+            {
+                InstanceSave *save = itr->second.save;
+                data << uint32(save->GetMapId());
+                data << uint32(GetMapDifficultyData(save->GetMapId(), save->GetDifficulty())->resetTime);
+                data << uint64(save->GetMapEntry()->unkTime);    
+                ++counter;
+            }
+        }
+    }
+    data.put<uint32>(p_counter,counter);
+
+    data << (uint32) 0;                                     // holidays
     SendPacket(&data);
 }
 
