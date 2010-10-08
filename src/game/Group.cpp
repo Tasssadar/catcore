@@ -1187,6 +1187,7 @@ bool Group::_removeMember(const uint64 &guid)
             {
                 player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
                 player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
+                player->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
                 player->RemoveAurasDueToSpell(LFG_BOOST);
                 if (((LfgGroup*)this)->GetInstanceStatus() != INSTANCE_COMPLETED && GetMembersCount() == 5)
                     player->CastSpell(player, LFG_DESERTER, true);

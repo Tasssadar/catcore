@@ -896,14 +896,15 @@ enum PlayerLoginQueryIndex
 
 enum PlayerDelayedOperations
 {
-    DELAYED_SAVE_PLAYER         = 0x01,
-    DELAYED_RESURRECT_PLAYER    = 0x02,
-    DELAYED_SPELL_CAST_DESERTER = 0x04,
-    DELAYED_BG_MOUNT_RESTORE    = 0x08,                     ///< Flag to restore mount state after teleport from BG
-    DELAYED_BG_TAXI_RESTORE     = 0x10,                     ///< Flag to restore taxi state after teleport from BG
-    DELAYED_LFG_ENTER_DUNGEON   = 0x20,
-    DELAYED_LFG_MOUNT_RESTORE   = 0x40,
-    DELAYED_LFG_TAXI_RESTORE    = 0x80,
+    DELAYED_SAVE_PLAYER         = 0x001,
+    DELAYED_RESURRECT_PLAYER    = 0x002,
+    DELAYED_SPELL_CAST_DESERTER = 0x004,
+    DELAYED_BG_MOUNT_RESTORE    = 0x008,                     ///< Flag to restore mount state after teleport from BG
+    DELAYED_BG_TAXI_RESTORE     = 0x010,                     ///< Flag to restore taxi state after teleport from BG
+    DELAYED_LFG_ENTER_DUNGEON   = 0x020,
+    DELAYED_LFG_MOUNT_RESTORE   = 0x040,
+    DELAYED_LFG_TAXI_RESTORE    = 0x080,
+    DELAYED_LFG_CLEAR_LOCKS     = 0x100,
     DELAYED_END
 };
 
