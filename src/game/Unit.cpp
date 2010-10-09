@@ -11207,7 +11207,7 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
             // Bladestorm Immunity custom handling          
             if ((*iter)->GetId() == 46924 &&
                 (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                 ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))))
+                 (mechanic == MECHANIC_KNOCKOUT)))
                 return true;
             
             // default case, Bladestorm excluded
@@ -11248,7 +11248,7 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             // Bladestorm Immunity custom handling          
             if ((*iter)->GetId() == 46924 &&
                 (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                 ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))))
+                 (mechanic == MECHANIC_KNOCKOUT)))
                 return true;
             
             // default case, Bladestorm excluded
