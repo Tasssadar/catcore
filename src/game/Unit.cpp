@@ -11197,22 +11197,21 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924 &&
+                (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                 ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))))
                 return true;
-
+            
             // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
-            {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
-                    return true;
-            }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
     }
@@ -11239,23 +11238,24 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924 &&
+                (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                 ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1)))))
                 return true;
+            
             // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
-            {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
-                    return true;
-            }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
+
     }
 
     if (uint32 aura = spellInfo->EffectApplyAuraName[index])
