@@ -8092,8 +8092,11 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                 modOwner->ApplySpellMod(m_spellProto->Id, SPELLMOD_ALL_EFFECTS, DoneActualBenefit);
 
             DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellProto());
+            // Power Word: Shield and Sacred Shield are reduced by 10% in arenas, BGs...
             if (Aura* aura = caster->GetAura(SPELL_AURA_PVP_HEALING, EFFECT_INDEX_0))
-                DoneActualBenefit *= float(100.0f + (-10.0f)/*aura->GetBasePoints()*/) / 100;
+                if ((spellProto->SpellFamilyName == SPELLFAMILY_PRIEST && spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000001)) ||
+                    (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN && spellProto->SpellFamilyFlags & UI64LIT(0x0008000000000000)))
+                    DoneActualBenefit *= float(100.0f + (-10.0f)/*aura->GetBasePoints()*/) / 100;
 
             m_modifier.m_amount += (int32)DoneActualBenefit;
         }
