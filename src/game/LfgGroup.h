@@ -135,7 +135,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
         bool IsActiveRoleCheck() const { return (m_lfgFlags & LFG_GRP_ROLECHECK); }
         bool IsMixed() const { return (m_lfgFlags & LFG_GRP_MIXED); }
-        uint8 HasBonus() const { return (m_lfgFlags & LFG_GRP_BONUS) ? 1 : 0; }
+        uint8 HasBonus() const { return ((m_lfgFlags & LFG_GRP_BONUS) ? 1 : 0); }
         uint8 GetLfgFlags() const { return m_lfgFlags; }
         void AddLfgFlag(uint8 flag) { m_lfgFlags |= flag; }
 
