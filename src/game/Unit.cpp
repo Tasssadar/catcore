@@ -11197,22 +11197,21 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924 &&
+                (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                 (mechanic == MECHANIC_KNOCKOUT)))
                 return true;
-
+            
             // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
-            {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
-                    return true;
-            }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
     }
@@ -11239,23 +11238,24 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924 &&
+                (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                 (mechanic == MECHANIC_KNOCKOUT)))
                 return true;
+            
             // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
-            {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
-                    return true;
-            }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
+
     }
 
     if (uint32 aura = spellInfo->EffectApplyAuraName[index])
@@ -14697,6 +14697,8 @@ void Unit::SetFeared(bool apply, uint64 const& casterGUID, uint32 spellID, uint3
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING);
 
         GetMotionMaster()->MovementExpired(false);
+        GetMotionMaster()->Clear(false,true);
+        GetMotionMaster()->MoveIdle();
 
         if ( GetTypeId() != TYPEID_PLAYER && isAlive() )
         {
@@ -14737,6 +14739,8 @@ void Unit::SetConfused(bool apply, uint64 const& casterGUID, uint32 spellID)
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED);
 
         GetMotionMaster()->MovementExpired(false);
+        GetMotionMaster()->Clear(false,true);
+        GetMotionMaster()->MoveIdle();
 
         if (GetTypeId() != TYPEID_PLAYER && isAlive())
         {
@@ -16059,6 +16063,11 @@ void Unit::Regenerate(Powers power, uint32 diff)
         {
             bool recentCast = IsUnderLastManaUseEffect();
             float ManaIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_MANA);
+
+            // is under effect of disabled mana regen aura
+            if (HasAuraType(SPELL_AURA_STOP_MANA_REGEN))
+                break;
+
             if (GetTypeId() == TYPEID_PLAYER)
             {
                 if (recentCast)
@@ -16150,6 +16159,7 @@ void Unit::Regenerate(Powers power, uint32 diff)
         else
             curValue -= uint32(addvalue);
     }
+
     SetPower(power, curValue);
 }
 

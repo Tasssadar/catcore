@@ -344,7 +344,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNoImmediateEffect,                         //291 SPELL_AURA_MOD_QUEST_XP_PCT           implemented in Player::GiveXP
     &Aura::HandleAuraOpenStable,                            //292 call stabled pet
     &Aura::HandleNULL,                                      //293 3 spells
-    &Aura::HandleNULL,                                      //294 2 spells, possible prevent mana regen
+    &Aura::HandleNULL,                                      //294 SPELL_AURA_STOP_MANA_REGEN            implemented in Unit::Regenerate
     &Aura::HandleUnused,                                    //295 unused (3.2.2a)
     &Aura::HandleNULL,                                      //296 2 spells
     &Aura::HandleNULL,                                      //297 1 spell (counter spell school?)
@@ -4384,32 +4384,56 @@ void Aura::HandleFeignDeath(bool apply, bool Real)
 
 void Aura::HandleAuraModDisarm(bool apply, bool Real)
 {
+    // only at real add/remove aura
     if (!Real)
         return;
 
     Unit *target = GetTarget();
 
-    if (!apply && target->HasAuraType(SPELL_AURA_MOD_DISARM))
-        return;
-
     // not sure for it's correctness
     if (apply)
+    {
         target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
+        
+        // remove Bladestorm
+        if (target->HasAura(46924))
+            target->RemoveAurasDueToSpell(46924);
+
+        // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
+        if (target->IsInFeralForm())
+            return;
+
+        if (target->GetTypeId() == TYPEID_PLAYER)
+            target->SetAttackTime(BASE_ATTACK,BASE_ATTACK_TIME);
+        else
+        {
+            // TODO:: Apply disarm onto creatures
+            // maybe something like 
+            //target->SetAttackTime(BASE_ATTACK, duration); ????
+            return;
+        }
+
+    }
     else
+    {
+        if (target->HasAuraType(SPELL_AURA_MOD_DISARM))
+            return;
+
         target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
 
-    // only at real add/remove aura
-    if (target->GetTypeId() != TYPEID_PLAYER)
-        return;
+        // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
+        if (target->IsInFeralForm())
+            return;
 
-    // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
-    if (target->IsInFeralForm())
-        return;
-
-    if (apply)
-        target->SetAttackTime(BASE_ATTACK,BASE_ATTACK_TIME);
-    else
-        ((Player *)target)->SetRegularAttackTime();
+        if (target->GetTypeId() == TYPEID_PLAYER)
+            (Player*)target)->SetRegularAttackTime();
+        else
+        {
+            // TODO:: Remove disarm from creatures
+            //target->SetAttackTime(BASE_ATTACK, 0); ????
+            return;
+        }
+    }
 
     m_target->UpdateDamagePhysical(BASE_ATTACK);
 }
@@ -4507,9 +4531,9 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
         if (!m_target->hasUnitState(UNIT_STAT_ON_VEHICLE))
         {
-            WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8);
+            WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8+4);
             data << m_target->GetPackGUID();
-            data << uint32(0);
+            data << uint32(12);
             m_target->SendMessageToSet(&data,true);
         }
 
@@ -4577,7 +4601,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
             WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 8+4);
             data << target->GetPackGUID();
-            data << uint32(0);
+            data << uint32(12);
             target->SendMessageToSet(&data, true);
         }
 
@@ -5202,7 +5226,7 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
             GameObject* obj = m_target->GetGameObject(48018);
             if (obj)
                 if (m_target->IsWithinDist(obj,GetSpellMaxRange(sSpellRangeStore.LookupEntry(GetSpellProto()->rangeIndex))))
-                    ((Player*)m_target)->TeleportTo(obj->GetMapId(),obj->GetPositionX(),obj->GetPositionY(),obj->GetPositionZ(),obj->GetOrientation());
+                    ((Player*)m_target)->TeleportTo(obj->GetMapId(),obj->GetPositionX(),obj->GetPositionY(),obj->GetPositionZ(),m_target->GetOrientation(),TELE_TO_NOT_LEAVE_COMBAT);
         }
     }
     // Bestial Wrath
