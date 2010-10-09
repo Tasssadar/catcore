@@ -16063,6 +16063,11 @@ void Unit::Regenerate(Powers power, uint32 diff)
         {
             bool recentCast = IsUnderLastManaUseEffect();
             float ManaIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_MANA);
+
+            // is under effect of disabled mana regen aura
+            if (HasAuraType(SPELL_AURA_STOP_MANA_REGEN))
+                break;
+
             if (GetTypeId() == TYPEID_PLAYER)
             {
                 if (recentCast)
@@ -16154,6 +16159,7 @@ void Unit::Regenerate(Powers power, uint32 diff)
         else
             curValue -= uint32(addvalue);
     }
+
     SetPower(power, curValue);
 }
 
