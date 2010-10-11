@@ -7390,7 +7390,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     // dont count overhealing
                     uint32 diff = GetMaxHealth()-GetHealth();
                     if (!diff)
-                        return SPELL_AURA_PROC_FAILED;
+                        return false;
                     if (damage > diff)
                         basepoints[0] = triggerAmount*diff/100;
                     else
