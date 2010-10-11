@@ -14695,10 +14695,12 @@ void Unit::SetFeared(bool apply, uint64 const& casterGUID, uint32 spellID, uint3
     else
     {
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING);
-
-        GetMotionMaster()->MovementExpired(false);
-        GetMotionMaster()->Clear(false,true);
-        GetMotionMaster()->MoveIdle();
+        if (GetMotionMaster()->GetCurrentMovementGeneratorType() == FLEEING_MOTION_TYPE)
+        {
+            GetMotionMaster()->MovementExpired(false);
+            GetMotionMaster()->Clear(false,true);
+            GetMotionMaster()->MoveIdle();
+        }
 
         if ( GetTypeId() != TYPEID_PLAYER && isAlive() )
         {
@@ -14737,10 +14739,12 @@ void Unit::SetConfused(bool apply, uint64 const& casterGUID, uint32 spellID)
     else
     {
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED);
-
-        GetMotionMaster()->MovementExpired(false);
-        GetMotionMaster()->Clear(false,true);
-        GetMotionMaster()->MoveIdle();
+        if (GetMotionMaster()->GetCurrentMovementGeneratorType() == CONFUSED_MOTION_TYPE)
+        {
+            GetMotionMaster()->MovementExpired(false);
+            GetMotionMaster()->Clear(false,true);
+            GetMotionMaster()->MoveIdle();
+        }
 
         if (GetTypeId() != TYPEID_PLAYER && isAlive())
         {
