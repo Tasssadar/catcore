@@ -623,20 +623,11 @@ bool LfgGroup::HasCorrectLevel(uint8 level)
             else
                 return (level - m_baseLevel <= 5);
         case LFG_GROUPTYPE_BC_HEROIC:
-            if (level < 70 || level > 73)
-                return false;
-            else
-                return true;
+            return (level >= 70 && level <= 73);
         case LFG_GROUPTYPE_WTLK_NORMAL:
-            if (level > 68)
-                return true;
-            else
-                return false;
+            return (level > 68);
         case LFG_GROUPTYPE_WTLK_HEROIC:
-            if (level == 80)
-                return true;
-            else
-                return false;
+            return (level == 80);
     }
 }
 void LfgGroup::SendUpdate()

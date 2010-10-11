@@ -15668,14 +15668,15 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
 
-        m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
+        //Yeah, client does not like this
+        /*m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FALLING);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
 
         data.Initialize(MSG_MOVE_JUMP);
         data << GetPackGUID();
         m_movementInfo.Write(data);
-        SendMessageToSet(&data, false);
+        SendMessageToSet(&data, false); */
     }
     else
     {
