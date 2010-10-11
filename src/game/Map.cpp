@@ -1806,6 +1806,14 @@ bool InstanceMap::Add(Player *player)
                             data << uint32(0);
                             player->GetSession()->SendPacket(&data);
                             player->BindToInstance(GetInstanceSave(), true);
+
+                            data.Initialize(SMSG_CALENDAR_RAID_LOCKOUT_ADDED, 24);
+                            data << uint32(secsToTimeBitFields(time(NULL)));
+                            data << uint32(GetId());
+                            data << uint32(GetDifficulty());
+                            data << uint32(groupBind->save->GetResetTime() - time(NULL));
+                            data << uint64(groupBind->save->GetInstanceId());
+                            player->GetSession()->SendPacket(&data);
                         }
                     }
                 }
@@ -1965,6 +1973,14 @@ void InstanceMap::PermBindAllPlayers(Player *player)
             WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
             data << uint32(0);
             plr->GetSession()->SendPacket(&data);
+
+            data.Initialize(SMSG_CALENDAR_RAID_LOCKOUT_ADDED, 24);
+            data << uint32(secsToTimeBitFields(time(NULL)));
+            data << uint32(GetId());
+            data << uint32(GetDifficulty());
+            data << uint32(GetInstanceSave()->GetResetTime() - time(NULL));
+            data << uint64(GetInstanceSave()->GetInstanceId());
+            player->GetSession()->SendPacket(&data);
         }
 
         // if the leader is not in the instance the group will not get a perm bind

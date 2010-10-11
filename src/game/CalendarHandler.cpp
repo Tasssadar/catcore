@@ -30,7 +30,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
 
     time_t cur_time = time(NULL);
 
-    WorldPacket data(SMSG_CALENDAR_SEND_CALENDAR,4+4*0+4+4*0+4+4);
+    WorldPacket data(SMSG_CALENDAR_SEND_CALENDAR, 500);
 
     // TODO: calendar invite event output
     data << (uint32) 0;                                     //invite node count
@@ -38,7 +38,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     data << (uint32) 0;                                     //event count
 
     data << (uint32) cur_time;                              // server time
-    data << (uint32) secsToTimeBitFields(cur_time);         // current time
+    data << (uint32) secsToTimeBitFields(cur_time);         // current client time
 
     uint32 counter = 0;
     size_t p_counter = data.wpos();
@@ -48,7 +48,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     {
         for (Player::BoundInstancesMap::const_iterator itr = _player->m_boundInstances[i].begin(); itr != _player->m_boundInstances[i].end(); ++itr)
         {
-            if (itr->second.perm && !itr->second.save->GetMapEntry()->IsRaid())
+            if (itr->second.perm)
             {
                 InstanceSave *save = itr->second.save;
                 data << uint32(save->GetMapId());
@@ -61,24 +61,22 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     }
     data.put<uint32>(p_counter,counter);
 
-    data << (uint32) 1135753200;                            //wtf?? (28.12.2005 12:00) -- yep, still same(8.10.2010)
+    data << (uint32) 1286424000;                            //Raid reset time is computed from this unix time, 1135753200 on offi
     
     p_counter = data.wpos();
     counter = 0;
-    data << (uint32) counter;                               // raids
-    for(int i = 0; i < MAX_DIFFICULTY; ++i)
+    data << (uint32) counter;                               // raid resets
+
+    MapEntry const *entry = NULL;
+    for(int i = 0; i < sMapStore.GetNumRows(); ++i)
     {
-        for (Player::BoundInstancesMap::const_iterator itr = _player->m_boundInstances[i].begin(); itr != _player->m_boundInstances[i].end(); ++itr)
-        {
-            if (itr->second.perm && itr->second.save->GetMapEntry()->IsRaid())
-            {
-                InstanceSave *save = itr->second.save;
-                data << uint32(save->GetMapId());
-                data << uint32(GetMapDifficultyData(save->GetMapId(), save->GetDifficulty())->resetTime);
-                data << uint64(save->GetMapEntry()->unkTime);    
-                ++counter;
-            }
-        }
+        entry = sMapStore.LookupEntry(i);
+        if(!entry || !entry->IsRaid())
+            continue;
+        data << uint32(entry->MapID);
+        data << uint32(GetMapDifficultyData(entry->MapID, Difficulty(0))->resetTime);
+        data << uint32(entry->unkTime);
+        ++counter;
     }
     data.put<uint32>(p_counter,counter);
 

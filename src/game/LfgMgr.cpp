@@ -283,8 +283,8 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 if ((*grpitr)->GetMembersCount() == 0)
                 {
                     sObjectMgr.RemoveGroup(*grpitr);
+                    itr->second->groups.erase(*grpitr);
                     delete *grpitr;
-                    itr->second->groups.erase(grpitr);
                 }
             }
             if (itr->second->groups.empty() && itr->second->players.empty())
@@ -332,7 +332,7 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
     Player *player = sObjectMgr.GetPlayer(group->GetLeaderGUID());
     uint8 side = GetSideForPlayer(player);
 
-    MoveGroupToQueue(group, side, GetDungeonInfo(group->IsRandom())->ID);
+    MoveGroupToQueue(group, side, group->GetDungeonInfo(group->IsRandom())->ID);
 
     if (sWorld.getConfig(CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE))
         UpdateQueue(side);
@@ -376,7 +376,9 @@ void LfgMgr::UpdateQueue(uint8 side)
                     || maxPlayers >= (*grpitr)->GetMembersCount() || (*grpitr)->GetMembersCount() >= 5)   // We want group with most players
                     continue;
 
-                for(correct = false; checkRole <= DAMAGE && !correct; checkRole*=2)
+                checkRole = TANK;
+                correct = false;
+                for(; checkRole <= DAMAGE && !correct; checkRole*=2)
                 {
                     if (!(player->m_lookingForGroup.roles & checkRole) // Player must have this role
                         || !(*grpitr)->HasFreeRole(checkRole))        // and role must be free
