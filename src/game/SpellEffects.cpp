@@ -4380,7 +4380,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         if (duration > 0)
             creature->SetDuration(duration);
 
-        creature->SetOwnerGUID(m_caster->GetGUID());
+        creature->SetOwnerGUID(summoner->GetGUID());
         creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
         creature->setPowerType(POWER_MANA);
         creature->setFaction(m_caster->getFaction());
@@ -4390,7 +4390,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         creature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
         creature->SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
         creature->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
-        creature->SetCreatorGUID(summoner->GetGUID());
+        creature->SetCreatorGUID(m_caster->GetGUID());
         creature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
         creature->InitStatsForLevel(level, m_caster);

@@ -1404,7 +1404,20 @@ bool Aura::modStackAmount(int32 num)
 
     //Get max duration again, spell may have combo points which makes it longer/shorter
     if(Unit *caster = GetCaster())
+    {
         m_maxduration = caster->CalculateSpellDuration(m_spellProto, m_effIndex, GetTarget());
+        Player* modOwner = caster ? caster->GetSpellModOwner() : NULL;
+
+        m_origDuration = m_maxduration;
+
+        if (!m_permanent && modOwner)
+        {
+            modOwner->ApplySpellMod(GetId(), SPELLMOD_DURATION, m_maxduration);
+            // Get zero duration aura after - need set m_maxduration > 0 for apply/remove aura work
+            if (m_maxduration<=0)
+                m_maxduration = 1;
+        }
+    }
 
     // Update stack amount
     SetStackAmount(stackAmount);
@@ -4426,7 +4439,7 @@ void Aura::HandleAuraModDisarm(bool apply, bool Real)
             return;
 
         if (target->GetTypeId() == TYPEID_PLAYER)
-            (Player*)target)->SetRegularAttackTime();
+            ((Player*)target)->SetRegularAttackTime();
         else
         {
             // TODO:: Remove disarm from creatures

@@ -1033,9 +1033,9 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket & recv_data)
     {
         // listed in dbc or not expected to exist unknown item
         if (sItemStore.LookupEntry(itemid))
-            sLog.outErrorDb("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (item listed in Item.dbc but not exist in DB)", itemid);
+            DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (item listed in Item.dbc but not exist in DB)", itemid);
         else
-            sLog.outError("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (unknown item, not listed in Item.dbc)", itemid);
+            DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (unknown item, not listed in Item.dbc)", itemid);
     }
 }
 

@@ -7387,8 +7387,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     if (this == pVictim)
                         return false;
 
-                    // heal amount
-                    basepoints[0] = triggerAmount*damage/100;
+                    // dont count overhealing
+                    uint32 diff = GetMaxHealth()-GetHealth();
+                    if (!diff)
+                        return false;
+                    if (damage > diff)
+                        basepoints[0] = triggerAmount*diff/100;
+                    else
+                        basepoints[0] = triggerAmount*damage/100;
                     target = this;
                     triggered_spell_id = 31786;
                     break;
@@ -15662,14 +15668,15 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
 
-        m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
+        //Yeah, client does not like this
+        /*m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FALLING);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
 
         data.Initialize(MSG_MOVE_JUMP);
         data << GetPackGUID();
         m_movementInfo.Write(data);
-        SendMessageToSet(&data, false);
+        SendMessageToSet(&data, false); */
     }
     else
     {
