@@ -4426,7 +4426,7 @@ void Aura::HandleAuraModDisarm(bool apply, bool Real)
             return;
 
         if (target->GetTypeId() == TYPEID_PLAYER)
-            (Player*)target)->SetRegularAttackTime();
+            ((Player*)target)->SetRegularAttackTime();
         else
         {
             // TODO:: Remove disarm from creatures
