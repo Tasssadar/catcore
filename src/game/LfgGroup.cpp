@@ -292,8 +292,24 @@ void LfgGroup::KilledCreature(Creature *creature)
     {
         if (m_instanceStatus == INSTANCE_NOT_SAVED)
             m_instanceStatus = INSTANCE_SAVED;
-        //There are mask values for bosses from DungeonEncounter.dbc, this is not correct
-        m_killedBosses += !m_killedBosses ? 1 : m_killedBosses*2;
+        //Better, but still not correct
+        DungeonEncounterEntry const *cur = NULL;
+        bool found = false;
+        for (uint32 i = 0; i < sDungeonEncounterStore.GetNumRows() && !found; ++i)
+        {
+            cur = sDungeonEncounterStore.LookupEntry(i);
+            if(!cur)
+                continue;
+            if(*(cur->Name[0]) == *(creature->GetName()) &&
+                Difficulty(cur->difficulty) == creature->GetMap()->GetDifficulty() &&
+                cur->Map == creature->GetMapId())
+            {
+                found = true;
+                m_killedBosses |= (1 << cur->order);
+            }
+        }
+        if(!found)
+            m_killedBosses += !m_killedBosses ? 1 : m_killedBosses*2;
     }
     if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
     {
@@ -607,20 +623,11 @@ bool LfgGroup::HasCorrectLevel(uint8 level)
             else
                 return (level - m_baseLevel <= 5);
         case LFG_GROUPTYPE_BC_HEROIC:
-            if (level < 70 || level > 73)
-                return false;
-            else
-                return true;
+            return (level >= 70 && level <= 73);
         case LFG_GROUPTYPE_WTLK_NORMAL:
-            if (level > 68)
-                return true;
-            else
-                return false;
+            return (level > 68);
         case LFG_GROUPTYPE_WTLK_HEROIC:
-            if (level == 80)
-                return true;
-            else
-                return false;
+            return (level == 80);
     }
 }
 void LfgGroup::SendUpdate()

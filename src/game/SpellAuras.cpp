@@ -1404,7 +1404,20 @@ bool Aura::modStackAmount(int32 num)
 
     //Get max duration again, spell may have combo points which makes it longer/shorter
     if(Unit *caster = GetCaster())
+    {
         m_maxduration = caster->CalculateSpellDuration(m_spellProto, m_effIndex, GetTarget());
+        Player* modOwner = caster ? caster->GetSpellModOwner() : NULL;
+
+        m_origDuration = m_maxduration;
+
+        if (!m_permanent && modOwner)
+        {
+            modOwner->ApplySpellMod(GetId(), SPELLMOD_DURATION, m_maxduration);
+            // Get zero duration aura after - need set m_maxduration > 0 for apply/remove aura work
+            if (m_maxduration<=0)
+                m_maxduration = 1;
+        }
+    }
 
     // Update stack amount
     SetStackAmount(stackAmount);
@@ -4384,32 +4397,56 @@ void Aura::HandleFeignDeath(bool apply, bool Real)
 
 void Aura::HandleAuraModDisarm(bool apply, bool Real)
 {
+    // only at real add/remove aura
     if (!Real)
         return;
 
     Unit *target = GetTarget();
 
-    if (!apply && target->HasAuraType(SPELL_AURA_MOD_DISARM))
-        return;
-
     // not sure for it's correctness
     if (apply)
+    {
         target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
+        
+        // remove Bladestorm
+        if (target->HasAura(46924))
+            target->RemoveAurasDueToSpell(46924);
+
+        // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
+        if (target->IsInFeralForm())
+            return;
+
+        if (target->GetTypeId() == TYPEID_PLAYER)
+            target->SetAttackTime(BASE_ATTACK,BASE_ATTACK_TIME);
+        else
+        {
+            // TODO:: Apply disarm onto creatures
+            // maybe something like 
+            //target->SetAttackTime(BASE_ATTACK, duration); ????
+            return;
+        }
+
+    }
     else
+    {
+        if (target->HasAuraType(SPELL_AURA_MOD_DISARM))
+            return;
+
         target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
 
-    // only at real add/remove aura
-    if (target->GetTypeId() != TYPEID_PLAYER)
-        return;
+        // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
+        if (target->IsInFeralForm())
+            return;
 
-    // main-hand attack speed already set to special value for feral form already and don't must change and reset at remove.
-    if (target->IsInFeralForm())
-        return;
-
-    if (apply)
-        target->SetAttackTime(BASE_ATTACK,BASE_ATTACK_TIME);
-    else
-        ((Player *)target)->SetRegularAttackTime();
+        if (target->GetTypeId() == TYPEID_PLAYER)
+            ((Player*)target)->SetRegularAttackTime();
+        else
+        {
+            // TODO:: Remove disarm from creatures
+            //target->SetAttackTime(BASE_ATTACK, 0); ????
+            return;
+        }
+    }
 
     m_target->UpdateDamagePhysical(BASE_ATTACK);
 }
@@ -8068,8 +8105,11 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                 modOwner->ApplySpellMod(m_spellProto->Id, SPELLMOD_ALL_EFFECTS, DoneActualBenefit);
 
             DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellProto());
+            // Power Word: Shield and Sacred Shield are reduced by 10% in arenas, BGs...
             if (Aura* aura = caster->GetAura(SPELL_AURA_PVP_HEALING, EFFECT_INDEX_0))
-                DoneActualBenefit *= float(100.0f + (-10.0f)/*aura->GetBasePoints()*/) / 100;
+                if ((spellProto->SpellFamilyName == SPELLFAMILY_PRIEST && spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000001)) ||
+                    (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN && spellProto->SpellFamilyFlags & UI64LIT(0x0008000000000000)))
+                    DoneActualBenefit *= float(100.0f + (-10.0f)/*aura->GetBasePoints()*/) / 100;
 
             m_modifier.m_amount += (int32)DoneActualBenefit;
         }

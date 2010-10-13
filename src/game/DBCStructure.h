@@ -789,14 +789,12 @@ struct DungeonEncounterEntry
 {
     uint32    ID;                                           // 0        
     uint32    Map;                                          // 1        used as real index
-    uint32    heroic;                                       // 2        may be category
+    uint32    difficulty;                                   // 2        
     int32     unk1;                                         // 3        some reference to boss order? minibosses have - values
-    uint32    order;                                        // 4        Order of boss in dungeon
+    uint32    order;                                        // 4        Order of boss in dungeon and flags in some packets
     char*     Name[16];                                     // 5-20     CreatureName
     //uint32    nameflags;                                  // 21
     //uint32    unk3;                                       // 22       No idea, always 0
-
-    bool IsHeroic() const { return heroic == 1; };
 };
 
 struct DurabilityCostsEntry

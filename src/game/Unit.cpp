@@ -7387,8 +7387,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     if (this == pVictim)
                         return false;
 
-                    // heal amount
-                    basepoints[0] = triggerAmount*damage/100;
+                    // dont count overhealing
+                    uint32 diff = GetMaxHealth()-GetHealth();
+                    if (!diff)
+                        return false;
+                    if (damage > diff)
+                        basepoints[0] = triggerAmount*diff/100;
+                    else
+                        basepoints[0] = triggerAmount*damage/100;
                     target = this;
                     triggered_spell_id = 31786;
                     break;
@@ -11197,22 +11203,22 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
-                return true;
-
-            // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924)
             {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
+                if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                    (mechanic == MECHANIC_KNOCKOUT))
                     return true;
-            }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            }            
+            // default case, Bladestorm excluded
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
     }
@@ -11239,23 +11245,26 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             if (itr->type == mechanic)
                 return true;
 
+        // Killing Spree
+        if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
+            return true;
+
         AuraList const& immuneAuraApply = GetAurasByType(SPELL_AURA_MECHANIC_IMMUNITY_MASK);
         for(AuraList::const_iterator iter = immuneAuraApply.begin(); iter != immuneAuraApply.end(); ++iter)
         {
-            // Killing Spree
-            if (HasAura(51690) && ((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK))
-                return true;
-            // default case, Bladestorm excluded
-            if ((*iter)->GetId() != 46924)
+            // Bladestorm Immunity custom handling          
+            if ((*iter)->GetId() == 46924)
             {
-                if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
+                if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
+                    (mechanic == MECHANIC_KNOCKOUT))
                     return true;
             }
-            // Bladestorm Immunity custom handling
-            else if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                     ((1 << (mechanic - 1)) & (1 << (MECHANIC_KNOCKOUT - 1))))
+            
+            // default case, Bladestorm excluded
+            else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
+
     }
 
     if (uint32 aura = spellInfo->EffectApplyAuraName[index])
@@ -14695,10 +14704,12 @@ void Unit::SetFeared(bool apply, uint64 const& casterGUID, uint32 spellID, uint3
     else
     {
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING);
-
-        GetMotionMaster()->MovementExpired(false);
-        GetMotionMaster()->Clear(false,true);
-        GetMotionMaster()->MoveIdle();
+        if (GetMotionMaster()->GetCurrentMovementGeneratorType() == FLEEING_MOTION_TYPE)
+        {
+            GetMotionMaster()->MovementExpired(false);
+            GetMotionMaster()->Clear(false,true);
+            GetMotionMaster()->MoveIdle();
+        }
 
         if ( GetTypeId() != TYPEID_PLAYER && isAlive() )
         {
@@ -14737,10 +14748,12 @@ void Unit::SetConfused(bool apply, uint64 const& casterGUID, uint32 spellID)
     else
     {
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED);
-
-        GetMotionMaster()->MovementExpired(false);
-        GetMotionMaster()->Clear(false,true);
-        GetMotionMaster()->MoveIdle();
+        if (GetMotionMaster()->GetCurrentMovementGeneratorType() == CONFUSED_MOTION_TYPE)
+        {
+            GetMotionMaster()->MovementExpired(false);
+            GetMotionMaster()->Clear(false,true);
+            GetMotionMaster()->MoveIdle();
+        }
 
         if (GetTypeId() != TYPEID_PLAYER && isAlive())
         {
@@ -15658,14 +15671,15 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
 
-        m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
+        //Yeah, client does not like this
+        /*m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FALLING);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
 
         data.Initialize(MSG_MOVE_JUMP);
         data << GetPackGUID();
         m_movementInfo.Write(data);
-        SendMessageToSet(&data, false);
+        SendMessageToSet(&data, false); */
     }
     else
     {
