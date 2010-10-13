@@ -1843,7 +1843,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
         {
             // normal creature (not pet/etc) can be only in !PvP case
             if (pVictim->GetTypeId()==TYPEID_UNIT)
+            {
                 pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
+                if (((Creature*)pVictim)->isWorldBoss())
+                    sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", pGroupGuy->GetName(), pGroupGuy->GetGUIDLow(), 
+                    pVictim->GetName(), ((Creature*)pVictim)->GetEntry(), pVictim->GetGUIDLow());
+            }
         }
     }
 }
