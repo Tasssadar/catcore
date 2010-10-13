@@ -866,15 +866,15 @@ void Log::outBossLog(const char * str, ...)
     if (!str)
         return;
 
-    if (bossLogfile)
+    if (bossLogFile)
     {
         va_list ap;
-        outTimestamp(bossLogfile);
+        outTimestamp(bossLogFile);
         va_start(ap, str);
-        vfprintf(bossLogfile, str, ap);
-        fprintf(bossLogfile, "\n" );
+        vfprintf(bossLogFile, str, ap);
+        fprintf(bossLogFile, "\n" );
         va_end(ap);
-        fflush(bossLogfile);
+        fflush(bossLogFile);
     }
     fflush(stdout);
 }
