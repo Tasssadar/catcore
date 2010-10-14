@@ -197,4 +197,8 @@ void SpellMgr::ApplySpellHacks()
     // Ice Block - probably wrong mechanic, disabling its usage while afflicted by Forbearance
     SpellEntry *sfix29 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42436));
     sfix29->Mechanic = 0;
+
+    // Bladestorm, zkurvena immunita na nulu...
+    SpellEntry *sfix30 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(46924));
+    sfix30->EffectMiscValue[1]= 0;
 }
