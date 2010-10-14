@@ -62,6 +62,7 @@ enum LfgRolesNumber
     LFG_TANKS_COUNT                     = 1,
     LFG_HEALS_COUNT                     = 1,
     LFG_DPS_COUNT                       = 3,
+    LFG_GROUP                           = 5
 };
 
 enum LfgUpdateType

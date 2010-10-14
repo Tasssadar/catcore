@@ -38,7 +38,8 @@ enum LfgGrpFlags
     LFG_GRP_MIXED           = 0x02,   // party has both alliance and horde players
     LFG_GRP_IN_DUNGEON      = 0x04,   // party is in dungeon
     LFG_GRP_ROLECHECK       = 0x08,   // rolecheck is in progress
-    LFG_GRP_BONUS           = 0x10    // party has +1 player bonus in queue, added when rolecheck fails
+    LFG_GRP_BONUS           = 0x10,   // party has +1 player bonus in queue, added when rolecheck fails
+    LFG_GRP_PREMADE         = 0x20    // party joined as group
 };
 
 struct VoteToKick
@@ -135,6 +136,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
         bool IsActiveRoleCheck() const { return (m_lfgFlags & LFG_GRP_ROLECHECK); }
         bool IsMixed() const { return (m_lfgFlags & LFG_GRP_MIXED); }
+        bool IsPremade() const { return (m_lfgFlags & LFG_GRP_PREMADE); }
         uint8 HasBonus() const { return ((m_lfgFlags & LFG_GRP_BONUS) ? 1 : 0); }
         uint8 GetLfgFlags() const { return m_lfgFlags; }
         void AddLfgFlag(uint8 flag) { m_lfgFlags |= flag; }
