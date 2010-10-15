@@ -3490,7 +3490,7 @@ void Spell::finish(bool ok)
         {
             if (ihit->deleted == true)
                 continue;
-            if ( ihit->missCondition == SPELL_MISS_NONE )
+            if ( ihit->missCondition == SPELL_MISS_NONE  || ihit->missCondition == SPELL_MISS_ABSORB)
             {
                 // check m_caster->GetGUID() let load auras at login and speedup most often case
                 Unit *unit = m_caster->GetObjectGuid() == ihit->targetGUID ? m_caster : ObjectAccessor::GetUnit(*m_caster, ihit->targetGUID);
