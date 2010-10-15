@@ -712,6 +712,9 @@ void Spell::prepareDataForTriggerSystem()
                 // Replenish Mana, item spell with triggered cases (Mana Agate, etc mana gems)
                 else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000010000000000))
                     m_canTrigger = true;
+                // Frost armor/Ice armor
+                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000100000))
+                    m_canTrigger = true;
                 break;
             case SPELLFAMILY_WARLOCK:
                 // For Hellfire Effect / Rain of Fire / Seed of Corruption triggers need do it
