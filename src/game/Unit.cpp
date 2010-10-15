@@ -6366,6 +6366,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
             {
                 if (!procSpell)
                     return false;
+                // Only Clearcasting or Presence of Mind
+                if (procSpell->Id != 12536 && procSpell->Id != 12043)
+                    return false;
 
                 target = this;
                 switch (dummySpell->Id)
@@ -8451,14 +8454,6 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
-                // Item - Rogue T8 2P Bonus
-                case 64914:
-                {
-                    // Only for Deadly Poison ticks
-                    if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
-                        return false;
-                    break;
-                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
@@ -8620,6 +8615,17 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 }
                 basepoints[0] = damage * triggerAmount / 100 / 3;
                 target = this;
+            }
+            break;
+        }
+        case SPELLFAMILY_ROGUE:
+        {
+            // Item - Rogue T8 2P Bonus
+            if(auraSpellInfo->Id == 64914)
+            {
+                // Only for Deadly Poison ticks
+                if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
+                    return false;
             }
             break;
         }
