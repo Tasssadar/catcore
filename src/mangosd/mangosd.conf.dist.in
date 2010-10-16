@@ -575,6 +575,10 @@ LogColors = ""
 #                 0 (no limit)
 #        Default: 10
 #
+#    Instance.ResetTimeConstant
+#        Time constant from which reset time is calculated in unix time
+#        Default: 1135753200 (blizzlike)
+#
 #    Instance.IgnoreLevel
 #        Ignore level requirement to enter instance
 #        Default: 0 (false)
@@ -750,6 +754,7 @@ AlwaysMaxSkillForLevel = 0
 ActivateWeather = 1
 CastUnstuck = 1
 MaxSpellCastsInChain = 10
+Instance.ResetTimeConstant = 1135753200
 Instance.IgnoreLevel = 0
 Instance.IgnoreRaid = 0
 Instance.ResetTimeHour = 4

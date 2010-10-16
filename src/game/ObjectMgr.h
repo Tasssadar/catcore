@@ -1048,6 +1048,8 @@ class ObjectMgr
 
         uint32 GetModelForRace(uint32 sourceModelId, uint32 racemask);
 
+        void SetMaxInstanceId(uint32 id) { m_InstanceGuids.Set(id+1); }
+
     protected:
 
         // first free id for selected id type
@@ -1066,6 +1068,7 @@ class ObjectMgr
         ObjectGuidGenerator<HIGHGUID_GAMEOBJECT> m_GameobjectGuids;
         ObjectGuidGenerator<HIGHGUID_CORPSE>     m_CorpseGuids;
         ObjectGuidGenerator<HIGHGUID_VEHICLE>    m_VehicleGuids;
+        ObjectGuidGenerator<HIGHGUID_INSTANCE>   m_InstanceGuids;
 
         QuestMap            mQuestTemplates;
 

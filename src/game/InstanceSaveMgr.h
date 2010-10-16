@@ -34,35 +34,58 @@ struct MapEntry;
 class Player;
 class Group;
 
-/*
-    Holds the information necessary for creating a new map for an existing instance
-    Is referenced in three cases:
-    - player-instance binds for solo players (not in group)
-    - player-instance binds for permanent heroic/raid saves
-    - group-instance binds (both solo and permanent) cache the player binds for the group leader
-*/
 class InstanceSave
 {
     public:
-        InstanceSave(uint16 MapId, uint64 InstanceId, Difficulty difficulty, bool perm);
+        typedef std::set<uint64> PlrListSaves;
+        InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, bool extended = false, bool expired = false);
         ~InstanceSave();
 
+        uint64 const& GetGUID() const { return m_instanceGuid.GetRawValue(); }
+        ObjectGuid const& GetObjectGuid() const { return m_instanceId; }
+        uint32 GetMapId() const { return m_mapId;
+
+        bool LoadPlayers();
+        void SaveToDb(bool players = true);
+        void DeleteFromDb();
+        void RemoveAndDelete();
+        void AddPlayer(uint64 guid) { m_players.insert(guid); }
+        void RemovePlayer(uint64 guid) { m_players.erase(guid); m_extended.erase(guid); }
+        void UpdateId(uint32 id);
+        uint32 GetResetTime() const { return resetTime; }
+
     private:
-        uint16 m_mapId;
-        uint64 m_instanceId;
+        uint32 m_mapId;
+        ObjectGuid m_instanceGuid;
         Difficulty m_diff;
         bool perm;
+        PlrListSaves m_players;
+        PlrListSaves m_extended;
+        uint32 resetTime; //timestamp
 };
 
 class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSaveManager, MaNGOS::ClassLevelLockable<InstanceSaveManager, ACE_Thread_Mutex> >
 {
     public:
-        typedef std::map<uint64, InstanceSave*> InstanceSaveMap;
+        typedef std::map<uint32, InstanceSave*> InstanceSaveMap;
         InstanceSaveManager();
         ~InstanceSaveManager();
 
         void CheckResetTime();
         void LoadSavesFromDb();
+        void PackInstances();
+
+        InstanceSave* CreateInstanceSave(uint16 mapId, Difficulty difficulty, bool perm);
+        void DeleteSave(uint32 id)
+        {
+            InstanceSaveMap::iterator itr = m_saves.find(id);
+            if(itr == m_saves.end())
+                return;
+            itr->second->RemoveAndDelete();
+            m_saves.erase(itr);
+        }
+        //Called every hour or at startup
+        void CheckResetTimes();
 
     private:
         InstanceSaveMap m_saves;

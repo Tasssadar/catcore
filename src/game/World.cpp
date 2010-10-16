@@ -602,6 +602,7 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_BOOL_ALL_TAXI_PATHS, "AllFlightPaths", false);
 
+    setConfig(CONFIG_UINT32_INSTANCE_RESET_CONSTANT, "Instance.ResetTimeConstant", 1135753200);
     setConfig(CONFIG_BOOL_INSTANCE_IGNORE_LEVEL, "Instance.IgnoreLevel", false);
     setConfig(CONFIG_BOOL_INSTANCE_IGNORE_RAID,  "Instance.IgnoreRaid", false);
     //Custom variable - end arena if 2v1 etc.
@@ -988,9 +989,9 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading SkillLineAbilityMultiMap Data..." );
     sSpellMgr.LoadSkillLineAbilityMap();
 
-    ///- Clean up and pack instances
-    sLog.outString( "Cleaning up instances..." );
-    sInstanceSaveMgr.CleanupInstances();                // must be called before `creature_respawn`/`gameobject_respawn` tables
+    ///- Load and pack instances
+    sLog.outString( "Loading instance saves..." );
+    sInstanceSaveMgr.LoadSavesFromDb();                // must be called before `creature_respawn`/`gameobject_respawn` tables
 
     sLog.outString( "Packing instances..." );
     sInstanceSaveMgr.PackInstances();
@@ -1354,6 +1355,7 @@ void World::SetInitialWorldSettings()
     m_timers[WUPDATE_CORPSES].SetInterval(3*HOUR*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
     m_timers[WUPDATE_BROADCAST].SetInterval(MINUTE*IN_MILLISECONDS);
+    m_timers[WUPDATE_INSTANCE_RESET].SetInterval(HOUR*IN_MILLISECONDS);
 
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
@@ -1395,6 +1397,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Starting objects Pooling system..." );
     sPoolMgr.Initialize();
+
+    sLog.outString( "Removing expired instance saves..." );
+    sInstanceSaveMgr.CheckResetTimes();
 
     sLog.outString("Starting Game Event system..." );
     uint32 nextGameEvent = sGameEventMgr.Initialize();
@@ -1471,6 +1476,14 @@ void World::Update(uint32 diff)
 
     ///- Update the game time and check for shutdown time
     _UpdateGameTime();
+
+    // Reset instances 
+    if (m_timers[WUPDATE_INSTANCE_RESET].Passed())
+    {
+        m_timers[WUPDATE_INSTANCE_RESET].Reset();
+
+        sInstanceSaveMgr.CheckResetTimes();
+    }
 
     /// Handle daily quests reset time
     if (m_gameTime > m_NextDailyQuestReset)
@@ -1589,9 +1602,6 @@ void World::Update(uint32 diff)
     /// </ul>
     ///- Move all creatures with "delayed move" and remove and delete all objects with "delayed remove"
     sMapMgr.RemoveAllObjectsInRemoveList();
-
-    // update the instance reset times
-    sInstanceSaveMgr.Update();
 
     // And last, but not least handle the issued cli commands
     ProcessCliCommands();

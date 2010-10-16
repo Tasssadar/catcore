@@ -6155,6 +6155,12 @@ void ObjectMgr::SetHighestGuids()
         m_GroupIds.Set((*result)[0].GetUInt32()+1);
         delete result;
     }
+    result = CharacterDatabase.Query( "SELECT MAX(id) FROM instance" );
+    if (result)
+    {
+        m_InstanceGuids.Set((*result)[0].GetUInt32()+1);
+        delete result;
+    }
 }
 
 uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
@@ -6173,6 +6179,8 @@ uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
             return m_GameobjectGuids.Generate();
         case HIGHGUID_CORPSE:
             return m_CorpseGuids.Generate();
+        case HIGHGUID_INSTANCE:
+            return m_InstanceGuids.Generate();
         default:
             ASSERT(0);
     }
