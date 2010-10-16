@@ -2776,7 +2776,7 @@ void Unit::AttackerStateUpdate (Unit *pVictim, WeaponAttackType attType, bool ex
     // Send log damage message to client
     DealDamageMods(pVictim,damageInfo.damage,&damageInfo.absorb);
     SendAttackStateUpdate(&damageInfo);
-    ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+    ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage,damageInfo.absorb, damageInfo.attackType);
     DealMeleeDamage(&damageInfo,true);
 
     if (GetTypeId() == TYPEID_PLAYER)
@@ -5652,15 +5652,17 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo)
     aura->GetTarget()->SendMessageToSet(&data, true);
 }
 
-void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount, WeaponAttackType attType, SpellEntry const *procSpell)
+void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount,uint32 absorb, WeaponAttackType attType, SpellEntry const *procSpell)
 {
-     // Not much to do if no flags are set.
-    if (procAttacker)
+    // Not much to do if no flags are set.
+    // If it is a damaging/healing spell and it is fully absorbed, do not proc
+    if (procAttacker && !(!amount && absorb))
         ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount);
     // Now go on with a victim's events'n'auras
     // Not much to do if no flags are set or there is no victim
+    // amount + absorb to correctly flag active spells
     if (pVictim && pVictim->isAlive() && procVictim)
-        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount);
+        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount + absorb);
 }
 
 void Unit::SendSpellMiss(Unit *target, uint32 spellID, SpellMissInfo missInfo)
