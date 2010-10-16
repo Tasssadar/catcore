@@ -43,17 +43,29 @@ class Group;
 */
 class InstanceSave
 {
-    InstanceSave(uint16 MapId, uint64 InstanceId, Difficulty difficulty, bool perm);
-    ~InstanceSave();
+    public:
+        InstanceSave(uint16 MapId, uint64 InstanceId, Difficulty difficulty, bool perm);
+        ~InstanceSave();
+
+    private:
+        uint16 m_mapId;
+        uint64 m_instanceId;
+        Difficulty m_diff;
+        bool perm;
 };
 
 class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSaveManager, MaNGOS::ClassLevelLockable<InstanceSaveManager, ACE_Thread_Mutex> >
 {
     public:
+        typedef std::map<uint64, InstanceSave*> InstanceSaveMap;
         InstanceSaveManager();
         ~InstanceSaveManager();
-        void Update();
+
+        void CheckResetTime();
+        void LoadSavesFromDb();
+
     private:
+        InstanceSaveMap m_saves;
         
 };
 
