@@ -272,6 +272,7 @@ Unit::Unit()
 
     m_CombatTimer = 0;
     m_lastManaUseTimer = 0;
+    m_lastAuraProcRoll = -1.0f;
 
     //m_victimThreat = 0.0f;
     for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
@@ -13053,7 +13054,9 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         if (m_lastAuraProcRoll >=0) //override independent trigger
         {
             sLog.outDebug("CalculateSpellDamage: saved roll from FoF is: %f", m_lastAuraProcRoll);
-            return value > m_lastAuraProcRoll ? 100 : 0;
+            value = value > m_lastAuraProcRoll ? 100 : 0;
+            m_lastAuraProcRoll = -1.0f;
+            return value;
         }
         sLog.outDebug("CalculateSpellDamage: no  saved roll for 12494 (Frostbite)");
     }
@@ -14373,9 +14376,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
 
     RemoveSpellList removedSpells;
     ProcTriggeredList procTriggered;
-    // reset saved roll from Fingers of Frost:
-    if (GetTypeId() == TYPEID_PLAYER)
-        m_lastAuraProcRoll = -1.0f;
+
     // Fill procTriggered list
     for(AuraMap::const_iterator itr = GetAuras().begin(); itr!= GetAuras().end(); ++itr)
     {
