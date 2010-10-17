@@ -6065,13 +6065,13 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
         Player::BoundInstancesMap &binds = player->GetBoundInstances(Difficulty(i));
         for(Player::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
         {
-            InstanceSave *save = itr->second.save;
+            InstanceSave *save = itr->second;
             std::string timeleft = GetTimeString(save->GetResetTime() - time(NULL));
             if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
             {
                 PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %d canReset: %s TTR: %s",
-                    itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                    save->GetDifficulty(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+                    itr->first, entry->name[GetSessionDbcLocale()], save->GetGUID(), save->IsPermanent() ? "yes" : "no",
+                    save->GetDifficulty(), !save->IsPermanent() ? "yes" : "no", timeleft.c_str());
             }
             else
                 PSendSysMessage("bound for a nonexistant map %u", itr->first);
@@ -6088,13 +6088,13 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
             Group::BoundInstancesMap &binds = group->GetBoundInstances(Difficulty(i));
             for(Group::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
             {
-                InstanceSave *save = itr->second.save;
+                InstanceSave *save = itr->second;
                 std::string timeleft = GetTimeString(save->GetResetTime() - time(NULL));
                 if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
                 {
                     PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %d canReset: %s TTR: %s",
-                        itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                        save->GetDifficulty(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+                        itr->first, entry->name[GetSessionDbcLocale()], save->GetGUID(), save->IsPermanent() ? "yes" : "no",
+                        save->GetDifficulty(), !save->IsPermanent() ? "yes" : "no", timeleft.c_str());
                 }
                 else
                     PSendSysMessage("bound for a nonexistant map %u", itr->first);
@@ -6140,18 +6140,18 @@ bool ChatHandler::HandleInstanceUnbindCommand(const char* args)
             }
             if (itr->first != player->GetMapId())
             {
-                InstanceSave *save = itr->second.save;
+                InstanceSave *save = itr->second;
                 std::string timeleft = GetTimeString(save->GetResetTime() - time(NULL));
 
                 if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
                 {
                     PSendSysMessage("unbinding map: %d (%s) inst: %d perm: %s diff: %d canReset: %s TTR: %s",
-                        itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                        save->GetDifficulty(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+                        itr->first, entry->name[GetSessionDbcLocale()], save->GetGUID(), save->IsPermanent() ? "yes" : "no",
+                        save->GetDifficulty(), !save->IsPermanent() ? "yes" : "no", timeleft.c_str());
                 }
                 else
                     PSendSysMessage("bound for a nonexistant map %u", itr->first);
-                player->UnbindInstance(itr, Difficulty(i));
+                player->UnbindInstance(itr->first, Difficulty(i));
                 counter++;
             }
             else
@@ -6166,9 +6166,9 @@ bool ChatHandler::HandleInstanceStatsCommand(const char* /*args*/)
 {
     PSendSysMessage("instances loaded: %d", sMapMgr.GetNumInstances());
     PSendSysMessage("players in instances: %d", sMapMgr.GetNumPlayersInInstances());
-    PSendSysMessage("instance saves: %d", sInstanceSaveMgr.GetNumInstanceSaves());
+   /* PSendSysMessage("instance saves: %d", sInstanceSaveMgr.GetNumInstanceSaves());
     PSendSysMessage("players bound: %d", sInstanceSaveMgr.GetNumBoundPlayersTotal());
-    PSendSysMessage("groups bound: %d", sInstanceSaveMgr.GetNumBoundGroupsTotal());
+    PSendSysMessage("groups bound: %d", sInstanceSaveMgr.GetNumBoundGroupsTotal());*/
     return true;
 }
 

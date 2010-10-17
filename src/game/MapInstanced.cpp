@@ -110,7 +110,7 @@ Map* MapInstanced::CreateInstance(Player * player)
     else if (InstanceSave* pSave = player->GetBoundInstanceSaveForSelfOrGroup(GetId()))
     {
         // solo/perm/group
-        NewInstanceId = pSave->GetInstanceId();
+        NewInstanceId = pSave->GetGUID();
         map = _FindMap(NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)

@@ -1666,8 +1666,8 @@ void Group::ResetInstances(uint8 method, bool isRaid, Player* SendMsgTo)
 
         bool isEmpty = true;
         // if the map is loaded, reset it
-        Map *map = sMapMgr.FindMap(p->GetMapId(), p->GetInstanceId());
-        if (map && map->IsDungeon() && !(method == INSTANCE_RESET_GROUP_DISBAND && !p->CanReset()))
+        Map *map = sMapMgr.FindMap(p->GetMapId(), p->GetGUID());
+        if (map && map->IsDungeon() && !(method == INSTANCE_RESET_GROUP_DISBAND && p->IsPermanent()))
             isEmpty = ((InstanceMap*)map)->Reset(method);
 
         if (SendMsgTo)
@@ -1775,8 +1775,8 @@ void Group::_homebindIfInstance(Player *player)
         {
             // leaving the group in an instance, the homebind timer is started
             // unless the player is permanently saved to the instance
-            InstancePlayerBind *playerBind = player->GetBoundInstance(map->GetId(), map->GetDifficulty());
-            if (!playerBind || !playerBind->perm)
+            InstanceSave *playerBind = player->GetBoundInstance(map->GetId(), map->GetDifficulty());
+            if (!playerBind || !playerBind->IsPermanent())
                 player->m_InstanceValid = false;
         }
     }

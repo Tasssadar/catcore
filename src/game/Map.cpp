@@ -55,9 +55,6 @@ Map::~Map()
 
     if (!m_scriptSchedule.empty())
         sWorld.DecreaseScheduledScriptCount(m_scriptSchedule.size());
-
-    if (m_instanceSave)
-        m_instanceSave->SetUsedByMapState(false);           // field pointer can be deleted after this
 }
 
 void Map::LoadVMap(int gx,int gy)
@@ -1741,7 +1738,7 @@ bool InstanceMap::Add(Player *player)
                 return false;
             // hard bind already, some encounters done
             else if(gSave && gSave->IsPermanent() && (!save || !save->IsPermanent()))
-                player->StartInstanceBindTimer();
+                player->StartInstanceBindTimer(gSave);
             // sotf bind
             else if(!save)
                 player->BindToInstance(GetInstanceSave(), false);
@@ -1934,8 +1931,8 @@ void InstanceMap::SetResetSchedule(bool on)
     // only for normal instances
     // the reset time is only scheduled when there are no payers inside
     // it is assumed that the reset time will rarely (if ever) change while the reset is scheduled
-    if (IsDungeon() && !HavePlayers() && !IsRaidOrHeroicDungeon())
-        sInstanceSaveMgr.GetScheduler().ScheduleReset(on, GetInstanceSave()->GetResetTime(), InstanceResetEvent(0, GetId(), Difficulty(GetSpawnMode()), GetInstanceId()));
+  //  if (IsDungeon() && !HavePlayers() && !IsRaidOrHeroicDungeon())
+    //    sInstanceSaveMgr.GetScheduler().ScheduleReset(on, GetInstanceSave()->GetResetTime(), InstanceResetEvent(0, GetId(), Difficulty(GetSpawnMode()), GetInstanceId()));
 }
 
 /* ******* Battleground Instance Maps ******* */

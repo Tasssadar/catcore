@@ -27,6 +27,7 @@
 #include "ProgressBar.h"
 #include "Unit.h"
 #include "SpellAuras.h"
+#include "InstanceSaveMgr.h"
 
 #include "Policies/SingletonImp.h"
 
@@ -612,7 +613,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
 
     LfgDungeonList *options = GetRandomOptions(info->ID);
     QueuedDungeonsMap::iterator queue;
-    GroupList toRemove;  // We gonna need to delete some empty groups
+    GroupsList toRemove;  // We gonna need to delete some empty groups
     for(LfgDungeonList::iterator itr = options->begin(); itr != options->end(); ++itr)
     {
         queue = m_queuedDungeons[side].find((*itr)->ID);
@@ -698,10 +699,10 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
     {
         itr_next = itr;
         ++itr_next;
-        LfgLog("RANDOM <-> SPECIFIC delete empty group %u", (*grpitr1)->GetId());
-        sObjectMgr.RemoveGroup(*grpitr1);
-        groups->erase(*grpitr1);
-        delete *grpitr1;
+        LfgLog("RANDOM <-> SPECIFIC delete empty group %u", (*itr)->GetId());
+        sObjectMgr.RemoveGroup(*itr);
+        groups->erase(*itr);
+        delete *itr;
     }
     toRemove.clear();
 }
@@ -1053,7 +1054,7 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
         }
         type = LFG_LOCKSTATUS_OK;
         DungeonInfoMap::iterator itr = m_dungeonInfoMap.find(currentRow->ID);
-        InstancePlayerBind *playerBind = plr->GetBoundInstance(currentRow->map, Difficulty(currentRow->heroic));
+        InstanceSave *playerBind = plr->GetBoundInstance(currentRow->map, Difficulty(currentRow->heroic));
 
         if (currentRow->expansion > plr->GetSession()->Expansion())
             type = LFG_LOCKSTATUS_INSUFFICIENT_EXPANSION;
@@ -1061,7 +1062,7 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
             type = LFG_LOCKSTATUS_TOO_LOW_LEVEL;
         else if (plr->getLevel() > maxlevel)
             type = LFG_LOCKSTATUS_TOO_HIGH_LEVEL;
-        else if ((playerBind && playerBind->perm) || (itr != m_dungeonInfoMap.end() && itr->second->locked) || itr == m_dungeonInfoMap.end())
+        else if ((playerBind && playerBind->IsPermanent()) || (itr != m_dungeonInfoMap.end() && itr->second->locked) || itr == m_dungeonInfoMap.end())
             type = LFG_LOCKSTATUS_RAID_LOCKED;
         else if (AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(currentRow->map))
         {

@@ -44,6 +44,7 @@
 #include "LfgGroup.h"
 #include "MapManager.h"
 #include "InstanceData.h"
+#include "InstanceSaveMgr.h"
 
 void WorldSession::HandleRepopRequestOpcode( WorldPacket & recv_data )
 {

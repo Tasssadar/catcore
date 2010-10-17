@@ -2326,7 +2326,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendRaidInfo();
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
-        void StartInstanceBindTimer();
+        void StartInstanceBindTimer(InstanceSave *save);
         void StopInstanceBindTimer(bool bind = false)
         {
             if(m_instanceBindTimer == -1)
@@ -2336,7 +2336,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             m_instanceBindTimer = -1;
             m_bindTimerSave = NULL;
         }
-        void ConvertInstancesToGroup(Player *leader, Group *group);
+        static void ConvertInstancesToGroup(Player *leader, Group *group);
         uint32 GetInstanceTimerId() const;
 
         /*********************************************************/

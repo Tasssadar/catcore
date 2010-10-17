@@ -553,16 +553,16 @@ bool ChatHandler::HandleGonameCommand(const char* args)
 
             // if the player or the player's group is bound to another instance
             // the player will not be bound to another one
-            InstancePlayerBind *pBind = _player->GetBoundInstance(target->GetMapId(), target->GetDifficulty(cMap->IsRaid()));
+            InstanceSave *pBind = _player->GetBoundInstance(target->GetMapId(), target->GetDifficulty(cMap->IsRaid()));
             if (!pBind)
             {
                 Group *group = _player->GetGroup();
                 // if no bind exists, create a solo bind
-                InstanceGroupBind *gBind = group ? group->GetBoundInstance(target->GetMapId(), target) : NULL;
+                InstanceSave *gBind = group ? group->GetBoundInstance(target->GetMapId(), target) : NULL;
                 // if no bind exists, create a solo bind
                 if (!gBind)
                     if (InstanceSave *save = target->GetMap()->GetInstanceSave())
-                        _player->BindToInstance(save, !save->CanReset());
+                        _player->BindToInstance(save, save->IsPermanent());
             }
 
             if (cMap->IsRaid())

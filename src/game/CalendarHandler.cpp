@@ -23,6 +23,7 @@
 #include "WorldSession.h"
 #include "Opcodes.h"
 #include "InstanceSaveMgr.h"
+#include "World.h"
 
 void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
 {
@@ -54,14 +55,14 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
                 data << uint32(save->GetMapId());
                 data << uint32(save->GetDifficulty());
                 data << uint32(save->GetResetTime() - cur_time);
-                data << uint64(save->GetGetObjectGuid().GetRawValue());
+                data << uint64(save->GetObjectGuid().GetRawValue());
                 ++counter;
             }
         }
     }
     data.put<uint32>(p_counter,counter);
 
-    data << (uint32) 1286424000;                            //Raid reset time is computed from this unix time, 1135753200 on offi
+    data << (uint32) sWorld.getConfig(CONFIG_UINT32_INSTANCE_RESET_CONSTANT);                            //Raid reset time is computed from this unix time, 1135753200 on offi
     
     p_counter = data.wpos();
     counter = 0;

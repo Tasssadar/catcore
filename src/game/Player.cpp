@@ -650,10 +650,6 @@ Player::~Player ()
         if (ItemSetEff[x])
             delete ItemSetEff[x];
 
-    // clean up player-instance binds, may unload some instance saves
-    for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
-        for(BoundInstancesMap::iterator itr = m_boundInstances[i].begin(); itr != m_boundInstances[i].end(); ++itr)
-            itr->second.save->RemovePlayer(this);
 
     delete m_declinedname;
     delete m_runes;
@@ -17094,15 +17090,15 @@ void Player::UnbindInstance(uint32 mapid, Difficulty difficulty)
 
 void Player::BindToInstance(InstanceSave* save, bool permanent)
 {
-    save->AddPlayer(guid);
-    save->SetPermanent(permanent);,
+    save->AddPlayer(GetGUIDLow());
+    save->SetPermanent(permanent);
 
     BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
-    if(itr == m_boundInstances[difficulty].end())
-        m_boundInstances[difficulty].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
+    if(itr == m_boundInstances[save->GetDifficulty()].end())
+        m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(save->GetGUID() != itr->second->GetGUID())
     {
-        itr->second->RemovePlayer(GetLowGuid());
+        itr->second->RemovePlayer(GetGUIDLow());
         itr->second = save;
     }
 
@@ -17147,7 +17143,7 @@ InstanceSave* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
 void Player::ConvertInstancesToGroup(Player *leader, Group *group)
 {
     for(int i = 0; i < MAX_DIFFICULTY; ++i)
-        for (BoundInstancesMap::const_iterator itr = leader->GetBoundInstances(i).begin(); itr != leader->GetBoundInstances(i).end(); ++itr)
+        for (BoundInstancesMap::const_iterator itr = leader->GetBoundInstances(Difficulty(i)).begin(); itr != leader->GetBoundInstances(Difficulty(i)).end(); ++itr)
             group->BindToInstance(itr->second, itr->second->IsPermanent());
 }
 
@@ -17175,9 +17171,9 @@ void Player::SendRaidInfo()
             {
                 data << uint32(itr->second->GetMapId());           // map id
                 data << uint32(itr->second->GetDifficulty());      // difficulty
-                data << uint64(itr->second->GetInstanceId());      // instance id
+                data << uint64(itr->second->GetObjectGuid().GetRawValue());// instance id
                 data << uint8(1);                                  // expired = 0
-                data << uint8(itr->second->IsExtended(GetGUID());  // extended = 1
+                data << uint8(itr->second->IsExtended(GetGUIDLow()));  // extended = 1
                 data << uint32(itr->second->GetResetTime() - now); // reset time
                 ++counter;
             }
@@ -17237,7 +17233,7 @@ void Player::StartInstanceBindTimer(InstanceSave *save)
     WorldPacket data(SMSG_INSTANCE_LOCK_WARNING_QUERY);
     data << uint32(m_instanceBindTimer);
     data << uint32(save->GetEncounterMask());
-    data << uint8(save->IsExtended(GetLowGuid());
+    data << uint8(save->IsExtended(GetGUIDLow()));
     GetSession()->SendPacket(&data);
 }
 
@@ -18146,9 +18142,9 @@ void Player::ResetInstances(uint8 method, bool isRaid)
 
     for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
     {
-        InstanceSave *p = itr->second.save;
+        InstanceSave *p = itr->second;
         const MapEntry *entry = sMapStore.LookupEntry(itr->first);
-        if (!entry || entry->IsRaid() != isRaid || !p->CanReset())
+        if (!entry || entry->IsRaid() != isRaid || p->IsPermanent())
         {
             ++itr;
             continue;
@@ -18165,7 +18161,7 @@ void Player::ResetInstances(uint8 method, bool isRaid)
         }
 
         // if the map is loaded, reset it
-        Map *map = sMapMgr.FindMap(p->GetMapId(), p->GetInstanceId());
+        Map *map = sMapMgr.FindMap(p->GetMapId(), p->GetGUID());
         if (map && map->IsDungeon())
             ((InstanceMap*)map)->Reset(method);
 
@@ -18173,11 +18169,10 @@ void Player::ResetInstances(uint8 method, bool isRaid)
         if (method == INSTANCE_RESET_ALL || method == INSTANCE_RESET_CHANGE_DIFFICULTY)
             SendResetInstanceSuccess(p->GetMapId());
 
-        p->DeleteFromDB();
         m_boundInstances[diff].erase(itr++);
 
         // the following should remove the instance save from the manager and delete it as well
-        p->RemovePlayer(this);
+        p->RemovePlayer(GetGUIDLow());
     }
 }
 

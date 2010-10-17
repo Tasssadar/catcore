@@ -47,8 +47,6 @@ InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficult
     m_instanceGuid = (uint64(InstanceId) | (uint64(HIGHGUID_INSTANCE) << 48));
     m_diff = difficulty;
     perm = perm;
-    m_extended = extended;
-    m_expired = expired;
     m_encountersMask = encountersMask;
 
     // Calculate reset time
@@ -69,7 +67,7 @@ InstanceSave::~InstanceSave()
 
 bool InstanceSave::LoadPlayers()
 {
-    QueryResult *result = CharacterDatabase.PQuery("SELECT guid, extended FROM character_instance WHERE instance = '%u'", m_instanceId.GetCounter());
+    QueryResult *result = CharacterDatabase.PQuery("SELECT guid, extended FROM character_instance WHERE instance = '%u'", m_instanceGuid.GetCounter());
     if(!result)
         return false;
     do
@@ -85,18 +83,18 @@ bool InstanceSave::LoadPlayers()
 
 void InstanceSave::SaveToDb(bool players)
 {
-    CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceId.GetCounter());
+    CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
     CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, perm) VALUES ('%u','%u','%u','%u');",
-        uint32(m_instanceId.GetCounter()), uint32(m_mapId), uint8(m_diff), uint8(perm));
+        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint8(perm));
     
     if(!players)
         return;
 
-    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u'", m_instanceId.GetCounter());
+    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u'", m_instanceGuid.GetCounter());
     for(PlrListSaves::iterator itr = m_players.begin(); itr != m_players.end(); ++itr)
     {
         CharacterDatabase.PQuery("INSERT INTO character_instance (guid, instance, extended) VALUES ('%u','%u','%u');",
-            GUID_LOPART(*itr), uint32(m_instanceId.GetCounter(), uint8(m_extended.find(*itr) != m_extended.end()));
+            GUID_LOPART(*itr), uint32(m_instanceGuid.GetCounter()), uint8(m_extended.find(*itr) != m_extended.end()));
     }
 }
 
@@ -112,7 +110,7 @@ void InstanceSave::AddPlayer(uint64 guid)
         return;
     m_players.insert(guid);
     CharacterDatabase.PQuery("INSERT INTO character_instance (guid, instance, extended) VALUES ('%u','%u','%u');",
-        GUID_LOPART(guid), uint32(m_instanceId.GetCounter(), uint8(0)); 
+        GUID_LOPART(guid), uint32(m_instanceGuid.GetCounter()), uint8(0)); 
 }
 
 void InstanceSave::RemovePlayer(uint64 guid)
@@ -121,26 +119,26 @@ void InstanceSave::RemovePlayer(uint64 guid)
         return;
     m_players.erase(guid);
     m_extended.erase(guid);
-    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceId.GetCounter(), guid);
+    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceGuid.GetCounter(), guid);
 }
 
 void InstanceSave::UpdateId(uint32 id)
 {
-    CharacterDatabase.PQuery("UPDATE instance SET id = '%u' WHERE id = '%u'", id, m_instanceId.GetCounter()); 
-    CharacterDatabase.PQuery("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", id, m_instanceId.GetCounter());
-    CharacterDatabase.PQuery("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", id, m_instanceId.GetCounter());
-    WorldDatabase.PQuery("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceId.GetCounter()); 
-    WorldDatabase.PQuery("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceId.GetCounter()); 
+    CharacterDatabase.PQuery("UPDATE instance SET id = '%u' WHERE id = '%u'", id, m_instanceGuid.GetCounter()); 
+    CharacterDatabase.PQuery("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter());
+    CharacterDatabase.PQuery("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter());
+    WorldDatabase.PQuery("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter()); 
+    WorldDatabase.PQuery("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter()); 
     m_instanceGuid = (uint64(id) | (uint64(HIGHGUID_INSTANCE) << 48));
 }
 
 void InstanceSave::DeleteFromDb()
 {
-    CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceId.GetCounter());
-    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u'", m_instanceId.GetCounter());
-    CharacterDatabase.PQuery("DELETE FROM corpse WHERE instance = '%u'", m_instanceId.GetCounter());
-    WorldDatabase.PQuery("DELETE FROM creature_respawn WHERE instance = '%u'", m_instanceId.GetCounter());
-    WorldDatabase.PQuery("DELETE FROM gameobject_respawn WHERE instance = '%u'", m_instanceId.GetCounter());
+    CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
+    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u'", m_instanceGuid.GetCounter());
+    CharacterDatabase.PQuery("DELETE FROM corpse WHERE instance = '%u'", m_instanceGuid.GetCounter());
+    WorldDatabase.PQuery("DELETE FROM creature_respawn WHERE instance = '%u'", m_instanceGuid.GetCounter());
+    WorldDatabase.PQuery("DELETE FROM gameobject_respawn WHERE instance = '%u'", m_instanceGuid.GetCounter());
 }
 
 void InstanceSave::RemoveAndDelete()
@@ -157,7 +155,7 @@ void InstanceSave::RemoveAndDelete()
     m_players.clear();
 }
 
-void InstanceSave::RemoveOrExtendPlayers()
+bool InstanceSave::RemoveOrExtendPlayers()
 {
     PlrListSaves::iterator itr, itr_next;
     for(itr = m_players.begin(); itr != m_players.end(); itr = itr_next)
@@ -214,10 +212,11 @@ void InstanceSaveManager::LoadSavesFromDb()
         InstanceSave *save = new InstanceSave(fields[1].GetUInt32(), fields[0].GetUInt32(), Difficulty(fields[2].GetUInt8()), fields[3].GetBool(), fields[4].GetUInt32());
         if(!save->LoadPlayers())
         {
-            sLog.outError("Instance save %u has 0 players, skipping...", fields[0].GetUInt32());
+            save->DeleteFromDb();
+            sLog.outError("Instance save %u has 0 players, deleting...", fields[0].GetUInt32());
             continue;
         }
-        m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetId(), save));
+        m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetGUID(), save));
         ++count;
     } while( result->NextRow() );
 
@@ -244,10 +243,13 @@ void InstanceSaveManager::PackInstances()
     if(freeGuids.empty())
         return;
 
-    for(InstanceSaveMap::iterator itr = m_saves.rbegin(); itr != m_saves.rend(); ++itr)
+    
+    for(InstanceSaveMap::reverse_iterator itr = m_saves.rbegin(); itr != m_saves.rend();)
     {
         itr->second->UpdateId(*(freeGuids.begin()));
-        itr->first = *(freeGuids.begin()); //safe?
+        m_saves.insert(std::make_pair<uint32, InstanceSave*>(*(freeGuids.begin()), itr->second));
+        m_saves.erase(itr->first);
+        itr = m_saves.rbegin();
         freeGuids.pop_front();
         if(freeGuids.empty())
             break;
@@ -298,7 +300,7 @@ void InstanceSaveManager::CheckResetTimes()
                 }
             }
             if(!hasExtened)
-                ((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY));
+                ((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY);
         }
         if(!hasExtened)
             DeleteSave(itr->first);

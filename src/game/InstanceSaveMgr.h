@@ -42,7 +42,7 @@ class InstanceSave
         ~InstanceSave();
 
         uint64 const& GetGUID() const { return m_instanceGuid.GetRawValue(); }
-        ObjectGuid const& GetObjectGuid() const { return m_instanceId; }
+        ObjectGuid const& GetObjectGuid() const { return m_instanceGuid; }
         uint32 GetMapId() const { return m_mapId;}
         uint32 GetResetTime() const { return resetTime; }
         Difficulty GetDifficulty() const { return m_diff; }
