@@ -46,7 +46,7 @@ InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficult
     m_mapId = MapId;
     m_instanceGuid = (uint64(InstanceId) | (uint64(HIGHGUID_INSTANCE) << 48));
     m_diff = difficulty;
-    perm = perm;
+    m_perm = perm;
     m_encountersMask = encountersMask;
 
     // Calculate reset time
@@ -85,7 +85,7 @@ void InstanceSave::SaveToDb(bool players)
 {
     CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
     CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, perm) VALUES ('%u','%u','%u','%u');",
-        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint8(perm));
+        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint8(m_perm));
     
     if(!players)
         return;
@@ -102,6 +102,12 @@ void InstanceSave::ExtendFor(uint64 guid)
 {
     m_extended.insert(guid);
     CharacterDatabase.PQuery("UPDATE character_instance SET extended = 1 WHERE guid = '%u'", GUID_LOPART(guid));
+}
+
+void InstanceSave::RemoveExtended(uint64 guid)
+{
+    m_extended.erase(guid);
+    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE guid = '%u'", GUID_LOPART(guid));
 }
 
 void InstanceSave::AddPlayer(uint64 guid)
@@ -267,6 +273,7 @@ InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, D
 
     id = sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE);
     save = new InstanceSave(mapId, id, difficulty, perm);
+    save->SaveToDb();
 
     m_saves.insert(std::make_pair<uint32, InstanceSave*>(id, save));
     return save;

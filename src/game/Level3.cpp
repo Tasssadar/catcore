@@ -6152,6 +6152,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(const char* args)
                 else
                     PSendSysMessage("bound for a nonexistant map %u", itr->first);
                 player->UnbindInstance(itr->first, Difficulty(i));
+                itr = binds.begin();
                 counter++;
             }
             else

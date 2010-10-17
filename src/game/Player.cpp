@@ -17174,7 +17174,12 @@ void Player::SendRaidInfo()
                 data << uint64(itr->second->GetObjectGuid().GetRawValue());// instance id
                 data << uint8(1);                                  // expired = 0
                 data << uint8(itr->second->IsExtended(GetGUIDLow()));  // extended = 1
+                uint32 resetTime = itr->second->GetResetTime();
+                uint32 resetPeriod = GetMapDifficultyData(itr->second->GetMapId(), itr->second->GetDifficulty())->resetTime;
+                if(itr->second->IsExtended(GetGUIDLow()))
+                    resetTime += resetPeriod ? resetPeriod : DAY;
                 data << uint32(itr->second->GetResetTime() - now); // reset time
+                
                 ++counter;
             }
         }

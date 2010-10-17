@@ -1619,8 +1619,11 @@ void WorldSession::HandleInstanceExtend(WorldPacket & recv_data)
     recv_data >> unk;
 
     InstanceSave *save = _player->GetBoundInstance(map, Difficulty(diff));
-    if(!save || save->IsExtended(_player->GetGUID()))
+    if(!save)
         return;
 
-    save->ExtendFor(_player->GetGUID());
+    if(save->IsExtended(_player->GetGUID()))
+        save->ExtendFor(_player->GetGUID());
+    else
+        save->RemoveExtended(_player->GetGUID());
 }

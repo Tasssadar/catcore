@@ -1875,7 +1875,8 @@ void InstanceMap::PermBindAllPlayers(Player *player)
         return;
 
     Group *group = player->GetGroup();
-    group->BindToInstance(GetInstanceSave(), true);
+    if(group)
+        group->BindToInstance(GetInstanceSave(), true);
 
     // group members outside the instance group don't get bound
     for(MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr)
