@@ -267,9 +267,13 @@ void InstanceSaveManager::PackInstances()
 //Only for new save
 InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, Difficulty difficulty, bool perm)
 {
+    error_log("ID: %u", id);
     InstanceSave* save = GetInstanceSave(id);
     if(id && save)
+    {
+        error_log("mam");
         return save;
+    }
 
     id = sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE);
     save = new InstanceSave(mapId, id, difficulty, perm);

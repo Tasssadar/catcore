@@ -46,7 +46,7 @@ class InstanceSave
         uint32 GetMapId() const { return m_mapId;}
         uint32 GetResetTime() const { return resetTime; }
         Difficulty GetDifficulty() const { return m_diff; }
-        void SetPermanent(bool yes) { if(yes && !perm) {perm = true;} }
+        void SetPermanent(bool yes) { if(yes && !m_perm) { m_perm = true;} }
         void ExtendFor(uint64 guid);
         void RemoveExtended(uint64 guid);
         bool IsExtended(uint64 guid) const { return (m_extended.find(guid) != m_extended.end()); }

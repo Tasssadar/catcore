@@ -348,6 +348,7 @@ class MANGOS_DLL_SPEC Group
         void LinkMember(GroupReference *pRef) { m_memberMgr.insertFirst(pRef); }
         void DelinkMember(GroupReference* /*pRef*/ ) { }
 
+        void AddBind(InstanceSave *save);
         void BindToInstance(InstanceSave *save, bool permanent);
         void UnbindInstance(uint32 mapid, uint8 difficulty);
         InstanceSave* GetBoundInstance(uint32 mapId, Player* player);

@@ -17144,7 +17144,7 @@ void Player::ConvertInstancesToGroup(Player *leader, Group *group)
 {
     for(int i = 0; i < MAX_DIFFICULTY; ++i)
         for (BoundInstancesMap::const_iterator itr = leader->GetBoundInstances(Difficulty(i)).begin(); itr != leader->GetBoundInstances(Difficulty(i)).end(); ++itr)
-            group->BindToInstance(itr->second, itr->second->IsPermanent());
+            group->AddBind(itr->second);
 }
 
 uint32 Player::GetInstanceTimerId() const
@@ -17178,7 +17178,7 @@ void Player::SendRaidInfo()
                 uint32 resetPeriod = GetMapDifficultyData(itr->second->GetMapId(), itr->second->GetDifficulty())->resetTime;
                 if(itr->second->IsExtended(GetGUIDLow()))
                     resetTime += resetPeriod ? resetPeriod : DAY;
-                data << uint32(itr->second->GetResetTime() - now); // reset time
+                data << uint32(resetTime - now); // reset time
                 
                 ++counter;
             }

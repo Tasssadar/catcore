@@ -109,15 +109,20 @@ Map* MapInstanced::CreateInstance(Player * player)
     }
     else if (InstanceSave* pSave = player->GetBoundInstanceSaveForSelfOrGroup(GetId()))
     {
-        // solo/perm/group
         NewInstanceId = pSave->GetGUID();
+        error_log("Bu bu bu %u", NewInstanceId);
+        // solo/perm/group       
         map = _FindMap(NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)
+        {
+            error_log("fu");
             map = CreateInstanceMap(NewInstanceId, pSave->GetDifficulty(), pSave);
+        }
     }
     else
     {
+        error_log("neeee");
         Difficulty diff = player->GetGroup() ? player->GetGroup()->GetDifficulty(IsRaid()) : player->GetDifficulty(IsRaid());
         map = CreateInstanceMap(0, diff);
     }

@@ -1622,7 +1622,7 @@ void WorldSession::HandleInstanceExtend(WorldPacket & recv_data)
     if(!save)
         return;
 
-    if(save->IsExtended(_player->GetGUID()))
+    if(!save->IsExtended(_player->GetGUID()))
         save->ExtendFor(_player->GetGUID());
     else
         save->RemoveExtended(_player->GetGUID());
