@@ -38,21 +38,27 @@ class InstanceSave
 {
     public:
         typedef std::set<uint64> PlrListSaves;
-        InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, bool extended = false, bool expired = false);
+        InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask = 0);
         ~InstanceSave();
 
         uint64 const& GetGUID() const { return m_instanceGuid.GetRawValue(); }
         ObjectGuid const& GetObjectGuid() const { return m_instanceId; }
-        uint32 GetMapId() const { return m_mapId;
+        uint32 GetMapId() const { return m_mapId;}
+        uint32 GetResetTime() const { return resetTime; }
+        Difficulty GetDifficulty() const { return m_diff; }
+        void SetPermanent(bool yes) { if(yes && !perm) perm = true; }
+        bool IsExtended(uint64 guid) const { return (m_extended.find(guid) != m_extended.end()); }
+        bool IsPermanent() const { return perm; }
+        bool HasPlayers() const { return (!m_players.empty()); }
+        uint32 GetEncounterMask() const { return m_encountersMask; }
 
         bool LoadPlayers();
-        void SaveToDb(bool players = true);
+        void SaveToDb(bool players = false);
         void DeleteFromDb();
         void RemoveAndDelete();
-        void AddPlayer(uint64 guid) { m_players.insert(guid); }
-        void RemovePlayer(uint64 guid) { m_players.erase(guid); m_extended.erase(guid); }
+        void AddPlayer(uint64 guid);
+        void RemovePlayer(uint64 guid);
         void UpdateId(uint32 id);
-        uint32 GetResetTime() const { return resetTime; }
 
     private:
         uint32 m_mapId;
@@ -62,6 +68,7 @@ class InstanceSave
         PlrListSaves m_players;
         PlrListSaves m_extended;
         uint32 resetTime; //timestamp
+        uint32 m_encountersMask;
 };
 
 class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSaveManager, MaNGOS::ClassLevelLockable<InstanceSaveManager, ACE_Thread_Mutex> >
@@ -75,7 +82,7 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
         void LoadSavesFromDb();
         void PackInstances();
 
-        InstanceSave* CreateInstanceSave(uint16 mapId, Difficulty difficulty, bool perm);
+        InstanceSave* CreateInstanceSave(uint16 mapId, uint32 id, Difficulty difficulty, bool perm);
         void DeleteSave(uint32 id)
         {
             InstanceSaveMap::iterator itr = m_saves.find(id);
@@ -83,6 +90,13 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
                 return;
             itr->second->RemoveAndDelete();
             m_saves.erase(itr);
+        }
+        InstanceSave* GetInstanceSave(uint32 id)
+        {
+            InstanceSaveMap::iterator itr = m_saves.find(id);
+            if(itr == m_saves.end())
+                return NULL;
+            return itr->second;
         }
         //Called every hour or at startup
         void CheckResetTimes();

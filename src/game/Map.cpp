@@ -407,6 +407,9 @@ bool Map::Add(Player *player)
         player->SetFakeTeam(0);
         player->setFactionForRace(player->getRace());
     }
+
+    if(GetInstanceId() != player->GetInstanceTimerId())
+        player->StopInstanceBindTimer();
     return true;
 }
 
@@ -1657,8 +1660,8 @@ InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 Spaw
     // Dungeon only code
     if (IsDungeon())
     {
-        m_instanceSave = sInstanceSaveMgr.AddInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), 0, true);
-        m_instanceSave->SetUsedByMapState(true);
+        m_instanceSave = sInstanceSaveMgr.CreateInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), false);
+        i_InstanceId = m_instanceSave->GetGUID();
     }
 }
 
@@ -1730,103 +1733,18 @@ bool InstanceMap::Add(Player *player)
         if (IsDungeon())
         {
             // check for existing instance binds
-            InstancePlayerBind *playerBind = player->GetBoundInstance(GetId(), Difficulty(GetSpawnMode()));
-            if (playerBind && playerBind->perm)
-            {
-                // cannot enter other instances if bound permanently
-                if (playerBind->save != GetInstanceSave())
-                {
-                    sLog.outError("InstanceMap::Add: player %s(%d) is permanently bound to instance %d,%d,%d,%d,%d,%d but he is being put in instance %d,%d,%d,%d,%d,%d",
-                        player->GetName(), player->GetGUIDLow(), playerBind->save->GetMapId(),
-                        playerBind->save->GetInstanceId(), playerBind->save->GetDifficulty(),
-                        playerBind->save->GetPlayerCount(), playerBind->save->GetGroupCount(),
-                        playerBind->save->CanReset(),
-                        GetInstanceSave()->GetMapId(), GetInstanceSave()->GetInstanceId(),
-                        GetInstanceSave()->GetDifficulty(), GetInstanceSave()->GetPlayerCount(),
-                        GetInstanceSave()->GetGroupCount(), GetInstanceSave()->CanReset());
-                    //ASSERT(false);
-                    return false;
-                }
-            }
-            else
-            {
-                Group *pGroup = player->GetGroup();
-                if (pGroup)
-                {
-                    // solo saves should be reset when entering a group
-                    InstanceGroupBind *groupBind = pGroup->GetBoundInstance(this,GetDifficulty());
-                    if (playerBind)
-                    {
-                        sLog.outError("InstanceMap::Add: player %s(%d) is being put in instance %d,%d,%d,%d,%d,%d but he is in group %d and is bound to instance %d,%d,%d,%d,%d,%d!",
-                            player->GetName(), player->GetGUIDLow(), GetInstanceSave()->GetMapId(), GetInstanceSave()->GetInstanceId(),
-                            GetInstanceSave()->GetDifficulty(), GetInstanceSave()->GetPlayerCount(), GetInstanceSave()->GetGroupCount(),
-                            GetInstanceSave()->CanReset(), GUID_LOPART(pGroup->GetLeaderGUID()),
-                            playerBind->save->GetMapId(), playerBind->save->GetInstanceId(), playerBind->save->GetDifficulty(),
-                            playerBind->save->GetPlayerCount(), playerBind->save->GetGroupCount(), playerBind->save->CanReset());
+            InstanceSave *save = player->GetBoundInstance(GetId(), Difficulty(GetSpawnMode()));
+            InstanceSave *gSave = player->GetBoundInstanceSaveForSelfOrGroup(GetId());
 
-                        if (groupBind)
-                            sLog.outError("InstanceMap::Add: the group is bound to instance %d,%d,%d,%d,%d,%d",
-                                groupBind->save->GetMapId(), groupBind->save->GetInstanceId(), groupBind->save->GetDifficulty(),
-                                groupBind->save->GetPlayerCount(), groupBind->save->GetGroupCount(), groupBind->save->CanReset());
-                        //ASSERT(false);
-                        return false;
-                    }
-                    // bind to the group or keep using the group save
-                    if (!groupBind)
-                        pGroup->BindToInstance(GetInstanceSave(), false);
-                    else
-                    {
-                        // cannot jump to a different instance without resetting it
-                        if (groupBind->save != GetInstanceSave())
-                        {
-                            sLog.outError("InstanceMap::Add: player %s(%d) is being put in instance %d,%d,%d but he is in group %d which is bound to instance %d,%d,%d!",
-                                player->GetName(), player->GetGUIDLow(), GetInstanceSave()->GetMapId(),
-                                GetInstanceSave()->GetInstanceId(), GetInstanceSave()->GetDifficulty(),
-                                GUID_LOPART(pGroup->GetLeaderGUID()), groupBind->save->GetMapId(),
-                                groupBind->save->GetInstanceId(), groupBind->save->GetDifficulty());
-
-                            if (GetInstanceSave())
-                                sLog.outError("MapSave players: %d, group count: %d",
-                                    GetInstanceSave()->GetPlayerCount(), GetInstanceSave()->GetGroupCount());
-                            else
-                                sLog.outError("MapSave NULL");
-
-                            if (groupBind->save)
-                                sLog.outError("GroupBind save players: %d, group count: %d", groupBind->save->GetPlayerCount(), groupBind->save->GetGroupCount());
-                            else
-                                sLog.outError("GroupBind save NULL");
-                            player->SendTransferAborted(GetId(), TRANSFER_ABORT_MAP_NOT_ALLOWED);
-                            return false;
-                        }
-                        // if the group/leader is permanently bound to the instance
-                        // players also become permanently bound when they enter
-                        if (groupBind->perm)
-                        {
-                            WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
-                            data << uint32(0);
-                            player->GetSession()->SendPacket(&data);
-                            player->BindToInstance(GetInstanceSave(), true);
-
-                            data.Initialize(SMSG_CALENDAR_RAID_LOCKOUT_ADDED, 24);
-                            data << uint32(secsToTimeBitFields(time(NULL)));
-                            data << uint32(GetId());
-                            data << uint32(GetDifficulty());
-                            data << uint32(groupBind->save->GetResetTime() - time(NULL));
-                            data << uint64(groupBind->save->GetInstanceId());
-                            player->GetSession()->SendPacket(&data);
-                        }
-                    }
-                }
-                else
-                {
-                    // set up a solo bind or continue using it
-                    if (!playerBind)
-                        player->BindToInstance(GetInstanceSave(), false);
-                    else
-                        // cannot jump to a different instance without resetting it
-                        ASSERT(playerBind->save == GetInstanceSave());
-                }
-            }
+            // If player has perma save to this map and to another instance
+            if(save && save->IsPermanent() && save->GetGUID() != GetInstanceId())
+                return false;
+            // hard bind already, some encounters done
+            else if(gSave && gSave->IsPermanent() && (!save || !save->IsPermanent()))
+                player->StartInstanceBindTimer();
+            // sotf bind
+            else if(!save)
+                player->BindToInstance(GetInstanceSave(), false);
         }
 
         // for normal instances cancel the reset schedule when the

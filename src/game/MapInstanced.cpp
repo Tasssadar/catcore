@@ -118,12 +118,8 @@ Map* MapInstanced::CreateInstance(Player * player)
     }
     else
     {
-        // if no instanceId via group members or instance saves is found
-        // the instance will be created for the first time
-        NewInstanceId = sMapMgr.GenerateInstanceId();
-
         Difficulty diff = player->GetGroup() ? player->GetGroup()->GetDifficulty(IsRaid()) : player->GetDifficulty(IsRaid());
-        map = CreateInstanceMap(NewInstanceId, diff);
+        map = CreateInstanceMap(0, diff);
     }
 
     return map;
@@ -153,6 +149,8 @@ InstanceMap* MapInstanced::CreateInstanceMap(uint32 InstanceId, Difficulty diffi
     DEBUG_LOG("MapInstanced::CreateInstanceMap: %s map instance %d for %d created with difficulty %d", save?"":"new ", InstanceId, GetId(), difficulty);
 
     InstanceMap *map = new InstanceMap(GetId(), GetGridExpiry(), InstanceId, difficulty, this);
+    InstanceId = map->GetInstanceId(); // id can be re-setted
+
     ASSERT(map->IsDungeon());
 
     bool load_data = save != NULL;

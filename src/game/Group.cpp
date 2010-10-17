@@ -1147,9 +1147,13 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
         else
             player->SetGroup(this, group);
         // if the same group invites the player back, cancel the homebind timer
-        InstanceGroupBind *bind = GetBoundInstance(player->GetMapId(), player);
-        if (bind && bind->save->GetInstanceId() == player->GetInstanceId())
-            player->m_InstanceValid = true;
+        InstanceSave *bind = GetBoundInstance(player->GetMapId(), player);     
+        if (bind)
+        {
+            InstanceSave *pBind = player->GetBoundInstance(player->GetMapId(), bind->GetDifficulty());
+            if(!pBind || pBind->GetGUID() == bind->GetGUID())
+                player->m_InstanceValid = true;
+        }           
     }
 
     if (!isRaidGroup())                                      // reset targetIcons for non-raid-groups
@@ -1752,46 +1756,43 @@ InstanceGroupBind* Group::GetBoundInstance(Map* aMap, Difficulty difficulty)
         return NULL;
 }
 
-InstanceGroupBind* Group::BindToInstance(InstanceSave *save, bool permanent, bool load)
+void Group::BindToInstance(InstanceSave *save, bool permanent)
 {
-    if (save && !isBGGroup())
+    if (!save || isBGGroup())
+        return;
+
+    InstanceSave* bind = m_boundInstances[save->GetDifficulty()][save->GetMapId()];
+    if(!bind)
+        m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
+    else if(bind->GetGUID() != save->GetGUID())
+        m_boundInstances[save->GetDifficulty()][save->GetMapId()] = save;
+
+    Player *plr = NULL;
+    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
-        InstanceGroupBind& bind = m_boundInstances[save->GetDifficulty()][save->GetMapId()];
-        if (bind.save)
-        {
-            // when a boss is killed or when copying the players's binds to the group
-            if (permanent != bind.perm || save != bind.save)
-                if (!load)
-                    CharacterDatabase.PExecute("UPDATE group_instance SET instance = '%u', permanent = '%u' WHERE leaderGuid = '%u' AND instance = '%u'", save->GetInstanceId(), permanent, GUID_LOPART(GetLeaderGUID()), bind.save->GetInstanceId());
-        }
-        else if (!load)
-                CharacterDatabase.PExecute("INSERT INTO group_instance (leaderGuid, instance, permanent) VALUES ('%u', '%u', '%u')", GUID_LOPART(GetLeaderGUID()), save->GetInstanceId(), permanent);
-
-        if (bind.save != save)
-        {
-            if (bind.save)
-                bind.save->RemoveGroup(this);
-            save->AddGroup(this);
-        }
-
-        bind.save = save;
-        bind.perm = permanent;
-        if (!load)
-            DEBUG_LOG("Group::BindToInstance: %d is now bound to map %d, instance %d, difficulty %d", GUID_LOPART(GetLeaderGUID()), save->GetMapId(), save->GetInstanceId(), save->GetDifficulty());
-        return &bind;
+        plr = sObjectMgr.GetPlayer(citr->guid);
+        if(plr)
+            plr->BindToInstance(save, permanent);
+        else
+            save->AddPlayer(citr->guid);
     }
-    else
-        return NULL;
 }
 
-void Group::UnbindInstance(uint32 mapid, uint8 difficulty, bool unload)
+void Group::UnbindInstance(uint32 mapid, uint8 difficulty)
 {
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
     if (itr != m_boundInstances[difficulty].end())
     {
-        if (!unload)
-            CharacterDatabase.PExecute("DELETE FROM group_instance WHERE leaderGuid = '%u' AND instance = '%u'", GUID_LOPART(GetLeaderGUID()), itr->second.save->GetInstanceId());
-        itr->second.save->RemoveGroup(this);                // save can become invalid
+        InstanceSave *save = itr->second;
+        Player *plr = NULL;
+        for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+        {
+            plr = sObjectMgr.GetPlayer(citr->guid);
+            if(plr)
+                plr->UnbindInstance(save->GetMapId(), save->GetDifficulty());
+            else
+                save->RemovePlayer(citr->guid);
+        }
         m_boundInstances[difficulty].erase(itr);
     }
 }

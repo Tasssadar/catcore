@@ -2317,7 +2317,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***                 INSTANCE SYSTEM                   ***/
         /*********************************************************/
 
-        typedef UNORDERED_MAP< uint32 /*mapId*/, InstancePlayerBind > BoundInstancesMap;
+        typedef UNORDERED_MAP< uint32 /*mapId*/, InstanceSave*> BoundInstancesMap;
 
         void UpdateHomebindTime(uint32 time);
 
@@ -2325,15 +2325,24 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool m_InstanceValid;
         // permanent binds and solo binds by difficulty
         BoundInstancesMap m_boundInstances[MAX_DIFFICULTY];
-        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty);
+        InstanceSave* GetBoundInstance(uint32 mapid, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
-        void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
-        void UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficulty, bool unload = false);
-        InstancePlayerBind* BindToInstance(InstanceSave *save, bool permanent, bool load = false);
+        void UnbindInstance(uint32 mapid, Difficulty difficulty);
+        void BindToInstance(Map *map, bool permanent)
+        {
+            BindToInstance(map->GetInstanceSave(), permanent);
+        }
+        void BindToInstance(InstanceSave* save, bool permanent);
         void SendRaidInfo();
         void SendSavedInstances();
-        static void ConvertInstancesToGroup(Player *player, Group *group = NULL, uint64 player_guid = 0);
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
+        void StartInstanceBindTimer();
+        void StopInstanceBindTimer()
+        {
+            m_instanceBindTimer = -1;
+            m_bindTimerSave = NULL;
+        }
+        uint32 GetInstanceTimerId() const { return m_bindTimerSave ? m_bindTimerSave->GetGUID() : 0; }
 
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/
@@ -2702,6 +2711,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
+        int32 m_instanceBindTimer;
+        InstanceSave *m_bindTimerSave;
 
         // Battleground reward system
         uint32 m_FirstRBTime;

@@ -41,7 +41,7 @@ INSTANTIATE_SINGLETON_1( InstanceSaveManager );
 
 //== InstanceSave functions ================================
 
-InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, bool extended, bool expired);
+InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask)
 {
     m_mapId = MapId;
     m_instanceGuid = (uint64(InstanceId) | (uint64(HIGHGUID_INSTANCE) << 48));
@@ -49,6 +49,7 @@ InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficult
     perm = perm;
     m_extended = extended;
     m_expired = expired;
+    m_encountersMask = encountersMask;
 
     // Calculate reset time
     uint32 now = time(NULL);
@@ -98,6 +99,19 @@ void InstanceSave::SaveToDb(bool players)
             GUID_LOPART(*itr), uint32(m_instanceId.GetCounter(), uint8(m_extended.find(*itr) != m_extended.end()));
     }
 }
+void AddPlayer(uint64 guid)
+{
+    m_players.insert(guid);
+    CharacterDatabase.PQuery("INSERT INTO character_instance (guid, instance, extended) VALUES ('%u','%u','%u');",
+        GUID_LOPART(guid), uint32(m_instanceId.GetCounter(), uint8(0)); 
+}
+
+void RemovePlayer(uint64 guid)
+{
+    m_players.erase(guid);
+    m_extended.erase(guid);
+    CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceId.GetCounter(), guid);
+}
 
 void InstanceSave::UpdateId(uint32 id)
 {
@@ -120,7 +134,14 @@ void InstanceSave::DeleteFromDb()
 
 void InstanceSave::RemoveAndDelete()
 {
-    // TODO: Remove from online players
+    Player *plr = NULL;
+    for(PlrListSaves::iterator itr = m_players.begin(); itr != m_players.end(); ++itr)
+    {
+        plr = sObjectMgr.GetPlayer(*itr);
+        if(!plr || !plr->IsInWorld())
+            continue;
+        plr->UnbindInstance(m_mapId, m_diff);
+    }
     DeleteFromDb();
     m_players.clear();
 }
@@ -139,8 +160,8 @@ InstanceSaveManager::~InstanceSaveManager()
 void InstanceSaveManager::LoadSavesFromDb()
 {
     uint32 count = 0;
-    //                                                    0   1    2           3
-    QueryResult *result = CharacterDatabase.Query("SELECT id, map, difficulty, perm FROM instance");
+    //                                                    0   1    2           3     4
+    QueryResult *result = CharacterDatabase.Query("SELECT id, map, difficulty, perm, encountersMask FROM instance");
 
     if ( !result )
     {
@@ -157,7 +178,7 @@ void InstanceSaveManager::LoadSavesFromDb()
 
         bar.step();
 
-        InstanceSave *save = new InstanceSave(fields[1].GetUInt32(), fields[0].GetUInt32(), Difficulty(fields[2].GetUInt8()), fields[3].GetBool());
+        InstanceSave *save = new InstanceSave(fields[1].GetUInt32(), fields[0].GetUInt32(), Difficulty(fields[2].GetUInt8()), fields[3].GetBool(), fields[4].GetUInt32());
         if(!save->LoadPlayers())
         {
             sLog.outError("Instance save %u has 0 players, skipping...", fields[0].GetUInt32());
@@ -203,10 +224,14 @@ void InstanceSaveManager::PackInstances()
 }
 
 //Only for new save
-InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, Difficulty difficulty, bool perm)
+InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, Difficulty difficulty, bool perm)
 {
-    uint32 id = sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE);
-    InstanceSave* save = new InstanceSave(mapId, id, difficulty, perm);
+    InstanceSave* save = GetInstanceSave(id);
+    if(id && save)
+        return save;
+
+    id = sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE);
+    save = new InstanceSave(mapId, id, difficulty, perm);
 
     m_saves.insert(std::make_pair<uint32, InstanceSave*>(id, save));
     return save;
@@ -221,6 +246,13 @@ void InstanceSaveManager::CheckResetTimes()
     {
         itr_next = itr;
         ++itr_next;
+
+        //Delete empty saves
+        if(!itr->second->HasPlayers())
+        {
+            DeleteSave(itr->first);
+            continue;
+        }
 
         if(itr->second->GetResetTime() > now) // Ok, not expired
             continue;
@@ -238,10 +270,11 @@ void InstanceSaveManager::CheckResetTimes()
                         itr->getSource()->RepopAtGraveyard();
                 }
             }
+
             //Skip and try at next call if not reseted
             if(!((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY))
                 continue;
-            DeleteSave(itr->first);
-        }        
+        }
+        DeleteSave(itr->first);
     }
 }
