@@ -17151,6 +17151,11 @@ void Player::ConvertInstancesToGroup(Player *leader, Group *group)
             group->BindToInstance(itr->second, itr->second->IsPermanent());
 }
 
+uint32 Player::GetInstanceTimerId() const
+{
+    return m_bindTimerSave ? m_bindTimerSave->GetGUID() : 0;
+}
+
 void Player::SendRaidInfo()
 {
     uint32 counter = 0;

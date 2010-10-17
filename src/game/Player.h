@@ -2337,7 +2337,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             m_bindTimerSave = NULL;
         }
         void ConvertInstancesToGroup(Player *leader, Group *group);
-        uint32 GetInstanceTimerId() const { return m_bindTimerSave ? m_bindTimerSave->GetGUID() : 0; }
+        uint32 GetInstanceTimerId() const;
 
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/

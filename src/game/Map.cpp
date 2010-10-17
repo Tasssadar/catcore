@@ -1878,14 +1878,16 @@ void InstanceMap::PermBindAllPlayers(Player *player)
         return;
 
     Group *group = player->GetGroup();
+    group->BindToInstance(GetInstanceSave(), true);
+
     // group members outside the instance group don't get bound
     for(MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr)
     {
         Player* plr = itr->getSource();
         // players inside an instance cannot be bound to other instances
         // some players may already be permanently bound, in this case nothing happens
-        InstancePlayerBind *bind = plr->GetBoundInstance(GetId(), GetDifficulty());
-        if (!bind || !bind->perm)
+        InstanceSave *bind = plr->GetBoundInstance(GetId(), GetDifficulty());
+        if (!bind || !bind->IsPermanent())
         {
             plr->BindToInstance(GetInstanceSave(), true);
             WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
@@ -1897,13 +1899,9 @@ void InstanceMap::PermBindAllPlayers(Player *player)
             data << uint32(GetId());
             data << uint32(GetDifficulty());
             data << uint32(GetInstanceSave()->GetResetTime() - time(NULL));
-            data << uint64(GetInstanceSave()->GetInstanceId());
+            data << uint64(GetInstanceSave()->GetObjectGuid().GetRawValue());
             player->GetSession()->SendPacket(&data);
         }
-
-        // if the leader is not in the instance the group will not get a perm bind
-        if (group && group->GetLeaderGUID() == plr->GetGUID())
-            group->BindToInstance(GetInstanceSave(), true);
     }
 }
 
