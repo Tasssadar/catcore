@@ -912,16 +912,6 @@ enum PlayerDelayedOperations
 #define MAX_PLAYER_SUMMON_DELAY                   (2*MINUTE)
 #define MAX_MONEY_AMOUNT                       (0x7FFFFFFF-1)
 
-struct InstancePlayerBind
-{
-    InstanceSave *save;
-    bool perm;
-    /* permanent PlayerInstanceBinds are created in Raid/Heroic instances for players
-       that aren't already permanently bound when they are inside when a boss is killed
-       or when they enter an instance that the group leader is permanently bound to. */
-    InstancePlayerBind() : save(NULL), perm(false) {}
-};
-
 class MANGOS_DLL_SPEC PlayerTaxi
 {
     public:
@@ -2337,11 +2327,16 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
         void StartInstanceBindTimer();
-        void StopInstanceBindTimer()
+        void StopInstanceBindTimer(bool bind = false)
         {
+            if(m_instanceBindTimer == -1)
+                return;
+            if(bind)
+                BindToInstance(m_bindTimerSave, true);
             m_instanceBindTimer = -1;
             m_bindTimerSave = NULL;
         }
+        void ConvertInstancesToGroup(Player *leader, Group *group);
         uint32 GetInstanceTimerId() const { return m_bindTimerSave ? m_bindTimerSave->GetGUID() : 0; }
 
         /*********************************************************/

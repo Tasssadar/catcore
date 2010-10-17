@@ -1516,10 +1516,9 @@ void Player::Update( uint32 p_time )
     if(m_instanceBindTimer != -1)
     {
         if(m_instanceBindTimer <= p_time)
-        {
-            BindToInstance(m_bindTimerSave, true);
-            StopInstanceBindTimer();
-        }else m_instanceBindTimer -= p_time;
+            StopInstanceBindTimer(true);
+        else
+            m_instanceBindTimer -= p_time;
     }
 
     if (IsHasDelayedTeleport())
@@ -17145,6 +17144,13 @@ InstanceSave* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
     return pSave;
 }
 
+void Player::ConvertInstancesToGroup(Player *leader, Group *group)
+{
+    for(int i = 0; i < MAX_DIFFICULTY; ++i)
+        for (BoundInstancesMap::const_iterator itr = leader->GetBoundInstances(i).begin(); itr != leader->GetBoundInstances(i).end(); ++itr)
+            group->BindToInstance(itr->second, itr->second->IsPermanent());
+}
+
 void Player::SendRaidInfo()
 {
     uint32 counter = 0;
@@ -17220,10 +17226,10 @@ void Player::SendSavedInstances()
 
 void Player::StartInstanceBindTimer(InstanceSave *save)
 {
-    m_instanceBindTimer = 60000;
+    m_instanceBindTimer = 15000;
     m_bindTimerSave = save;
 
-    WorldPacket(SMSG_INSTANCE_LOCK_WARNING_QUERY);
+    WorldPacket data(SMSG_INSTANCE_LOCK_WARNING_QUERY);
     data << uint32(m_instanceBindTimer);
     data << uint32(save->GetEncounterMask());
     data << uint8(save->IsExtended(GetLowGuid());

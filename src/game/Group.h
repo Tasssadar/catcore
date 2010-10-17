@@ -152,15 +152,6 @@ class Roll : public LootValidatorRef
         uint8 itemSlot;
 };
 
-struct InstanceGroupBind
-{
-    InstanceSave *save;
-    bool perm;
-    /* permanent InstanceGroupBinds exist iff the leader has a permanent
-       PlayerInstanceBind for the same instance. */
-    InstanceGroupBind() : save(NULL), perm(false) {}
-};
-
 /** request member stats checken **/
 /** todo: uninvite people that not accepted invite **/
 class MANGOS_DLL_SPEC Group

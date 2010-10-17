@@ -99,15 +99,26 @@ void InstanceSave::SaveToDb(bool players)
             GUID_LOPART(*itr), uint32(m_instanceId.GetCounter(), uint8(m_extended.find(*itr) != m_extended.end()));
     }
 }
-void AddPlayer(uint64 guid)
+
+void InstanceSave::ExtendFor(uint64 guid)
 {
+    m_extended.insert(guid);
+    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 1 WHERE guid = '%u'", GUID_LOPART(guid));
+}
+
+void InstanceSave::AddPlayer(uint64 guid)
+{
+    if(m_players.find(guid) != m_players.end())
+        return;
     m_players.insert(guid);
     CharacterDatabase.PQuery("INSERT INTO character_instance (guid, instance, extended) VALUES ('%u','%u','%u');",
         GUID_LOPART(guid), uint32(m_instanceId.GetCounter(), uint8(0)); 
 }
 
-void RemovePlayer(uint64 guid)
+void InstanceSave::RemovePlayer(uint64 guid)
 {
+    if(m_players.find(guid) == m_players.end())
+        return;
     m_players.erase(guid);
     m_extended.erase(guid);
     CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceId.GetCounter(), guid);
@@ -144,6 +155,28 @@ void InstanceSave::RemoveAndDelete()
     }
     DeleteFromDb();
     m_players.clear();
+}
+
+void InstanceSave::RemoveOrExtendPlayers()
+{
+    PlrListSaves::iterator itr, itr_next;
+    for(itr = m_players.begin(); itr != m_players.end(); itr = itr_next)
+    {
+        itr_next = itr;
+        ++itr_next;
+        if(!IsExtended(*itr))
+            RemovePlayer(*itr);
+    }
+
+    bool hasExtended = !m_extended.empty();
+    m_extended.clear();
+    if(hasExtended)
+    {
+        uint32 period = GetMapDifficultyData(m_mapId, m_diff)->resetTime;
+        resetTime += period ? period : DAY;
+    }
+
+    return hasExtended;
 }
 
 //== InstanceSaveManager functions =========================
@@ -239,7 +272,6 @@ InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, D
 
 void InstanceSaveManager::CheckResetTimes()
 {
-    //TODO: extended locks
     uint32 now = time(NULL);
     InstanceSaveMap::iterator itr, itr_next;
     for(itr = m_saves.begin(); itr != m_saves.end(); itr = itr_next)
@@ -247,15 +279,10 @@ void InstanceSaveManager::CheckResetTimes()
         itr_next = itr;
         ++itr_next;
 
-        //Delete empty saves
-        if(!itr->second->HasPlayers())
-        {
-            DeleteSave(itr->first);
-            continue;
-        }
-
         if(itr->second->GetResetTime() > now) // Ok, not expired
             continue;
+
+        bool hasExtened = itr->second->RemoveOrExtendPlayers();
 
         //Teleport players out
         Map *map = sMapMgr.FindMap(itr->second->GetMapId(), itr->first);
@@ -270,11 +297,10 @@ void InstanceSaveManager::CheckResetTimes()
                         itr->getSource()->RepopAtGraveyard();
                 }
             }
-
-            //Skip and try at next call if not reseted
-            if(!((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY))
-                continue;
+            if(!hasExtened)
+                ((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY));
         }
-        DeleteSave(itr->first);
+        if(!hasExtened)
+            DeleteSave(itr->first);
     }
 }

@@ -47,9 +47,11 @@ class InstanceSave
         uint32 GetResetTime() const { return resetTime; }
         Difficulty GetDifficulty() const { return m_diff; }
         void SetPermanent(bool yes) { if(yes && !perm) perm = true; }
+        void ExtendFor(uint64 guid);
         bool IsExtended(uint64 guid) const { return (m_extended.find(guid) != m_extended.end()); }
         bool IsPermanent() const { return perm; }
         bool HasPlayers() const { return (!m_players.empty()); }
+        bool RemoveOrExtendPlayers(); //caled at reset
         uint32 GetEncounterMask() const { return m_encountersMask; }
 
         bool LoadPlayers();

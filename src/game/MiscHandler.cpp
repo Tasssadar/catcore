@@ -1587,3 +1587,39 @@ void WorldSession::HandleHearthandResurrect(WorldPacket & /*recv_data*/)
     _player->ResurrectPlayer(100);
     _player->TeleportToHomebind();
 }
+
+void WorldSession::HandleLockWarningResponse(WorldPacket & recv_data)
+{
+    uint8 bind;
+    recv_data >> bind;
+
+    // bind
+    if(bind)
+        _player->StopInstanceBindTimer(true);
+    // Teleport out
+    else
+    {
+        _player->StopInstanceBindTimer();
+        AreaTrigger const* trigger = sObjectMgr.GetMapEntranceTrigger(_player->GetMapId());
+        if(trigger)
+            _player->TeleportTo(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z, trigger->target_Orientation);
+        else
+            _player->RepopAtGraveyard();
+    }
+}
+
+void WorldSession::HandleInstanceExtend(WorldPacket & recv_data)
+{
+    uint32 map, diff;
+    uint8 unk; //maybe count
+
+    recv_data >> map;
+    recv_data >> diff;
+    recv_data >> unk;
+
+    InstanceSave *save = _player->GetBoundInstance(map, Difficulty(diff));
+    if(!save || save->IsExtended(_player->GetGUID()))
+        return;
+
+    save->ExtendFor(_player->GetGUID());
+}

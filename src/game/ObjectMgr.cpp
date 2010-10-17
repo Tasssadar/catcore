@@ -3627,6 +3627,31 @@ void ObjectMgr::LoadGroups()
 
     // -- loading instances --
     count = 0;
+    barGoLink bar2( mGroupMap.size() );
+    for (GroupMap::iterator itr = mGroupMap.begin(); itr != mGroupMap.end())
+    {
+        bar2.step();
+        if(itr->second->isBGGroup() || !itr->second->GetLeaderGUID())
+            continue;
+
+        result = CharacterDatabase.Query("SELECT instance FROM character_instance WHERE guid = '%u'", itr->second->GetLeaderGUID());
+        if (!result)
+            continue;
+
+        do
+        {
+            count++;
+            uint32 instanceId = fields[0].GetUInt32();
+            InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(instanceId);
+            if(save)
+            {
+                itr->second->BindToInstance(save, save->IsPermanent());
+            }
+
+        }while( result->NextRow() );
+        delete result;
+    }
+
     result = CharacterDatabase.Query(
         //      0                          1    2         3          4                    5
         "SELECT group_instance.leaderGuid, map, instance, permanent, instance.difficulty, resettime, "
