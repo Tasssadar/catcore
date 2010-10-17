@@ -1601,7 +1601,7 @@ void WorldSession::HandleLockWarningResponse(WorldPacket & recv_data)
     else
     {
         _player->StopInstanceBindTimer();
-        AreaTrigger const* trigger = sObjectMgr.GetMapEntranceTrigger(_player->GetMapId());
+        AreaTrigger const* trigger = sObjectMgr.GetGoBackTrigger(_player->GetMapId());
         if(trigger)
             _player->TeleportTo(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z, trigger->target_Orientation);
         else

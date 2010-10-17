@@ -1734,14 +1734,20 @@ bool InstanceMap::Add(Player *player)
             InstanceSave *gSave = player->GetBoundInstanceSaveForSelfOrGroup(GetId());
 
             // If player has perma save to this map and to another instance
-            if(save && save->IsPermanent() && save->GetGUID() != GetInstanceId())
+            if(save && save->IsPermanent() && uint32(save->GetGUID()) != uint32(GetInstanceId()))
+            {
                 return false;
+            }
             // hard bind already, some encounters done
             else if(gSave && gSave->IsPermanent() && (!save || !save->IsPermanent()))
                 player->StartInstanceBindTimer(gSave);
             // sotf bind
             else if(!save)
+            {
+                if(Group *grp = player->GetGroup())
+                    grp->AddBind(GetInstanceSave());
                 player->BindToInstance(GetInstanceSave(), false);
+            }
         }
 
         // for normal instances cancel the reset schedule when the

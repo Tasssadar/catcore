@@ -84,8 +84,8 @@ bool InstanceSave::LoadPlayers()
 void InstanceSave::SaveToDb(bool players)
 {
     CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
-    CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, perm) VALUES ('%u','%u','%u','%u');",
-        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint8(m_perm));
+    CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, resettime, perm) VALUES ('%u','%u','%u','%u','%u');",
+        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint32(resetTime), uint8(m_perm));
     
     if(!players)
         return;
@@ -178,6 +178,7 @@ bool InstanceSave::RemoveOrExtendPlayers()
     {
         uint32 period = GetMapDifficultyData(m_mapId, m_diff)->resetTime;
         resetTime += period ? period : DAY;
+        CharacterDatabase.PQuery("UPDATE instance SET resettime = '%u' WHERE id = '%u'", resetTime, m_instanceGuid.GetCounter()); 
     }
 
     return hasExtended;
@@ -197,8 +198,8 @@ InstanceSaveManager::~InstanceSaveManager()
 void InstanceSaveManager::LoadSavesFromDb()
 {
     uint32 count = 0;
-    //                                                    0   1    2           3     4
-    QueryResult *result = CharacterDatabase.Query("SELECT id, map, difficulty, perm, encountersMask FROM instance");
+    //                                                    0   1    2           3          4     5
+    QueryResult *result = CharacterDatabase.Query("SELECT id, map, difficulty, resettime, perm, encountersMask FROM instance");
 
     if ( !result )
     {
@@ -215,13 +216,14 @@ void InstanceSaveManager::LoadSavesFromDb()
 
         bar.step();
 
-        InstanceSave *save = new InstanceSave(fields[1].GetUInt32(), fields[0].GetUInt32(), Difficulty(fields[2].GetUInt8()), fields[3].GetBool(), fields[4].GetUInt32());
+        InstanceSave *save = new InstanceSave(fields[1].GetUInt32(), fields[0].GetUInt32(), Difficulty(fields[2].GetUInt8()), fields[4].GetBool(), fields[5].GetUInt32());
         if(!save->LoadPlayers())
         {
             save->DeleteFromDb();
             sLog.outError("Instance save %u has 0 players, deleting...", fields[0].GetUInt32());
             continue;
         }
+        save->SetResetTime(fields[5].GetUInt32());
         m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetGUID(), save));
         ++count;
     } while( result->NextRow() );

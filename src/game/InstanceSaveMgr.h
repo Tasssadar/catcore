@@ -41,7 +41,7 @@ class InstanceSave
         InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask = 0);
         ~InstanceSave();
 
-        uint64 const& GetGUID() const { return m_instanceGuid.GetRawValue(); }
+        uint32 GetGUID() const { return m_instanceGuid.GetCounter()(); }
         ObjectGuid const& GetObjectGuid() const { return m_instanceGuid; }
         uint32 GetMapId() const { return m_mapId;}
         uint32 GetResetTime() const { return resetTime; }
@@ -49,6 +49,7 @@ class InstanceSave
         void SetPermanent(bool yes) { if(yes && !m_perm) { m_perm = true;} }
         void ExtendFor(uint64 guid);
         void RemoveExtended(uint64 guid);
+        void SetResetTime(uint32 time) { resetTime = time; }
         bool IsExtended(uint64 guid) const { return (m_extended.find(guid) != m_extended.end()); }
         bool IsPermanent() const { return m_perm; }
         bool HasPlayers() const { return (!m_players.empty()); }

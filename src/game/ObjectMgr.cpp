@@ -3645,7 +3645,7 @@ void ObjectMgr::LoadGroups()
             uint32 instanceId = fields[0].GetUInt32();
             InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(instanceId);
             if(save)
-                itr->second->BindToInstance(save, save->IsPermanent());
+                itr->second->AddBind(save);
         }while( result->NextRow() );
         delete result;
     }
