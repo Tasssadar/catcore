@@ -62,6 +62,7 @@ enum LfgRolesNumber
     LFG_TANKS_COUNT                     = 1,
     LFG_HEALS_COUNT                     = 1,
     LFG_DPS_COUNT                       = 3,
+    LFG_GROUP                           = 5
 };
 
 enum LfgUpdateType
@@ -352,7 +353,6 @@ class MANGOS_DLL_SPEC LfgMgr
         uint32 m_updateQueuesBaseTime;
         uint32 m_updateQueuesTimer[MAX_LFG_FACTION];
         uint32 m_updateProposalTimer;
-        uint32 m_deleteInvalidTimer;
         WaitTimeMap m_waitTimes[LFG_WAIT_TIME_SLOT_MAX];
 };
 

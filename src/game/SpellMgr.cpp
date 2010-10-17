@@ -1918,6 +1918,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         spellInfo_2->Id == 42994 || spellInfo_2->Id == 43332))
                         return true;
 
+                    // Draenei racial passive (hit) 
+                    if((spellInfo_1->Id == 6562 && spellInfo_2->Id == 28878) || 
+                       (spellInfo_1->Id == 28878 && spellInfo_2->Id == 6562) )
+                        return true;
+
                     break;
                 }
                 case SPELLFAMILY_MAGE:

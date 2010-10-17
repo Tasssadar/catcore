@@ -5186,6 +5186,7 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
 
     m_target->UpdateSpeed(MOVE_WALK, true);
     m_target->UpdateSpeed(MOVE_RUN, true);
+    m_target->UpdateSpeed(MOVE_RUN_BACK, true);
     m_target->UpdateSpeed(MOVE_SWIM, true);
     m_target->UpdateSpeed(MOVE_FLIGHT, true);
 }
@@ -5198,6 +5199,7 @@ void Aura::HandleAuraModUseNormalSpeed(bool /*apply*/, bool Real)
 
     m_target->UpdateSpeed(MOVE_WALK, true);
     m_target->UpdateSpeed(MOVE_RUN, true);
+    m_target->UpdateSpeed(MOVE_RUN_BACK, true);
     m_target->UpdateSpeed(MOVE_SWIM, true);
     m_target->UpdateSpeed(MOVE_FLIGHT, true);
 }
@@ -8354,7 +8356,7 @@ void Aura::PeriodicTick()
             if (pdamage)
                 procVictim|=PROC_FLAG_TAKEN_ANY_DAMAGE;
 
-            pCaster->ProcDamageAndSpell(m_target, procAttacker, procVictim, procEx, pdamage, BASE_ATTACK, GetSpellProto());
+            pCaster->ProcDamageAndSpell(m_target, procAttacker, procVictim, procEx, pdamage,absorb, BASE_ATTACK, GetSpellProto());
 
             pCaster->DealDamage(m_target, pdamage, &cleanDamage, DOT, GetSpellSchoolMask(GetSpellProto()), GetSpellProto(), true, absorb);
 
@@ -8449,7 +8451,7 @@ void Aura::PeriodicTick()
             pdamage = (pdamage <= absorb + resist) ? 0 : (pdamage-absorb-resist);
             if (pdamage)
                 procVictim|=PROC_FLAG_TAKEN_ANY_DAMAGE;
-            pCaster->ProcDamageAndSpell(m_target, procAttacker, procVictim, procEx, pdamage, BASE_ATTACK, GetSpellProto());
+            pCaster->ProcDamageAndSpell(m_target, procAttacker, procVictim, procEx, pdamage,absorb, BASE_ATTACK, GetSpellProto());
             int32 new_damage = pCaster->DealDamage(m_target, pdamage, &cleanDamage, DOT, GetSpellSchoolMask(GetSpellProto()), GetSpellProto(), false, absorb);
 
             if (!target->isAlive() && pCaster->IsNonMeleeSpellCasted(false))
@@ -8534,7 +8536,7 @@ void Aura::PeriodicTick()
             uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC;
             uint32 procVictim   = PROC_FLAG_ON_TAKE_PERIODIC;
             uint32 procEx = PROC_EX_PERIODIC_POSITIVE | (isCrit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT);
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, GetSpellProto());
+            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain,absorbHeal, BASE_ATTACK, GetSpellProto());
             // add HoTs to amount healed in bgs
             if ( pCaster->GetTypeId() == TYPEID_PLAYER )
                 if ( BattleGround *bg = ((Player*)pCaster)->GetBattleGround() )

@@ -272,6 +272,7 @@ Unit::Unit()
 
     m_CombatTimer = 0;
     m_lastManaUseTimer = 0;
+    m_lastAuraProcRoll = -1.0f;
 
     //m_victimThreat = 0.0f;
     for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
@@ -2776,7 +2777,7 @@ void Unit::AttackerStateUpdate (Unit *pVictim, WeaponAttackType attType, bool ex
     // Send log damage message to client
     DealDamageMods(pVictim,damageInfo.damage,&damageInfo.absorb);
     SendAttackStateUpdate(&damageInfo);
-    ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+    ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage,damageInfo.absorb, damageInfo.attackType);
     DealMeleeDamage(&damageInfo,true);
 
     if (GetTypeId() == TYPEID_PLAYER)
@@ -5652,15 +5653,17 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo)
     aura->GetTarget()->SendMessageToSet(&data, true);
 }
 
-void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount, WeaponAttackType attType, SpellEntry const *procSpell)
+void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount,uint32 absorb, WeaponAttackType attType, SpellEntry const *procSpell)
 {
-     // Not much to do if no flags are set.
-    if (procAttacker)
+    // Not much to do if no flags are set.
+    // If it is a damaging/healing spell and it is fully absorbed, do not proc
+    if (procAttacker && !(!amount && absorb))
         ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount);
     // Now go on with a victim's events'n'auras
     // Not much to do if no flags are set or there is no victim
+    // amount + absorb to correctly flag active spells
     if (pVictim && pVictim->isAlive() && procVictim)
-        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount);
+        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount + absorb);
 }
 
 void Unit::SendSpellMiss(Unit *target, uint32 spellID, SpellMissInfo missInfo)
@@ -6365,6 +6368,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
             if (dummySpell->SpellIconID == 2120)
             {
                 if (!procSpell)
+                    return false;
+                // Only Clearcasting or Presence of Mind
+                if (procSpell->Id != 12536 && procSpell->Id != 12043)
                     return false;
 
                 target = this;
@@ -8451,14 +8457,6 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
-                // Item - Rogue T8 2P Bonus
-                case 64914:
-                {
-                    // Only for Deadly Poison ticks
-                    if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
-                        return false;
-                    break;
-                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
@@ -8620,6 +8618,17 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 }
                 basepoints[0] = damage * triggerAmount / 100 / 3;
                 target = this;
+            }
+            break;
+        }
+        case SPELLFAMILY_ROGUE:
+        {
+            // Item - Rogue T8 2P Bonus
+            if(auraSpellInfo->Id == 64914)
+            {
+                // Only for Deadly Poison ticks
+                if (procSpell->SpellFamilyName != SPELLFAMILY_ROGUE || !(procSpell->SpellFamilyFlags & 0x10000))
+                    return false;
             }
             break;
         }
@@ -13045,7 +13054,9 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         if (m_lastAuraProcRoll >=0) //override independent trigger
         {
             sLog.outDebug("CalculateSpellDamage: saved roll from FoF is: %f", m_lastAuraProcRoll);
-            return value > m_lastAuraProcRoll ? 100 : 0;
+            value = value > m_lastAuraProcRoll ? 100 : 0;
+            m_lastAuraProcRoll = -1.0f;
+            return value;
         }
         sLog.outDebug("CalculateSpellDamage: no  saved roll for 12494 (Frostbite)");
     }
@@ -14365,9 +14376,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
 
     RemoveSpellList removedSpells;
     ProcTriggeredList procTriggered;
-    // reset saved roll from Fingers of Frost:
-    if (GetTypeId() == TYPEID_PLAYER)
-        m_lastAuraProcRoll = -1.0f;
+
     // Fill procTriggered list
     for(AuraMap::const_iterator itr = GetAuras().begin(); itr!= GetAuras().end(); ++itr)
     {

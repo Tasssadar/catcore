@@ -73,10 +73,9 @@ bool RoleCheck::TryRoles(LfgGroup *group)
         ++itr_next;
         for(uint8 y = TANK; y <= DAMAGE; y *= 2)
         {
-            if((itr->second & y))
+            if((itr->second & y) && HasFreeRole(y))
             {
-                if(HasFreeRole(y))
-                    SetAsRole(y, itr->first);   
+                SetAsRole(y, itr->first);   
                 more_roles.erase(itr);
                 break;
             }                
@@ -89,6 +88,7 @@ bool RoleCheck::TryRoles(LfgGroup *group)
 
 LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
 {
+    m_lfgFlags = 0;
     dps.clear();
     premadePlayers.clear();
     m_answers.clear();
@@ -97,12 +97,16 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_killedBosses = 0;
     m_readycheckTimer = 0;
     m_baseLevel = 0;
-    m_groupType = premade ? GROUPTYPE_LFD_2 : GROUPTYPE_LFD;
+    //m_groupType = premade ? GROUPTYPE_LFD_2 : GROUPTYPE_LFD; <-- not sure...
+    m_groupType = GROUPTYPE_LFD;
     m_instanceStatus = INSTANCE_NOT_SAVED;
     m_dungeonInfo = NULL;
     m_originalInfo = NULL;
     m_voteKickTimer = 0;
-    m_lfgFlags = mixed ? LFG_GRP_MIXED : 0;
+    if(premade)
+        m_lfgFlags |= LFG_GRP_PREMADE;
+    if(mixed)
+        m_lfgFlags |= LFG_GRP_MIXED;
 }
 
 LfgGroup::~LfgGroup()
@@ -300,9 +304,10 @@ void LfgGroup::KilledCreature(Creature *creature)
             cur = sDungeonEncounterStore.LookupEntry(i);
             if(!cur)
                 continue;
-            if(*(cur->Name[0]) == *(creature->GetName()) &&
+
+            if(cur->Map == creature->GetMapId() && 
                 Difficulty(cur->difficulty) == creature->GetMap()->GetDifficulty() &&
-                cur->Map == creature->GetMapId())
+                *(cur->Name[0]) == *(creature->GetName()))
             {
                 found = true;
                 m_killedBosses |= (1 << cur->order);
@@ -341,7 +346,7 @@ void LfgGroup::KilledCreature(Creature *creature)
 bool LfgGroup::UpdateCheckTimer(uint32 time)
 {
     m_readycheckTimer += time;
-    if (m_readycheckTimer >= LFG_TIMER_READY_CHECK || GetMembersCount() != 5)
+    if (m_readycheckTimer >= LFG_TIMER_READY_CHECK || GetMembersCount() != LFG_GROUP)
         return false;
     return true;
 }
@@ -599,7 +604,7 @@ bool LfgGroup::SelectRandomDungeon()
         return false;
     }
     //Select dungeon, there should be also bind check
-    uint32 tmp = urand(0, options.size()-1);
+    uint32 tmp = time(NULL)%options.size();
     m_dungeonInfo = options[tmp];
     return true;
 }
@@ -608,11 +613,8 @@ bool LfgGroup::HasCorrectLevel(uint8 level)
 {
     //Non random
     if (!m_dungeonInfo->isRandom())
-    {
-        if (level >= m_dungeonInfo->minlevel && level <= m_dungeonInfo->maxlevel)
-            return true;
-        return false;
-    }
+        return (level >= m_dungeonInfo->minlevel && level <= m_dungeonInfo->maxlevel);
+
     //And random
     switch(m_dungeonInfo->grouptype)
     {
@@ -1086,6 +1088,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
             {
                 victim->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
                 victim->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
+                victim->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
                 victim->RemoveAurasDueToSpell(LFG_BOOST);
                 victim->TeleportTo(teleLoc);
             }
