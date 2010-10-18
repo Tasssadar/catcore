@@ -3005,6 +3005,9 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         else
             unk = distance*(10.411-unk);    
     }
+
+    //Stop moving before jump!
+    m_caster->StopMoving();
     
     WorldPacket data(SMSG_MONSTER_MOVE);
     data << m_caster->GetPackGUID();
