@@ -1745,8 +1745,9 @@ bool InstanceMap::Add(Player *player)
             else if(!save)
             {
                 if(Group *grp = player->GetGroup())
-                    grp->AddBind(GetInstanceSave());
-                player->BindToInstance(GetInstanceSave(), false);
+                    grp->BindToInstance(GetInstanceSave(), false);
+                else
+                    player->BindToInstance(GetInstanceSave(), false);
             }
         }
 

@@ -41,7 +41,7 @@ class InstanceSave
         InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask = 0);
         ~InstanceSave();
 
-        uint32 GetGUID() const { return m_instanceGuid.GetCounter()(); }
+        uint32 GetGUID() const { return m_instanceGuid.GetCounter(); }
         ObjectGuid const& GetObjectGuid() const { return m_instanceGuid; }
         uint32 GetMapId() const { return m_mapId;}
         uint32 GetResetTime() const { return resetTime; }

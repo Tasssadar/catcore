@@ -63,7 +63,7 @@ enum HighGuid
     HIGHGUID_PLAYER         = 0x0000,                       // blizz 0700 (temporary reverted back to 0 high guid
                                                             // in result unknown source visibility player with
                                                             // player problems. please reapply only after its resolve)
-                                                            // I've got 0x0200 on Skullcrusher(EU)
+                                                            // I've got 0x0200 on Skullcrusher(EU) and 0x0100 at Burning Blade (EU)
     HIGHGUID_GAMEOBJECT     = 0xF110,                       // blizz F110/F510
     HIGHGUID_TRANSPORT      = 0xF120,                       // blizz F120/F520 (for GAMEOBJECT_TYPE_TRANSPORT)
     HIGHGUID_UNIT           = 0xF130,                       // blizz F130/F530
