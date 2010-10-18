@@ -693,11 +693,11 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
     {
         itr_next = itr;
         ++itr_next;
-        LfgLog("RANDOM <-> SPECIFIC delete empty group %u", (*grpitr1)->GetId());
-        (*grpitr1)->Disband(true);
-        sObjectMgr.RemoveGroup(*grpitr1);
-        groups->erase(*grpitr1);
-        delete *grpitr1;
+        LfgLog("RANDOM <-> SPECIFIC delete empty group %u", (*itr)->GetId());
+        (*itr)->Disband(true);
+        sObjectMgr.RemoveGroup(*itr);
+        groups->erase(*itr);
+        delete *itr;
     }
     toRemove.clear();
 }

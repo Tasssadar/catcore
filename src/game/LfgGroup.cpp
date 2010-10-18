@@ -590,6 +590,7 @@ bool LfgGroup::SelectRandomDungeon()
     //This should not happen
     if (options.empty())
     {
+        PlayerList toRemove;
         for(member_witerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
         {
             Player *plr = sObjectMgr.GetPlayer(itr->guid);
@@ -598,8 +599,11 @@ bool LfgGroup::SelectRandomDungeon()
             sLfgMgr.SendLfgUpdatePlayer(plr, LFG_UPDATETYPE_GROUP_DISBAND);
             sLog.outError("LfgMgr: Cannot find any random dungeons for player %s", plr->GetName());
             plr->GetSession()->SendNotification("Cannot find any random dungeons for this group, you have to find new group. We are sorry");
-            RemoveMember(plr->GetGUID(), 0);
+            toRemove.insert(plr->GetGUID());     
         }
+        for(PlayerList::iterator itr = toRemove.begin(); itr != toRemove.end(); ++itr)
+            RemoveMember(*itr, 0);
+        toRemove.clear();
         sLfgMgr.AddGroupToDelete(this);
         return false;
     }
