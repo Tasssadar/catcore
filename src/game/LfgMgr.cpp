@@ -186,7 +186,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
     uint8 side = GetSideForPlayer(player);
     if (Group *group = player->GetGroup())
     {
-        LfgDungeonList queued = player->m_lokingForGroup.queuedDungeons;
+        LfgDungeonList queued = player->m_lookingForGroup.queuedDungeons;
         for (LfgDungeonList::const_iterator it = queued.begin(); it != queued.end(); ++it)
         {
             QueuedDungeonsMap::iterator itr = m_queuedDungeons[side].find((*it)->ID);
@@ -607,7 +607,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
 
     LfgDungeonList *options = GetRandomOptions(info->ID);
     QueuedDungeonsMap::iterator queue;
-    GroupList toRemove;  // We gonna need to delete some empty groups
+    GroupsList toRemove;  // We gonna need to delete some empty groups
     for(LfgDungeonList::iterator itr = options->begin(); itr != options->end(); ++itr)
     {
         queue = m_queuedDungeons[side].find((*itr)->ID);
