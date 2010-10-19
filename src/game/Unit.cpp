@@ -5243,10 +5243,10 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
 
     // Statue unsummoned at aura remove
     Totem* statue = NULL;
-    if (IsChanneledSpell(AurSpellInfo))
-        if (Unit* caster = Aur->GetCaster())
-            if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
-                statue = ((Totem*)caster);
+    Unit* caster = Aur->GetCaster();
+    if (IsChanneledSpell(AurSpellInfo) && caster)
+        if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
+            statue = ((Totem*)caster);
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura %u now is remove mode %d",Aur->GetModifier()->m_auraname, mode);
 
@@ -5280,6 +5280,9 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
         m_deletedAuras.push_back(Aur);
     else
         delete Aur;
+
+    if (mode != AURA_REMOVE_BY_EXPIRE && IsChanneledSpell(AurSpellInfo) && !IsAreaOfEffectSpell(AurSpellInfo) && caster && caster->GetGUID() != GetGUID())
+        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
 
     if (statue)
         statue->UnSummon();
