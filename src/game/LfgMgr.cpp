@@ -674,7 +674,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
 
                     (*grpitr1)->RemoveMember(plritr->first, 0);
                     (*grpitr2)->AddMember(plritr->first, plr->GetName());
-                    (*grpitr2)->SetAsRole(plritr->first, plritr->second);
+                    (*grpitr2)->SetAsRole(plritr->second, plritr->first);
                     (*grpitr2)->GetRandomPlayers()->insert(plritr->first);
                 }
                 (*grpitr2)->SetOriginalDungeonInfo(info);
@@ -721,7 +721,7 @@ void LfgMgr::UpdateFormedGroups()
         DeleteGroups();
         for(grpitr = formedGroups[i].begin(); grpitr != formedGroups[i].end(); grpitr = grpitr_next)
         {
-            LfgLog("Formed Group %u", (*grpitr)->GetId());
+            LfgLog("Formed Group %u members %u", (*grpitr)->GetId(), (*grpitr)->GetMembersCount());
             bool leave = false;
             for(ProposalAnswersMap::iterator itr = (*grpitr)->GetProposalAnswers()->begin(); itr != (*grpitr)->GetProposalAnswers()->end(); ++itr)
             {
@@ -734,7 +734,7 @@ void LfgMgr::UpdateFormedGroups()
             //this return false if  time has passed or player offline
             if (!(*grpitr)->UpdateCheckTimer(LFG_TIMER_UPDATE_PROPOSAL) || leave)
             {
-                LfgLog("Formed Group %u - times up", (*grpitr)->GetId());
+                LfgLog("Formed Group %u - times up leave %u", (*grpitr)->GetId(), leave ? 1 : 0);
                 (*grpitr)->SendProposalUpdate(LFG_PROPOSAL_FAILED);
                 
                 //Send to players..

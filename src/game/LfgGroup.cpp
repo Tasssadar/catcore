@@ -386,7 +386,7 @@ void LfgGroup::TeleportToDungeon()
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || !plr->GetSession())
             continue;
-        if (m_groupType == GROUPTYPE_LFD_2 && plr->GetGroup())
+        if (IsPremade() && plr->GetGroup())
         {
             plr->GetGroup()->UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
             m_leaderGuid = plr->GetGroup()->GetLeaderGUID();
