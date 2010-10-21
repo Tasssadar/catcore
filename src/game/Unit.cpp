@@ -5243,10 +5243,10 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
 
     // Statue unsummoned at aura remove
     Totem* statue = NULL;
-    if (IsChanneledSpell(AurSpellInfo))
-        if (Unit* caster = Aur->GetCaster())
-            if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
-                statue = ((Totem*)caster);
+    Unit* caster = Aur->GetCaster();
+    if (IsChanneledSpell(AurSpellInfo) && caster)
+        if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
+            statue = ((Totem*)caster);
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura %u now is remove mode %d",Aur->GetModifier()->m_auraname, mode);
 
@@ -5280,6 +5280,9 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
         m_deletedAuras.push_back(Aur);
     else
         delete Aur;
+
+    if (mode != AURA_REMOVE_BY_EXPIRE && IsChanneledSpell(AurSpellInfo) && !IsAreaOfEffectSpell(AurSpellInfo) && caster && caster->GetGUID() != GetGUID())
+        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
 
     if (statue)
         statue->UnSummon();
@@ -5656,8 +5659,8 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo)
 void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount,uint32 absorb, WeaponAttackType attType, SpellEntry const *procSpell)
 {
     // Not much to do if no flags are set.
-    // If it is a damaging/healing spell and it is fully absorbed, do not proc
-    if (procAttacker && !(!amount && absorb))
+    // If it is a damaging/healing spell and it is fully absorbed, do not proc ... -> seems to be incorrect, commented and solved in specific cases :/
+    if (procAttacker/* && !(!amount && absorb)*/)
         ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount);
     // Now go on with a victim's events'n'auras
     // Not much to do if no flags are set or there is no victim
@@ -7439,7 +7442,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     // triggered only at casted Judgement spells, not at additional Judgement effects
                     if (!procSpell || procSpell->Category != 1210)
                         return false;
-
+                    // Judgement must deal damage
+                    if (!damage)
+                        return false;
                     target = this;
                     triggered_spell_id = 31930;
 
@@ -8526,6 +8531,12 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
 
                 trigger_spell_id = 12721;
                 break;
+            }
+            // Taste for blood, Rend must deal damage
+            else if (auraSpellInfo->Id == 56636 || auraSpellInfo->Id == 56637 || auraSpellInfo->Id == 56638)
+            {
+                if (!damage)
+                    return;
             }
             if (auraSpellInfo->Id == 50421)             // Scent of Blood
                 trigger_spell_id = 50422;

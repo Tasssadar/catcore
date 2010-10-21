@@ -704,7 +704,7 @@ void Aura::Update(uint32 diff)
 
             if (!caster->IsWithinDistInMap(m_target, max_range))
             {
-                m_target->RemoveAurasByCasterSpell(GetId(), GetEffIndex(), GetCasterGUID());
+                caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
                 return;
             }
         }
@@ -2724,14 +2724,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             //Remove arcane blast
             if (Unit* caster = GetCaster())
                 caster->RemoveAurasDueToSpell(36032);
-
-            //Stop channeling at death
-            if (m_removeMode == AURA_REMOVE_BY_DEATH)
-            {
-                if (Unit* caster = GetCaster())
-                    caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
-                return;
-            }
         }
     }
 
@@ -4133,7 +4125,6 @@ void Aura::HandleModPossess(bool apply, bool Real)
     }
     else
     {
-        p_caster->InterruptSpell(CURRENT_CHANNELED_SPELL);  // the spell is not automatically canceled when interrupted, do it now
         p_caster->SetCharm(NULL);
 
         camera.ResetView();
