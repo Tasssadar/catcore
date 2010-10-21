@@ -44,7 +44,7 @@ INSTANTIATE_SINGLETON_1( InstanceSaveManager );
 InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask)
 {
     m_mapId = MapId;
-    m_instanceGuid = (uint64(InstanceId) | (uint64(HIGHGUID_INSTANCE) << 48));
+    m_instanceGuid = MAKE_NEW_GUID(InstanceId, 0, HIGHGUID_INSTANCE);
     m_diff = difficulty;
     m_perm = perm;
     m_encountersMask = encountersMask;
@@ -135,7 +135,7 @@ void InstanceSave::UpdateId(uint32 id)
     CharacterDatabase.PQuery("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter());
     WorldDatabase.PQuery("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter()); 
     WorldDatabase.PQuery("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", id, m_instanceGuid.GetCounter()); 
-    m_instanceGuid = (uint64(id) | (uint64(HIGHGUID_INSTANCE) << 48));
+    m_instanceGuid = MAKE_NEW_GUID(id, 0, HIGHGUID_INSTANCE);
 }
 
 void InstanceSave::DeleteFromDb()
@@ -272,10 +272,7 @@ InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, D
     error_log("ID: %u", id);
     InstanceSave* save = GetInstanceSave(id);
     if(id && save)
-    {
-        error_log("mam");
         return save;
-    }
 
     id = sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE);
     save = new InstanceSave(mapId, id, difficulty, perm);
