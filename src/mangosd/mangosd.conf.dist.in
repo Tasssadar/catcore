@@ -1,4 +1,4 @@
-﻿#####################################
+#####################################
 # MaNGOS Configuration file         #
 #####################################
 
@@ -720,7 +720,7 @@ LogColors = ""
 
 GameType = 1
 RealmZone = 1
-Expansion = 2
+Expansion = 3
 DBC.Locale = 255
 DeclinedNames = 0
 StrictPlayerNames = 0
@@ -735,7 +735,7 @@ CharactersPerRealm = 10
 HeroicCharactersPerRealm = 1
 MinLevelForHeroicCharacterCreating = 55
 SkipCinematics = 0
-MaxPlayerLevel = 80
+MaxPlayerLevel = 85
 StartPlayerLevel = 1
 StartHeroicPlayerLevel = 55
 StartPlayerMoney = 0
@@ -1118,7 +1118,7 @@ GM.AllowAchievementGain  = 1
 #    Visibility.Distance.Grey.Unit
 #        Visibility grey distance for creatures/players (fast changing objects)
 #        addition to appropriate object type Visibility.Distance.* use in case visibility removing to
-#        object (except corpse around distences) If � is distance and G is grey distance then object
+#        object (except corpse around distences) If ? is distance and G is grey distance then object
 #        make visible if distance to it <= D but make non visible if distance > D+G
 #        Default: 1 (yard)
 #

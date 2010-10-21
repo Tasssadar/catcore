@@ -1165,17 +1165,17 @@ void Pet::_LoadAuras(uint32 timediff)
             }
 
             // prevent wrong values of remaincharges
-            if (spellproto->procCharges)
+            uint32 procCharges = spellproto->GetProcCharges();
+            if(procCharges)
             {
-                if (remaincharges <= 0 || remaincharges > (int32)spellproto->procCharges)
-                    remaincharges = spellproto->procCharges;
+                if(remaincharges <= 0 || remaincharges > (int32)procCharges)
+                    remaincharges = procCharges;
             }
             else
                 remaincharges = 0;
 
-            /// do not load single target auras (unless they were cast by the player)
-            if (caster_guid != GetGUID() && IsSingleTargetSpell(spellproto))
-                continue;
+            if (spellproto->GetStackAmount() < stackcount)
+                stackcount = spellproto->GetStackAmount();
 
             for(uint32 i=0; i < stackcount; ++i)
             {
@@ -1420,7 +1420,7 @@ void Pet::InitLevelupSpellsForLevel()
                 continue;
 
             // will called first if level down
-            if (spellEntry->spellLevel > level)
+            if(spellEntry->GetSpellLevel() > level)
                 unlearnSpell(spellEntry->Id,true);
             // will called if level up
             else
