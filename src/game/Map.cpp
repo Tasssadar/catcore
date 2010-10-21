@@ -1074,12 +1074,6 @@ float Map::GetHeight(float x, float y, float z, bool pUseVmaps, float maxSearchD
         VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
         if (vmgr->isHeightCalcEnabled())
         {
-            // if mapHeight has been found search vmap height at least until mapHeight point
-            // this prevent case when original Z "too high above ground and vmap height search fail"
-            // this will not affect most normal cases (no map in instance, or stay at ground at continent)
-            if (mapHeight > INVALID_HEIGHT && z2 - mapHeight > maxSearchDist)
-                maxSearchDist = z2 - mapHeight + 1.0f;      // 1.0 make sure that we not fail for case when map height near but above for vamp height
-
             // look from a bit higher pos to find the floor
             vmapHeight = vmgr->getHeight(GetId(), x, y, z2, maxSearchDist);
         }
@@ -1108,7 +1102,12 @@ float Map::GetHeight(float x, float y, float z, bool pUseVmaps, float maxSearchD
         else
             return vmapHeight;                              // we have only vmapHeight (if have)
     }
-
+    else if (pUseVmaps && z2 - mapHeight > maxSearchDist)
+    {
+        // with vmaps we can only give definite result up to maxSearchDist,
+        // in other cases mapHeight might or might not be the true height.
+        return VMAP_INVALID_HEIGHT_VALUE;
+    }
     return mapHeight;
 }
 
