@@ -83,12 +83,12 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     if (!GetPlayer()->GetMap()->Add(GetPlayer()))
     {
         //if player wasn't added to map, reset his map pointer!
-        GetPlayer()->ResetMap();
+        //GetPlayer()->ResetMap();
 
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far but couldn't be added to map. (map:%u, x:%f, y:%f, "
-            "z:%f) We port him to his homebind instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
-        // teleport the player home
-        GetPlayer()->TeleportToHomebind();
+            "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+        // teleport to the graveyard
+        GetPlayer()->RepopAtGraveyard();
         return;
     }
 
@@ -148,9 +148,10 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         {
             if (mapDiff->resetTime)
             {
-                if (time_t timeReset = sInstanceSaveMgr.GetScheduler().GetResetTimeFor(mEntry->MapID,diff))
+                InstanceSave *save = GetPlayer()->GetBoundInstance(mEntry->MapID,diff);
+                if (save)
                 {
-                    uint32 timeleft = uint32(timeReset - time(NULL));
+                    uint32 timeleft = uint32(save->GetResetTime() - time(NULL));
                     GetPlayer()->SendInstanceResetWarning(mEntry->MapID, diff, timeleft);
                 }
             }

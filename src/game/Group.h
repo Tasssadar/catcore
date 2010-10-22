@@ -152,15 +152,6 @@ class Roll : public LootValidatorRef
         uint8 itemSlot;
 };
 
-struct InstanceGroupBind
-{
-    InstanceSave *save;
-    bool perm;
-    /* permanent InstanceGroupBinds exist iff the leader has a permanent
-       PlayerInstanceBind for the same instance. */
-    InstanceGroupBind() : save(NULL), perm(false) {}
-};
-
 /** request member stats checken **/
 /** todo: uninvite people that not accepted invite **/
 class MANGOS_DLL_SPEC Group
@@ -176,7 +167,7 @@ class MANGOS_DLL_SPEC Group
         typedef std::list<MemberSlot> MemberSlotList;
         typedef MemberSlotList::const_iterator member_citerator;
 
-        typedef UNORDERED_MAP< uint32 /*mapId*/, InstanceGroupBind> BoundInstancesMap;
+        typedef UNORDERED_MAP< uint32 /*mapId*/, InstanceSave*> BoundInstancesMap;
     protected:
         typedef MemberSlotList::iterator member_witerator;
         typedef std::set<Player*> InvitesList;
@@ -357,10 +348,11 @@ class MANGOS_DLL_SPEC Group
         void LinkMember(GroupReference *pRef) { m_memberMgr.insertFirst(pRef); }
         void DelinkMember(GroupReference* /*pRef*/ ) { }
 
-        InstanceGroupBind* BindToInstance(InstanceSave *save, bool permanent, bool load = false);
-        void UnbindInstance(uint32 mapid, uint8 difficulty, bool unload = false);
-        InstanceGroupBind* GetBoundInstance(uint32 mapId, Player* player);
-        InstanceGroupBind* GetBoundInstance(Map* aMap, Difficulty difficulty);
+        void AddBind(InstanceSave *save);
+        void BindToInstance(InstanceSave *save, bool permanent);
+        void UnbindInstance(uint32 mapid, uint8 difficulty);
+        InstanceSave* GetBoundInstance(uint32 mapId, Player* player);
+        InstanceSave* GetBoundInstance(Map* aMap, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
 
     protected:

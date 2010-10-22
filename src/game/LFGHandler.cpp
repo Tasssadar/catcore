@@ -69,7 +69,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         }    
     }
     //TODO: Implement this
-    else if (count > 1)
+    else if (count > 1 || (player->GetMap()->IsDungeon() && (!player->GetGroup() || !player->GetGroup()->isLfgGroup())))
         error = LFG_JOIN_DUNGEON_INVALID;
 
     if (error != LFG_JOIN_OK)
@@ -119,6 +119,8 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
                         error = LFG_JOIN_PARTY_DESERTER;
                     else if (dungeonInfo->type == LFG_TYPE_RANDOM && plr->HasAura(LFG_RANDOM_COOLDOWN))
                         error = LFG_JOIN_PARTY_RANDOM_COOLDOWN;
+                    else if(sLfgMgr.IsPlayerInQueue(citr->guid))
+                        error = LFG_JOIN_DISCONNECTED;
                 }
             }
         }

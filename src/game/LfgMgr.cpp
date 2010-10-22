@@ -27,6 +27,7 @@
 #include "ProgressBar.h"
 #include "Unit.h"
 #include "SpellAuras.h"
+#include "InstanceSaveMgr.h"
 
 #include "Policies/SingletonImp.h"
 
@@ -1049,7 +1050,7 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
         }
         type = LFG_LOCKSTATUS_OK;
         DungeonInfoMap::iterator itr = m_dungeonInfoMap.find(currentRow->ID);
-        InstancePlayerBind *playerBind = plr->GetBoundInstance(currentRow->map, Difficulty(currentRow->heroic));
+        InstanceSave *playerBind = plr->GetBoundInstance(currentRow->map, Difficulty(currentRow->heroic));
 
         if (currentRow->expansion > plr->GetSession()->Expansion())
             type = LFG_LOCKSTATUS_INSUFFICIENT_EXPANSION;
@@ -1057,7 +1058,7 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
             type = LFG_LOCKSTATUS_TOO_LOW_LEVEL;
         else if (plr->getLevel() > maxlevel)
             type = LFG_LOCKSTATUS_TOO_HIGH_LEVEL;
-        else if ((playerBind && playerBind->perm) || (itr != m_dungeonInfoMap.end() && itr->second->locked) || itr == m_dungeonInfoMap.end())
+        else if ((playerBind && playerBind->IsPermanent()) || (itr != m_dungeonInfoMap.end() && itr->second->locked) || itr == m_dungeonInfoMap.end())
             type = LFG_LOCKSTATUS_RAID_LOCKED;
         else if (AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(currentRow->map))
         {

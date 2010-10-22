@@ -3627,63 +3627,25 @@ void ObjectMgr::LoadGroups()
 
     // -- loading instances --
     count = 0;
-    result = CharacterDatabase.Query(
-        //      0                          1    2         3          4                    5
-        "SELECT group_instance.leaderGuid, map, instance, permanent, instance.difficulty, resettime, "
-        // 6
-        "(SELECT COUNT(*) FROM character_instance WHERE guid = group_instance.leaderGuid AND instance = group_instance.instance AND permanent = 1 LIMIT 1), "
-        // 7
-        " groups.groupId "
-        "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN groups ON groups.leaderGUID = group_instance.leaderGUID ORDER BY leaderGuid"
-    );
-
-    if (!result)
+    barGoLink bar2( mGroupMap.size() );
+    for (GroupMap::iterator itr = mGroupMap.begin(); itr != mGroupMap.end();++itr)
     {
-        barGoLink bar2( 1 );
         bar2.step();
-    }
-    else
-    {
-        Group* group = NULL;                                // used as cached pointer for avoid relookup group for each member
+        if(itr->second->isBGGroup() || !itr->second->GetLeaderGUID())
+            continue;
 
-        barGoLink bar2( (int)result->GetRowCount() );
+        result = CharacterDatabase.PQuery("SELECT instance FROM character_instance WHERE guid = '%u'", itr->second->GetLeaderGUID());
+        if (!result)
+            continue;
+
         do
         {
-            bar2.step();
-            Field *fields = result->Fetch();
             count++;
-
-            uint32 leaderGuidLow = fields[0].GetUInt32();
-            uint32 mapId = fields[1].GetUInt32();
-            Difficulty diff = (Difficulty)fields[4].GetUInt8();
-            uint32 groupId = fields[7].GetUInt32();
-
-            if (!group || group->GetId() != groupId)
-            {
-                // find group id in map by leader low guid
-                group = GetGroupById(groupId);
-                if (!group)
-                {
-                    sLog.outErrorDb("Incorrect entry in group_instance table : no group with leader %d", leaderGuidLow);
-                    continue;
-                }
-            }
-
-            MapEntry const* mapEntry = sMapStore.LookupEntry(mapId);
-            if (!mapEntry || !mapEntry->IsDungeon())
-            {
-                sLog.outErrorDb("Incorrect entry in group_instance table : no dungeon map %d", mapId);
-                continue;
-            }
-
-            if (diff >= (mapEntry->IsRaid() ? MAX_RAID_DIFFICULTY : MAX_DUNGEON_DIFFICULTY))
-            {
-                sLog.outErrorDb("Wrong dungeon difficulty use in group_instance table: %d", diff + 1);
-                diff = REGULAR_DIFFICULTY;                  // default for both difficaly types
-            }
-
-            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapEntry->MapID, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
-            group->BindToInstance(save, fields[3].GetBool(), true);
+            Field *fields = result->Fetch();
+            uint32 instanceId = fields[0].GetUInt32();
+            InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(instanceId);
+            if(save)
+                itr->second->AddBind(save);
         }while( result->NextRow() );
         delete result;
     }
@@ -6155,6 +6117,12 @@ void ObjectMgr::SetHighestGuids()
         m_GroupIds.Set((*result)[0].GetUInt32()+1);
         delete result;
     }
+    result = CharacterDatabase.Query( "SELECT MAX(id) FROM instance" );
+    if (result)
+    {
+        m_InstanceGuids.Set((*result)[0].GetUInt32()+1);
+        delete result;
+    }
 }
 
 uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
@@ -6173,6 +6141,8 @@ uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)
             return m_GameobjectGuids.Generate();
         case HIGHGUID_CORPSE:
             return m_CorpseGuids.Generate();
+        case HIGHGUID_INSTANCE:
+            return m_InstanceGuids.Generate();
         default:
             ASSERT(0);
     }

@@ -693,6 +693,8 @@ class MANGOS_DLL_SPEC WorldSession
         void HandleWhoisOpcode(WorldPacket& recv_data);
         void HandleResetInstancesOpcode(WorldPacket& recv_data);
         void HandleHearthandResurrect(WorldPacket & recv_data);
+        void HandleLockWarningResponse(WorldPacket & recv_data);
+        void HandleInstanceExtend(WorldPacket & recv_data);
 
         // Looking for Dungeon/Raid
         void HandleLfgJoinOpcode(WorldPacket& recv_data);

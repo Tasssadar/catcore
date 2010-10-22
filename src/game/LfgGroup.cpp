@@ -125,9 +125,9 @@ LfgGroup::~LfgGroup()
     // it is undefined whether objectmgr (which stores the groups) or instancesavemgr
     // will be unloaded first so we must be prepared for both cases
     // this may unload some instance saves
-    for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
-        for(BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
-            itr2->second.save->RemoveGroup(this);
+   // for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
+     //   for(BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
+       //     itr2->second.save->RemoveGroup(this);
 
     // Mangos structure expect that this is called separately
     //sObjectMgr.RemoveGroup(this);
@@ -414,6 +414,9 @@ void LfgGroup::TeleportToDungeon()
     //sort group members...
     UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
     CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId ='%u'", m_Id);
+    ResetInstances(INSTANCE_RESET_ALL, true, NULL);
+    ResetInstances(INSTANCE_RESET_GROUP_DISBAND, true, NULL);
+
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
@@ -452,6 +455,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         plr->UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,false);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,true);
+        plr->ResetInstances(INSTANCE_RESET_ALL, true);
+        plr->ResetInstances(INSTANCE_RESET_ALL, false);
 
         if (plr->getLevel() >= LEVELREQUIREMENT_HEROIC)
         {
