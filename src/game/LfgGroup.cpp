@@ -414,6 +414,9 @@ void LfgGroup::TeleportToDungeon()
     //sort group members...
     UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
     CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId ='%u'", m_Id);
+    ResetInstances(INSTANCE_RESET_ALL, true, NULL);
+    ResetInstances(INSTANCE_RESET_GROUP_DISBAND, true, NULL);
+
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
@@ -452,6 +455,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         plr->UnbindInstance(dungeonInfo->start_map, m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,false);
         plr->ResetInstances(INSTANCE_RESET_GROUP_JOIN,true);
+        plr->ResetInstances(INSTANCE_RESET_ALL, true);
+        plr->ResetInstances(INSTANCE_RESET_ALL, false);
 
         if (plr->getLevel() >= LEVELREQUIREMENT_HEROIC)
         {
