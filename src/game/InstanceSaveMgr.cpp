@@ -68,7 +68,7 @@ InstanceSave::~InstanceSave()
 
 void InstanceSave::SetPermanent(bool yes)
 {
-    if(yes && !m_perm && (m_diff != DUNGEON_DIFFICULTY_NORMAL || mapEntry->IsRaid())
+    if(yes && !m_perm && (m_diff != DUNGEON_DIFFICULTY_NORMAL || mapEntry->IsRaid()))
     {
         m_perm = true;
         CharacterDatabase.PQuery("UPDATE instance SET perm = '%u' WHERE id = '%u'", 1, m_instanceGuid.GetCounter());

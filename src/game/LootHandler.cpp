@@ -33,6 +33,10 @@
 
 void WorldSession::HandleAutostoreLootItemOpcode( WorldPacket & recv_data )
 {
+    // Cant loot anything while timer is in progress
+    if(_player->IsInstanceBindInProgress())
+        return;
+
     DEBUG_LOG("WORLD: CMSG_AUTOSTORE_LOOT_ITEM");
     Player  *player =   GetPlayer();
     ObjectGuid lguid = player->GetLootGUID();
@@ -477,6 +481,10 @@ void WorldSession::HandleLootMasterGiveOpcode( WorldPacket & recv_data )
 
     Player *target = ObjectAccessor::FindPlayer(target_playerguid);
     if (!target)
+        return;
+
+    // Cant loot anything while timer is in progress
+    if(target->IsInstanceBindInProgress())
         return;
 
     DEBUG_LOG("WorldSession::HandleLootMasterGiveOpcode (CMSG_LOOT_MASTER_GIVE, 0x02A3) Target = %s [%s].", target_playerguid.GetString().c_str(), target->GetName());

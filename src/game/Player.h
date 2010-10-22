@@ -2336,6 +2336,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             m_instanceBindTimer = -1;
             m_bindTimerSave = NULL;
         }
+        bool IsInstanceBindInProgress() const { return (m_instanceBindTimer != -1); }
         static void ConvertInstancesToGroup(Player *leader, Group *group);
         uint32 GetInstanceTimerId() const;
 
