@@ -44,6 +44,7 @@ INSTANTIATE_SINGLETON_1( InstanceSaveManager );
 InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficulty, bool perm, uint32 encountersMask)
 {
     m_mapId = MapId;
+    mapEntry = sMapStore.LookupEntry(m_mapId);
     m_instanceGuid = MAKE_NEW_GUID(InstanceId, 0, HIGHGUID_INSTANCE);
     m_diff = difficulty;
     m_perm = perm;
@@ -63,6 +64,24 @@ InstanceSave::~InstanceSave()
 {
     m_players.clear();
     m_extended.clear();
+}
+
+void InstanceSave::SetPermanent(bool yes)
+{
+    if(yes && !m_perm && (m_diff != DUNGEON_DIFFICULTY_NORMAL || mapEntry->IsRaid())
+    {
+        m_perm = true;
+        CharacterDatabase.PQuery("UPDATE instance SET perm = '%u' WHERE id = '%u'", 1, m_instanceGuid.GetCounter());
+    }
+}
+
+void InstanceSave::AddEncounter(uint32 mask)
+{
+    if(m_encountersMask & mask)
+        return;
+
+    m_encountersMask |= mask;
+    CharacterDatabase.PQuery("UPDATE instance SET encountersMask = '%u' WHERE id = '%u'", m_encountersMask, m_instanceGuid.GetCounter());
 }
 
 bool InstanceSave::LoadPlayers()

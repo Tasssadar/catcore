@@ -1893,19 +1893,27 @@ void InstanceMap::PermBindAllPlayers(Player *player)
         // some players may already be permanently bound, in this case nothing happens
         InstanceSave *bind = plr->GetBoundInstance(GetId(), GetDifficulty());
         if (!bind || !bind->IsPermanent())
-        {
             plr->BindToInstance(GetInstanceSave(), true);
-            WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
-            data << uint32(0);
-            plr->GetSession()->SendPacket(&data);
+    }
+}
 
-            data.Initialize(SMSG_CALENDAR_RAID_LOCKOUT_ADDED, 24);
-            data << uint32(secsToTimeBitFields(time(NULL)));
-            data << uint32(GetId());
-            data << uint32(GetDifficulty());
-            data << uint32(GetInstanceSave()->GetResetTime() - time(NULL));
-            data << uint64(GetInstanceSave()->GetObjectGuid().GetRawValue());
-            player->GetSession()->SendPacket(&data);
+void InstanceMap::KilledCreature(const char* name)
+{
+    if(!GetInstanceSave())
+        return;
+
+    DungeonEncounterEntry const *cur = NULL;
+    for (uint32 i = 0; i < sDungeonEncounterStore.GetNumRows(); ++i)
+    {
+        cur = sDungeonEncounterStore.LookupEntry(i);
+        if(!cur)
+            continue;
+
+        if(cur->Map == GetId() && Difficulty(cur->difficulty) == GetDifficulty() &&
+            *(cur->Name[0]) == *(name))
+        {
+            GetInstanceSave()->AddEncounter(1 << cur->order);
+            break;
         }
     }
 }
