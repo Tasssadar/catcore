@@ -214,7 +214,7 @@ void GameObject::Update(uint32 p_time)
                             udata.BuildPacket(&packet);
                             ((Player*)caster)->GetSession()->SendPacket(&packet);
 
-                            SendGameObjectCustomAnim(GetGUID(), GetGoAnimProgress());
+                            SendGameObjectCustomAnim(GetGUID(), 0);
                         }
 
                         m_lootState = GO_READY;                 // can be successfully open with some chance
