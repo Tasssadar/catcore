@@ -83,7 +83,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     if (!GetPlayer()->GetMap()->Add(GetPlayer()))
     {
         //if player wasn't added to map, reset his map pointer!
-        GetPlayer()->ResetMap();
+        //GetPlayer()->ResetMap();
 
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far but couldn't be added to map. (map:%u, x:%f, y:%f, "
             "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);

@@ -1743,8 +1743,8 @@ bool InstanceMap::Add(Player *player)
                 return false;
             }
             // hard bind already, some encounters done
-            else if(gSave && gSave->IsPermanent() && (!save || !save->IsPermanent()))
-                player->StartInstanceBindTimer(gSave);
+            else if(((gSave && gSave->IsPermanent()) || GetInstanceSave()->IsPermanent())  && (!save || !save->IsPermanent()))
+                player->StartInstanceBindTimer(gSave ? gSave : GetInstanceSave());
             // sotf bind
             else if(!save)
             {
