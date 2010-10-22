@@ -242,7 +242,11 @@ void InstanceSaveManager::LoadSavesFromDb()
             sLog.outError("Instance save %u has 0 players, deleting...", fields[0].GetUInt32());
             continue;
         }
-        save->SetResetTime(fields[3].GetUInt32());
+        // if its 0, then leave recalculated time
+        if(fields[3].GetUInt32() == 0)
+            save->SaveToDb(false);
+        else
+            save->SetResetTime(fields[3].GetUInt32());
         m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetGUID(), save));
         ++count;
     } while( result->NextRow() );
