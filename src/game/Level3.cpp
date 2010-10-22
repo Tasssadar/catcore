@@ -6531,7 +6531,7 @@ bool ChatHandler::HandleFlushArenaPointsCommand(const char * /*args*/)
         SendSysMessage("As confirmation, please run the AP Flush once again!");
         sWorld.apFlushWaitingForConfirm = true;
         sWorld.apFlushWaitingForConfirmTimer = 60000;
-        return false;
+        return true;
     }
 
     sBattleGroundMgr.DistributeArenaPoints();

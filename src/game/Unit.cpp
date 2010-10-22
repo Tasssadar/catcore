@@ -272,6 +272,7 @@ Unit::Unit()
 
     m_CombatTimer = 0;
     m_lastManaUseTimer = 0;
+    m_lastAuraProcRoll = -1.0f;
 
     //m_victimThreat = 0.0f;
     for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
@@ -3427,7 +3428,7 @@ SpellMissInfo Unit::SpellHitResult(Unit *pVictim, SpellEntry const *spell, bool 
         if (reflectchance > 0 && roll_chance_i(reflectchance))
         {
             // Start triggers for remove charges if need (trigger only for victim, and mark as active spell)
-            ProcDamageAndSpell(pVictim, PROC_FLAG_NONE, PROC_FLAG_TAKEN_NEGATIVE_SPELL_HIT, PROC_EX_REFLECT, 1, 0, BASE_ATTACK, spell);
+            ProcDamageAndSpell(pVictim, PROC_FLAG_NONE, PROC_FLAG_TAKEN_NEGATIVE_SPELL_HIT, PROC_EX_REFLECT, 1, 1, BASE_ATTACK, spell);
             return SPELL_MISS_REFLECT;
         }
     }
@@ -5236,10 +5237,10 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
 
     // Statue unsummoned at aura remove
     Totem* statue = NULL;
-    if (IsChanneledSpell(AurSpellInfo))
-        if (Unit* caster = Aur->GetCaster())
-            if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
-                statue = ((Totem*)caster);
+    Unit* caster = Aur->GetCaster();
+    if (IsChanneledSpell(AurSpellInfo) && caster)
+        if (caster->GetTypeId()==TYPEID_UNIT && ((Creature*)caster)->isTotem() && ((Totem*)caster)->GetTotemType()==TOTEM_STATUE)
+            statue = ((Totem*)caster);
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura %u now is remove mode %d",Aur->GetModifier()->m_auraname, mode);
 
@@ -5273,6 +5274,9 @@ void Unit::RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode)
         m_deletedAuras.push_back(Aur);
     else
         delete Aur;
+
+    if (mode != AURA_REMOVE_BY_EXPIRE && IsChanneledSpell(AurSpellInfo) && !IsAreaOfEffectSpell(AurSpellInfo) && caster && caster->GetGUID() != GetGUID())
+        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
 
     if (statue)
         statue->UnSummon();
@@ -5649,8 +5653,8 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo)
 void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount,uint32 absorb, WeaponAttackType attType, SpellEntry const *procSpell)
 {
     // Not much to do if no flags are set.
-    // If it is a damaging/healing spell and it is fully absorbed, do not proc
-    if (procAttacker && !(!amount && absorb))
+    // If it is a damaging/healing spell and it is fully absorbed, do not proc ... -> seems to be incorrect, commented and solved in specific cases :/
+    if (procAttacker/* && !(!amount && absorb)*/)
         ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount);
     // Now go on with a victim's events'n'auras
     // Not much to do if no flags are set or there is no victim
@@ -7432,7 +7436,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     // triggered only at casted Judgement spells, not at additional Judgement effects
                     if (!procSpell || procSpell->Category != 1210)
                         return false;
-
+                    // Judgement must deal damage
+                    if (!damage)
+                        return false;
                     target = this;
                     triggered_spell_id = 31930;
 
@@ -8519,6 +8525,12 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
 
                 trigger_spell_id = 12721;
                 break;
+            }
+            // Taste for blood, Rend must deal damage
+            else if (auraSpellInfo->Id == 56636 || auraSpellInfo->Id == 56637 || auraSpellInfo->Id == 56638)
+            {
+                if (!damage)
+                    return;
             }
             if (auraSpellInfo->Id == 50421)             // Scent of Blood
                 trigger_spell_id = 50422;
@@ -13047,7 +13059,9 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         if (m_lastAuraProcRoll >=0) //override independent trigger
         {
             sLog.outDebug("CalculateSpellDamage: saved roll from FoF is: %f", m_lastAuraProcRoll);
-            return value > m_lastAuraProcRoll ? 100 : 0;
+            value = value > m_lastAuraProcRoll ? 100 : 0;
+            m_lastAuraProcRoll = -1.0f;
+            return value;
         }
         sLog.outDebug("CalculateSpellDamage: no  saved roll for 12494 (Frostbite)");
     }
@@ -14367,9 +14381,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
 
     RemoveSpellList removedSpells;
     ProcTriggeredList procTriggered;
-    // reset saved roll from Fingers of Frost:
-    if (GetTypeId() == TYPEID_PLAYER)
-        m_lastAuraProcRoll = -1.0f;
+
     // Fill procTriggered list
     for(AuraMap::const_iterator itr = GetAuras().begin(); itr!= GetAuras().end(); ++itr)
     {
