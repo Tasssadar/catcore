@@ -17090,17 +17090,14 @@ void Player::UnbindInstance(uint32 mapid, Difficulty difficulty)
 
 void Player::BindToInstance(InstanceSave* save, bool permanent)
 {
-    save->AddPlayer(GetGUIDLow());
-    save->SetPermanent(permanent);
-
     BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
     if(itr == m_boundInstances[save->GetDifficulty()].end())
         m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(save->GetGUID() != itr->second->GetGUID())
-    {
-        itr->second->RemovePlayer(GetGUIDLow());
         itr->second = save;
-    }
+
+    save->AddPlayer(GetGUIDLow());
+    save->SetPermanent(permanent);  
 
     if(permanent)
     {
@@ -17173,7 +17170,7 @@ void Player::SendRaidInfo()
                 data << uint32(itr->second->GetDifficulty());      // difficulty
                 data << uint64(itr->second->GetObjectGuid().GetRawValue());// instance id
                 data << uint8(1);                                  // expired = 0
-                data << uint8(itr->second->IsExtended(GetGUIDLow()));  // extended = 1
+                data << uint8(itr->second->IsExtended(GetGUID()));  // extended = 1
                 uint32 resetTime = itr->second->GetResetTime();
                 uint32 resetPeriod = GetMapDifficultyData(itr->second->GetMapId(), itr->second->GetDifficulty())->resetTime;
                 if(itr->second->IsExtended(GetGUIDLow()))

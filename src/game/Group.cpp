@@ -1741,7 +1741,7 @@ void Group::BindToInstance(InstanceSave *save, bool permanent)
     if(!bind)
         m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(bind->GetGUID() != save->GetGUID())
-        m_boundInstances[save->GetDifficulty()][save->GetMapId()] = save;
+        save = m_boundInstances[save->GetDifficulty()][save->GetMapId()];
 
     Player *plr = NULL;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)

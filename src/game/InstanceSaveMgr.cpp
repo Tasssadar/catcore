@@ -239,7 +239,7 @@ void InstanceSaveManager::LoadSavesFromDb()
         if(!save->LoadPlayers())
         {
             save->DeleteFromDb();
-            sLog.outError("Instance save %u has 0 players, deleting...", fields[0].GetUInt32());
+            sLog.outError("Instance save %u (map %u) has 0 players, deleting...", fields[0].GetUInt32(), fields[1].GetUInt32());
             continue;
         }
         // if its 0, then leave recalculated time
