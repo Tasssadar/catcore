@@ -5009,8 +5009,8 @@ void Unit::RemoveAurasWithDispelType( DispelType type )
 void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
-    // if aura is removed by dispel, has some charges and is positive - currently used only for offensive dispel
-    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && i->second->IsPositive())
+    // Earth Shield - Remove charges
+    if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN && (spell->SpellFamilyFlags & UI64LIT(0x0000040000000000)))
     {
         //drop charge and if it was last one, remove aura
         if(i->second->DropAuraCharge())
