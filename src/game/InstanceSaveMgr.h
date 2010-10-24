@@ -58,7 +58,7 @@ class InstanceSave
         void AddEncounter(uint32 mask);
 
         bool LoadPlayers();
-        void SaveToDb(bool players = false);
+        void SaveToDb(bool players = false, bool data = false);
         void DeleteFromDb();
         void RemoveAndDelete();
         void AddPlayer(uint64 guid);

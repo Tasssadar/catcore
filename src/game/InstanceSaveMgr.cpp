@@ -100,11 +100,25 @@ bool InstanceSave::LoadPlayers()
     return true;
 }
 
-void InstanceSave::SaveToDb(bool players)
+void InstanceSave::SaveToDb(bool players, bool data)
 {
+    std::string data_db = "";
+    if(data)
+    {
+        QueryResult* result = CharacterDatabase.PQuery("SELECT data FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
+        if (result)
+        {
+            Field* fields = result->Fetch();
+            const char* data1 = fields[0].GetString();
+            if (data1)
+                data_db = data1;
+            delete result;
+        }
+    }
+    CharacterDatabase.escape_string(data_db);
     CharacterDatabase.PQuery("DELETE FROM instance WHERE id = '%u'", m_instanceGuid.GetCounter());
-    CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, resettime, perm) VALUES ('%u','%u','%u','%u','%u');",
-        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint32(resetTime), uint8(m_perm));
+    CharacterDatabase.PQuery("INSERT INTO instance (id, map, difficulty, resettime, perm, data) VALUES ('%u','%u','%u','%u','%u','%s');",
+        uint32(m_instanceGuid.GetCounter()), uint32(m_mapId), uint8(m_diff), uint32(resetTime), uint8(m_perm), data_db.c_str());
     
     if(!players)
         return;
@@ -198,6 +212,7 @@ bool InstanceSave::RemoveOrExtendPlayers()
         uint32 period = GetMapDifficultyData(m_mapId, m_diff)->resetTime;
         resetTime += period ? period : DAY;
         CharacterDatabase.PQuery("UPDATE instance SET resettime = '%u' WHERE id = '%u'", resetTime, m_instanceGuid.GetCounter()); 
+        CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE id = '%u'", m_instanceGuid.GetCounter()); 
     }
 
     return hasExtended;
@@ -244,7 +259,7 @@ void InstanceSaveManager::LoadSavesFromDb()
         }
         // if its 0, then leave recalculated time
         if(fields[3].GetUInt32() == 0)
-            save->SaveToDb(false);
+            save->SaveToDb(false,true);
         else
             save->SetResetTime(fields[3].GetUInt32());
         m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetGUID(), save));
@@ -259,40 +274,56 @@ void InstanceSaveManager::LoadSavesFromDb()
 
 void InstanceSaveManager::PackInstances()
 {
-    std::list<uint32> freeGuids;
-    uint32 lastGuid = 0;
-    for(InstanceSaveMap::iterator itr = m_saves.begin(); itr != m_saves.end(); ++itr)
-    {
-        if(itr->first - lastGuid > 1)
-        {
-            ++lastGuid;
-            for(; lastGuid < itr->first; ++lastGuid)
-                freeGuids.push_back(lastGuid);
-        }else
-            ++lastGuid;
-    }
-    if(freeGuids.empty())
-        return;
+    // this routine renumbers player instance associations in such a way so they start from 1 and go up
+    // TODO: this can be done a LOT more efficiently
 
-    
-    for(InstanceSaveMap::reverse_iterator itr = m_saves.rbegin(); itr != m_saves.rend();)
+    // obtain set of all associations
+    std::set<uint32> InstanceSet;
+
+    // all valid ids are in the instance table
+    // any associations to ids not in this table are assumed to be
+    // cleaned already in CleanupInstances
+    QueryResult *result = CharacterDatabase.Query("SELECT id FROM instance");
+    if ( result )
     {
-        itr->second->UpdateId(*(freeGuids.begin()));
-        m_saves.insert(std::make_pair<uint32, InstanceSave*>(*(freeGuids.begin()), itr->second));
-        m_saves.erase(itr->first);
-        itr = m_saves.rbegin();
-        freeGuids.pop_front();
-        if(freeGuids.empty())
-            break;
+        do
+        {
+            Field *fields = result->Fetch();
+            InstanceSet.insert(fields[0].GetUInt32());
+        }
+        while (result->NextRow());
+        delete result;
     }
-    sObjectMgr.SetMaxInstanceId(m_saves.rbegin()->first);
-    sLog.outString( ">> Instance numbers remapped, next instance id is %u", m_saves.rbegin()->first+1 );
+
+    barGoLink bar( InstanceSet.size() + 1);
+    bar.step();
+
+    uint32 InstanceNumber = 1;
+    // we do assume std::set is sorted properly on integer value
+    for (std::set<uint32>::iterator i = InstanceSet.begin(); i != InstanceSet.end(); ++i)
+    {
+        if (*i != InstanceNumber)
+        {
+            // remap instance id
+            WorldDatabase.PExecute("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            WorldDatabase.PExecute("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.PExecute("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.PExecute("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
+            CharacterDatabase.PExecute("UPDATE instance SET id = '%u' WHERE id = '%u'", InstanceNumber, *i);
+        }
+
+        ++InstanceNumber;
+        bar.step();
+    }
+
+    sObjectMgr.SetMaxInstanceId(InstanceNumber);
+    sLog.outString( ">> Instance numbers remapped, next instance id is %u", InstanceNumber );
+    sLog.outString();
 }
 
 //Only for new save
 InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, Difficulty difficulty, bool perm)
 {
-    error_log("ID: %u", id);
     InstanceSave* save = GetInstanceSave(id);
     if(id && save)
         return save;

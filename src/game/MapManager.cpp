@@ -131,7 +131,7 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
 Map* MapManager::CreateBgMap(uint32 mapid, BattleGround* bg)
 {
     Map *m = _createBaseMap(mapid);
-    ((MapInstanced*)m)->CreateBattleGroundMap(sMapMgr.GenerateInstanceId(), bg);
+    ((MapInstanced*)m)->CreateBattleGroundMap(sObjectMgr.GenerateLowGuid(HIGHGUID_INSTANCE), bg);
     return m;
 }
 

@@ -1737,11 +1737,11 @@ void Group::BindToInstance(InstanceSave *save, bool permanent)
     if (!save || isBGGroup())
         return;
 
-    InstanceSave* bind = m_boundInstances[save->GetDifficulty()][save->GetMapId()];
-    if(!bind)
+    BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
+    if (itr == m_boundInstances[save->GetDifficulty()].end())
         m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
-    else if(bind->GetGUID() != save->GetGUID())
-        save = m_boundInstances[save->GetDifficulty()][save->GetMapId()];
+    else
+        itr->second = save;
 
     Player *plr = NULL;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
