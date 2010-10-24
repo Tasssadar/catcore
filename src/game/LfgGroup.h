@@ -130,7 +130,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         ~LfgGroup();
 
         void SetGroupId(uint32 newid) { m_Id = newid; }
-        uint32 GetKilledBosses() { return m_killedBosses; }
+        uint32 GetKilledBosses();
         bool LoadGroupFromDB(Field *fields);
         bool IsInDungeon() const { return (m_lfgFlags & LFG_GRP_IN_DUNGEON); }
         bool IsRandom() const { return (m_lfgFlags & LFG_GRP_RANDOM); }
@@ -213,7 +213,6 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         PlayerList randomPlayers;
         ProposalAnswersMap m_answers;
 
-        uint32 m_killedBosses;
         int32 m_readycheckTimer;
         int32 m_voteKickTimer;
         uint8 m_baseLevel;

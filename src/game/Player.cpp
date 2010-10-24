@@ -17111,12 +17111,9 @@ void Player::BindToInstance(InstanceSave* save, bool permanent)
     {
         itr->second->RemovePlayer(GetGUID());
         itr->second = save;
-    }
-
-    save->AddPlayer(GetGUID());
-    save->SetPermanent(permanent);  
-
-    if(permanent)
+    }   
+      
+    if(permanent && !save->IsPermanent())
     {
         WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
         data << uint32(0);
@@ -17130,6 +17127,8 @@ void Player::BindToInstance(InstanceSave* save, bool permanent)
         data << uint64(save->GetObjectGuid().GetRawValue());
         GetSession()->SendPacket(&data);
     }
+    save->AddPlayer(GetGUID());
+    save->SetPermanent(permanent);
 }
 
 InstanceSave* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)

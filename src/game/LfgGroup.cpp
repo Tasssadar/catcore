@@ -94,7 +94,6 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
     m_answers.clear();
     m_tank = 0;
     m_heal = 0;
-    m_killedBosses = 0;
     m_readycheckTimer = 0;
     m_baseLevel = 0;
     //m_groupType = premade ? GROUPTYPE_LFD_2 : GROUPTYPE_LFD; <-- not sure...
@@ -146,8 +145,8 @@ bool LfgGroup::LoadGroupFromDB(Field *fields)
     if (!Group::LoadGroupFromDB(fields))
         return false;
     
-    m_tank = m_mainTank;
-    m_heal = fields[1].GetUInt64();
+    m_tank = MAKE_NEW_GUID(m_mainTank,0,HIGHGUID_PLAYER);
+    m_heal = MAKE_NEW_GUID(fields[1].GetUInt64(),0,HIGHGUID_PLAYER);
     m_dungeonInfo = sLFGDungeonStore.LookupEntry(fields[19].GetUInt32());
     m_originalInfo = sLFGDungeonStore.LookupEntry(fields[20].GetUInt32());
     m_instanceStatus = fields[21].GetUInt8();
@@ -292,29 +291,10 @@ bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after ch
 
 void LfgGroup::KilledCreature(Creature *creature)
 {
-    if (creature->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND)
+    if ((creature->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND) &&
+        m_instanceStatus == INSTANCE_NOT_SAVED)
     {
-        if (m_instanceStatus == INSTANCE_NOT_SAVED)
             m_instanceStatus = INSTANCE_SAVED;
-        //Better, but still not correct
-        DungeonEncounterEntry const *cur = NULL;
-        bool found = false;
-        for (uint32 i = 0; i < sDungeonEncounterStore.GetNumRows() && !found; ++i)
-        {
-            cur = sDungeonEncounterStore.LookupEntry(i);
-            if(!cur)
-                continue;
-
-            if(cur->Map == creature->GetMapId() && 
-                Difficulty(cur->difficulty) == creature->GetMap()->GetDifficulty() &&
-                *(cur->Name[0]) == *(creature->GetName()))
-            {
-                found = true;
-                m_killedBosses |= (1 << cur->order);
-            }
-        }
-        if(!found)
-            m_killedBosses += !m_killedBosses ? 1 : m_killedBosses*2;
     }
     if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
     {
@@ -1146,3 +1126,19 @@ void LfgGroup::SendBootPlayer(Player *plr)
     plr->GetSession()->SendPacket(&data);
 }
 
+uint32 LfgGroup::GetKilledBosses()
+{
+    if(!IsInDungeon())
+        return 0;
+
+    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+    {
+        Player *member = sObjectMgr.GetPlayer(citr->guid);
+        if (!member || !member->IsInWorld() || member->GetMapId() != GetDungeonInfo()->map)
+            continue;
+        InstanceSave *save = member->GetMap()->GetInstanceSave();
+        if(save)
+            return save->GetEncounterMask();
+    }
+    return 0;
+}
