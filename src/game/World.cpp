@@ -990,11 +990,11 @@ void World::SetInitialWorldSettings()
     sSpellMgr.LoadSkillLineAbilityMap();
 
     ///- Load and pack instances
-    sLog.outString( "Packing instances..." );          // must be before instance load
-    sInstanceSaveMgr.PackInstances();
-
     sLog.outString( "Loading instance saves..." );
     sInstanceSaveMgr.LoadSavesFromDb();                // must be called before `creature_respawn`/`gameobject_respawn` tables  
+
+    sLog.outString( "Packing instances..." );
+    sInstanceSaveMgr.PackInstances();
 
     sLog.outString( "Packing groups..." );
     sObjectMgr.PackGroupIds();

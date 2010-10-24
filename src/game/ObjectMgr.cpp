@@ -3634,7 +3634,7 @@ void ObjectMgr::LoadGroups()
         if(itr->second->isBGGroup() || !itr->second->GetLeaderGUID())
             continue;
 
-        result = CharacterDatabase.PQuery("SELECT instance FROM character_instance WHERE guid = '%u'", itr->second->GetLeaderGUID());
+        result = CharacterDatabase.PQuery("SELECT instance FROM character_instance WHERE guid = '%u'", GUID_LOPART(itr->second->GetLeaderGUID()));
         if (!result)
             continue;
 

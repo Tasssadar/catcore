@@ -92,7 +92,7 @@ bool InstanceSave::LoadPlayers()
     do
     {
         Field *fields = result->Fetch();
-        uint64 guid = MAKE_NEW_GUID(fields[0].GetUInt32(), 0, HIGHGUID_PLAYER)
+        uint64 guid = MAKE_NEW_GUID(fields[0].GetUInt32(), 0, HIGHGUID_PLAYER);
         m_players.insert(guid);
         if(fields[1].GetBool())
             m_extended.insert(guid);
@@ -155,9 +155,9 @@ void InstanceSave::AddPlayer(uint64 guid)
 
 void InstanceSave::RemovePlayer(uint64 guid)
 {
-    if(m_players.find(GUID_LOPART(guid)) == m_players.end())
+    if(m_players.find(guid) == m_players.end())
         return;
-    m_players.erase(guid));
+    m_players.erase(guid);
     m_extended.erase(guid);
     CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceGuid.GetCounter(), guid);
 }
@@ -278,39 +278,19 @@ void InstanceSaveManager::PackInstances()
     // this routine renumbers player instance associations in such a way so they start from 1 and go up
     // TODO: this can be done a LOT more efficiently
 
-    // obtain set of all associations
-    std::set<uint32> InstanceSet;
-
-    // all valid ids are in the instance table
-    // any associations to ids not in this table are assumed to be
-    // cleaned already in CleanupInstances
-    QueryResult *result = CharacterDatabase.Query("SELECT id FROM instance");
-    if ( result )
-    {
-        do
-        {
-            Field *fields = result->Fetch();
-            InstanceSet.insert(fields[0].GetUInt32());
-        }
-        while (result->NextRow());
-        delete result;
-    }
-
-    barGoLink bar( InstanceSet.size() + 1);
+    barGoLink bar( m_saves.size() + 1);
     bar.step();
 
     uint32 InstanceNumber = 1;
     // we do assume std::set is sorted properly on integer value
-    for (std::set<uint32>::iterator i = InstanceSet.begin(); i != InstanceSet.end(); ++i)
+    InstanceSaveMap map = m_saves;
+    for(InstanceSaveMap::iterator itr = map.begin(); itr != map.end();++itr)
     {
-        if (*i != InstanceNumber)
+        if (itr->second->GetGUID() != InstanceNumber)
         {
-            // remap instance id
-            WorldDatabase.PExecute("UPDATE creature_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            WorldDatabase.PExecute("UPDATE gameobject_respawn SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE corpse SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE character_instance SET instance = '%u' WHERE instance = '%u'", InstanceNumber, *i);
-            CharacterDatabase.PExecute("UPDATE instance SET id = '%u' WHERE id = '%u'", InstanceNumber, *i);
+            itr->second->UpdateId(InstanceNumber);
+            m_saves.erase(itr->first);
+            m_saves.insert(std::make_pair<uint32, InstanceSave*>(InstanceNumber, itr->second));
         }
 
         ++InstanceNumber;

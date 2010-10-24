@@ -17050,7 +17050,15 @@ void Player::_LoadBoundInstances(QueryResult *result)
             uint32 instanceId = fields[0].GetUInt32();
             InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(instanceId);
             if(save)
+            {
+                BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
+                if(itr != m_boundInstances[save->GetDifficulty()].end())
+                {
+                    itr->second->RemovePlayer(GetGUID();
+                    m_boundInstances[save->GetDifficulty()].erase(itr);
+                }
                 m_boundInstances[uint8(save->GetDifficulty())].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save)); 
+            }
         } while(result->NextRow());
         delete result;
     }
@@ -17094,7 +17102,10 @@ void Player::BindToInstance(InstanceSave* save, bool permanent)
     if(itr == m_boundInstances[save->GetDifficulty()].end())
         m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(save->GetGUID() != itr->second->GetGUID())
+    {
+        itr->second->RemovePlayer(GetGUID());
         itr->second = save;
+    }
 
     save->AddPlayer(GetGUID());
     save->SetPermanent(permanent);  
@@ -18174,7 +18185,7 @@ void Player::ResetInstances(uint8 method, bool isRaid)
         m_boundInstances[diff].erase(itr++);
 
         // the following should remove the instance save from the manager and delete it as well
-        p->RemovePlayer(GetGUIDLow());
+        p->RemovePlayer(GetGUID());
     }
 }
 
