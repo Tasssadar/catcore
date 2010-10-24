@@ -11270,7 +11270,8 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             if ((*iter)->GetId() == 46924)
             {
                 if (((1 << (mechanic - 1)) & IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK) ||
-                    (mechanic == MECHANIC_KNOCKOUT))
+                    (mechanic == MECHANIC_KNOCKOUT) ||
+                     (spellInfo->Effect[index] == SPELL_EFFECT_KNOCK_BACK))
                     return true;
             }
             
