@@ -92,9 +92,10 @@ bool InstanceSave::LoadPlayers()
     do
     {
         Field *fields = result->Fetch();
-        m_players.insert(fields[0].GetUInt32());
+        uint64 guid = MAKE_NEW_GUID(fields[0].GetUInt32(), 0, HIGHGUID_PLAYER)
+        m_players.insert(guid);
         if(fields[1].GetBool())
-            m_extended.insert(fields[0].GetUInt32());
+            m_extended.insert(guid);
     } while( result->NextRow() );
     
     return true;
@@ -154,9 +155,9 @@ void InstanceSave::AddPlayer(uint64 guid)
 
 void InstanceSave::RemovePlayer(uint64 guid)
 {
-    if(m_players.find(guid) == m_players.end())
+    if(m_players.find(GUID_LOPART(guid)) == m_players.end())
         return;
-    m_players.erase(guid);
+    m_players.erase(guid));
     m_extended.erase(guid);
     CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceGuid.GetCounter(), guid);
 }

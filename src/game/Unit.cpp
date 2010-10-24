@@ -8530,7 +8530,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
             else if (auraSpellInfo->Id == 56636 || auraSpellInfo->Id == 56637 || auraSpellInfo->Id == 56638)
             {
                 if (!damage)
-                    return;
+                    return false;
             }
             if (auraSpellInfo->Id == 50421)             // Scent of Blood
                 trigger_spell_id = 50422;

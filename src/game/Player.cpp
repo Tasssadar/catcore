@@ -17096,7 +17096,7 @@ void Player::BindToInstance(InstanceSave* save, bool permanent)
     else if(save->GetGUID() != itr->second->GetGUID())
         itr->second = save;
 
-    save->AddPlayer(GetGUIDLow());
+    save->AddPlayer(GetGUID());
     save->SetPermanent(permanent);  
 
     if(permanent)
@@ -17173,7 +17173,7 @@ void Player::SendRaidInfo()
                 data << uint8(itr->second->IsExtended(GetGUID()));  // extended = 1
                 uint32 resetTime = itr->second->GetResetTime();
                 uint32 resetPeriod = GetMapDifficultyData(itr->second->GetMapId(), itr->second->GetDifficulty())->resetTime;
-                if(itr->second->IsExtended(GetGUIDLow()))
+                if(itr->second->IsExtended(GetGUID()))
                     resetTime += resetPeriod ? resetPeriod : DAY;
                 data << uint32(resetTime - now); // reset time
                 
