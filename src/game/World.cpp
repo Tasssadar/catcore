@@ -1355,7 +1355,10 @@ void World::SetInitialWorldSettings()
     m_timers[WUPDATE_CORPSES].SetInterval(3*HOUR*IN_MILLISECONDS);
     m_timers[WUPDATE_DELETECHARS].SetInterval(DAY*IN_MILLISECONDS); // check for chars to delete every day
     m_timers[WUPDATE_BROADCAST].SetInterval(MINUTE*IN_MILLISECONDS);
-    m_timers[WUPDATE_INSTANCE_RESET].SetInterval(HOUR*IN_MILLISECONDS);
+
+    uint32 InstanceTimer = (HOUR - m_gameTime%HOUR);  //set to next hour
+    InstanceTimer += getConfig(CONFIG_UINT32_INSTANCE_RESET_CONSTANT)%HOUR; // add difference from constant
+    m_timers[WUPDATE_INSTANCE_RESET].SetInterval(InstanceTimer+10); //  + 10s
 
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
@@ -1480,6 +1483,7 @@ void World::Update(uint32 diff)
     // Reset instances 
     if (m_timers[WUPDATE_INSTANCE_RESET].Passed())
     {
+        m_timers[WUPDATE_INSTANCE_RESET].SetInterval(HOUR);
         m_timers[WUPDATE_INSTANCE_RESET].Reset();
 
         sInstanceSaveMgr.CheckResetTimes();
