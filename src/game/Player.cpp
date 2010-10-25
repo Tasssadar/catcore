@@ -3400,7 +3400,7 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (itr->second.state == PLAYERSPELL_REMOVED || (disabled && itr->second.disabled))
         return;
 
-    SpellEntry* spellInfo = sSpellStore.LookupEntry(spell_id);
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spell_id);
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         if (spellInfo && spellInfo->Effect[i] == SPELL_EFFECT_LEARN_SPELL)
             if (HasSpell(spellInfo->EffectTriggerSpell[i]))
@@ -17060,7 +17060,7 @@ void Player::_LoadBoundInstances(QueryResult *result)
                 BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
                 if(itr != m_boundInstances[save->GetDifficulty()].end())
                 {
-                    itr->second->RemovePlayer(GetGUID();
+                    itr->second->RemovePlayer(GetGUID());
                     m_boundInstances[save->GetDifficulty()].erase(itr);
                 }
                 m_boundInstances[uint8(save->GetDifficulty())].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save)); 
