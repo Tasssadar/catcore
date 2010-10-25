@@ -14578,9 +14578,15 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         // Remove charge (aura can be removed by triggers)
         if (useCharges && !triggeredByAura->IsDeleted())
         {
-            // If last charge dropped add spell to remove list
-            if (triggeredByAura->DropAuraCharge())
-                removedSpells.push_back(triggeredByAura->GetId());
+            // Item - Mage T8 4P Bonus
+            if(procSpell->SpellFamilyName != SPELLFAMILY_MAGE || !HasAura(64869) ||
+                (triggeredByAura->GetId() != 44401 && triggeredByAura->GetId() != 48108 && triggeredByAura->GetId() != 57761)
+                || !roll_chance_f(25.0f))
+            {
+                // If last charge dropped add spell to remove list
+                if (triggeredByAura->DropAuraCharge())
+                    removedSpells.push_back(triggeredByAura->GetId());
+            }
         }
         // If reflecting with Imp. Spell Reflection - we must also remove auras from the remaining aura's targets
         if (triggeredByAura->GetId() == 59725)
