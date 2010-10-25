@@ -2063,8 +2063,8 @@ void Unit::CalculateDamageAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolM
     if (!pCaster || !isAlive() || !damage)
         return;
 
-    // Magic damage, check for resists
-    if ((schoolMask & SPELL_SCHOOL_MASK_NORMAL)==0)
+    // Magic damage, check for resists, holy resist does not exist
+    if ((schoolMask & SPELL_SCHOOL_MASK_NORMAL)==0 && !(schoolMask & SPELL_SCHOOL_MASK_HOLY))
     {
         // Get base victim resistance for school
         float tmpvalue2 = (float)GetResistance(GetFirstSchoolInMask(schoolMask));
