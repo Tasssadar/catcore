@@ -113,11 +113,12 @@ class MANGOS_DLL_SPEC HostileReference : public Reference<Unit, ThreatManager>
 
         // Tell our refFrom (source) object, that the link is cut (Target destroyed)
         void sourceObjectDestroyLink();
+
+        Unit* getSourceUnit();
     private:
         // Inform the source, that the status of that reference was changed
         void fireStatusChanged(ThreatRefStatusChangeEvent& pThreatRefStatusChangeEvent);
 
-        Unit* getSourceUnit();
     private:
         float iThreat;
         float iTempThreatModifyer;                          // used for taunt
@@ -166,6 +167,8 @@ class MANGOS_DLL_SPEC ThreatContainer
         HostileReference* getReferenceByTarget(Unit* pVictim);
 
         ThreatList const& getThreatList() const { return iThreatList; }
+        
+        ThreatList getPlayerThreatList() const;
 };
 
 //=================================================
@@ -212,6 +215,7 @@ class MANGOS_DLL_SPEC ThreatManager
 
         // Don't must be used for explicit modify threat values in iterator return pointers
         ThreatList const& getThreatList() const { return iThreatContainer.getThreatList(); }
+        ThreatList const& getPlayerThreatList() const { return iThreatContainer.getPlayerThreatList(); }
     private:
         HostileReference* iCurrentVictim;
         Unit* iOwner;

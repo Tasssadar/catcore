@@ -1952,6 +1952,64 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position) c
     return NULL;
 }
 
+Player* Creature::SelectAttackingPlayer(AttackingTarget target, uint32 position) const
+{
+    if (!CanHaveThreatList())
+        return NULL;
+
+    //ThreatList m_threatlist;
+    /*ThreatList const& unitthreatlist = getThreatManager().getThreatList();
+    ThreatList //const&\\ threatlist = unitthreatlist;
+    threatlist.clear();
+    for(ThreatList::const_iterator i = unitthreatlist.begin(); i != unitthreatlist.end(); ++i)
+        if((*i)->getSourceUnit() && (*i)->getSourceUnit()->GetTypeId() == TYPEID_PLAYER)
+            threatlist.push_back(*i);
+
+
+    ThreatList const& threatlist = getThreatManager().getThreatList();
+    for(ThreatList::const_iterator i = threatlist.begin(); i != threatlist.end(); ++i)
+        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
+            threatlist.remove(*i);*/
+
+    /*ThreatList threatlist = getThreatManager().getThreatList();
+    for(ThreatList::const_iterator i = threatlist.begin(); i != threatlist.end(); ++i)
+        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
+            threatlist.remove(*i);*/
+
+    ThreatList threatlist = getThreatManager().getPlayerThreatList();
+
+    ThreatList::const_iterator i = threatlist.begin();
+    ThreatList::const_reverse_iterator r = threatlist.rbegin();
+
+    if (position >= threatlist.size() || !threatlist.size())
+        return NULL;
+
+    switch(target)
+    {
+        case ATTACKING_TARGET_RANDOM:
+        {
+            advance(i, position + (rand() % (threatlist.size() - position)));
+            return (Player*)Unit::GetUnit(*this, (*i)->getUnitGuid());
+        }
+        case ATTACKING_TARGET_TOPAGGRO:
+        {
+            advance(i, position);
+            return (Player*)Unit::GetUnit(*this, (*i)->getUnitGuid());
+        }
+        case ATTACKING_TARGET_BOTTOMAGGRO:
+        {
+            advance(r, position);
+            return (Player*)Unit::GetUnit(*this, (*r)->getUnitGuid());
+        }
+        // TODO: implement these
+        //case ATTACKING_TARGET_RANDOM_PLAYER:
+        //case ATTACKING_TARGET_TOPAGGRO_PLAYER:
+        //case ATTACKING_TARGET_BOTTOMAGGRO_PLAYER:
+    }
+
+    return NULL;
+}
+
 void Creature::_AddCreatureSpellCooldown(uint32 spell_id, time_t end_time)
 {
     m_CreatureSpellCooldowns[spell_id] = end_time;

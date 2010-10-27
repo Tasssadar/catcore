@@ -347,6 +347,17 @@ HostileReference* ThreatContainer::selectNextVictim(Creature* pAttacker, Hostile
     return currentRef;
 }
 
+ThreatList ThreatContainer::getPlayerThreatList() const
+{
+    ThreatList playerlist = iThreatList;
+
+    for(ThreatList::const_iterator i = playerlist.begin(); i != playerlist.end(); ++i)
+        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
+            playerlist.remove(*i);
+
+    return playerlist;
+}
+
 //============================================================
 //=================== ThreatManager ==========================
 //============================================================
@@ -578,3 +589,14 @@ void ThreatManager::UpdateForClient(uint32 diff)
         iUpdateNeed = false;
     }
 }
+
+/*ThreatList ThreatManager::getPlayerThreatList() const
+{
+    ThreatList playerlist = iThreatContainer.getThreatList();
+
+    for(ThreatList::const_iterator i = playerlist.begin(); i != playerlist.end(); ++i)
+        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
+            playerlist.remove(*i);
+
+    return playerlist;
+}*/

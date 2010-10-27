@@ -627,6 +627,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void SetInCombatWithZone();
 
         Unit* SelectAttackingTarget(AttackingTarget target, uint32 position) const;
+        Player* SelectAttackingPlayer(AttackingTarget target, uint32 position) const;
 
         bool hasQuest(uint32 quest_id) const;
         bool hasInvolvedQuest(uint32 quest_id)  const;
