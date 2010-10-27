@@ -1511,7 +1511,7 @@ void Player::Update( uint32 p_time )
     //instance bind
     if(m_instanceBindTimer != -1)
     {
-        if(m_instanceBindTimer <= p_time)
+        if(m_instanceBindTimer <= (int32)p_time)
             StopInstanceBindTimer(true);
         else
             m_instanceBindTimer -= p_time;
