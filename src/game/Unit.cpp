@@ -7302,13 +7302,13 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 // Judgement of Light
                 case 20185:
                 {
-                    // PPM per victim
+                    /*// PPM per victim -> probably obsolete, there is a generic handling now
                     float ppmJoL = 15.0f; // must be hard-coded + 100% proc chance in DB
                     WeaponAttackType attType = BASE_ATTACK; // TODO: attack type based? 
                     uint32 WeaponSpeed = pVictim->GetAttackTime(attType);
                     float chanceForVictim = pVictim->GetPPMProcChance(WeaponSpeed, ppmJoL);
                     if (!roll_chance_f(chanceForVictim))
-                        return false;
+                        return false;*/
 
                     basepoints[0] = int32( pVictim->GetMaxHealth() * triggeredByAura->GetModifier()->m_amount / 100 );
                     pVictim->CastCustomSpell(pVictim, 20267, &basepoints[0], NULL, NULL, true, NULL, triggeredByAura);
@@ -15318,10 +15318,19 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit *pVictim, Aura* aura, SpellEntry con
     if (spellProcEvent && spellProcEvent->customChance)
         chance = spellProcEvent->customChance;
     // If PPM exist calculate chance from PPM
-    if (!isVictim && spellProcEvent && spellProcEvent->ppmRate != 0)
+    if(spellProcEvent && spellProcEvent->ppmRate != 0)
     {
-        uint32 WeaponSpeed = GetAttackTime(attType);
-        chance = GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        uint32 WeaponSpeed;
+        if(!isVictim)
+        {
+            WeaponSpeed = GetAttackTime(attType);
+            chance = GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        }
+        else
+        {
+            WeaponSpeed = pVictim->GetAttackTime(attType);
+            chance = pVictim->GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        }
     }
     // Apply chance modifer aura
     if (Player* modOwner = GetSpellModOwner())
