@@ -3317,6 +3317,11 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
             Aur->GetModifier()->m_amount += amount;
         }
     }
+    // Try SPELL_AURA_MOD_DEBUFF_RESISTANCE
+    int32 chance = 100;
+    chance -= unitTarget->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(m_spellInfo->Dispel));
+    if (!roll_chance_i(chance))
+        return;
 
     if (duration != Aur->GetAuraMaxDuration())
     {
