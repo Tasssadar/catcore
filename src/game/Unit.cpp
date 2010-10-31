@@ -4271,15 +4271,24 @@ float Unit::GetTotalAuraMultiplierByMiscValueForMask(AuraType auratype, uint32 m
         return 1.0f;
 
     float multiplier = 1.0f;
+    float nonStackingPos = 0.0f;
 
     AuraList const& mTotalAuraList = GetAurasByType(auratype);
     for(AuraList::const_iterator i = mTotalAuraList.begin();i != mTotalAuraList.end(); ++i)
     {
         Modifier* mod = (*i)->GetModifier();
         if (mask & (1 << (mod->m_miscvalue -1)))
-            multiplier *= (100.0f + mod->m_amount)/100.0f;
+        {
+            if((*i)->IsStacking())
+                multiplier *= (100.0f + mod->m_amount)/100.0f;
+            else
+            {
+                if(mod->m_amount > nonStackingPos)
+                    nonStackingPos = mod->m_amount;
+            }
+        }
     }
-    return multiplier;
+    return multiplier * (100.0f + nonStackingPos)/100.0f;
 }
 
 bool Unit::AddAura(Aura *Aur)

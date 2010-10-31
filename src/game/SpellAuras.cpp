@@ -1525,6 +1525,12 @@ bool Aura::IsEffectStacking()
         case SPELL_AURA_MOD_PARTY_MAX_HEALTH:
             // Commanding Shout
             return false;
+        case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
+            // Trauma / Mangle
+            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
+                return false;
+            break;
 
         default:
             return true;
