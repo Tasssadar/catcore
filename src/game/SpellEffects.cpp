@@ -7754,6 +7754,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
     {
         uint32 mapid = m_caster->GetMapId();
         float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+
         //For glyph of blink
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
             ((Player*)m_caster)->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RADIUS, dis, this);
@@ -7823,7 +7824,10 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         if (unitTarget->GetTypeId() == TYPEID_PLAYER)
             ((Player*)unitTarget)->TeleportTo(mapid, cx, cy, cz, unitTarget->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
         else
+        {
+            unitTarget->SendMonsterMove(cx, cy, cz, SPLINETYPE_FACINGANGLE, SPLINEFLAG_UNKNOWN5, 0, NULL, unitTarget->GetOrientation());
             unitTarget->GetMap()->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
+        }
     }
 }
 
