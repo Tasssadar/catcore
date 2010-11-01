@@ -1490,7 +1490,10 @@ bool Aura::IsEffectStacking()
         case SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN:
             // Renewed Hope / (Greater) Blessing of Sanctuary / Vigilance
             // Glyph of Salvation / Pain Suppression / Safeguard ?
-            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+            // Curse of the Elements and Earth and Moon
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 ||
+                ((GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && GetSpellProto()->SpellIconID == 55) ||
+                (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID && GetSpellProto()->SpellIconID == 2991)))
                 return false;
             break;
         case SPELL_AURA_MOD_ATTACK_POWER:
