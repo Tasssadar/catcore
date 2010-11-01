@@ -349,11 +349,16 @@ HostileReference* ThreatContainer::selectNextVictim(Creature* pAttacker, Hostile
 
 ThreatList ThreatContainer::getPlayerThreatList() const
 {
-    ThreatList playerlist = iThreatList;
+    ThreatList unitlist = iThreatList;
+    ThreatList playerlist;
 
-    for(ThreatList::const_iterator i = playerlist.begin(); i != playerlist.end(); ++i)
-        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
-            playerlist.remove(*i);
+    for(ThreatList::const_iterator i = unitlist.begin(); i != unitlist.end(); ++i)
+    {
+        if (!(*i)->getTarget())
+           continue;
+        if ((*i)->getTarget()->GetTypeId() == TYPEID_PLAYER)
+           playerlist.push_back(*i);
+    }
 
     return playerlist;
 }
