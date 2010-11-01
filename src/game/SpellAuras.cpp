@@ -9849,7 +9849,7 @@ void Aura::HandleAuraOpenStable(bool apply, bool Real)
 
     Unit* caster = GetCaster();    
 
-    if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+    if (!caster || caster->GetTypeId() != TYPEID_PLAYER || !caster->IsInWorld() || !caster->GetMap() || !((Player*)caster)->GetSession())
         return;
 
     WorldPacket data;

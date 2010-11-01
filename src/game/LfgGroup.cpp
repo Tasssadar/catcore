@@ -511,7 +511,11 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
     plr->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
 
     if(IsMixed())
+    {
         plr->m_lookingForGroup.SetMixedDungeon(dungeonInfo->start_map);
+        if(newPlr)
+            plr->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
+    }
 
     if (IsInDungeon())
     {

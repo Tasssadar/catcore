@@ -325,12 +325,14 @@ class MANGOS_DLL_SPEC LfgMgr
 
         uint32 GetTotalPlayers() const { return m_queuedPlayers.size(); }
         void SendLfgContinue(Player *player);
+        void UpdateFormedGroups(LfgGroup *group = NULL);
 
     private:
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueue(uint8 side);
-        void UpdateFormedGroups();
+        //void UpdateFormedGroups(uint32 id = 0);
         void MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 side);
+        bool CheckFormedGroup(LfgGroup *group, uint8 side, bool checkTime);
         void UpdateWaitTime(LfgGroup *group, uint32 dungeonId);
         void MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId = 0);
         QueuedDungeonsMap::iterator GetOrCreateQueueEntry(LFGDungeonEntry const *info, uint8 side);
@@ -353,6 +355,7 @@ class MANGOS_DLL_SPEC LfgMgr
         uint32 m_updateQueuesBaseTime;
         uint32 m_updateQueuesTimer[MAX_LFG_FACTION];
         uint32 m_updateProposalTimer;
+        uint32 m_updateFormedTimer;
         WaitTimeMap m_waitTimes[LFG_WAIT_TIME_SLOT_MAX];
 };
 

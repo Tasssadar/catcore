@@ -135,13 +135,13 @@ void InstanceSave::SaveToDb(bool players, bool data)
 void InstanceSave::ExtendFor(uint64 guid)
 {
     m_extended.insert(guid);
-    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 1 WHERE guid = '%u'", GUID_LOPART(guid));
+    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 1 WHERE guid = '%u' AND instance='%u'", GUID_LOPART(guid), m_instanceGuid.GetCounter());
 }
 
 void InstanceSave::RemoveExtended(uint64 guid)
 {
     m_extended.erase(guid);
-    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE guid = '%u'", GUID_LOPART(guid));
+    CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE guid = '%u' AND instance='%u'", GUID_LOPART(guid), m_instanceGuid.GetCounter());
 }
 
 void InstanceSave::AddPlayer(uint64 guid)
@@ -160,6 +160,9 @@ void InstanceSave::RemovePlayer(uint64 guid)
     m_players.erase(guid);
     m_extended.erase(guid);
     CharacterDatabase.PQuery("DELETE FROM character_instance WHERE instance = '%u' AND guid = '%u'", m_instanceGuid.GetCounter(), guid);
+  //  Player *plr = sObjectMgr.GetPlayer(guid);
+//    if(plr)
+//        plr->UnbindInstance(m_mapId, m_diff);
 }
 
 void InstanceSave::UpdateId(uint32 id)
@@ -203,7 +206,13 @@ bool InstanceSave::RemoveOrExtendPlayers()
         itr_next = itr;
         ++itr_next;
         if(!IsExtended(*itr))
-            RemovePlayer(*itr);
+        {
+           Player *plr = sObjectMgr.GetPlayer(*itr);
+           if(plr)
+               plr->UnbindInstance(m_mapId, m_diff);
+           else
+               RemovePlayer(*itr);
+        }
     }
 
     bool hasExtended = !m_extended.empty();
@@ -213,7 +222,9 @@ bool InstanceSave::RemoveOrExtendPlayers()
         uint32 period = GetMapDifficultyData(m_mapId, m_diff)->resetTime;
         resetTime += period ? period : DAY;
         CharacterDatabase.PQuery("UPDATE instance SET resettime = '%u' WHERE id = '%u'", resetTime, m_instanceGuid.GetCounter()); 
-        CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE id = '%u'", m_instanceGuid.GetCounter()); 
+        CharacterDatabase.PQuery("UPDATE character_instance SET extended = 0 WHERE instance = '%u'", m_instanceGuid.GetCounter()); 
+        WorldDatabase.PQuery("UPDATE creature_respawn SET respawntime = '%u' WHERE instance = '%u'", resetTime, m_instanceGuid.GetCounter());
+        WorldDatabase.PQuery("UPDATE gameobject_respawn SET respawntime = '%u' WHERE instance = '%u'", resetTime, m_instanceGuid.GetCounter());
     }
 
     return hasExtended;
@@ -337,12 +348,16 @@ void InstanceSaveManager::CheckResetTimes()
         {
             if(map->HavePlayers())
             {
-                const Map::PlayerList &players = map->GetPlayers();
-                for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                const Map::PlayerList &players_map = map->GetPlayers();
+                std::list<Player*> players;
+                for(Map::PlayerList::const_iterator itr2 = players_map.begin(); itr2 != players_map.end(); ++itr2)
                 {
-                    if(itr->getSource())
-                        itr->getSource()->RepopAtGraveyard();
+                    if(itr2->getSource())
+                        players.push_back(itr2->getSource());
                 }
+                for(std::list<Player*>::iterator plr = players.begin(); plr != players.end(); ++plr)
+                    (*plr)->RepopAtGraveyard();
+                players.clear();
             }
             if(!hasExtened)
                 ((InstanceMap*)map)->Reset(INSTANCE_RESET_RESPAWN_DELAY);

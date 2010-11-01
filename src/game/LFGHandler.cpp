@@ -192,6 +192,7 @@ void WorldSession::HandleLfgProposalResult(WorldPacket& recv_data)
     {
         group->GetProposalAnswers()->insert(std::pair<uint64, uint8>(_player->GetGUID(), accept));       
         group->SendProposalUpdate(LFG_PROPOSAL_WAITING);
+        sLfgMgr.UpdateFormedGroups(group);
     }
 }
 

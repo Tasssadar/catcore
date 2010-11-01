@@ -3155,12 +3155,12 @@ void Spell::cast(bool skipCheck)
 
     // Some hacks to replace wrong DBC data...
     //Missile Barrage
-    /*if (m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && 
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && 
        (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000000800)) &&
         m_caster->HasAura(44401))
     {
       m_caster->RemoveAurasDueToSpell(44401);
-    } */
+    } 
 
     SetExecutedCurrently(false);
 }

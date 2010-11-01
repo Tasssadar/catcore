@@ -14592,7 +14592,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         if (useCharges && !triggeredByAura->IsDeleted())
         {
             // Item - Mage T8 4P Bonus
-            if(procSpell->SpellFamilyName != SPELLFAMILY_MAGE || !HasAura(64869) ||
+            if(!procSpell || procSpell->SpellFamilyName != SPELLFAMILY_MAGE || !HasAura(64869) ||
                 (triggeredByAura->GetId() != 44401 && triggeredByAura->GetId() != 48108 && triggeredByAura->GetId() != 57761)
                 || !roll_chance_f(25.0f))
             {

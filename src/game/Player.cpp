@@ -2227,7 +2227,7 @@ void Player::RegenerateHealth(uint32 diff)
 Creature* Player::GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask)
 {
     // some basic checks
-    if (guid.IsEmpty() || !IsInWorld() || isInFlight())
+    if (!this || guid.IsEmpty() || !IsInWorld() || isInFlight())
         return NULL;
 
     // not in interactive state
@@ -17112,7 +17112,7 @@ void Player::BindToInstance(InstanceSave* save, bool permanent)
         itr->second = save;
     }   
       
-    if(permanent && !save->IsPermanent())
+    if(permanent)
     {
         WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
         data << uint32(0);
@@ -17154,6 +17154,9 @@ InstanceSave* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
 
 void Player::ConvertInstancesToGroup(Player *leader, Group *group)
 {
+    if(!leader || !group)
+        return;
+
     for(int i = 0; i < MAX_DIFFICULTY; ++i)
         for (BoundInstancesMap::const_iterator itr = leader->GetBoundInstances(Difficulty(i)).begin(); itr != leader->GetBoundInstances(Difficulty(i)).end(); ++itr)
             group->AddBind(itr->second);
