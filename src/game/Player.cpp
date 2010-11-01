@@ -3403,8 +3403,7 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spell_id);
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         if (spellInfo && spellInfo->Effect[i] == SPELL_EFFECT_LEARN_SPELL)
-            if (HasSpell(spellInfo->EffectTriggerSpell[i]))
-                removeSpell(spellInfo->EffectTriggerSpell[i], disabled, false);
+            removeSpell(spellInfo->EffectTriggerSpell[i], disabled, false);
 
     // unlearn non talent higher ranks (recursive)
     SpellChainMapNext const& nextMap = sSpellMgr.GetSpellChainNext();

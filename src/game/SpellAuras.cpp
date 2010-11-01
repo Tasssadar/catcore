@@ -228,7 +228,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleModSpellHealingPercentFromStat,            //175 SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT implemented in Unit::SpellBaseHealingBonusDone
     &Aura::HandleSpiritOfRedemption,                        //176 SPELL_AURA_SPIRIT_OF_REDEMPTION   only for Spirit of Redemption spell, die at aura end
     &Aura::HandleNULL,                                      //177 SPELL_AURA_AOE_CHARM (22 spells)
-    &Aura::HandleNoImmediateEffect,                         //178 SPELL_AURA_MOD_DEBUFF_RESISTANCE          implemented in Unit::MagicSpellHitResult
+    &Aura::HandleNoImmediateEffect,                         //178 SPELL_AURA_MOD_DEBUFF_RESISTANCE          implemented in Spell::EffectApplyAura
     &Aura::HandleNoImmediateEffect,                         //179 SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE implemented in Unit::SpellCriticalBonus
     &Aura::HandleNoImmediateEffect,                         //180 SPELL_AURA_MOD_FLAT_SPELL_DAMAGE_VERSUS   implemented in Unit::SpellDamageBonusDone
     &Aura::HandleUnused,                                    //181 unused (3.0.8a-3.2.2a) old SPELL_AURA_MOD_FLAT_SPELL_CRIT_DAMAGE_VERSUS
@@ -1490,7 +1490,10 @@ bool Aura::IsEffectStacking()
         case SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN:
             // Renewed Hope / (Greater) Blessing of Sanctuary / Vigilance
             // Glyph of Salvation / Pain Suppression / Safeguard ?
-            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+            // Curse of the Elements and Earth and Moon
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 ||
+                ((GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && GetSpellProto()->SpellIconID == 55) ||
+                (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID && GetSpellProto()->SpellIconID == 2991)))
                 return false;
             break;
         case SPELL_AURA_MOD_ATTACK_POWER:
@@ -1525,6 +1528,12 @@ bool Aura::IsEffectStacking()
         case SPELL_AURA_MOD_PARTY_MAX_HEALTH:
             // Commanding Shout
             return false;
+        case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
+            // Trauma / Mangle
+            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
+                return false;
+            break;
 
         default:
             return true;

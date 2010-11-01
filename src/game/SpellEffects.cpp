@@ -3317,6 +3317,11 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
             Aur->GetModifier()->m_amount += amount;
         }
     }
+    // Try SPELL_AURA_MOD_DEBUFF_RESISTANCE
+    int32 chance = 100;
+    chance -= unitTarget->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(m_spellInfo->Dispel));
+    if (!roll_chance_i(chance))
+        return;
 
     if (duration != Aur->GetAuraMaxDuration())
     {
@@ -4541,7 +4546,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         if (!success_list.empty())
         {
             int32 count = success_list.size();
-            WorldPacket data(SMSG_SPELLDISPELLOG, 8+8+4+1+4+count*5);
+            WorldPacket data(SMSG_SPELLDISPELLOG, 8+8+4+1+4+damage*5);
             data << unitTarget->GetPackGUID();              // Victim GUID
             data << m_caster->GetPackGUID();                // Caster GUID
             data << uint32(m_spellInfo->Id);                // Dispel spell id
@@ -4568,7 +4573,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         if (!fail_list.empty())
         {
             // Failed to dispell
-            WorldPacket data(SMSG_DISPEL_FAILED, 8+8+4+4*fail_list.size());
+            WorldPacket data(SMSG_DISPEL_FAILED, 8+8+4+4+damage*4);
             data << uint64(m_caster->GetGUID());            // Caster GUID
             data << uint64(unitTarget->GetGUID());          // Victim GUID
             data << uint32(m_spellInfo->Id);                // Dispell spell id
@@ -7749,6 +7754,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
     {
         uint32 mapid = m_caster->GetMapId();
         float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+
         //For glyph of blink
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
             ((Player*)m_caster)->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RADIUS, dis, this);
@@ -7818,7 +7824,10 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         if (unitTarget->GetTypeId() == TYPEID_PLAYER)
             ((Player*)unitTarget)->TeleportTo(mapid, cx, cy, cz, unitTarget->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
         else
+        {
+            unitTarget->SendMonsterMove(cx, cy, cz, SPLINETYPE_FACINGANGLE, SPLINEFLAG_UNKNOWN5, 0, NULL, unitTarget->GetOrientation());
             unitTarget->GetMap()->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
+        }
     }
 }
 

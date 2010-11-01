@@ -3336,9 +3336,6 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
     // Apply mod
     modHitChance-=resist_mech;
 
-    // Chance resist debuff
-    modHitChance-=pVictim->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(spell->Dispel));
-
     int32 HitChance = modHitChance * 100;
     // Increase hit chance from attacker SPELL_AURA_MOD_SPELL_HIT_CHANCE and attacker ratings
     HitChance += int32(m_modSpellHitChance*100.0f);
@@ -4274,15 +4271,24 @@ float Unit::GetTotalAuraMultiplierByMiscValueForMask(AuraType auratype, uint32 m
         return 1.0f;
 
     float multiplier = 1.0f;
+    float nonStackingPos = 0.0f;
 
     AuraList const& mTotalAuraList = GetAurasByType(auratype);
     for(AuraList::const_iterator i = mTotalAuraList.begin();i != mTotalAuraList.end(); ++i)
     {
         Modifier* mod = (*i)->GetModifier();
         if (mask & (1 << (mod->m_miscvalue -1)))
-            multiplier *= (100.0f + mod->m_amount)/100.0f;
+        {
+            if((*i)->IsStacking())
+                multiplier *= (100.0f + mod->m_amount)/100.0f;
+            else
+            {
+                if(mod->m_amount > nonStackingPos)
+                    nonStackingPos = mod->m_amount;
+            }
+        }
     }
-    return multiplier;
+    return multiplier * (100.0f + nonStackingPos)/100.0f;
 }
 
 bool Unit::AddAura(Aura *Aur)
@@ -5015,7 +5021,7 @@ void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
     // Earth Shield - Remove charges
-    if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN && (spell->SpellFamilyFlags & UI64LIT(0x0000040000000000)))
+    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && spell && spell->SpellFamilyName == SPELLFAMILY_SHAMAN && (spell->SpellFamilyFlags & UI64LIT(0x0000040000000000)))
     {
         //drop charge and if it was last one, remove aura
         if(i->second->DropAuraCharge())
@@ -7307,13 +7313,13 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 // Judgement of Light
                 case 20185:
                 {
-                    // PPM per victim
+                    /*// PPM per victim -> probably obsolete, there is a generic handling now
                     float ppmJoL = 15.0f; // must be hard-coded + 100% proc chance in DB
                     WeaponAttackType attType = BASE_ATTACK; // TODO: attack type based? 
                     uint32 WeaponSpeed = pVictim->GetAttackTime(attType);
                     float chanceForVictim = pVictim->GetPPMProcChance(WeaponSpeed, ppmJoL);
                     if (!roll_chance_f(chanceForVictim))
-                        return false;
+                        return false;*/
 
                     basepoints[0] = int32( pVictim->GetMaxHealth() * triggeredByAura->GetModifier()->m_amount / 100 );
                     pVictim->CastCustomSpell(pVictim, 20267, &basepoints[0], NULL, NULL, true, NULL, triggeredByAura);
@@ -7438,12 +7444,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 case 31876:
                 case 31877:
                 case 31878:
-                    // triggered only at casted Judgement spells, not at additional Judgement effects
-                    if (!procSpell || procSpell->Category != 1210)
+                    // triggered only at additional Judgement effects, not at casted Judgement spells
+                    if (!procSpell || procSpell->Category == SPELLCATEGORY_JUDGEMENT)
                         return false;
+
                     // Judgement must deal damage
                     if (!damage)
                         return false;
+
                     target = this;
                     triggered_spell_id = 31930;
 
@@ -15323,10 +15331,19 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit *pVictim, Aura* aura, SpellEntry con
     if (spellProcEvent && spellProcEvent->customChance)
         chance = spellProcEvent->customChance;
     // If PPM exist calculate chance from PPM
-    if (!isVictim && spellProcEvent && spellProcEvent->ppmRate != 0)
+    if(spellProcEvent && spellProcEvent->ppmRate != 0)
     {
-        uint32 WeaponSpeed = GetAttackTime(attType);
-        chance = GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        uint32 WeaponSpeed;
+        if(!isVictim)
+        {
+            WeaponSpeed = GetAttackTime(attType);
+            chance = GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        }
+        else
+        {
+            WeaponSpeed = pVictim->GetAttackTime(attType);
+            chance = pVictim->GetPPMProcChance(WeaponSpeed, spellProcEvent->ppmRate);
+        }
     }
     // Apply chance modifer aura
     if (Player* modOwner = GetSpellModOwner())
