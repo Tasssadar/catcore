@@ -4753,6 +4753,11 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
                 sLog.outError("Aura (Spell %u Effect %u) is in process but attempt removed at aura (Spell %u Effect %u) adding, need add stack rule for Unit::RemoveNoStackAurasDueToAura", i->second->GetId(), i->second->GetEffIndex(),Aur->GetId(), Aur->GetEffIndex());
                 continue;
             }
+
+            Unit* auraCaster = (*i).second->GetCaster();
+            if (auraCaster && auraCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)auraCaster)->isWorldBoss())
+                continue;
+
             RemoveAurasDueToSpell(i_spellId);
 
             if ( m_Auras.empty() )
