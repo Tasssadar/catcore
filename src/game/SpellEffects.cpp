@@ -2992,19 +2992,19 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     z+=0.5f;
 
     float distance = m_caster->GetDistance(x, y, z)+m_caster->GetObjectBoundingRadius();
-    float time = 12*distance;
+    float time = 11.91f;  // feral charge
+    if(m_spellInfo->Id == 49575) // death grip
+        time = 16.05f;
+    time *= distance;
     //Calculate feral charge unk
     // Need WAY more research for this one...
     // This is ..*cough*.. OK, but really no precise.
     unk = distance*1.15f;
-    if (splinetype == SPLINETYPE_FACINGTARGET)
-    {
-        unk = (distance-13.942f)*0.6146*1.58;
-        if (unk > 10.411f)
-            unk = distance*1.62f;
-        else
-            unk = distance*(10.411-unk);    
-    }
+    unk = (distance-13.942f)*0.6146*1.58;
+    if (unk > 10.411f)
+        unk = distance*1.62f;
+    else
+        unk = distance*(10.411-unk);    
 
     //Stop moving before jump!
     m_caster->StopMoving();
@@ -3028,6 +3028,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     data << uint32(0);
     data << uint32(1);
     data << x << y << z;
+
     if (target->GetTypeId() == TYPEID_PLAYER)
     {
         m_caster->SendMessageToSetExcept(&data, (Player*)target);
@@ -3035,8 +3036,23 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }else
         m_caster->SendMessageToSet(&data, true);
 
+    // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, m_caster->GetOrientation());
+    {
+        Creature* c = (Creature*)m_caster;
+        // Creature relocation acts like instant movement generator, so current generator expects interrupt/reset calls to react properly
+        if (!c->GetMotionMaster()->empty())
+            if (MovementGenerator *movgen = c->GetMotionMaster()->top())
+                movgen->Interrupt(*c);
+
+        c->GetMap()->CreatureRelocation(c, x, y, z, m_caster->GetOrientation());
+
+        // finished relocation, movegen can different from top before creature relocation,
+        // but apply Reset expected to be safe in any case
+        if (!c->GetMotionMaster()->empty())
+            if (MovementGenerator *movgen = c->GetMotionMaster()->top())
+                movgen->Reset(*c);
+    }
 }
 
 void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
