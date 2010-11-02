@@ -1358,7 +1358,7 @@ void World::SetInitialWorldSettings()
 
     uint32 InstanceTimer = (HOUR - m_gameTime%HOUR);  //set to next hour
     InstanceTimer += getConfig(CONFIG_UINT32_INSTANCE_RESET_CONSTANT)%HOUR; // add difference from constant
-    m_timers[WUPDATE_INSTANCE_RESET].SetInterval(InstanceTimer+10); //  + 10s
+    m_timers[WUPDATE_INSTANCE_RESET].SetInterval(InstanceTimer+10*IN_MILLISECONDS); //  + 10s
 
     //to set mailtimer to return mails every day between 4 and 5 am
     //mailtimer is increased when updating auctions
