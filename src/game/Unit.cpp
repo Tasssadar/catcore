@@ -5021,7 +5021,7 @@ void Unit::RemoveSingleAuraFromStack(AuraMap::iterator &i, AuraRemoveMode mode)
 {
     SpellEntry const* spell = i->second->GetSpellProto();
     // Earth Shield - Remove charges
-    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && spell && spell->SpellFamilyName == SPELLFAMILY_SHAMAN && (spell->SpellFamilyFlags & UI64LIT(0x0000040000000000)))
+    if (mode == AURA_REMOVE_BY_DISPEL && i->second->GetAuraCharges() && spell && (spell->AttributesEx7 & SPELL_ATTR_EX7_DISPEL_CHARGES))
     {
         //drop charge and if it was last one, remove aura
         if(i->second->DropAuraCharge())
