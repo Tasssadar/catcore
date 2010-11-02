@@ -113,6 +113,16 @@ struct RoleCheck
             case DAMAGE: dps.insert(guid); break;
         }
     }
+    uint8 GetPlayerRole(uint64 guid) const
+    {
+        if(guid == tank)
+            return TANK;
+        else if(guid == heal)
+            return HEALER;
+        else if(dps.find(guid) != dps.end())
+            return DAMAGE;
+        return 0;
+    }
 
     bool TryRoles(LfgGroup *group);
 

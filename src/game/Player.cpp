@@ -2481,7 +2481,7 @@ void Player::RemoveFromGroup(Group* group, uint64 guid)
 {
     if (group)
     {
-        if (group->RemoveMember(guid, 0) <= 1 && !group->isLfgGroup())
+        if (group->RemoveMember(guid, 0) <= 1)
         {
             // group->Disband(); already disbanded in RemoveMember
             sObjectMgr.RemoveGroup(group);
@@ -6236,6 +6236,8 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING);
         else
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TURNING);
+
+        RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
         // move and update visible state if need
         m->PlayerRelocation(this, x, y, z, orientation);

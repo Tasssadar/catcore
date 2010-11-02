@@ -265,12 +265,12 @@ struct AchievementCriteriaEntry
             uint32  teamtype;                               // 3 {2,3,5}
         } highest_team_rating;
 
-        // ACHIEVEMENT_CRITERIA_TYPE_REACH_TEAM_RATING      = 39
+        // ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_PERSONAL_RATING= 39
         struct
         {
             uint32  teamtype;                               // 3 {2,3,5}
             uint32  teamrating;                             // 4
-        } reach_team_rating;
+        } highest_personal_rating;
 
         // ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILL_LEVEL      = 40
         struct
@@ -1441,7 +1441,7 @@ struct SpellEntry
     uint32    AttributesEx4;                                // 8        m_attributesExD
     uint32    AttributesEx5;                                // 9        m_attributesExE
     uint32    AttributesEx6;                                // 10       m_attributesExF
-    // uint32 unk_320_1;                                    // 11       3.2.0 (0x20 - totems, 0x4 - paladin auras, etc...)
+    uint32    AttributesEx7;                                // 11       m_attributesExG
     uint32    Stances;                                      // 12       m_shapeshiftMask
     // uint32 unk_320_2;                                    // 13       3.2.0
     uint32    StancesNot;                                   // 14       m_shapeshiftExclude
