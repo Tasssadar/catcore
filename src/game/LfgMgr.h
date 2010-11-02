@@ -185,22 +185,14 @@ enum LfgGroupType
     LFG_GROUPTYPE_WORLD_EVENT  = 11,
 };
 
-//Theres some quest for rewards, but they have not anything different, so make custom flags
-enum __LfgQuestFlags
-{
-    LFG_QUEST_NONE         = 0x00,
-    LFG_QUEST_DAILY        = 0x01,    // Its only daily quest
-};
-
 struct LfgReward
 {
     uint8 type;                      // enum LfgType
     uint8 GroupType;                 // reward type from LfgGroupType
     Quest *questInfo;                // rewards are quests
-    uint32 flags;                    //__LfgQuestFlags
+    bool isDaily;                    // if its daily or not..
     int32 DungeonId;                 // for event dungeons only, -1 = LFG_GROUPTYPE_WORLD_EVENT
 
-    bool isDaily() const { return (flags & LFG_QUEST_DAILY); }
 };
 typedef std::list<LfgReward*> LfgRewardList;
 typedef std::set<LFGDungeonEntry const*> LfgDungeonList;

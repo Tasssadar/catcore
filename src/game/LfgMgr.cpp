@@ -1066,7 +1066,7 @@ LfgReward* LfgMgr::GetDungeonReward(uint32 dungeon, bool done, uint8 level)
     for(LfgRewardList::iterator itr = m_rewardsList.begin(); itr != m_rewardsList.end(); ++itr)
     {
         if ((*itr)->type != dungeonInfo->type || (*itr)->GroupType != dungeonInfo->grouptype ||
-            (*itr)->isDaily() != done)
+            (*itr)->isDaily != done)
             continue;
 
         //World event check
@@ -1155,17 +1155,6 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
     return locks;
 }
 
-/*
-CREATE TABLE `quest_lfg_relation` (
-`type` TINYINT( 3 ) UNSIGNED NOT NULL DEFAULT '0',
-`groupType` TINYINT( 3 ) UNSIGNED NOT NULL DEFAULT '0',
-`questEntry` INT( 11 ) UNSIGNED NOT NULL DEFAULT '0',
-`flags` INT( 11 ) UNSIGNED NOT NULL DEFAULT '0',
-INDEX ( `type` , `groupType` ) ,
-UNIQUE (`questEntry`)
-) ENGINE = InnoDB;
-*/
-
 void LfgMgr::LoadDungeonRewards()
 {
     // In case of reload
@@ -1175,8 +1164,8 @@ void LfgMgr::LoadDungeonRewards()
     m_rewardsList.clear();
 
     uint32 count = 0;
-    //                                                0     1          2           3      4 
-    QueryResult *result = WorldDatabase.Query("SELECT type, groupType, questEntry, flags, DungeonId FROM quest_lfg_relation");
+    //                                                0     1          2           3        4 
+    QueryResult *result = WorldDatabase.Query("SELECT type, groupType, questEntry, isDaily, DungeonId FROM quest_lfg_relation");
 
     if ( !result )
     {
@@ -1200,7 +1189,7 @@ void LfgMgr::LoadDungeonRewards()
         LfgReward *reward = new LfgReward();
         reward->type                  = fields[0].GetUInt8();
         reward->GroupType             = fields[1].GetUInt8();
-        reward->flags                 = fields[3].GetUInt32();
+        reward->isDaily               = fields[3].GetBool();
         reward->DungeonId             = fields[4].GetInt32();
 
         if (Quest *rewardQuest = const_cast<Quest*>(sObjectMgr.GetQuestTemplate(fields[2].GetUInt32())))
@@ -1220,20 +1209,7 @@ void LfgMgr::LoadDungeonRewards()
     sLog.outString();
     sLog.outString( ">> Loaded %u LFG dungeon quest relations.", count );
 }
-/*
-CREATE TABLE IF NOT EXISTS `lfg_dungeon_info` (
-  `ID` mediumint(8) NOT NULL DEFAULT '0' COMMENT 'ID from LfgDugeons.dbc',
-  `name` text,
-  `lastBossId` int(11) NOT NULL DEFAULT '0' COMMENT 'Entry from creature_template',
-  `start_map` mediumint(8) NOT NULL DEFAULT '0',
-  `start_x` float NOT NULL DEFAULT '0',
-  `start_y` float NOT NULL DEFAULT '0',
-  `start_z` float NOT NULL DEFAULT '0',
-  `start_o` int(11) NOT NULL,
-  `locked` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-*/
+
 void LfgMgr::LoadDungeonsInfo()
 {
     // In case of reload
