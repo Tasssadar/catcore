@@ -2447,3 +2447,46 @@ void World::UpdateBroadCast()
         SendWorldText(LANG_SYSTEMMESSAGE,(*itr)->text.c_str());
     }
 }
+void World::SpocitejRepkyCommand()
+{
+    std::list<uint32> guidy;
+    QueryResult *result = CharacterDatabase.PQuery("SELECT guid FROM characters WHERE level > 68");
+    if (!result)
+        return;
+    do
+    {
+        Field *fields = result->Fetch();
+        uint32 guid = fields[0].GetUInt32();
+        guidy.push_back(guid);
+    } while (result->NextRow());
+    delete result;
+
+    for(uint8 dvakrat = 0; dvakrat < 2; ++dvakrat)
+    {
+        uint32 frakce[5] = {dvakrat ? 1068 : 1067, dvakrat ? 1126 : 1064, dvakrat ? 1094 : 1085, dvakrat ? 1050 : 1124, dvakrat ? 1037 : 1052};
+
+        for(std::list<uint32>::iterator itr = guidy.begin(); itr != guidy.end(); ++itr)
+        {
+            uint32 hodnoty[4];
+            for (uint32 i = 0; i < 4; ++i)
+            {
+                QueryResult* result = CharacterDatabase.PQuery("SELECT standing FROM character_reputation WHERE faction = %u AND guid = %u", frakce[i], itr);
+                if (result)
+                {
+                    hodnoty[i] = 0;
+                    continue;
+                }
+                Field *fields = result->Fetch();
+                hodnoty[i] = fields[0].GetUInt32();	
+            }
+            uint32 soucet = 0;
+            for (uint32 i = 0; i < 4; ++i)
+                soucet += hodnoty[i];
+
+            uint32 finalnihodnota = soucet/2;
+            if (finalnihodnota > 42999)
+                finalnihodnota = 42999;
+            CharacterDatabase.PExecute("UPDATE character_reputation SET stangings = %u WHERE guid = %u AND factionid = %u", finalnihodnota, itr, frakce[5]);
+        }
+    }
+}

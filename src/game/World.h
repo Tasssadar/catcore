@@ -664,6 +664,7 @@ class World
 
         bool   apFlushWaitingForConfirm;
         uint32 apFlushWaitingForConfirmTimer;
+        void SpocitejRepkyCommand();
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters

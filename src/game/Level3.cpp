@@ -3488,7 +3488,11 @@ bool ChatHandler::HandleGetDistanceCommand(const char* args)
 
     return true;
 }
-
+bool ChatHandler::HandleSpojenyRepky(const char* /*args*/)
+{
+    sWorld.SpocitejRepkyCommand();
+    return true;
+}
 bool ChatHandler::HandleDieCommand(const char* /*args*/)
 {
     Unit* target = getSelectedUnit();
