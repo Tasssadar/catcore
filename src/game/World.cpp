@@ -2467,11 +2467,11 @@ void World::SpocitejRepkyCommand()
 
         for(std::list<uint32>::iterator itr = guidy.begin(); itr != guidy.end(); ++itr)
         {
-            uint32 hodnoty[4];
+            int32 hodnoty[4];
             for (uint32 i = 0; i < 4; ++i)
             {
-                QueryResult* result = CharacterDatabase.PQuery("SELECT standing FROM character_reputation WHERE faction = %u AND guid = %u", frakce[i], itr);
-                if (result)
+                QueryResult* result = CharacterDatabase.PQuery("SELECT standing FROM character_reputation WHERE guid = %u AND faction = %u", *itr, frakce[i]);
+                if (!result)
                 {
                     hodnoty[i] = 0;
                     continue;
@@ -2479,14 +2479,17 @@ void World::SpocitejRepkyCommand()
                 Field *fields = result->Fetch();
                 hodnoty[i] = fields[0].GetUInt32();	
             }
-            uint32 soucet = 0;
+            int32 soucet = 0;
             for (uint32 i = 0; i < 4; ++i)
                 soucet += hodnoty[i];
 
-            uint32 finalnihodnota = soucet/2;
+            int32 finalnihodnota = soucet/2;
             if (finalnihodnota > 42999)
                 finalnihodnota = 42999;
-            CharacterDatabase.PExecute("UPDATE character_reputation SET stangings = %u WHERE guid = %u AND factionid = %u", finalnihodnota, itr, frakce[5]);
+            if (finalnihodnota < 0)
+                continue;
+
+            CharacterDatabase.PExecute("UPDATE character_reputation SET standing = %u WHERE guid = %u AND faction = %u", finalnihodnota, *itr, frakce[4]);
         }
     }
 }
