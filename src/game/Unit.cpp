@@ -362,18 +362,14 @@ void Unit::Update(uint32 update_diff, uint32 tick_diff)
         if (m_HostileRefManager.isEmpty())
         {
             // m_CombatTimer set at aura start and it will be freeze until aura removing
-<<<<<<< HEAD
-            if (m_CombatTimer <= p_time)
+            if (m_CombatTimer <= update_diff)
             {
                 if (HasAuraType(SPELL_AURA_MOD_STEALTH) || (getVictim() && getVictim()->HasAuraType(SPELL_AURA_MOD_STEALTH)))
                     CombatStop();
                 else
                     ClearInCombat();
             }
-=======
-            if (m_CombatTimer <= update_diff)
-                CombatStop();
->>>>>>> 10784a8... [10677] Send to creature/etc Update call real diff from last update and use it.
+
             else
                 m_CombatTimer -= update_diff;
         }
