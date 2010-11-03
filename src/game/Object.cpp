@@ -1552,8 +1552,8 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
 
     maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
     bool useVmaps = false;
-    float mapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), false, maxDiff);
-    float vmapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), true, maxDiff);
+    float mapZ = GetMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), false, maxDiff);
+    float vmapZ = GetMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), true, maxDiff);
     if ( mapZ <  vmapZ ) // check use of vmaps
         useVmaps = true;
 

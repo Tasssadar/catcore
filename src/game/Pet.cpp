@@ -460,7 +460,7 @@ void Pet::DeleteFromDB(uint32 guidlow)
 
 void Pet::SetDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
 {
-    Creature::SetDeathState(s);
+    Creature::setDeathState(s);
     if (getDeathState()==CORPSE)
     {
         //remove summoned pet (no corpse)

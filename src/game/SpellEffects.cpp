@@ -2985,13 +2985,29 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     target->GetPosition(x,y,z);
     x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
     y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
+
+    target->UpdateGroundPositionZ(x, y, z, target->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+
+    // Try to find two grounds...
+    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
+    {
+        float tx,ty,tz;
+        target->GetPosition(tx,ty,tz);
+        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
+        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
+        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
+        {
+            SendCastResult(SPELL_FAILED_TRY_AGAIN);
+            return;
+        }
+    }
+
     if (!target->GetMap()->IsNextZcoordOK(x, y, z, 10.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    target->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
-
+ 
     z+=0.5f;
 
     float distance = m_caster->GetDistance(x, y, z)+m_caster->GetObjectBoundingRadius();
@@ -3046,7 +3062,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
         m_caster->GetMotionMaster()->PauseMoveGens(time+1000);
-        c->GetMap()->CreatureRelocation(c, x, y, z, angle);
+        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
     }
 }
 
@@ -7952,13 +7968,27 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float x, y, z;
     unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
 
+    // Try to find two grounds...
+    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
+    {
+        float tx,ty,tz;
+        unitTarget->GetPosition(tx,ty,tz);
+        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
+        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
+        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
+        {
+            SendCastResult(SPELL_FAILED_TRY_AGAIN);
+            return;
+        }
+    }
+
     // Try to normalize Z coord cuz GetContactPoint do nothing with Z axis
     if (!m_caster->GetMap()->IsNextZcoordOK(x, y, z, 30.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
+    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -8001,13 +8031,27 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     else
         return;
 
+    // Try to find two grounds...
+    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
+    {
+        float tx,ty,tz;
+        unitTarget->GetPosition(tx,ty,tz);
+        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
+        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
+        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
+        {
+            SendCastResult(SPELL_FAILED_TRY_AGAIN);
+            return;
+        }
+    }
+
     // Try to normalize Z coord cuz GetContactPoint do nothing with Z axis
     if (!m_caster->GetMap()->IsNextZcoordOK(x, y, z, 30.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
+    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags

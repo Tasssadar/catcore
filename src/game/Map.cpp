@@ -2971,7 +2971,7 @@ uint32 Map::GenerateLocalLowGuid(HighGuid guidhigh)
 bool Map::IsNextZcoordOK(float x, float y, float oldZ, float maxDiff) const
 {
     //cant get result in water...
-    if(z != 0.0f && GetMap()->IsInWater(x, y, oldZ))
+    if(oldZ != 0.0f && IsInWater(x, y, oldZ))
         return true;
 
     // The fastest way to get an accurate result 90% of the time.

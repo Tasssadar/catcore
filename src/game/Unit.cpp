@@ -15716,7 +15716,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
     }
     else
     {
-        // All this is guessed
+        // All this is guessed, but looks cool
         float dis = horizontalSpeed;
         float fx, fy, fz;
         GetPosition(fx, fy, fz);
@@ -15724,6 +15724,13 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         fy += dis * vsin;
  
         UpdateGroundPositionZ(fx, fy, fz, GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
+
+        // Try to find ground bellow
+        float ground2 = GetMap()->GetHeight(fx, fy, fz-2.1f, true);
+
+        if(ground2 > INVALID_HEIGHT && fabs(ground2 - fz) > 2.0f)
+            fz = ground2;
+        
 
         StopMoving();
         float time = 12.0f*(GetDistance(fx, fy, fz)+GetObjectBoundingRadius());
