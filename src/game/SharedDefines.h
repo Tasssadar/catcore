@@ -473,18 +473,18 @@ const uint32 ItemQualityColors[MAX_ITEM_QUALITY] = {
 #define SPELL_ATTR_EX7_UNK17                     0x00020000            // 17 Only 27965 (Suicide) spell.
 #define SPELL_ATTR_EX7_HAS_CHARGE_EFFECT         0x00040000            // 18 Only spells that have Charge among effects.
 #define SPELL_ATTR_EX7_ZONE_TELEPORT             0x00080000            // 19 Teleports to specific zones. (Ulduar or ICC teleport spells)
-#define SPELL_ATTR_EX7_UNK20                     0x00100000            // 20
-#define SPELL_ATTR_EX7_UNK21                     0x00200000            // 21
-#define SPELL_ATTR_EX7_UNK22                     0x00400000            // 22
-#define SPELL_ATTR_EX7_UNK23                     0x00800000            // 23
-#define SPELL_ATTR_EX7_UNK24                     0x01000000            // 24
-#define SPELL_ATTR_EX7_UNK25                     0x02000000            // 25
-#define SPELL_ATTR_EX7_UNK26                     0x04000000            // 26
-#define SPELL_ATTR_EX7_UNK27                     0x08000000            // 27
+#define SPELL_ATTR_EX7_UNK20                     0x00100000            // 20 Divine shield, blink, ice block (Somehow related to immunity?)
+#define SPELL_ATTR_EX7_UNK21                     0x00200000            // 21 Not used in 3.3.5a
+#define SPELL_ATTR_EX7_UNK22                     0x00400000            // 22 Loaned Wind Rider and Quivering Strike spells (wtf?)
+#define SPELL_ATTR_EX7_UNK23                     0x00800000            // 23 Mutilate, Shattering throw and some non-player spells
+#define SPELL_ATTR_EX7_UNK24                     0x01000000            // 24 Mutilate, Shattering throw, motivate
+#define SPELL_ATTR_EX7_UNK25                     0x02000000            // 25 again Mutilate and some others
+#define SPELL_ATTR_EX7_UNK26                     0x04000000            // 26 some of transform spells
+#define SPELL_ATTR_EX7_UNK27                     0x08000000            // 27 Not used in 3.3.5a
 #define SPELL_ATTR_EX7_UNK28                     0x10000000            // 28 Somehow related to stacking, "Take the best buff and deactivate lower ones"
-#define SPELL_ATTR_EX7_UNK29                     0x20000000            // 29
-#define SPELL_ATTR_EX7_UNK30                     0x40000000            // 30
-#define SPELL_ATTR_EX7_UNK31                     0x80000000            // 31
+#define SPELL_ATTR_EX7_UNK29                     0x20000000            // 29 2 spells, no idea
+#define SPELL_ATTR_EX7_UNK30                     0x40000000            // 30 Prayer of Mending, Earth Shield, Burning Determination, Divine Sacrifice
+#define SPELL_ATTR_EX7_UNK31                     0x80000000            // 31 one spell - Divine Storm! (70769) 2p T10 bonus for paladin, reset cooldown
 
 #define MAX_TALENT_SPEC_COUNT   2
 #define MAX_GLYPH_SLOT_INDEX    6
