@@ -588,6 +588,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         bool Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state);
         void Update(uint32 p_time);
+
         GameObjectInfo const* GetGOInfo() const;
 
         bool IsTransport() const;
@@ -720,6 +721,8 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void EventInform(uint32 eventId);
 
     protected:
+        void Update(uint32 update_diff, uint32 tick_diff);  // overwrite WorldObject::Update
+
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
         uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
