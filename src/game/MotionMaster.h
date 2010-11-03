@@ -65,7 +65,7 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         typedef std::vector<MovementGenerator *> ExpireList;
     public:
 
-        explicit MotionMaster(Unit *unit) : i_owner(unit), m_expList(NULL), m_cleanFlag(MMCF_NONE) {}
+        explicit MotionMaster(Unit *unit) : i_owner(unit), m_expList(NULL), m_cleanFlag(MMCF_NONE), m_pauseTimer(0) {}
         ~MotionMaster();
 
         void Initialize();
@@ -117,6 +117,8 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         void UpdateFinalDistanceToTarget(float fDistance);
 
         bool GetDestination(float &x, float &y, float &z);
+
+        void PauseMoveGens(uint32 Timer) { m_pauseTimer = Timer; }
     private:
         void Mutate(MovementGenerator *m);                  // use Move* functions instead
 
@@ -129,5 +131,6 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         Unit       *i_owner;
         ExpireList *m_expList;
         uint8       m_cleanFlag;
+        uint32      m_pauseTimer;
 };
 #endif

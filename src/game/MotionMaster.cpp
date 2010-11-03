@@ -69,6 +69,18 @@ MotionMaster::UpdateMotion(uint32 diff)
 {
     if ( i_owner->hasUnitState(UNIT_STAT_CAN_NOT_MOVE | UNIT_STAT_ON_VEHICLE) )
         return;
+
+    if(m_pauseTimer)
+    {
+        if(m_pauseTimer <= diff)
+        {
+            top()->Reset(*i_owner);
+            m_pauseTimer = 0;
+        }
+        else
+            m_pauseTimer -= diff;
+        return;      
+    }
     
     //ASSERT( !empty() );
     if (empty())

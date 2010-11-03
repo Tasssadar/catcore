@@ -3001,12 +3001,15 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     //Calculate feral charge unk
     // Need WAY more research for this one...
     // This is ..*cough*.. OK, but really no precise.
-    unk = distance*1.15f;
-    unk = (distance-13.942f)*0.6146*1.58;
-    if (unk > 10.411f)
-        unk = distance*1.62f;
-    else
-        unk = distance*(10.411-unk);    
+    unk = 50.0f;
+    if(splinetype == SPLINETYPE_FACINGTARGET)
+    {
+        unk = (distance-13.942f)*0.6146*1.58;
+        if (unk > 10.411f)
+            unk = distance*1.62f;
+        else
+            unk = distance*(10.411-unk);    
+    }
 
     //Stop moving before jump!
     m_caster->StopMoving();
@@ -3041,19 +3044,8 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
-        Creature* c = (Creature*)m_caster;
-        // Creature relocation acts like instant movement generator, so current generator expects interrupt/reset calls to react properly
-        if (!c->GetMotionMaster()->empty())
-            if (MovementGenerator *movgen = c->GetMotionMaster()->top())
-                movgen->Interrupt(*c);
-
-        c->GetMap()->CreatureRelocation(c, x, y, z, m_caster->GetOrientation());
-
-        // finished relocation, movegen can different from top before creature relocation,
-        // but apply Reset expected to be safe in any case
-        if (!c->GetMotionMaster()->empty())
-            if (MovementGenerator *movgen = c->GetMotionMaster()->top())
-                movgen->Reset(*c);
+        m_caster->GetMotionMaster()->PauseMoveGens(time+100);
+        c->GetMap()->CreatureRelocation(c, x, y, z, angle);
     }
 }
 
@@ -7844,6 +7836,8 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         else
         {
             unitTarget->SendMonsterMove(cx, cy, cz, SPLINETYPE_FACINGANGLE, SPLINEFLAG_UNKNOWN5, 0, NULL, unitTarget->GetOrientation());
+             // Creature relocation
+            unitTarget->GetMotionMaster()->PauseMoveGens(100);
             unitTarget->GetMap()->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
         }
     }
@@ -7970,7 +7964,15 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         ((Creature *)unitTarget)->StopMoving();
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->MonsterMove(x, y, z, 1);
+    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+    {
+        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
+        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
+        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
+        m_caster->GetMotionMaster()->PauseMoveGens(100);
+        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
+    }
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
@@ -8008,7 +8010,15 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     z+= 0.5f;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->MonsterMove(x, y, z, 1);
+    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+    {
+        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
+        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
+        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
+        m_caster->GetMotionMaster()->PauseMoveGens(100);
+        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
+    }
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
