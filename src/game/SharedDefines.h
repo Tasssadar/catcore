@@ -461,8 +461,8 @@ const uint32 ItemQualityColors[MAX_ITEM_QUALITY] = {
 #define SPELL_ATTR_EX7_SUMMON_PLAYER_TOTEM       0x00000020            // 5  Only Shaman player totems.
 #define SPELL_ATTR_EX7_UNK6                      0x00000040            // 6  Dark Surge, Surge of Light, Burning Breath triggers (boss spells).
 #define SPELL_ATTR_EX7_UNK7                      0x00000080            // 7  66218 (Launch) spell.
-#define SPELL_ATTR_EX7_UNK8                      0x00000100            // 8  Teleports, mounts and other spells.
-#define SPELL_ATTR_EX7_UNK9                      0x00000200            // 9  Teleports, mounts and other spells.
+#define SPELL_ATTR_EX7_HORDE_ONLY                0x00000100            // 8
+#define SPELL_ATTR_EX7_ALLIANCE_ONLY             0x00000200            // 9
 #define SPELL_ATTR_EX7_DISPEL_CHARGES            0x00000400            // 10 Dispel and Spellsteal individual charges instead of whole aura.
 #define SPELL_ATTR_EX7_INTERRUPT_ONLY_NONPLAYER  0x00000800            // 11 Only non-player casts interrupt, though Feral Charge - Bear has it.
 #define SPELL_ATTR_EX7_UNK12                     0x00001000            // 12 Not set in 3.2.2a.
