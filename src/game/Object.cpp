@@ -284,7 +284,8 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                     && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
                 {
                     // (ok) most seem to have this
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
 
                     // Add flying effect. This should be in db, but...
                     if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
@@ -295,14 +296,6 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         // (ok) possibly some "hover" mode
                         //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT); //problems sometimes...
                     }
-                    else
-                    {
-                        if (((Creature*)unit)->IsMounted())
-                        {
-                            // seems to be often when mounted
-                            unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
-                        }
-                    }
                 }
 
                 // swimming creature
@@ -310,7 +303,10 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 unit->GetPosition(x,y,z);
                 if(((Creature*)unit)->canSwim() && unit->GetMap()->IsInWater(x,y,z))
                 {
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+
                     if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
                         ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
                 }
