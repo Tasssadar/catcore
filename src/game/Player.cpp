@@ -1507,10 +1507,10 @@ void Player::Update(uint32 update_diff, uint32 tick_diff)
     //instance bind
     if(m_instanceBindTimer != -1)
     {
-        if(m_instanceBindTimer <= (int32)p_time)
+        if(m_instanceBindTimer <= (int32)update_diff)
             StopInstanceBindTimer(true);
         else
-            m_instanceBindTimer -= p_time;
+            m_instanceBindTimer -= update_diff;
     }
 
     if (IsHasDelayedTeleport())

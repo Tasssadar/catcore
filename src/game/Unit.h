@@ -822,14 +822,6 @@ class MovementInfo
         };
 
         JumpInfo const& GetJumpInfo() const { return jump; }
-        void SetFallData(float velocity, float sinAngle, float cosAngle, float xyspeed)
-        {
-            j_velocity = velocity;
-            j_sinAngle = sinAngle;
-            j_cosAngle = cosAngle;
-            j_xyspeed  = xyspeed;
-            fallTime = 0;
-        }
 
     private:
         // common

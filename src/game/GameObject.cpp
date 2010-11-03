@@ -173,7 +173,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMa
     return true;
 }
 
-void GameObject::Update(uint32 /*update_diff*/, uint32 /*tick_diff*/)
+void GameObject::Update(uint32 update_diff, uint32 /*tick_diff*/)
 {
     if (GetObjectGuid().IsMOTransport())
     {
@@ -382,9 +382,9 @@ void GameObject::Update(uint32 /*update_diff*/, uint32 /*tick_diff*/)
                 case GAMEOBJECT_TYPE_CHEST:
                     if (m_groupLootTimer && m_groupLootId)
                     {
-                        if (p_time <= m_groupLootTimer)
+                        if (update_diff <= m_groupLootTimer)
                         {
-                            m_groupLootTimer -= p_time;
+                            m_groupLootTimer -= update_diff;
                         }
                         else
                         {

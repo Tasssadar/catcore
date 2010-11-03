@@ -626,7 +626,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
         for(GroupsList::iterator specific = queue->second->groups.begin(); specific != queue->second->groups.end(); ++specific)
         {
             if((*specific)->GetMembersCount() >= LFG_GROUP || (*specific)->GetMembersCount() == 0 ||
-                !(*grpitr2)->GetRandomPlayers()->empty())
+                !(*specific)->GetRandomPlayers()->empty())
                 continue;
             // Copy roles to temp structure...
             tmpRoles.Reset();
@@ -650,7 +650,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         !(*specific)->HasCorrectLevel(plr->getLevel()))
                         continue;
 
-                    if(tmpRoles.tank && tmpRole.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
+                    if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                         break;
 
                     uint8 plrRole = (*random)->GetPlayerRole(citr->guid, false, true);
@@ -725,12 +725,12 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         }
                     }
                 }
-                if(tmpRoles.tank && tmpRole.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
+                if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                     break;
             }
 
             // Lets merge!
-            if(tmpRoles.tank && tmpRole.heal && tmpRoles.dps.size() == LFG_DPS_COUNT)
+            if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT)
             {
                 for(PlrGrpItr = PlayerGroup.begin(); PlrGrpItr != PlayerGroup.end(); ++PlrGrpItr)
                 {
@@ -740,7 +740,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                     if(PlrGrpItr->second->GetMembersCount() >= LFG_GROUP)
                         break;
 
-                    PlrGrpItr->second->RemoveMember(plritr->first, 0);
+                    PlrGrpItr->second->RemoveMember(PlrGrpItr->first, 0);
                     (*specific)->AddMember(PlrGrpItr->first, plr->GetName());
                     (*specific)->SetAsRole(tmpRoles.GetPlayerRole(PlrGrpItr->first), PlrGrpItr->first);
                     (*specific)->GetRandomPlayers()->insert(PlrGrpItr->first);

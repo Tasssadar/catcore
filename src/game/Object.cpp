@@ -1552,7 +1552,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
 {
     //Cant modify in water
     if(z != 0 && GetBaseMap()->GetWaterLevel(x,y) > z)
-        return z;
+        return;
 
     maxDiff = maxDiff >= 100.0f ? 10.0f : sqrtf(maxDiff);
     bool useVmaps = false;

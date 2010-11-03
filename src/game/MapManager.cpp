@@ -256,11 +256,11 @@ MapManager::Update(const uint32 time_, const uint32 diff)
     int omp_set_num_threads(sWorld.getConfig(CONFIG_UINT32_NUMTHREADS));
 
     for (uint32 i = 0; iter != i_maps.end(); ++iter, ++i)
-    update_queue[i] = iter->second;
+        update_queue[i] = iter->second;
 
     #pragma omp parallel for schedule(dynamic) private(i) shared(update_queue)
-    for(MapMapType::iterator iter=i_maps.begin(); iter != i_maps.end(); ++iter)
-        iter->second->Update(time_, (uint32)i_timer.GetCurrent());
+    for (uint32 i = 0; i < i_maps.size(); ++i)
+        update_queue[i]->Update(time_, (uint32)i_timer.GetCurrent());
 
     for (TransportSet::iterator iter = m_Transports.begin(); iter != m_Transports.end(); ++iter)
         (*iter)->UpdateCall(time_, (uint32)i_timer.GetCurrent());
