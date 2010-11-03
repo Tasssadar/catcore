@@ -2971,22 +2971,24 @@ uint32 Map::GenerateLocalLowGuid(HighGuid guidhigh)
 bool Map::IsNextZcoordOK(float x, float y, float oldZ, float maxDiff) const
 {
     //cant get result in water...
-    if(GetWaterLevel(x,y) > oldZ)
+    if(z != 0.0f && GetMap()->IsInWater(x, y, oldZ))
         return true;
 
     // The fastest way to get an accurate result 90% of the time.
     // Better result can be obtained like 99% accuracy with a ray light, but the cost is too high and the code is too long.
-    maxDiff = maxDiff >= 100.0f ? 10.0f : sqrtf(maxDiff);
+    maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
     bool useVmaps = false;
-    if ( GetHeight(x, y, oldZ+2.0f, false) <  GetHeight(x, y, oldZ+2.0f, true) ) // check use of vmaps
+    float mapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), false, maxDiff);
+    float vmapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), true, maxDiff);
+    if ( mapZ <  vmapZ ) // check use of vmaps
         useVmaps = true;
 
-    float newZ = GetHeight(x, y, oldZ+2.0f, useVmaps);
+    float newZ = useVmaps ? vmapZ : mapZ;
 
     if (fabs(newZ-oldZ) > maxDiff)                              // bad...
     {
         useVmaps = !useVmaps;                                     // try change vmap use
-        newZ = GetHeight(x, y, oldZ+2.0f, useVmaps);
+        newZ = useVmaps ? vmapZ : mapZ;
 
         if (fabs(newZ-oldZ) > maxDiff)
             return false;

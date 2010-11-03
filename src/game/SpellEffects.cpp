@@ -2990,7 +2990,8 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    target->UpdateGroundPositionZ(x, y, z, 10.0f);
+    target->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
+
     z+=0.5f;
 
     float distance = m_caster->GetDistance(x, y, z)+m_caster->GetObjectBoundingRadius();
@@ -3044,7 +3045,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
-        m_caster->GetMotionMaster()->PauseMoveGens(time+100);
+        m_caster->GetMotionMaster()->PauseMoveGens(time+1000);
         c->GetMap()->CreatureRelocation(c, x, y, z, angle);
     }
 }
@@ -7957,7 +7958,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, 30.0f);
+    m_caster->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -7970,7 +7971,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         float angle = unitTarget->GetAngle(x,y) + M_PI_F;
         angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
         angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
-        m_caster->GetMotionMaster()->PauseMoveGens(100);
+        m_caster->GetMotionMaster()->PauseMoveGens(1000);
         m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
     }
 
@@ -8006,7 +8007,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, 30.0f);
+    m_caster->UpdateGroundPositionZ(fx, fy, fz, target->GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags

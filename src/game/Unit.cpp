@@ -15713,41 +15713,38 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(horizontalSpeed);                     // Horizontal speed
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
-
-        //Yeah, client does not like this
-        /*m_movementInfo.SetFallData(-verticalSpeed, vsin, vcos, horizontalSpeed);
-        m_movementInfo.AddMovementFlag(MOVEFLAG_FALLING);
-        m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
-
-        data.Initialize(MSG_MOVE_JUMP);
-        data << GetPackGUID();
-        m_movementInfo.Write(data);
-        SendMessageToSet(&data, false); */
     }
     else
     {
+        // All this is guessed
         float dis = horizontalSpeed;
+        float fx, fy, fz;
+        GetPosition(fx, fy, fz);
+        fx += dis * vcos;
+        fy += dis * vsin;
+ 
+        UpdateGroundPositionZ(fx, fy, fz, GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
 
-        float ox, oy, oz;
-        GetPosition(ox, oy, oz);
+        StopMoving();
+        float time = 12.0f*(GetDistance(fx, fy, fz)+GetObjectBoundingRadius());
+        
+        WorldPacket data(SMSG_MONSTER_MOVE);
+        data << GetPackGUID();
+        data << uint8(0);
+        data << GetPositionX() << GetPositionY() << GetPositionZ();
+        data << uint32(getMSTime());
+        data << uint8(SPLINETYPE_NORMAL);  
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK);
+        data << uint32(time);
+        data << float(verticalSpeed*10.0f); // <<------ ?????
+        data << uint32(0);
+        data << uint32(1);
+        data << fx << fy << fz;
+        SendMessageToSet(&data, false);
 
-        float fx = ox + dis * vcos;
-        float fy = oy + dis * vsin;
-        float fz = oz;
-
-        float fx2, fy2, fz2;                                // getObjectHitPos overwrite last args in any result case
-        if (VMAP::VMapFactory::createOrGetVMapManager()->getObjectHitPos(GetMapId(), ox,oy,oz+0.5f, fx,fy,oz+0.5f,fx2,fy2,fz2, -0.5f))
-        {
-            fx = fx2;
-            fy = fy2;
-            fz = fz2;
-        }
-
-        UpdateGroundPositionZ(fx, fy, fz);
-
-        //FIXME: this mostly hack, must exist some packet for proper creature move at client side
-        //       with CreatureRelocation at server side
-        NearTeleportTo(fx, fy, fz, GetOrientation(), this == target);
+        // Creature relocation
+        GetMotionMaster()->PauseMoveGens(time+1000);
+        GetMap()->CreatureRelocation((Creature*)this, fx, fy, fz, GetOrientation());
     }
 }
 

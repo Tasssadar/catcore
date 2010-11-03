@@ -1547,20 +1547,23 @@ void WorldObject::GetRandomPoint( float x, float y, float z, float distance, flo
 void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDiff) const
 {
     //Cant modify in water
-    if(z != 0 && GetBaseMap()->GetWaterLevel(x,y) > z)
+    if(z != 0.0f && GetMap()->IsInWater(x, y, z))
         return;
 
-    maxDiff = maxDiff >= 100.0f ? 10.0f : sqrtf(maxDiff);
+    maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
     bool useVmaps = false;
-    if ( GetBaseMap()->GetHeight(x, y, z+2.0f, false) <  GetBaseMap()->GetHeight(x, y, z+2.0f, true) ) // check use of vmaps
+    float mapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), false, maxDiff);
+    float vmapZ = GetHeight(x, y, oldZ+(maxDiff/2.0f-2.0f), true, maxDiff);
+    if ( mapZ <  vmapZ ) // check use of vmaps
         useVmaps = true;
 
-    float normalizedZ = GetBaseMap()->GetHeight(x, y, z+2.0f, useVmaps);
+    float normalizedZ = useVmaps ? vmapZ : mapZ;
+
     // check if its reacheable
     if (normalizedZ <= INVALID_HEIGHT || fabs(normalizedZ-z) > maxDiff)
     {
         useVmaps = !useVmaps;                                // try change vmap use
-        normalizedZ = GetBaseMap()->GetHeight(x, y, z+2.0f, useVmaps);
+        normalizedZ = useVmaps ? vmapZ : mapZ;
         if (normalizedZ <= INVALID_HEIGHT || fabs(normalizedZ-z) > maxDiff)
             return;                                        // Do nothing in case of another bad result 
     }
