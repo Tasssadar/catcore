@@ -1463,7 +1463,7 @@ void World::DetectDBCLang()
 }
 
 /// Update the World !
-void World::Update(uint32 diff)
+void World::Update(uint32 time_, uint32 diff)
 {
     //World diff time, showed in .s info, for lag detect...
     world_diff_time = diff;
@@ -1563,7 +1563,7 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_OBJECTS].Reset();
         ///- Update objects when the timer has passed (maps, transport, creatures,...)
-        sMapMgr.Update(diff);                // As interval = 0
+        sMapMgr.Update(time_, diff);                // As interval = 0
 
         sBattleGroundMgr.Update(diff);
         sLfgMgr.Update(diff);

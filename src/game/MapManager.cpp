@@ -244,7 +244,7 @@ void MapManager::DeleteInstance(uint32 mapid, uint32 instanceId)
 }
 
 void
-MapManager::Update(uint32 diff)
+MapManager::Update(const uint32 time_, const uint32 diff)
 {
     i_timer.Update(diff);
     if ( !i_timer.Passed() )
@@ -259,11 +259,11 @@ MapManager::Update(uint32 diff)
     update_queue[i] = iter->second;
 
     #pragma omp parallel for schedule(dynamic) private(i) shared(update_queue)
-    for (uint32 i = 0; i < i_maps.size(); ++i)
-        update_queue[i]->Update(i_timer.GetCurrent());
+    for(MapMapType::iterator iter=i_maps.begin(); iter != i_maps.end(); ++iter)
+        iter->second->Update(time_, (uint32)i_timer.GetCurrent());
 
     for (TransportSet::iterator iter = m_Transports.begin(); iter != m_Transports.end(); ++iter)
-        (*iter)->Update(i_timer.GetCurrent());
+        (*iter)->UpdateCall(time_, (uint32)i_timer.GetCurrent());
 
     i_timer.SetCurrent(0);
 }
