@@ -358,6 +358,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE,
     CONFIG_BOOL_LFG_LOG,
     CONFIG_BOOL_LFG_ALLOW_MIXED,
+    CONFIG_BOOL_ENABLE_MMAPS,
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -637,6 +638,8 @@ class World
         static float GetVisibleUnitGreyDistance()           { return m_VisibleUnitGreyDistance;       }
         static float GetVisibleObjectGreyDistance()         { return m_VisibleObjectGreyDistance;     }
 
+        static float MMapsEnabled()                         { return m_MMapsEnabled;                  }
+
         void ProcessCliCommands();
         void QueueCliCommand(CliCommandHolder* commandHolder) { cliCmdQueue.add(commandHolder); }
 
@@ -740,6 +743,8 @@ class World
         static float m_MaxVisibleDistanceInFlight;
         static float m_VisibleUnitGreyDistance;
         static float m_VisibleObjectGreyDistance;
+
+        static bool m_MMapsEnabled;
 
         // CLI command holder to be thread safe
         ACE_Based::LockedQueue<CliCommandHolder*,ACE_Thread_Mutex> cliCmdQueue;

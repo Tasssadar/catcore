@@ -81,7 +81,6 @@ void WaypointMovementGenerator<Creature>::LoadPath(Creature &creature)
         creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
-    CreatureTraveller traveller(creature);
     MoveToNextNode(traveller);
 }
 

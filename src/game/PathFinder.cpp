@@ -20,6 +20,7 @@
 #include "PathFinder.h"
 #include "Map.h"
 #include "../recastnavigation/Detour/Include/DetourCommon.h"
+#include "World.h"
 
 ////////////////// PathInfo //////////////////
 PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY, const float destZ, bool useStraightPath) :
@@ -36,7 +37,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
-    if(m_navMesh = m_sourceObject->GetMap()->GetNavMesh())
+    if((m_navMesh = m_sourceObject->GetMap()->GetNavMesh()) && sWorld.MMapsEnabled())
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         m_navMeshQuery->init(m_navMesh, MESH_MAX_NODES);
@@ -78,7 +79,7 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     PATH_DEBUG("++ PathInfo::Update() for %u \n", m_sourceObject->GetGUID());
 
     // make sure navMesh works - we can run on map w/o mmap
-    if(!m_navMesh)
+    if(!m_navMesh || !sWorld.MMapsEnabled())
     {
         BuildShortcut();
         m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
@@ -309,7 +310,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             sLog.outError("%u's Path Build failed: invalid polyRef in path", m_sourceObject->GetGUID());
 
             BuildShortcut();
-            m_type = PATHFIND_NOPATH;
+           // m_type = PATHFIND_NOPATH;
+            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
             return;
         }
 
@@ -376,7 +378,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             // only happens if we passed bad data to findPath(), or navmesh is messed up
             sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
             BuildShortcut();
-            m_type = PATHFIND_NOPATH;
+            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+           // m_type = PATHFIND_NOPATH;
             return;
         }
 
@@ -437,7 +440,8 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
-        m_type = PATHFIND_NOPATH;
+        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+        //m_type = PATHFIND_NOPATH;
         return;
     }
 
@@ -477,14 +481,14 @@ dtQueryFilter PathInfo::createFilter()
     filter.includeFlags = 0;
     filter.excludeFlags = 0;
 
-    if(creature->CanWalk())
+    if(creature->canWalk())
         filter.includeFlags |= NAV_GROUND;          // walk
 
-    if(creature->CanSwim())
+    if(creature->canSwim())
         filter.includeFlags |= NAV_WATER;           // swim
 
     // creatures don't take environmental damage
-    if(creature->CanSwim())
+    if(creature->canSwim())
         filter.includeFlags |= NAV_MAGMA | NAV_SLIME;
 
     // allow creatures to cheat and use different movement types if they are moved
@@ -501,7 +505,7 @@ bool PathInfo::canFly()
         return false;
 
     Creature* creature = (Creature*)m_sourceObject;
-    return creature->CanFly();
+    return creature->canFly();
 }
 
 bool PathInfo::canSwim()
@@ -510,7 +514,7 @@ bool PathInfo::canSwim()
         return false;
 
     Creature* creature = (Creature*)m_sourceObject;
-    return creature->CanSwim();
+    return creature->canSwim();
 }
 
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)

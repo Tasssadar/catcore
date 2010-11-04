@@ -39,7 +39,7 @@
 #include "../recastnavigation/Detour/Include/DetourCommon.h"
 #include "PathFinder.h"
 
-bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
+bool ChatHandler::HandleDebugSendSpellFailCommand(const char* args)
 {
     if (!*args)
         return false;
@@ -220,7 +220,7 @@ bool ChatHandler::HandleDebugUpdateWorldStateCommand(const char* args)
 }
 
 
-bool ChatHandler::HandleDebugMoveMapCommand(char* args)
+bool ChatHandler::HandleDebugMoveMapCommand(const char* args)
 {
     if(!args)
         return false;
@@ -232,7 +232,7 @@ bool ChatHandler::HandleDebugMoveMapCommand(char* args)
     }
 
     char* para = NULL;
-    char* w = strtok(args, " ");
+    char* w = strtok((char*)args, " ");
     if(w)
         para = strtok(NULL, " ");
 

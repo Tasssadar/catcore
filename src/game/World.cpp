@@ -79,6 +79,8 @@ float World::m_MaxVisibleDistanceInFlight     = DEFAULT_VISIBILITY_DISTANCE;
 float World::m_VisibleUnitGreyDistance        = 0;
 float World::m_VisibleObjectGreyDistance      = 0;
 
+bool World:m_MMapsEnabled                     = true;
+
 /// World constructor
 World::World()
 {
@@ -832,6 +834,7 @@ void World::LoadConfigSettings(bool reload)
         m_VisibleObjectGreyDistance = MAX_VISIBILITY_DISTANCE;
     }
 
+
     //visibility on continents
     m_MaxVisibleDistanceOnContinents      = sConfig.GetFloatDefault("Visibility.Distance.Continents",     DEFAULT_VISIBILITY_DISTANCE);
     if (m_MaxVisibleDistanceOnContinents < 45*getConfig(CONFIG_FLOAT_RATE_CREATURE_AGGRO))
@@ -922,6 +925,24 @@ void World::LoadConfigSettings(bool reload)
     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i",enableLOS, enableHeight);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
     sLog.outString( "WORLD: VMap config keys are: vmap.enableLOS, vmap.enableHeight, vmap.ignoreMapIds, vmap.ignoreSpellIds");
+    m_MMapsEnabled = sConfig.GetBoolDefault("mmap.enable", true); 
+    sLog.outString( "WORLD: MMaps are %s", m_MMapsEnabled ? "Enabled" : "Disabled");
+    if(m_MMapsEnabled)
+    {
+        MapEntry const *mapEntry = NULL;
+        std::stringstream str;
+        for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+        {
+            mapEntry = sMapStore.LookupEntry(i);
+            if(!mapEntry)
+                continue;
+            char fileName[512];
+            sprintf(fileName, "%smmaps/%03i.mmap", GetDataPath().c_str(), mapEntry->MapID);
+            if(fopen(fileName, "r"))
+                str << mapEntry->MapID << ", ";
+        }
+        sLog.outString( "WORLD: MMaps files found for these maps: %s", str.str());
+    }
 }
 
 /// Initialize the World
