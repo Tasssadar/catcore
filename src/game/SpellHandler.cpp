@@ -367,8 +367,8 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     {
         uint8 unk1;
 
-        recvPacket >> Unused<float>(); // unk1, coords?
-        recvPacket >> Unused<float>(); // unk1, coords?
+        recvPacket >> Unused<float>(); // unk1, coords? around 0 for typhoon, maybe elevation
+        recvPacket >> Unused<float>(); // unk1, coords? around 30 for typhoon, seems to be distance
 
         recvPacket >> unk1;                                 // >> 1 or 0
         if (unk1)
@@ -379,6 +379,10 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
             recvPacket >> Unused<uint32>();                 // >> MSG_MOVE_STOP
             recvPacket >> guid.ReadAsPacked();
             recvPacket >> movementInfo;
+
+            Unit *mover = _player->GetMover();
+            Player *plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : NULL;
+            HandleMoverRelocation(movementInfo,mover,plMover);
         }
     }
 

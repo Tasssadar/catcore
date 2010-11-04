@@ -224,7 +224,7 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
 
     if ( m_targetMask & TARGET_FLAG_SOURCE_LOCATION )
     {
-        data >> m_unitTargetGUID.ReadAsPacked();
+        data >> m_srcTransportGUID.ReadAsPacked();
         data >> m_srcX >> m_srcY >> m_srcZ;
         if (!MaNGOS::IsValidMapCoord(m_srcX, m_srcY, m_srcZ))
             throw ByteBufferException(false, data.rpos(), 0, data.size());
@@ -232,7 +232,7 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
 
     if ( m_targetMask & TARGET_FLAG_DEST_LOCATION )
     {
-        data >> m_unitTargetGUID.ReadAsPacked();
+        data >> m_destTransportGUID.ReadAsPacked();
         data >> m_destX >> m_destY >> m_destZ;
         if (!MaNGOS::IsValidMapCoord(m_destX, m_destY, m_destZ))
             throw ByteBufferException(false, data.rpos(), 0, data.size());
@@ -240,7 +240,7 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
         //somethings wrong here... Typhoon spell has this flag in packet,
         //but cast fails because packet is too short....strange spell,
         //dunno about any other like this
-        if ( m_targetMask & TARGET_FLAG_SOURCE_LOCATION && caster->getClass() != CLASS_DRUID) // <- cant get to spell proto, but this data are not used for now anyway... :/
+    /*    if ( m_targetMask & TARGET_FLAG_SOURCE_LOCATION && caster->getClass() != CLASS_DRUID) // <- cant get to spell proto, but this data are not used for now anyway... :/
         {
             if (data.rpos() + 4 + 4 <= data.size())
             {
@@ -250,7 +250,7 @@ void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
                 //*data >> uint16 >> uint8 >> uint32 >> uint32;
                 //*data >> float >> float >> float >> float...
             }
-        }
+        }*/
     }
 
     if ( m_targetMask & TARGET_FLAG_STRING )
@@ -296,17 +296,13 @@ void SpellCastTargets::write( ByteBuffer& data ) const
 
     if ( m_targetMask & TARGET_FLAG_SOURCE_LOCATION )
     {
-        if (m_unitTarget)
-            data << m_unitTarget->GetPackGUID();
-        else
-            data << uint8(0);
-
+        data << m_srcTransportGUID.WriteAsPacked();
         data << m_srcX << m_srcY << m_srcZ;
     }
 
     if ( m_targetMask & TARGET_FLAG_DEST_LOCATION )
     {
-        data << uint8(0);                                   // no known cases with target pguid
+        data << m_destTransportGUID.WriteAsPacked();
         data << m_destX << m_destY << m_destZ;
     }
 
@@ -3749,8 +3745,16 @@ void Spell::SendSpellStart()
     data << uint32(m_timer);                                // delay?
     data << m_targets;
 
-    if ( castFlags & CAST_FLAG_UNKNOWN6 )                   // predicted power?
-        data << uint32(0);
+    if ( castFlags & CAST_FLAG_UNKNOWN6 )                   // predicted power, triggers at-casting mana regeneration on client
+    {
+        uint32 powerValue;
+        if (m_spellInfo->powerType == POWER_HEALTH)
+            powerValue = m_caster->GetHealth();
+        else
+            powerValue = m_caster->GetPower((Powers)m_spellInfo->powerType);
+
+        data << powerValue;
+    }
 
     if ( castFlags & CAST_FLAG_UNKNOWN7 )                   // rune cooldowns list
     {
