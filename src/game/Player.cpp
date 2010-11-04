@@ -2053,8 +2053,6 @@ void Player::ProcessDelayedOperations()
             SendDungeonDifficulty(true);
             SetGroupUpdateFlag(GROUP_UPDATE_FULL);
             group->UpdatePlayerOutOfRange(this);
-            if (((LfgGroup*)group)->IsRandom())
-                CastSpell(this, LFG_RANDOM_COOLDOWN, true);
         }
         CastSpell(this, LFG_BOOST, true);
     }

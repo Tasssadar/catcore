@@ -318,6 +318,8 @@ void LfgGroup::KilledCreature(Creature *creature)
                 continue;
             reward->questInfo->SetFlag(QUEST_FLAGS_AUTO_REWARDED);
             plr->CompleteQuest(reward->questInfo->GetQuestId());
+            if (IsRandom())
+                plr->RemoveAurasDueToSpell(LFG_RANDOM_COOLDOWN);
         }
     }  
     SendUpdate();
@@ -489,6 +491,9 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         plr->m_lookingForGroup.taxi_end = taxi_end;
         plr->m_lookingForGroup.mount_spell = mount_spell;
         plr->m_lookingForGroup.roles = GetPlayerRole(plr->GetGUID());
+
+        if (IsRandom())
+            plr->CastSpell(plr, LFG_RANDOM_COOLDOWN, true);
     }
 
     // resurrect the player

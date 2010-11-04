@@ -460,6 +460,10 @@ void LfgMgr::UpdateQueue(uint8 side)
 
 void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 side)
 {
+    RoleCheck tmpRoles;
+    PlayerGroupMap PlayerGroup;
+    PlayerGroupMap::iterator PlrGrpItr;
+
     for(GroupsList::iterator grpitr1 = groups->begin(); grpitr1 != groups->end(); ++grpitr1)
     {
         // We can expect that there will be less tanks and healers than dps
@@ -470,9 +474,16 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
         {
             grpitr2next = grpitr2;
             ++grpitr2next;
-            if ((*grpitr1) == (*grpitr2) || !(*grpitr1) || !(*grpitr2))
+            if ((*grpitr1) == (*grpitr2) || !(*grpitr1) || !(*grpitr2) || (*grpitr2)->GetMembersCount() > (*grpitr1)->GetMembersCount())
                 continue;
             Group::member_citerator citr, citr_next;
+           
+            tmpRoles.Reset();
+            tmpRoles.dps = *(*grpitr1)->GetDps();
+            tmpRoles.tank = (*grpitr1)->GetTank();
+            tmpRoles.heal = (*grpitr1)->GetHeal();
+            PlayerGroup.clear();
+
             for(citr = (*grpitr2)->GetMemberSlots().begin(); citr != (*grpitr2)->GetMemberSlots().end(); citr = citr_next)
             {
                 citr_next = citr;
@@ -480,105 +491,13 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 Player *plr = sObjectMgr.GetPlayer(citr->guid);
                 if (!plr || !plr->GetSession() || !plr->IsInWorld())
                     continue;
-                uint8 rolesCount = 0;
-                uint8 playerRoles = (*grpitr2)->GetPlayerRole(citr->guid, false, true);
 
-                if ((*grpitr2)->GetMembersCount() > (*grpitr1)->GetMembersCount() || !(*grpitr1)->HasCorrectLevel(plr->getLevel()) 
-                    || (*grpitr2)->GetPremadePlayers()->find(plr->GetGUID()) != (*grpitr2)->GetPremadePlayers()->end())
+                if (!(*grpitr1)->HasCorrectLevel(plr->getLevel()) || (*grpitr2)->GetPremadePlayers()->find(citr->guid)) != (*grpitr2)->GetPremadePlayers()->end())
                     continue;
 
-                uint8 checkRole = TANK;
-                uint8 merge = 0;  // 0 = nothin, 1 = just remove and add as same role, 2 sort roles
-                uint64 mergeGuid = 0;
-                uint8 mergeAs = 0;
-                for(int ii = 0; ii < 3 && merge == 0; ++ii, checkRole *= 2)
-                {
-                    if (!(playerRoles & checkRole))
-                        continue;
-
-                    for(int y = 0; y < 3; ++y)
-                    {
-                        merge = 0;
-                        switch(checkRole)
-                        {
-                            case TANK: mergeGuid = (*grpitr1)->GetTank(); break;
-                            case HEALER: mergeGuid = (*grpitr1)->GetHeal(); break;
-                            case DAMAGE:
-                                int z;
-                                PlayerList::iterator dps;
-                                for(z = 0, dps = (*grpitr1)->GetDps()->begin(); z < 3; ++z)
-                                {                                          
-                                    if (y == z)
-                                    {
-                                        if (dps != (*grpitr1)->GetDps()->end())
-                                            mergeGuid = *dps;
-                                        else
-                                            mergeGuid = 0;
-                                        break;
-                                    }
-                                    if (dps != (*grpitr1)->GetDps()->end())
-                                        ++dps;
-                                }
-                                break;       
-                        }
-                        if ((*grpitr1)->HasFreeRole(checkRole) && playerRoles == checkRole)
-                            merge = 1;
-                        else if ((*grpitr1)->GetPlayerRole(mergeGuid, false, true) != checkRole)
-                        {
-                            for(uint8 role = TANK; role <= DAMAGE && merge == 0; role*=2)
-                            {
-                                if (role == checkRole || !((*grpitr1)->GetPlayerRole(mergeGuid, false, true) & role))
-                                    continue;
-
-                                if((*grpitr1)->HasFreeRole(role))
-                                {
-                                    merge = 2;
-                                    mergeAs = role;
-                                    break;
-                               }
-                            }
-                        }
-
-                        if (merge == 0)
-                            continue;
-
-                        uint64 guid = plr->GetGUID();
-                        LfgLog("Remove member - Merge group");
-                        (*grpitr2)->RemoveMember(guid, 0);
-                        if ((*grpitr1)->IsMember(guid))
-                        {
-                            sLog.outError("LfgMgr: Player %s (GUID %u) is being added to group %u twice! (merge %u, checkRole %u, mergeAs %u, mergeGuid %u, ii %u, y %u)", plr->GetName(), plr->GetGUID(), (*grpitr1)->GetId(), merge, checkRole, mergeAs, mergeGuid, ii, y);
-                            continue;
-                        }
-                        LfgLog("Add member - merge group");
-                        (*grpitr1)->AddMember(guid, plr->GetName());
-                        if (merge == 1)
-                        {
-                            LfgLog("Set role merge 1 to %u", checkRole);
-                            (*grpitr1)->SetAsRole(checkRole, guid);
-                            break;
-                        }
-                        else
-                        {
-                            if((*grpitr1)->GetPlayerRole(mergeGuid, false) & DAMAGE)
-                                (*grpitr1)->GetDps()->erase(mergeGuid);
-                            LfgLog("Set role merge 2 to %u", mergeAs);
-                            (*grpitr1)->SetAsRole(mergeAs, mergeGuid);
-                            LfgLog("Set role merge 2 to %u", checkRole);
-                            (*grpitr1)->SetAsRole(checkRole, guid);
-                            break;
-                        }
-                    }
-                }
+                CanPlayerMerge(*grpitr2, *grpitr1, citr->guid, &tmpRoles, &PlayerGroup);
             }
-            //Delete empty groups
-            if ((*grpitr2)->GetMembersCount() == 0)
-            { 
-                (*grpitr2)->Disband(true);
-                sObjectMgr.RemoveGroup(*grpitr2);
-                groups->erase(*grpitr2);
-                delete *grpitr2;
-            }
+            DoMerge(*grpitr1, &tmpRoles, &PlayerGroup, groups, false);
         }
         //Now lets check if theres dmg which can be tank or healer...
         Group::member_citerator citr, citr_next;
@@ -618,10 +537,6 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
         queue = m_queuedDungeons[side].find((*itr)->ID);
         if(queue == m_queuedDungeons[side].end() || queue->second->groups.empty())
             continue;
-
-        RoleCheck tmpRoles;
-        std::map<uint64, LfgGroup*> PlayerGroup;
-        std::map<uint64, LfgGroup*>::iterator PlrGrpItr;
         
         for(GroupsList::iterator specific = queue->second->groups.begin(); specific != queue->second->groups.end(); ++specific)
         {
@@ -653,77 +568,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                     if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                         break;
 
-                    uint8 plrRole = (*random)->GetPlayerRole(citr->guid, false, true);
-                    uint64 mergeGuid;
-                    uint8 mergeRole;
-                    for(uint8 role = TANK; role <= DAMAGE; role*=2)
-                    {
-                        if(!(plrRole & role))
-                            continue;
- 
-                        if(tmpRoles.HasFreeRole(role))
-                        {
-                            tmpRoles.SetAsRole(role, citr->guid);
-                            PlayerGroup.insert(std::make_pair<uint64, LfgGroup*>(citr->guid, *random));
-                            break;
-                        }
-                        // Try method No. 2
-                        // Tank and heal
-                        if(role != DAMAGE)
-                        {
-                            mergeGuid = (role == TANK) ? tmpRoles.tank : tmpRoles.heal;
-                            PlrGrpItr = PlayerGroup.find(mergeGuid);
-                            mergeRole = 0;
-                            if(PlrGrpItr == PlayerGroup.end())
-                                mergeRole = (*specific)->GetPlayerRole(mergeGuid, false, true);
-                            else
-                                mergeRole = PlrGrpItr->second->GetPlayerRole(mergeGuid, false, true);
-
-                            if(mergeRole == 0 || mergeRole == role)
-                                continue;
-
-                            for(uint8 y = TANK; y <= DAMAGE; y *= 2)
-                            {
-                                if(!(mergeRole & y) || !tmpRoles.HasFreeRole(y))
-                                    continue;
-
-                                // all good, move out current player in *role* and put new player to it
-                                tmpRoles.SetAsRole(y, mergeGuid);
-                                tmpRoles.SetAsRole(role, citr->guid);
-                                PlayerGroup.insert(std::make_pair<uint64, LfgGroup*>(citr->guid, *random));
-                                break;
-                            }                           
-                        }
-                        else
-                        // Damage
-                        {
-                            for(PlayerList::iterator dpsItr = tmpRoles.dps.begin(); dpsItr != tmpRoles.dps.end(); ++dpsItr)
-                            {
-                                mergeGuid = *dpsItr;
-                                PlrGrpItr = PlayerGroup.find(mergeGuid);
-                                mergeRole = 0;
-                                if(PlrGrpItr == PlayerGroup.end())
-                                    mergeRole = (*specific)->GetPlayerRole(mergeGuid, false, true);
-                                else
-                                    mergeRole = PlrGrpItr->second->GetPlayerRole(mergeGuid, false, true);
-                                if(mergeRole == 0 || mergeRole == role)
-                                    continue;
-
-                                for(uint8 y = TANK; y <= DAMAGE; y *= 2)
-                                {
-                                    if(!(mergeRole & y) || !tmpRoles.HasFreeRole(y))
-                                        continue;
-
-                                    // all good, move out current player in *role* and put new player to it
-                                    tmpRoles.dps.erase(mergeGuid);
-                                    tmpRoles.SetAsRole(y, mergeGuid);
-                                    tmpRoles.SetAsRole(role, citr->guid);
-                                    PlayerGroup.insert(std::make_pair<uint64, LfgGroup*>(citr->guid, *random));
-                                    break;
-                                }         
-                            }
-                        }
-                    }
+                    CanPlayerMerge(*specific, *random, citr->guid, &tmpRoles, &PlayerGroup);
                 }
                 if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                     break;
@@ -732,30 +577,96 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
             // Lets merge!
             if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT)
             {
-                for(PlrGrpItr = PlayerGroup.begin(); PlrGrpItr != PlayerGroup.end(); ++PlrGrpItr)
-                {
-                    Player *plr = sObjectMgr.GetPlayer(PlrGrpItr->first);
-                    if (!plr || !plr->GetSession() || !plr->IsInWorld())
-                        continue;
-                    if(PlrGrpItr->second->GetMembersCount() >= LFG_GROUP)
-                        break;
-
-                    PlrGrpItr->second->RemoveMember(PlrGrpItr->first, 0);
-                    (*specific)->AddMember(PlrGrpItr->first, plr->GetName());
-                    (*specific)->SetAsRole(tmpRoles.GetPlayerRole(PlrGrpItr->first), PlrGrpItr->first);
-                    (*specific)->GetRandomPlayers()->insert(PlrGrpItr->first);
-                    if(PlrGrpItr->second->GetMembersCount() == 0)
-                    {
-                        LfgLog("RANDOM <-> SPECIFIC delete empty group %u", PlrGrpItr->second->GetId());
-                        PlrGrpItr->second->Disband(true);
-                        groups->erase(PlrGrpItr->second);
-                        delete PlrGrpItr->second;
-                    }
-                }
+                DoMerge(*specific, &tmpRoles, &PlayerGroup, groups, true);
                 (*specific)->SetOriginalDungeonInfo(info);
             }
         }
     } 
+}
+
+void LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck *tmpRoles, PlayerGroupMap *map)
+{
+    uint8 plrRole = to->GetPlayerRole(guid, false, true);
+    uint64 mergeGuid;
+    uint8 mergeRole;
+    PlayerGroupMap::iterator PlrGrpItr;
+
+    for(uint8 role = TANK; role <= DAMAGE; role*=2)
+    {
+        if(!(plrRole & role))
+            continue;
+        // Method 1
+        if(tmpRoles->HasFreeRole(role))
+        {
+            tmpRoles->SetAsRole(role, guid);
+            map->insert(std::make_pair<uint64, LfgGroup*>(guid, from));
+            break;
+        }
+        // Try method No. 2
+        PlayerList::iterator dpsItr = tmpRoles->dps.begin();
+        bool cont = true;
+        for(uint8 i = 0; i < 3 && cont; ++i,++dpsItr)
+        {
+            switch(role)
+            {
+                case TANK:   mergeGuid = tmpRoles->tank; cont = false; break;
+                case HEALER: mergeGuid = tmpRoles->heal; cont = false; break;
+                case DAMAGE: mergeGuid = (dpsItr >= tmpRoles->dps.end()) ? 0 : *dpsItr; break;
+            }
+            if(!mergeGuid)
+                break;
+
+            PlrGrpItr = map->find(mergeGuid);
+            mergeRole = 0;
+            if(PlrGrpItr == PlayerGroup.end())
+                mergeRole = to->GetPlayerRole(mergeGuid, false, true);
+            else
+                mergeRole = PlrGrpItr->second->GetPlayerRole(mergeGuid, false, true);
+
+            if(mergeRole == 0 || mergeRole == role)
+                continue;
+
+            for(uint8 y = TANK; y <= DAMAGE; y *= 2)
+            {
+                if(!(mergeRole & y) || !tmpRoles->HasFreeRole(y))
+                    continue;
+
+                // all good, move out current player in *role* and put new player to it
+                tmpRoles->SetAsRole(y, mergeGuid);
+                tmpRoles->SetAsRole(role, guid);
+                map->insert(std::make_pair<uint64, LfgGroup*>(guid, from));
+                break;
+            }
+        }
+    }
+}
+
+void LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, GroupsList *groups, bool randomToSpecific)
+{
+    PlayerGroupMap::iterator PlrGrpItr;
+    to->SetTank(tmpRoles->tank);
+    to->SetHeal(tmpRoles->heal);
+    to->GetDps() = &tmpRoles->dps;
+
+    for(PlrGrpItr = map->begin(); PlrGrpItr != map->end(); ++PlrGrpItr)
+    {
+        Player *plr = sObjectMgr.GetPlayer(PlrGrpItr->first);
+        if (!plr || !plr->GetSession() || !plr->IsInWorld())
+            continue;
+        if(PlrGrpItr->second->GetMembersCount() >= LFG_GROUP)
+            break;
+
+        PlrGrpItr->second->RemoveMember(PlrGrpItr->first, 0);
+        to->AddMember(PlrGrpItr->first, plr->GetName());
+        if(randomToSpecific)
+            to->GetRandomPlayers()->insert(PlrGrpItr->first);
+        if(PlrGrpItr->second->GetMembersCount() == 0)
+        {
+            PlrGrpItr->second->Disband(true);
+            groups->erase(PlrGrpItr->second);
+            delete PlrGrpItr->second;
+        }
+    }
 }
 
 void LfgMgr::UpdateFormedGroups(LfgGroup *group)
