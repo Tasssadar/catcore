@@ -191,6 +191,7 @@ libmangosgame_a_SOURCES = \
 	MiscHandler.cpp \
 	MotionMaster.cpp \
 	MotionMaster.h \
+	MoveMap.cpp \
 	MovementGenerator.cpp \
 	MovementGenerator.h \
 	MovementGeneratorImpl.h \
@@ -214,6 +215,8 @@ libmangosgame_a_SOURCES = \
 	Opcodes.cpp \
 	Opcodes.h \
 	Path.h \
+	PathFinder.cpp \
+	PathFinder.h \
 	PetAI.cpp \
 	PetAI.h \
 	Pet.cpp \
