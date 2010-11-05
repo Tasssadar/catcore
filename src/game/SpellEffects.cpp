@@ -8251,6 +8251,15 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
     if (!unitTarget)
         return;
 
+    // Dismount/remove flight form
+    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player *plr = (Player*)unitTarget;
+        plr->Unmount();
+        plr->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
+        plr->RemoveSpellsCausingAura(SPELL_AURA_FLY);
+    }
+
     unitTarget->KnockBackFrom(m_caster,float(m_spellInfo->EffectMiscValue[eff_idx])/10,float(damage)/10);
 }
 
