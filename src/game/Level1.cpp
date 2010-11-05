@@ -2469,3 +2469,63 @@ bool ChatHandler::HandleModifyDrunkCommand(const char* args)
 
     return true;
 }
+
+bool ChatHandler::HandleAddMarkCommand(const char* args)
+{
+    if (!*args) return false;
+        uint32 itemId = 23018;
+ 
+    char* ccount = strtok(NULL, " ");
+    int32 count = 1;
+ 
+    if (ccount)
+        count = strtol(ccount, NULL, 10);
+ 
+    if (count == 0)
+        count = 1;
+ 
+    Player* pl = m_session->GetPlayer();
+    Player* plTarget = getSelectedPlayer();
+    if (!plTarget)
+      plTarget = pl;
+        
+    DETAIL_LOG(GetMangosString(LANG_ADDITEM), itemId, count);
+ 
+    //Subtract
+    if (count < 0)
+    {
+        plTarget->DestroyItemCount(itemId, -count, true, false);
+        PSendSysMessage(LANG_REMOVEITEM, itemId, -count, GetNameLink(plTarget).c_str());
+        return true;
+    }
+ 
+    //Adding items
+    uint32 noSpaceForCount = 0;
+ 
+    // check space and find places
+    ItemPosCountVec dest;
+    uint8 msg = plTarget->CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, itemId, count, &noSpaceForCount );
+    if ( msg != EQUIP_ERR_OK )                               // convert to possible store amount
+        count -= noSpaceForCount;
+ 
+    if ( count == 0 || dest.empty())                         // can't add any
+    {
+        PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount );
+        SetSentErrorMessage(true);
+        return false;
+    }
+ 
+    Item* item = plTarget->StoreNewItem( dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
+ 
+    if (count > 0 && item)
+    {
+        pl->SendNewItem(item,count,false,true);
+        if (pl!=plTarget)
+            plTarget->SendNewItem(item,count,true,false);
+    }
+ 
+    if (noSpaceForCount > 0)
+        PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount);
+ 
+    return true;
+}
