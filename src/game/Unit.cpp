@@ -16399,3 +16399,51 @@ void Unit::SheduleAINotify(uint32 delay)
     m_Events.AddEvent(notify, m_Events.CalculateTime(delay));
 }
 
+bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff)
+{
+    float cx, cy, cz;
+    GetPosition(cx, cy, cz);
+    
+    if (!GetMap()->IsNextZcoordOK(x, y, z, maxDiff))
+        return false;
+
+    // Try to find two grounds...
+    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
+    {
+        float tx,ty,tz;
+        if(target)
+            target->GetPosition(tx,ty,tz);
+        else
+        {
+            tx = x;
+            ty = y;
+            tz = z;
+        }
+        float groundT = GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
+        float groundC = GetMap()->GetHeight(tx, ty, cz, true); // the one caster is standing on
+        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
+            return false;
+    }
+  
+    float distance = GetDistance2d(x, y);
+    float lastCheckX = cx;
+    float lastCheckY = cy;
+    float lastCheckZ = cz;
+    float checkAngle = GetAngle(x,y);
+    float tmpZ = cz;
+    float dist = 0.0f;
+    //Examine path for superelevation
+    do
+    {
+        lastCheckX += cos(checkAngle);
+        lastCheckY += sin(checkAngle);
+        target->UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, maxDiff); 
+        if(fabs(tmpZ - lastCheckZ) > maxElev || tmpZ == lastCheckZ)
+            return false;
+        lastCheckZ = tmpZ;
+        ++dist;
+    }
+    while(dist < distance);
+
+    return true;
+}

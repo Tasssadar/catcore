@@ -59,6 +59,7 @@
 #include "CellImpl.h"
 #include "Vehicle.h"
 #include "MovementGenerator.h"
+#include "PathFinder.h"
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
 {
@@ -2986,39 +2987,24 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
     y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
 
-    target->UpdateGroundPositionZ(x, y, z, target->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+    bool outdoor = target->GetMap()->IsOutdoors(x, y, z);
+    target->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
-    // Try to find two grounds...
-    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
-    {
-        float tx,ty,tz;
-        target->GetPosition(tx,ty,tz);
-        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
-        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
-        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
-        {
-            SendCastResult(SPELL_FAILED_TRY_AGAIN);
-            return;
-        }
-    }
-
-    if (!target->GetMap()->IsNextZcoordOK(x, y, z, 10.0f))
+    if(!m_caster->CanCharge(target, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
- 
-    z+=0.5f;
 
-    float distance = m_caster->GetDistance(x, y, z)+m_caster->GetObjectBoundingRadius();
-    float time = 11.91f;  // feral charge
+    z+=0.5f;   
+    float traveltime = 11.91f;  // feral charge
     if(m_spellInfo->Id == 49575) // death grip
-        time = 16.05f;
-    time *= distance;
+        traveltime = 16.05f;
+    traveltime *= distance;
     //Calculate feral charge unk
     // Need WAY more research for this one...
     // This is ..*cough*.. OK, but really no precise.
-    unk = 50.0f;
+    unk = 30.0f;
     if(splinetype == SPLINETYPE_FACINGTARGET)
     {
         unk = (distance-13.942f)*0.6146*1.58;
@@ -3030,26 +3016,64 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 
     //Stop moving before jump!
     m_caster->StopMoving();
+
+    PathInfo path(this, fx, fy, fz, false);
+    PointPath pointPath = path.getFullPath();
+    uint32 start = 1;
+    uint32 end = pointPath.size();
+    uint32 pathSize = end - start;   
     
-    WorldPacket data(SMSG_MONSTER_MOVE);
-    data << m_caster->GetPackGUID();
-    data << uint8(0);
-    data << m_caster->GetPositionX() << m_caster->GetPositionY() << m_caster->GetPositionZ();
-    data << uint32(getMSTime());
-    // -- FERAL CHARGE --
-    // on retail its SPLINETYPE_NORMAL, then, when cat lands, client send MSG_MOVE_FALL_LAND
-    // and server send another SMSG_MONSTER_MOVE with SPLINETYPE_FACINGTARGET as response
-    // but this is too slow on mangos, because of update periods. And client can handle this
-    // For death grip, there is normal spline type I think
-    data << uint8(splinetype);  
-    if (splinetype == SPLINETYPE_FACINGTARGET)
-        data << uint64(target->GetGUID());
-    data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
-    data << uint32(time);
-    data << float(unk); // <<------ ?????
-    data << uint32(0);
-    data << uint32(1);
-    data << x << y << z;
+    WorldPacket data;
+    if (pathSize == 1 || pathSize > 10)
+    {
+        x = pointPath[start].x;
+        y = pointPath[start].y;
+        z = pointPath[start].z;
+        data.Initialize(SMSG_MONSTER_MOVE);
+        data << m_caster->GetPackGUID();
+        data << uint8(0);
+        data << cx << cy << cz;
+        data << uint32(getMSTime());
+        data << uint8(splinetype);  
+        if (splinetype == SPLINETYPE_FACINGTARGET)
+            data << uint64(target->GetGUID());
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
+        data << uint32(traveltime);
+        data << float(unk); // <<------ ?????
+        data << uint32(0);
+        data << uint32(1);
+        data << x << y << z;
+        SendMessageToSet(&data, false);
+    }
+    else
+    {
+        x = pointPath[end-1].x;
+        y = pointPath[end-1].y;
+        z = pointPath[end-1].z;
+
+        uint32 packSize = 4*3 + (pathSize-1)*4;
+        data.Initialize(SMSG_MONSTER_MOVE, (GetPackGUID().size()+30+packSize) );
+        data << m_caster->GetPackGUID();
+        data << uint8(0);
+        data << cx << cy << cz;
+        data << uint32(getMSTime());
+        data << uint8(splinetype);
+        if (splinetype == SPLINETYPE_FACINGTARGET)
+            data << uint64(target->GetGUID());
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
+        data << uint32(traveltime);
+        data << float(unk); // <<------ ?????
+        data << uint32(0);
+        data << uint32(pathSize);
+        // destination
+        data << x << y << z;
+        // all other points are relative to the center of the path
+        float mid_X = (cx + x) * 0.5f;
+        float mid_Y = (cy + y) * 0.5f;
+        float mid_Z = (cz + z) * 0.5f;
+        for (uint32 i = start; i < end - 1; ++i)
+            data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
+    }
 
     if (target->GetTypeId() == TYPEID_PLAYER)
     {
@@ -3061,7 +3085,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
-        m_caster->GetMotionMaster()->PauseMoveGens(time+1000);
+        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+500);
         m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
     }
 }
@@ -7968,27 +7992,15 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float x, y, z;
     unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
 
-    // Try to find two grounds...
-    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
-    {
-        float tx,ty,tz;
-        unitTarget->GetPosition(tx,ty,tz);
-        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
-        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
-        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
-        {
-            SendCastResult(SPELL_FAILED_TRY_AGAIN);
-            return;
-        }
-    }
+    bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
+    m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
-    // Try to normalize Z coord cuz GetContactPoint do nothing with Z axis
-    if (!m_caster->GetMap()->IsNextZcoordOK(x, y, z, 30.0f))
+    if(!m_caster->CanCharge(unitTarget, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+
     z+= 0.5f;
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -7998,19 +8010,21 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
 
-    uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
+    uint32 traveltime = pointPath.GetTotalLength();
+    uint32 start = 1;
+    uint32 end = pointPath.size();
     uint32 pathSize = end - start;
 
     float cx,cy,cz;
     m_caster->GetPosition(cx,cy,cz);
     if (pathSize < 1)
-        SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, flags, 0);
+        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, flags, 0);
     else if (pathSize == 1)
     {
         x = pointPath[start].x;
         y = pointPath[start].y;
         z = pointPath[start].z;
-        SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
+        m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
     }
     else
     {
@@ -8046,7 +8060,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         float angle = unitTarget->GetAngle(x,y) + M_PI_F;
         angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
         angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
-        m_caster->GetMotionMaster()->PauseMoveGens(traveltime);
+        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+1000);
         m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
     } 
 
@@ -8067,49 +8081,79 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
         x = m_targets.m_destX;
         y = m_targets.m_destY;
         z = m_targets.m_destZ;
-
-        if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-            ((Creature *)unitTarget)->StopMoving();
     }
     else if (unitTarget && unitTarget != m_caster)
         unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
     else
         return;
 
-    m_caster->MonsterMoveByPath(x, y, z, 25, false);
-    // Try to find two grounds...
-/*    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
-    {
-        float tx,ty,tz;
-        unitTarget->GetPosition(tx,ty,tz);
-        float groundT = m_caster->GetMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
-        float groundC = m_caster->GetMap()->GetHeight(tx, ty, m_caster->GetPositionZ(), true); // the one caster is standing on
-        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
-        {
-            SendCastResult(SPELL_FAILED_TRY_AGAIN);
-            return;
-        }
-    }
+    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+       ((Creature *)unitTarget)->StopMoving();
 
-    // Try to normalize Z coord cuz GetContactPoint do nothing with Z axis
-    if (!m_caster->GetMap()->IsNextZcoordOK(x, y, z, 30.0f))
+    bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
+    m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
+
+    if(!m_caster->CanCharge((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) ? NULL : unitTarget, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
     {
         SendCastResult(SPELL_FAILED_TRY_AGAIN);
         return;
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
-    z+= 0.5f;
+    //m_caster->MonsterMoveByPath(x, y, z, 25, false);
+    PathInfo path(m_caster, x, y, z, false);
+    PointPath pointPath = path.getFullPath();
+    uint32 traveltime = pointPath.GetTotalLength();
+    uint32 start = 1;
+    uint32 end = pointPath.size();
+    uint32 pathSize = end - start;
+    float cx,cy,cz;
+    m_caster->GetPosition(cx,cy,cz);
+    if (pathSize < 1)
+        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, flags, 0);
+    else if (pathSize == 1)
+    {
+        x = pointPath[start].x;
+        y = pointPath[start].y;
+        z = pointPath[start].z;
+        m_caster->SendMonsterMove(x, y, z, unitTarget ? SPLINETYPE_FACINGTARGET : SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget ? unitTarget->GetGUID() : 0);
+    }
+    else
+    {
+        x = pointPath[end-1].x;
+        y = pointPath[end-1].y;
+        z = pointPath[end-1].z;
 
-    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+        uint32 packSize = 4*3 + (pathSize-1)*4;
+        WorldPacket data( SMSG_MONSTER_MOVE, (m_caster->GetPackGUID().size()+30+packSize) );
+        data << m_caster->GetPackGUID();
+        data << uint8(0);
+        data << cx << cy << cz;
+        data << uint32(getMSTime());
+        data << uint8(unitTarget ? SPLINETYPE_FACINGTARGET : SPLINETYPE_NORMAL);
+        if(unitTarget)
+            data << uint64(unitTarget->GetGUID());
+        data << uint32(SPLINEFLAG_WALKMODE);
+        data << uint32(traveltime);
+        data << uint32(pathSize);
+        // destination
+        data << x << y << z;
+        // all other points are relative to the center of the path
+        float mid_X = (cx + pointPath[end-1].x) * 0.5f;
+        float mid_Y = (cy + pointPath[end-1].y) * 0.5f;
+        float mid_Z = (cz + pointPath[end-1].z) * 0.5f;
+        for (uint32 i = start; i < end - 1; ++i)
+            data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
+
+        m_caster->SendMessageToSet(&data, true);
+    }
+
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
         float angle = unitTarget->GetAngle(x,y) + M_PI_F;
         angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
         angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
-        m_caster->GetMotionMaster()->PauseMoveGens(100);
+        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+1000);
         m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
-    } */
+    } 
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))

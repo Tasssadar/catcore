@@ -1959,6 +1959,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             float x, y, z;
         } m_last_notified_position;
 
+        bool CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff);
+
     protected:
         explicit Unit ();
 
