@@ -226,9 +226,9 @@ int main(int argc, char** argv)
     float maxAngle = 60.f;
     int tileX = -1, tileY = -1;
     bool skipLiquid = false,
-         skipContinents = true,
+         skipContinents = false,
          skipJunkMaps = true,
-         skipBattlegrounds = true,
+         skipBattlegrounds = false,
          hiResHeightmaps = false,
          debugOutput = false,
          badParam = false;
