@@ -15790,17 +15790,71 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         fx += dis * vcos;
         fy += dis * vsin;
  
-        UpdateGroundPositionZ(fx, fy, fz, GetMap()->IsOutdoors(fx, fy, fz) ? 10.0f : 3.0f);
+        bool outdoor = GetMap()->IsOutdoors(fx, fy, fz);
+        UpdateGroundPositionZ(fx, fy, fz, outdoor ? 20.0f : 3.0f);
 
         // Try to find ground bellow
         float ground2 = GetMap()->GetHeight(fx, fy, fz-2.1f, true);
-
         if(ground2 > INVALID_HEIGHT && fabs(ground2 - fz) > 2.0f)
             fz = ground2;
-        
 
+        // Somehing in LoS, shorten the track, this is average only :/
+        float distance = GetDistance(fx, fy, fz);
+        if(!IsWithinLOS(fx, fy, fz))
+        {
+            float dist = 1;
+            
+            float elevation = (GetPositionZ() - fz) / distance;
+            float lastX, lastY, lastZ;
+            GetPosition(lastX, lastY, lastZ);
+            do
+            {
+                lastX += vcos;
+                lastY += vsin;
+                lastZ += elevation;
+                if(!IsWithinLOS(lastX, lastY, lastZ))
+                {
+                    //Ok, do a smooth scan now...
+                    lastX -= vcos;
+                    lastY -= vsin;
+                    lastZ -= elevation;
+                    dist = 0.0f;
+                    do
+                    {
+                        lastX += vcos*0.1f;
+                        lastY += vsin*0.1f;
+                        lastZ += elevation*0.1f;
+                        if(!IsWithinLOS(lastX, lastY, lastZ))
+                        {
+                            float tmpZ = lastZ;
+                            UpdateGroundPositionZ(lastX, lastY, lastZ, outdoor ? 20.0f : 3.0f);
+                            fx = lastX;
+                            fy = lastY;
+                            fz = lastZ;
+                            // use last good point if not height aviable
+                            if(lastZ == tmpZ)
+                            {
+                                fx -= vcos*0.1f;
+                                fy -= vsin*0.1f;
+                                fz -= elevation*0.1f;
+                                UpdateGroundPositionZ(fx, fy, fz, outdoor ? 20.0f : 3.0f);
+                            }
+                            distance = GetDistance(fx, fy, fz);
+                            break;
+                        }
+                        dist+=0.1f;
+                    }
+                    while(dist <= 1.0f);
+                    break;
+                }
+                ++dist;
+            }
+            while(dist <= distance);
+        }
+        
         StopMoving();
-        float time = 12.0f*(GetDistance(fx, fy, fz)+GetObjectBoundingRadius());
+
+        float time = 12.0f*distance;
         
         WorldPacket data(SMSG_MONSTER_MOVE);
         data << GetPackGUID();

@@ -2997,7 +2997,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     z+=0.5f;   
-    float distance = m_caster->GetDistance(x,y,z) - m_caster->GetObjectBoundingRadius(); 
+    float distance = m_caster->GetDistance(x,y,z); 
     float traveltime = 11.91f;  // feral charge
     if(m_spellInfo->Id == 49575) // death grip
         traveltime = 16.05f;
