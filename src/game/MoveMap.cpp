@@ -26,6 +26,9 @@ inline void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>
 
 void Map::LoadNavMesh(int gx, int gy)
 {
+    if(!sWorld.MMapsEnabled())
+        return;
+
     char fileName[512];
     FILE* file;
 

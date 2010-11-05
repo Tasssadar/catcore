@@ -638,7 +638,7 @@ class World
         static float GetVisibleUnitGreyDistance()           { return m_VisibleUnitGreyDistance;       }
         static float GetVisibleObjectGreyDistance()         { return m_VisibleObjectGreyDistance;     }
 
-        static float MMapsEnabled()                         { return m_MMapsEnabled;                  }
+        static bool  MMapsEnabled()                         { return m_MMapsEnabled;                  }
 
         void ProcessCliCommands();
         void QueueCliCommand(CliCommandHolder* commandHolder) { cliCmdQueue.add(commandHolder); }
