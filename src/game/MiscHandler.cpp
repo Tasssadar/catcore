@@ -802,7 +802,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
             if (instance)
             {
                 InstanceData* data = instance->GetInstanceData();
-                if (data && data->IsInstanceInCombat())
+                if (data && data->IsLocked())
                     instanceInCombat = true;
             }
         }

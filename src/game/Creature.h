@@ -462,6 +462,11 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         uint32 getLevelForTarget(Unit const* target) const; // overwrite Unit::getLevelForTarget for boss level support
 
+        void EnterCombat(Unit* pEnemy);
+
+        void InsertIntoInstanceCombatList();
+        void RemoveFromInstanceCombatList();
+
         bool IsInEvadeMode() const;
 
         bool AIM_Initialize();
@@ -654,6 +659,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void SendAreaSpiritHealerQueryOpcode(Player *pl);
 
+        void DoNotTriggerInstanceLock() { m_DoNotInsertToInstanceCombatList = true; }
+
     protected:
         void Update(uint32 update_diff, uint32 tick_diff);  // overwrite Unit::Update
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
@@ -706,6 +713,9 @@ class MANGOS_DLL_SPEC Creature : public Unit
         float m_summonYpoint;
         float m_summonZpoint;
         float m_summonOrientation;
+
+        bool m_DoNotInsertToInstanceCombatList;
+        uint32 m_CombatWithPlayerIntervalCheck;
 
     private:
         GridReference<Creature> m_gridRef;

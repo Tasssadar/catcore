@@ -11955,8 +11955,10 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         // should probably be removed for the attacked (+ it's party/group) only, not global
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
 
-        if (((Creature*)this)->AI())
-            ((Creature*)this)->AI()->EnterCombat(enemy);
+        //if (((Creature*)this)->AI())
+        //    ((Creature*)this)->AI()->EnterCombat(enemy);
+
+        ((Creature*)this)->EnterCombat(enemy);
     }
 }
 
@@ -11976,6 +11978,9 @@ void Unit::ClearInCombat()
             SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
 
         clearUnitState(UNIT_STAT_ATTACK_PLAYER);
+
+        if (creature->isWorldBoss())
+            creature->RemoveFromInstanceCombatList();
     }
     else
     {

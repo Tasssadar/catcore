@@ -31,7 +31,7 @@ class MANGOS_DLL_SPEC InstanceData
 {
     public:
 
-        explicit InstanceData(Map *map) : instance(map) {}
+        explicit InstanceData(Map *map) : instance(map), isLocked(false) {}
         virtual ~InstanceData() {}
 
         Map *instance;
@@ -86,6 +86,12 @@ class MANGOS_DLL_SPEC InstanceData
         virtual bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id);
 
         // Is instance in combat?
-        virtual bool IsInstanceInCombat() {return false;}
+        bool IsLocked() { return lCombatList.empty(); }
+
+        void InsertIntoCombatList(Creature* pCreature);
+
+        void RemoveFromCombatList(Creature* pCreature);
+
+        std::list<uint64> lCombatList;
 };
 #endif
