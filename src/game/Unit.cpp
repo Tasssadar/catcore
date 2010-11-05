@@ -15880,7 +15880,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         path.resize(2);
         path.set(0, PathNode(GetPositionX(), GetPositionY(), GetPositionZ()));
         path.set(1, PathNode(fx, fy, fz));
-        GetMotionMaster()->MoveCharge(path, time+1000, 1, 1);
+        GetMotionMaster()->MoveCharge(path, time+800, 1, 1);
     }
 }
 

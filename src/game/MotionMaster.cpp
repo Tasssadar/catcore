@@ -174,7 +174,7 @@ MotionMaster::DirectExpire(bool reset)
     pop();
 
     // also drop stored under top() targeted motions
-    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE))
+    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE) && curr->GetMovementGeneratorType() != CHARGE_MOTION_TYPE)
     {
         MovementGenerator *temp = top();
         pop();
@@ -213,7 +213,7 @@ MotionMaster::DelayedExpire(bool reset)
         m_expList = new ExpireList();
 
     // also drop stored under top() targeted motions
-    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE))
+    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE) && curr->GetMovementGeneratorType() != CHARGE_MOTION_TYPE)
     {
         MovementGenerator *temp = top();
         pop();
@@ -225,6 +225,9 @@ MotionMaster::DelayedExpire(bool reset)
 
     if (!isStatic(curr))
         m_expList->push_back(curr);
+
+    if (reset)
+        top()->Reset(*i_owner);
 }
 
 void MotionMaster::MoveIdle()
