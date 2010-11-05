@@ -337,6 +337,13 @@ void InstanceSaveManager::CheckResetTimes()
         itr_next = itr;
         ++itr_next;
 
+        // delete saves without players
+        if(!itr->second->HasPlayers())
+        {
+            DeleteSave(itr->first);
+            continue;
+        }
+
         if(itr->second->GetResetTime() > now) // Ok, not expired
             continue;
 

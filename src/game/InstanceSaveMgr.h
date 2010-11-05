@@ -52,7 +52,7 @@ class InstanceSave
         void SetResetTime(uint32 time) { resetTime = time; }
         bool IsExtended(uint64 guid) const { return (m_extended.find(guid) != m_extended.end()); }
         bool IsPermanent() const { return m_perm; }
-        bool HasPlayers() const { return (!m_players.empty()); }
+        bool HasPlayers() const { return (m_players.size() > 0); }
         bool RemoveOrExtendPlayers(); //caled at reset
         uint32 GetEncounterMask() const { return m_encountersMask; }
         void AddEncounter(uint32 mask);
@@ -95,6 +95,7 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
             if(itr == m_saves.end())
                 return;
             itr->second->RemoveAndDelete();
+            delete itr->second;
             m_saves.erase(itr);
         }
         InstanceSave* GetInstanceSave(uint32 id)
