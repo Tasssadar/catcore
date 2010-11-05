@@ -42,3 +42,21 @@ bool InstanceData::CheckConditionCriteriaMeet(Player const* /*source*/, uint32 m
         instance->GetId(), instance_condition_id, map_id);
     return false;
 }
+
+void InstanceData::InsertIntoCombatList(Creature* pCreature)
+{
+    lCombatList.push_back(pCreature->GetGUID());
+}
+
+void InstanceData::RemoveFromCombatList(Creature* pCreature)
+{
+    /*for(std::list<uint64>::iterator itr = lCombatList.begin(); itr != lCombatList.end(); ++itr)
+    {
+        if((*itr) == pCreature->GetGUID())
+        {
+            lCombatList.erase(itr);
+            break;
+        }		
+    }*/
+    lCombatList.remove(pCreature->GetGUID());
+}

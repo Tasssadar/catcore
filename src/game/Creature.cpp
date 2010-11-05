@@ -118,9 +118,11 @@ m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE), m_DBTableGuid(0), m
 m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
 m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
-m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE)
+m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE),
+m_DoNotInsertToInstanceCombatList(false)
 {
     m_regenTimer = 200;
+    m_CombatWithPlayerIntervalCheck = 30000; // 30 sec by default
     m_valuesCount = UNIT_END;
 
     for(int i = 0; i < 4; ++i)
@@ -1440,6 +1442,37 @@ void Creature::ForcedDespawn(uint32 timeMSToDespawn)
 
     RemoveCorpse();
     SetHealth(0);                                           // just for nice GM-mode view
+}
+
+void Creature::EnterCombat(Unit* pEnemy)
+{
+    if (AI())
+        AI()->EnterCombat(pEnemy);
+
+    if (isWorldBoss() && !m_DoNotInsertToInstanceCombatList)
+        InsertIntoInstanceCombatList();
+}
+
+void Creature::InsertIntoInstanceCombatList()
+{
+    if (GetMap() && GetMap()->IsDungeon())
+    {
+        InstanceMap* instance = (InstanceMap*)GetMap();
+        if (instance)
+            if (instance->GetInstanceData())
+                instance->GetInstanceData()->InsertIntoCombatList(this);
+    }
+}
+
+void Creature::RemoveFromInstanceCombatList()
+{
+    if (GetMap() && GetMap()->IsDungeon())
+    {
+        InstanceMap* instance = (InstanceMap*)GetMap();
+        if (instance)
+            if (instance->GetInstanceData())
+                instance->GetInstanceData()->RemoveFromCombatList(this);
+    }
 }
 
 bool Creature::IsImmunedToSpell(SpellEntry const* spellInfo)
