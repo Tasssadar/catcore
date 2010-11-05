@@ -28,6 +28,7 @@
 #include "ace/Recursive_Thread_Mutex.h"
 
 class LfgGroup;
+struct RoleCheck;
 
 enum LfgTimers
 {
@@ -35,7 +36,6 @@ enum LfgTimers
     LFG_TIMER_READY_CHECK              = 1*MINUTE*IN_MILLISECONDS,
     LFG_TIMER_DELETE_INVALID_GROUPS    = 5*MINUTE*IN_MILLISECONDS
 };
-
 
 enum LfgWaitTimeSlots
 {
@@ -45,7 +45,6 @@ enum LfgWaitTimeSlots
     LFG_WAIT_TIME_HEAL                 = 3,
     LFG_WAIT_TIME_DPS                  = 4
 };
-
 #define LFG_WAIT_TIME_SLOT_MAX           5
 
 enum LfgRoles

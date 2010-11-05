@@ -2997,6 +2997,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     z+=0.5f;   
+    float distance = m_caster->GetDistance(x,y,z) - m_caster->GetObjectBoundingRadius(); 
     float traveltime = 11.91f;  // feral charge
     if(m_spellInfo->Id == 49575) // death grip
         traveltime = 16.05f;
@@ -3017,12 +3018,14 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     //Stop moving before jump!
     m_caster->StopMoving();
 
-    PathInfo path(this, fx, fy, fz, false);
+    PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
     uint32 start = 1;
     uint32 end = pointPath.size();
     uint32 pathSize = end - start;   
     
+    float cx, cy, cz;
+    m_caster->GetPosition(cx, cy, cz);
     WorldPacket data;
     if (pathSize == 1 || pathSize > 10)
     {
@@ -3043,7 +3046,6 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         data << uint32(0);
         data << uint32(1);
         data << x << y << z;
-        SendMessageToSet(&data, false);
     }
     else
     {
@@ -3052,7 +3054,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         z = pointPath[end-1].z;
 
         uint32 packSize = 4*3 + (pathSize-1)*4;
-        data.Initialize(SMSG_MONSTER_MOVE, (GetPackGUID().size()+30+packSize) );
+        data.Initialize(SMSG_MONSTER_MOVE, (m_caster->GetPackGUID().size()+30+packSize) );
         data << m_caster->GetPackGUID();
         data << uint8(0);
         data << cx << cy << cz;
@@ -8018,7 +8020,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float cx,cy,cz;
     m_caster->GetPosition(cx,cy,cz);
     if (pathSize < 1)
-        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, flags, 0);
+        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
     else if (pathSize == 1)
     {
         x = pointPath[start].x;
@@ -8108,7 +8110,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     float cx,cy,cz;
     m_caster->GetPosition(cx,cy,cz);
     if (pathSize < 1)
-        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, flags, 0);
+        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
     else if (pathSize == 1)
     {
         x = pointPath[start].x;

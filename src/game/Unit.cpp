@@ -16408,7 +16408,7 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         return false;
 
     // Try to find two grounds...
-    if(fabs(z - m_caster->GetPositionZ()) > 5.0f)
+    if(fabs(z - cz) > 5.0f)
     {
         float tx,ty,tz;
         if(target)

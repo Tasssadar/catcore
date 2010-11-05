@@ -492,7 +492,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 if (!plr || !plr->GetSession() || !plr->IsInWorld())
                     continue;
 
-                if (!(*grpitr1)->HasCorrectLevel(plr->getLevel()) || (*grpitr2)->GetPremadePlayers()->find(citr->guid)) != (*grpitr2)->GetPremadePlayers()->end())
+                if (!(*grpitr1)->HasCorrectLevel(plr->getLevel()) || (*grpitr2)->GetPremadePlayers()->find(citr->guid) != (*grpitr2)->GetPremadePlayers()->end())
                     continue;
 
                 CanPlayerMerge(*grpitr2, *grpitr1, citr->guid, &tmpRoles, &PlayerGroup);
@@ -605,20 +605,23 @@ void LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck
         // Try method No. 2
         PlayerList::iterator dpsItr = tmpRoles->dps.begin();
         bool cont = true;
-        for(uint8 i = 0; i < 3 && cont; ++i,++dpsItr)
+        for(uint8 i = 0; i < 3 && cont; ++i)
         {
             switch(role)
             {
                 case TANK:   mergeGuid = tmpRoles->tank; cont = false; break;
                 case HEALER: mergeGuid = tmpRoles->heal; cont = false; break;
-                case DAMAGE: mergeGuid = (dpsItr >= tmpRoles->dps.end()) ? 0 : *dpsItr; break;
+                case DAMAGE: mergeGuid = (dpsItr == tmpRoles->dps.end()) ? 0 : *dpsItr; break;
             }
+            if(dpsItr != tmpRoles->dps.end())
+               ++dpsItr;
+
             if(!mergeGuid)
                 break;
 
             PlrGrpItr = map->find(mergeGuid);
             mergeRole = 0;
-            if(PlrGrpItr == PlayerGroup.end())
+            if(PlrGrpItr == map->end())
                 mergeRole = to->GetPlayerRole(mergeGuid, false, true);
             else
                 mergeRole = PlrGrpItr->second->GetPlayerRole(mergeGuid, false, true);
@@ -646,7 +649,9 @@ void LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, Gro
     PlayerGroupMap::iterator PlrGrpItr;
     to->SetTank(tmpRoles->tank);
     to->SetHeal(tmpRoles->heal);
-    to->GetDps() = &tmpRoles->dps;
+    to->GetDps()->clear();
+    for(PlayerList::iterator itr = tmpRoles->dps.begin(); itr != tmpRoles->dps.end(); ++itr)
+        to->GetDps()->insert(*itr);
 
     for(PlrGrpItr = map->begin(); PlrGrpItr != map->end(); ++PlrGrpItr)
     {
