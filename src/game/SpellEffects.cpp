@@ -403,7 +403,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     }
                     // Gargoyle Strike
                     case 51963:
-                        damage+= uint32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 3);
+                        damage+= m_caster->GetTotalAttackPowerValue(BASE_ATTACK)+120;
                         break;
                 }
                 break;
