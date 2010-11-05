@@ -15588,7 +15588,8 @@ void Unit::MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, 
 
     if (GetTypeId() != TYPEID_PLAYER)
     {
-        Creature* c = (Creature*)this;
+        // This will reset too soon....
+       /* Creature* c = (Creature*)this;
         // Creature relocation acts like instant movement generator, so current generator expects interrupt/reset calls to react properly
         if (!c->GetMotionMaster()->empty())
             if (MovementGenerator *movgen = c->GetMotionMaster()->top())
@@ -15601,6 +15602,9 @@ void Unit::MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, 
         if (!c->GetMotionMaster()->empty())
             if (MovementGenerator *movgen = c->GetMotionMaster()->top())
                 movgen->Reset(*c);
+        */
+        GetMotionMaster()->PauseMoveGens(transitTime);
+        GetMap()->CreatureRelocation((Creature*)this, path[end-1].x, path[end-1].y, path[end-1].z, 0.0f);
     }
 }
 
