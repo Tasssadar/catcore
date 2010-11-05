@@ -3086,10 +3086,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 
     // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-    {
-        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+500);
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
-    }
+        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, end);
 }
 
 void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
@@ -8058,13 +8055,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     }
 
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-    {
-        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
-        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
-        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
-        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+1000);
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
-    } 
+        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, end);
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
@@ -8149,13 +8140,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     }
 
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-    {
-        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
-        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
-        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
-        m_caster->GetMotionMaster()->PauseMoveGens(traveltime+1000);
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
-    } 
+        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, end);
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))

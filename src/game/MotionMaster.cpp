@@ -431,6 +431,14 @@ MotionMaster::MoveDistract(uint32 timer)
     Mutate(mgen);
 }
 
+void MotionMaster::MoveCharge(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end)
+{
+    if (i_owner->GetTypeId()==TYPEID_PLAYER)
+        return;
+
+    Mutate(new FleeingMovementGenerator<Creature>(path, pointTime, start, end));
+}
+
 void MotionMaster::Mutate(MovementGenerator *m)
 {
     if (!empty())

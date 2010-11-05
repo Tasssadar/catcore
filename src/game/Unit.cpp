@@ -15871,8 +15871,11 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         SendMessageToSet(&data, false);
 
         // Creature relocation
-        GetMotionMaster()->PauseMoveGens(time+1000);
-        GetMap()->CreatureRelocation((Creature*)this, fx, fy, fz, GetOrientation());
+        PointPath path;
+        path.resize(2);
+        path.set(0, GetPositionX(), GetPositionY(), GetPositionZ());
+        path.set(1, fx, fy, fz);
+        GetMotionMaster()->MoveCharge(path, time+1000, 1, 1);
     }
 }
 

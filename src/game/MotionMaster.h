@@ -49,6 +49,7 @@ enum MovementGeneratorType
     ASSISTANCE_DISTRACT_MOTION_TYPE = 13,                   // IdleMovementGenerator.h (second part of flee for assistance)
     TIMED_FLEEING_MOTION_TYPE       = 14,                   // FleeingMovementGenerator.h (alt.second part of flee for assistance)
     FOLLOW_MOTION_TYPE              = 15,                   // TargetedMovementGenerator.h
+    CHARGE_MOTION_TYPE              = 16,                   // ChargeMovementGenerator.h
 };
 
 enum MMCleanFlag
@@ -108,6 +109,7 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         void MoveWaypoint();
         void MoveTaxiFlight(uint32 path, uint32 pathnode);
         void MoveDistract(uint32 timeLimit);
+        void MoveCharge(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end);
 
         MovementGeneratorType GetCurrentMovementGeneratorType() const;
 
