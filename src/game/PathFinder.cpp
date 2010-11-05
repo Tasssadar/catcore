@@ -443,7 +443,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
                 MAX_POINT_PATH_LENGTH);    // maximum number of points
     }
 
-    if(pointCount < 2)
+    if(pointCount < 2 || pointCount == MAX_POINT_PATH_LENGTH)
     {
         // only happens if pass bad data to findStraightPath or navmesh is broken
         // single point paths can be generated here 
