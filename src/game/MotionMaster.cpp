@@ -29,6 +29,7 @@
 #include "TargetedMovementGenerator.h"
 #include "WaypointMovementGenerator.h"
 #include "RandomMovementGenerator.h"
+#include "ChargeMovementGenerator.h"
 
 #include <cassert>
 
@@ -431,12 +432,12 @@ MotionMaster::MoveDistract(uint32 timer)
     Mutate(mgen);
 }
 
-void MotionMaster::MoveCharge(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end)
+void MotionMaster::MoveCharge(PointPath const& path, uint32 pointTime, uint32 start, uint32 end)
 {
     if (i_owner->GetTypeId()==TYPEID_PLAYER)
         return;
 
-    Mutate(new FleeingMovementGenerator<Creature>(path, pointTime, start, end));
+    Mutate(new ChargeMovementGenerator<Creature>(path, pointTime, start, end));
 }
 
 void MotionMaster::Mutate(MovementGenerator *m)

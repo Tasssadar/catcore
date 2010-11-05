@@ -22,6 +22,7 @@
 #include "Common.h"
 #include <stack>
 #include <vector>
+#include "Path.h"
 
 class MovementGenerator;
 class Unit;
@@ -109,7 +110,7 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         void MoveWaypoint();
         void MoveTaxiFlight(uint32 path, uint32 pathnode);
         void MoveDistract(uint32 timeLimit);
-        void MoveCharge(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end);
+        void MoveCharge(PointPath const& path, uint32 pointTime, uint32 start, uint32 end);
 
         MovementGeneratorType GetCurrentMovementGeneratorType() const;
 

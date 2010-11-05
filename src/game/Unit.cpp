@@ -15878,8 +15878,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         // Creature relocation
         PointPath path;
         path.resize(2);
-        path.set(0, GetPositionX(), GetPositionY(), GetPositionZ());
-        path.set(1, fx, fy, fz);
+        path.set(0, PathNode(GetPositionX(), GetPositionY(), GetPositionZ()));
+        path.set(1, PathNode(fx, fy, fz));
         GetMotionMaster()->MoveCharge(path, time+1000, 1, 1);
     }
 }

@@ -24,7 +24,7 @@
 #include "Util.h"
 
 template<>
-void RandomMovementGenerator<Creature>::Initialize(Creature &creature)
+void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
 {
     if (!creature.isAlive())
         return;
@@ -33,25 +33,25 @@ void RandomMovementGenerator<Creature>::Initialize(Creature &creature)
 }
 
 template<>
-void RandomMovementGenerator<Creature>::Reset(Creature &creature)
+void ChargeMovementGenerator<Creature>::Reset(Creature &creature)
 {
     Initialize(creature);
 }
 
 template<>
-void RandomMovementGenerator<Creature>::Interrupt(Creature &creature)
+void ChargeMovementGenerator<Creature>::Interrupt(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 }
 
 template<>
-void RandomMovementGenerator<Creature>::Finalize(Creature &creature)
+void ChargeMovementGenerator<Creature>::Finalize(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 }
 
 template<>
-bool RandomMovementGenerator<Creature>::Update(Creature &creature, const uint32 &diff)
+bool ChargeMovementGenerator<Creature>::Update(Creature &creature, const uint32 &diff)
 {
     if (creature.hasUnitState(UNIT_STAT_NOT_MOVE | UNIT_STAT_ON_VEHICLE))
     {
@@ -62,19 +62,13 @@ bool RandomMovementGenerator<Creature>::Update(Creature &creature, const uint32 
 
     i_nextMoveTime.Update(diff);
 
-    if (i_destinationHolder.HasArrived() && !creature.IsStopped() && !creature.canFly())
-        creature.clearUnitState(UNIT_STAT_ROAMING_MOVE);
-
-    if (!i_destinationHolder.HasArrived() && creature.IsStopped())
-        creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
-
     if(i_nextMoveTime.Passed())
     {
         i_nextMoveTime.Reset(m_pointTime);
         float angle = creature.GetAngle(m_path[curPoint].x,m_path[curPoint].y);
         creature.GetMap()->CreatureRelocation(&creature, m_path[curPoint].x, m_path[curPoint].y, m_path[curPoint].z, angle);
         
-        if(curPoint >= end)
+        if(curPoint >= m_end)
         {
             creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
             return false;
@@ -83,3 +77,9 @@ bool RandomMovementGenerator<Creature>::Update(Creature &creature, const uint32 
     }
     return true;
 }
+
+template void ChargeMovementGenerator<Creature>::Initialize(Creature&);
+template void ChargeMovementGenerator<Creature>::Finalize(Creature&);
+template void ChargeMovementGenerator<Creature>::Interrupt(Creature&);
+template void ChargeMovementGenerator<Creature>::Reset(Creature&);
+template bool ChargeMovementGenerator<Creature>::Update(Creature&, const uint32 &diff);
