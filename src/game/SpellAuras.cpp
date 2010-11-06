@@ -6794,6 +6794,15 @@ void Aura::HandleModDamagePercentDone(bool apply, bool Real)
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "AURA MOD DAMAGE type:%u negative:%u", m_modifier.m_miscvalue, m_positive ? 0 : 1);
     Unit *target = GetTarget();
 
+    // Shadow Crash
+    if (GetId() == 63277)
+    {
+        if (apply)
+            target->CastSpell(target, 65269, true);
+        else
+            target->RemoveAurasDueToSpell(65269);
+    }
+
     // apply item specific bonuses for already equipped weapon
     if (Real && target->GetTypeId() == TYPEID_PLAYER)
     {
