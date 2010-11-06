@@ -8638,6 +8638,13 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 basepoints[0] = damage * triggerAmount / 100 / 3;
                 target = this;
             }
+            // Item - Priest T8 Healer 4P Bonus
+            else if (auraSpellInfo->Id == 64912)
+            {
+                // Only for Power Word: Shield
+                if (procSpell->SpellFamilyName != SPELLFAMILY_PRIEST || procSpell->SpellIconID != 566)
+                    return false;
+            }
             break;
         }
         case SPELLFAMILY_ROGUE:
