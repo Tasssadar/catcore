@@ -90,8 +90,9 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     bool oldDestInRange = inRange(oldDest, newDest, dist, dist);
 
     // this can happen only if caller did a bad job calculating the need for path update
-    if(oldDestInRange && inRange(newStart, oldStart, dist, dist))
-        return false;
+    // Obviously not
+   // if(oldDestInRange && inRange(newStart, oldStart, dist, dist))
+     //   return false;
 
     // check if destination moved - if not we can optimize something here
     // we are following old, precalculated path?
@@ -191,7 +192,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         PATH_DEBUG("++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
         m_type = (canFly() || canSwim()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
-
+        //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         return;
     }
 
@@ -236,7 +237,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         m_pathPolyRefs[0] = startPoly;
         m_polyLength = 1;
 
-        m_type = farFromPoly ? PATHFIND_INCOMPLETE : PATHFIND_NORMAL;
+        //m_type = farFromPoly ? PATHFIND_INCOMPLETE : PATHFIND_NORMAL;
+        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         PATH_DEBUG("++ BuildPolyPath :: path type %d\n", m_type);
         return;
     }
