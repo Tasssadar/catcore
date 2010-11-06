@@ -176,7 +176,15 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
     if (owner.IsNonMeleeSpellCasted(false, false,  true))
     {
         if (!owner.IsStopped())
+        {
+            if(owner.GetTypeId() == TYPEID_UNIT)
+            {
+                float x, y, z;
+                i_destinationHolder.GetLocationNowNoMicroMovement(x, y, z);
+                owner.GetMap()->CreatureRelocation((Creature*)&owner, x, y, z, owner.GetOrientation()); 
+            }
             owner.StopMoving();
+        }
         return true;
     }
 
@@ -193,6 +201,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
     if (owner.IsStopped() && !i_destinationHolder.HasArrived())
     {
         D::_addUnitStateMove(owner);
+        _setTargetLocation(owner);
         float x,y,z;
         i_destinationHolder.GetLocationNowNoMicroMovement(x,y,z);
         if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
