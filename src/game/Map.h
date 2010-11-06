@@ -163,6 +163,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         uint8 GetTerrainType(float x, float y ) const;
         float GetWaterLevel(float x, float y ) const;
         bool IsUnderWater(float x, float y, float z) const;
+        int8 GetVmapLoadResult() const { return m_vmapLoadResult; }
 
         static uint32 GetAreaIdByAreaFlag(uint16 areaflag,uint32 map_id);
         static uint32 GetZoneIdByAreaFlag(uint16 areaflag,uint32 map_id);
@@ -373,6 +374,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         template<class T>
             void DeleteFromWorld(T*);
+
+        int8 m_vmapLoadResult;
 
         // begin movemap-related
     public:

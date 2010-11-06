@@ -7828,48 +7828,63 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         dx = cx;
         dy = cy;
 
-        //Going foward 0.5f until max distance
-        for(float i=0.5f; i<dis; i+=0.5f)
+        bool checkZ = true;
+        if(unitTarget->GetMap()->GetVmapLoadResult() != VMAP::VMAP_LOAD_RESULT_OK)
         {
-            //unitTarget->GetNearPoint2D(dx,dy,i,angle);
-            dx += _dx;
-            dy += _dy;
-            MaNGOS::NormalizeMapCoord(dx);
-            MaNGOS::NormalizeMapCoord(dy);
-            dz = cz;
-             
-            //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
-            if ( unitTarget->GetMap()->IsNextZcoordOK(dx, dy, dz, 3.0f) && (unitTarget->IsWithinLOS(dx, dy, dz)))
+            float tmpZ = unitTarget->GetMap()->GetHeight(cx, cy, cz, false);
+            // If no height aviable, return :/
+            if(tmpZ <= INVALID_HEIGHT || fabs(tmpZ - cz) > 1)
             {
-                //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
-                cx = dx;
-                cy = dy;
-                unitTarget->UpdateGroundPositionZ(cx, cy, cz, 3.0f);
+                cx += cos(angle)*dist;
+                cy += sin(angle)*dist;
+                checkZ = false;
             }
-            else
+        }
+        if(checkZ)
+        {
+            //Going foward 0.5f until max distance
+            for(float i=0.5f; i<dis; i+=0.5f)
             {
-                //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
-                if (swapZone)
+                //unitTarget->GetNearPoint2D(dx,dy,i,angle);
+                dx += _dx;
+                dy += _dy;
+                MaNGOS::NormalizeMapCoord(dx);
+                MaNGOS::NormalizeMapCoord(dy);
+                dz = cz;
+                 
+                //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
+                if ( unitTarget->GetMap()->IsNextZcoordOK(dx, dy, dz, 3.0f) && (unitTarget->IsWithinLOS(dx, dy, dz)))
                 {
-                    //so... change use of vamp and go back 1 step backward and recheck again.
-                    swapZone = false;
-                    useVmap = !useVmap;
-                    //i-=0.5f;
-                    --i;
-                    dx -= _dx;
-                    dy -= _dy;
+                    //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
+                    cx = dx;
+                    cy = dy;
+                    unitTarget->UpdateGroundPositionZ(cx, cy, cz, 3.0f);
                 }
                 else
                 {
-                    //bad recheck result... so break this and use last good coord for teleport player...
-                    dz += 0.5f;
-                    break;
+                    //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
+                    if (swapZone)
+                    {
+                        //so... change use of vamp and go back 1 step backward and recheck again.
+                        swapZone = false;
+                        useVmap = !useVmap;
+                        //i-=0.5f;
+                        --i;
+                        dx -= _dx;
+                        dy -= _dy;
+                    }
+                    else
+                    {
+                        //bad recheck result... so break this and use last good coord for teleport player...
+                        dz += 0.5f;
+                        break;
+                    }
                 }
             }
-        }
             
-        //Prevent Falling during swap building/outerspace
-        unitTarget->UpdateGroundPositionZ(cx, cy, cz);
+            //Prevent Falling during swap building/outerspace
+            unitTarget->UpdateGroundPositionZ(cx, cy, cz);
+        }
 
         if (unitTarget->GetTypeId() == TYPEID_PLAYER)
             ((Player*)unitTarget)->TeleportTo(mapid, cx, cy, cz, unitTarget->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget==m_caster ? TELE_TO_SPELL : 0));
@@ -7877,8 +7892,11 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         {
             unitTarget->SendMonsterMove(cx, cy, cz, SPLINETYPE_FACINGANGLE, SPLINEFLAG_UNKNOWN5, 0, NULL, unitTarget->GetOrientation());
              // Creature relocation
-            unitTarget->GetMotionMaster()->PauseMoveGens(100);
-            unitTarget->GetMap()->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
+            PointPath path;
+            path.resize(2);
+            path.set(0, PathNode(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ()));
+            path.set(1, PathNode(cx, cy, cz));
+            unitTarget->GetMotionMaster()->MoveCharge(path, 100, 1, 1);
         }
     }
 }

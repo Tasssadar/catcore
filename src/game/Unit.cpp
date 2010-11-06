@@ -15833,9 +15833,9 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
                     dist = 0.0f;
                     do
                     {
-                        lastX += vcos*0.1f;
-                        lastY += vsin*0.1f;
-                        lastZ += elevation*0.1f;
+                        lastX += vcos*0.2f;
+                        lastY += vsin*0.2f;
+                        lastZ += elevation*0.2f;
                         if(!IsWithinLOS(lastX, lastY, lastZ))
                         {
                             float tmpZ = lastZ;
@@ -15846,15 +15846,15 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
                             // use last good point if not height aviable
                             if(lastZ == tmpZ)
                             {
-                                fx -= vcos*0.1f;
-                                fy -= vsin*0.1f;
-                                fz -= elevation*0.1f;
+                                fx -= vcos*0.2f;
+                                fy -= vsin*0.2f;
+                                fz -= elevation*0.2f;
                                 UpdateGroundPositionZ(fx, fy, fz, outdoor ? 20.0f : 3.0f);
                             }
                             distance = GetDistance(fx, fy, fz);
                             break;
                         }
-                        dist+=0.1f;
+                        dist+=0.2f;
                     }
                     while(dist <= 1.0f);
                     break;
@@ -16472,7 +16472,17 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
 {
     float cx, cy, cz;
     GetPosition(cx, cy, cz);
-    
+
+    if(GetMap()->GetVmapLoadResult() != VMAP::VMAP_LOAD_RESULT_OK)
+    {
+        float tmpZ = GetMap()->GetHeight(cx, cy, cz, false);
+        float tmpZt = GetMap()->GetHeight(x, y, z, false);
+        // If no height aviable, return :/
+        if(tmpZ <= INVALID_HEIGHT || tmpZt <= INVALID_HEIGHT || 
+            fabs(tmpZ - cz) > 1 || fabs(tmpZt - z) > 1)
+            return true;
+    }
+
     if (!GetMap()->IsNextZcoordOK(x, y, z, maxDiff))
         return false;
 
