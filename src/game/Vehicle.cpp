@@ -57,7 +57,7 @@ void Vehicle::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
-void Vehicle::SetDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
+void Vehicle::setDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
 {
     Creature::setDeathState(s);
     if (s == JUST_DIED)

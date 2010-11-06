@@ -113,7 +113,7 @@ Creature::Creature(CreatureSubtype subtype) :
 Unit(), i_AI(NULL),
 lootForPickPocketed(false), lootForBody(false), lootForSkin(false), m_groupLootTimer(0), m_groupLootId(0),
 m_lootMoney(0), m_lootGroupRecipientId(0),
-m_corpseDecayTimer(0), m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_respawnradius(5.0f),
+m_deathTimer(0), m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_respawnradius(5.0f),
 m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE), m_DBTableGuid(0), m_equipmentId(0),
 m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
@@ -167,7 +167,7 @@ void Creature::RemoveCorpse()
     if ((getDeathState() != CORPSE && !m_isDeadByDefault) || (getDeathState() != ALIVE && m_isDeadByDefault))
         return;
 
-    m_corpseDecayTimer = 0;
+    m_deathTimer = 0;
     setDeathState(DEAD);
     UpdateObjectVisibility();
 
@@ -1322,7 +1322,7 @@ void Creature::setDeathState(DeathState s)
 {
     if ((s == JUST_DIED && !m_isDeadByDefault) || (s == JUST_ALIVED && m_isDeadByDefault))
     {
-        m_corpseDecayTimer = m_corpseDelay*IN_MILLISECONDS;
+        m_deathTimer = m_corpseDelay*IN_MILLISECONDS;
 
         // always save boss respawn time at death to prevent crash cheating
         if (sWorld.getConfig(CONFIG_BOOL_SAVE_RESPAWN_TIME_IMMEDIATLY) || isWorldBoss())
@@ -1647,7 +1647,7 @@ bool Creature::IsVisibleInGridForPlayer(Player* pl) const
     // Live player (or with not release body see live creatures or death creatures with corpse disappearing time > 0
     if (pl->isAlive() || pl->GetDeathTimer() > 0)
     {
-        return (isAlive() || m_corpseDecayTimer > 0 || (m_isDeadByDefault && m_deathState == CORPSE));
+        return (isAlive() || m_deathTimer > 0 || (m_isDeadByDefault && m_deathState == CORPSE));
     }
 
     // Dead player see live creatures near own corpse
@@ -1782,8 +1782,8 @@ void Creature::SaveRespawnTime()
 
     if (m_respawnTime > time(NULL))                          // dead (no corpse)
         sObjectMgr.SaveCreatureRespawnTime(m_DBTableGuid, GetInstanceId(), m_respawnTime);
-    else if (m_corpseDecayTimer > 0)                               // dead (corpse)
-        sObjectMgr.SaveCreatureRespawnTime(m_DBTableGuid, GetInstanceId(), time(NULL) + m_respawnDelay + m_corpseDecayTimer / IN_MILLISECONDS);
+    else if (m_deathTimer > 0)                               // dead (corpse)
+        sObjectMgr.SaveCreatureRespawnTime(m_DBTableGuid, GetInstanceId(), time(NULL) + m_respawnDelay + m_deathTimer / IN_MILLISECONDS);
 }
 
 bool Creature::IsOutOfThreatArea(Unit* pVictim) const
@@ -2125,8 +2125,8 @@ time_t Creature::GetRespawnTimeEx() const
     time_t now = time(NULL);
     if (m_respawnTime > now)                                 // dead (no corpse)
         return m_respawnTime;
-    else if (m_corpseDecayTimer > 0)                               // dead (corpse)
-        return now + m_respawnDelay + m_corpseDecayTimer / IN_MILLISECONDS;
+    else if (m_deathTimer > 0)                               // dead (corpse)
+        return now + m_respawnDelay + m_deathTimer / IN_MILLISECONDS;
     else
         return now;
 }
@@ -2175,8 +2175,8 @@ void Creature::AllLootRemovedFromCorpse()
             nDeathTimer = 0;
 
         // update death timer only if looted timer is shorter
-        if (m_corpseDecayTimer > nDeathTimer)
-            m_corpseDecayTimer = nDeathTimer;
+        if (m_deathTimer > nDeathTimer)
+            m_deathTimer = nDeathTimer;
     }
 }
 

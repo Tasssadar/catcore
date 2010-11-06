@@ -382,9 +382,9 @@ void GameObject::Update(uint32 p_time)
                 case GAMEOBJECT_TYPE_CHEST:
                     if (m_groupLootTimer && m_groupLootId)
                     {
-                        if (update_diff <= m_groupLootTimer)
+                        if (p_time <= m_groupLootTimer)
                         {
-                            m_groupLootTimer -= update_diff;
+                            m_groupLootTimer -= p_time;
                         }
                         else
                         {
