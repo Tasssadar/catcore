@@ -63,7 +63,8 @@ class Vehicle : public Creature
         void Die();
         bool Create (uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint32 vehicleId, uint32 team, const CreatureData *data = NULL);
 
-        void SetDeathState(DeathState s);                   // overwrite virtual Creature::SetDeathState and Unit::SetDeathState
+        void setDeathState(DeathState s);                   // overwrite virtual Creature::setDeathState and Unit::setDeathState
+        void Update(uint32 diff);                           // overwrite virtual Creature::Update and Unit::Update
 
         uint32 GetVehicleId() { return m_vehicleId; }
         bool SetVehicleId(uint32 vehicleid);
@@ -101,8 +102,6 @@ class Vehicle : public Creature
         Unit *GetPassenger(int8 seatId) const;
         void Respawn();
     protected:
-        void Update(uint32 update_diff, uint32 tick_diff);  // overwrite virtual Creature::Update and Unit::Update
-
         uint32 m_vehicleId;
         VehicleEntry const *m_vehicleInfo;
         VehicleDataStructure const *m_VehicleData;

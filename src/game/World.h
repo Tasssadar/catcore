@@ -590,7 +590,7 @@ class World
         uint32 GetShutdownTimer() const { return m_ShutdownTimer; };
         uint32 GetShutdownMask() const { return m_ShutdownMask; };
 
-        void Update(uint32 time_, uint32 diff);
+        void Update(uint32 diff);
 
         void UpdateSessions( uint32 diff );
 

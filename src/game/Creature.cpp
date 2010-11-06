@@ -397,7 +397,7 @@ uint32 Creature::ChooseDisplayId(const CreatureInfo *cinfo, const CreatureData *
     return display_id;
 }
 
-void Creature::Update(uint32 update_diff, uint32 tick_diff)
+void Creature::Update(uint32 diff)
 {
     switch( m_deathState )
     {
@@ -449,7 +449,7 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
             if (m_isDeadByDefault)
                 break;
 
-            if (m_corpseDecayTimer <= update_diff)
+            if ( m_deathTimer <= diff )
             {
                 // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
                 uint16 poolid = GetDBTableGUIDLow() ? sPoolMgr.IsPartOfAPool<Creature>(GetDBTableGUIDLow()) : 0;
@@ -464,11 +464,11 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
             }
             else
             {
-                m_corpseDecayTimer -= update_diff;
+                m_deathTimer -= diff;
                 if (m_groupLootId)
                 {
-                    if(update_diff < m_groupLootTimer)
-                        m_groupLootTimer -= update_diff;
+                    if (diff < m_groupLootTimer)
+                        m_groupLootTimer -= diff;
                     else
                         StopGroupLoot();
                 }
@@ -480,7 +480,7 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
         {
             if (m_isDeadByDefault)
             {
-                if (m_corpseDecayTimer <= update_diff)
+                if ( m_deathTimer <= diff )
                 {
                     // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
                     uint16 poolid = GetDBTableGUIDLow() ? sPoolMgr.IsPartOfAPool<Creature>(GetDBTableGUIDLow()) : 0;
@@ -498,11 +498,11 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
                 }
                 else
                 {
-                    m_corpseDecayTimer -= update_diff;
+                    m_deathTimer -= diff;
                 }
             }
 
-            Unit::Update(update_diff, tick_diff);
+            Unit::Update( diff );
 
             // creature can be dead after Unit::Update call
             // CORPSE/DEAD state will processed at next tick (in other case death timer will be updated unexpectedly)
@@ -513,7 +513,7 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
             {
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
-                i_AI->UpdateAI(tick_diff);                  // AI not react good at real update delays (while freeze in non-active part of map)
+                i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
 
@@ -524,11 +524,11 @@ void Creature::Update(uint32 update_diff, uint32 tick_diff)
 
             if (getPowerType() == POWER_MANA)
             {
-                if (update_diff >= m_regenTimer)
+                if (m_regenTimer <= diff)
                 {
                     Regenerate(POWER_MANA, REGEN_TIME_FULL);
                     m_regenTimer = REGEN_TIME_FULL;
-                }else m_regenTimer -= update_diff;
+                }else m_regenTimer -= diff;
             }
 
             if (!isInCombat() || IsPolymorphed())

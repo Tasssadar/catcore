@@ -20,13 +20,14 @@
 #define MANGOS_CHARGEMOVEGEN_H
 
 #include "MovementGenerator.h"
+#include "Path.h"
 
 template<class T>
 class MANGOS_DLL_SPEC ChargeMovementGenerator
 : public MovementGeneratorMedium< T, ChargeMovementGenerator<T> >
 {
     public:
-        ChargeMovementGenerator(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end) :
+        ChargeMovementGenerator(PointPath const& path, uint32 pointTime, uint32 start, uint32 end) :
           i_nextMoveTime(pointTime), m_pointTime(pointTime), m_path(path), m_start(start), m_end(end), curPoint(start) {}
 
         void Initialize(T &);
@@ -51,7 +52,7 @@ class MANGOS_DLL_SPEC ChargeMovementGenerator
         }
     private:
         TimeTracker i_nextMoveTime;
-        Path<PathElem,PathNode> const m_path;
+        PointPath const m_path;
         uint32 curPoint;
         uint32 m_pointTime;
         uint32 m_start;

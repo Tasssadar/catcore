@@ -22,6 +22,7 @@
 #include "DestinationHolderImp.h"
 #include "Map.h"
 #include "Util.h"
+#include "Path.h"
 
 template<>
 void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)

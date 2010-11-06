@@ -69,24 +69,24 @@ void Vehicle::SetDeathState(DeathState s)                       // overwrite vir
     }
 }
 
-void Vehicle::Update(uint32 update_diff, uint32 tick_diff)
+void Vehicle::Update(uint32 diff)
 {
     if (getPowerType() == POWER_ENERGY)
     {
-        if (m_regenTimer <= update_diff)
+        if (m_regenTimer <= diff)
         {
              Regenerate(getPowerType(), REGEN_TIME_FULL);
              m_regenTimer = REGEN_TIME_FULL;
         }
         else
-            m_regenTimer -= update_diff;
+            m_regenTimer -= diff;
     }
 
-    Creature::Update(update_diff, tick_diff);
+    Creature::Update(diff);
 
     if (despawn)
     {
-        m_spawnduration -= update_diff;
+        m_spawnduration -= diff;
         if (m_spawnduration < 0)
             Dismiss();
         despawn = false;

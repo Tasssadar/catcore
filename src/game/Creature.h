@@ -416,6 +416,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         uint32 GetDBTableGUIDLow() const { return m_DBTableGuid; }
         char const* GetSubName() const { return GetCreatureInfo()->SubName; }
 
+        void Update( uint32 time );                         // overwrited Unit::Update
         void GetRespawnCoord(float &x, float &y, float &z, float* ori = NULL, float* dist =NULL) const;
         uint32 GetEquipmentId() const { return m_equipmentId; }
 
@@ -662,7 +663,6 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void DoNotTriggerInstanceLock() { m_DoNotInsertToInstanceCombatList = true; }
 
     protected:
-        void Update(uint32 update_diff, uint32 tick_diff);  // overwrite Unit::Update
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);
 
@@ -683,7 +683,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         uint32 m_lootGroupRecipientId;                      // group who will have rights for looting if set and exist
 
         /// Timers
-        uint32 m_corpseDecayTimer;                          // (msecs)timer for death or corpse disappearance
+        uint32 m_deathTimer;                                // (msecs)timer for death or corpse disappearance
         time_t m_respawnTime;                               // (secs) time of next respawn
         uint32 m_respawnDelay;                              // (secs) delay between corpse disappearance and respawning
         uint32 m_corpseDelay;                               // (secs) delay between death and corpse disappearance

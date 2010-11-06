@@ -7835,8 +7835,8 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             // If no height aviable, return :/
             if(tmpZ <= INVALID_HEIGHT || fabs(tmpZ - cz) > 1)
             {
-                cx += cos(angle)*dist;
-                cy += sin(angle)*dist;
+                cx += cos(angle)*dis;
+                cy += sin(angle)*dis;
                 checkZ = false;
             }
         }
