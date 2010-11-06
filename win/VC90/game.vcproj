@@ -1043,6 +1043,14 @@
 			Name="Motion generators"
 			>
 			<File
+				RelativePath="..\..\src\game\ChargeMovementGenerator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\game\ChargeMovementGenerator.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\game\ConfusedMovementGenerator.cpp"
 				>
 			</File>

@@ -81,6 +81,7 @@ void Map::LoadVMap(int gx,int gy)
             DEBUG_LOG("Ignored VMAP name:%s, id:%d, x:%d, y:%d (vmap rep.: x:%d, y:%d)", GetMapName(), GetId(), gx,gy,gx,gy);
             break;
     }
+    m_vmapLoadResult = vmapLoadResult;
 }
 
 void Map::LoadMap(int gx,int gy, bool reload)
@@ -139,7 +140,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, Map* _par
   m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_instanceSave(NULL),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
   i_gridExpiry(expiry), m_parentMap(_parent ? _parent : this),
-  m_navMesh(0)
+  m_navMesh(0), m_vmapLoadResult(-1)
 {
     for(unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {

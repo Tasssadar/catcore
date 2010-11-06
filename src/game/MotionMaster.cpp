@@ -29,6 +29,7 @@
 #include "TargetedMovementGenerator.h"
 #include "WaypointMovementGenerator.h"
 #include "RandomMovementGenerator.h"
+#include "ChargeMovementGenerator.h"
 
 #include <cassert>
 
@@ -173,7 +174,7 @@ MotionMaster::DirectExpire(bool reset)
     pop();
 
     // also drop stored under top() targeted motions
-    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE))
+    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE) && curr->GetMovementGeneratorType() != CHARGE_MOTION_TYPE)
     {
         MovementGenerator *temp = top();
         pop();
@@ -212,7 +213,7 @@ MotionMaster::DelayedExpire(bool reset)
         m_expList = new ExpireList();
 
     // also drop stored under top() targeted motions
-    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE))
+    while (!empty() && (top()->GetMovementGeneratorType() == CHASE_MOTION_TYPE || top()->GetMovementGeneratorType() == FOLLOW_MOTION_TYPE) && curr->GetMovementGeneratorType() != CHARGE_MOTION_TYPE)
     {
         MovementGenerator *temp = top();
         pop();
@@ -224,6 +225,9 @@ MotionMaster::DelayedExpire(bool reset)
 
     if (!isStatic(curr))
         m_expList->push_back(curr);
+
+    if (reset)
+        top()->Reset(*i_owner);
 }
 
 void MotionMaster::MoveIdle()
@@ -429,6 +433,14 @@ MotionMaster::MoveDistract(uint32 timer)
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s distracted (timer: %u)", i_owner->GetObjectGuid().GetString().c_str(), timer);
     DistractMovementGenerator* mgen = new DistractMovementGenerator(timer);
     Mutate(mgen);
+}
+
+void MotionMaster::MoveCharge(PointPath const& path, uint32 pointTime, uint32 start, uint32 end)
+{
+    if (i_owner->GetTypeId()==TYPEID_PLAYER)
+        return;
+
+    Mutate(new ChargeMovementGenerator<Creature>(path, pointTime, start, end));
 }
 
 void MotionMaster::Mutate(MovementGenerator *m)
