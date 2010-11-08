@@ -86,7 +86,7 @@ class MANGOS_DLL_SPEC InstanceData
         virtual bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id);
 
         // Is instance in combat?
-        bool IsLocked() { return lCombatList.empty(); }
+        bool IsLocked() { return !lCombatList.empty(); }
 
         void InsertIntoCombatList(Creature* pCreature);
 
