@@ -63,6 +63,9 @@ Map::~Map()
         dtFreeNavMesh(m_navMesh);
         m_navMesh = NULL;
     }
+
+    if(m_instanceSave)
+        m_instanceSave->SetUsedByMapState(false);
 }
 
 void Map::LoadVMap(int gx,int gy)
@@ -140,7 +143,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, Map* _par
   m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_instanceSave(NULL),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
   i_gridExpiry(expiry), m_parentMap(_parent ? _parent : this),
-  m_navMesh(0), m_vmapLoadResult(-1)
+  m_navMesh(NULL), m_vmapLoadResult(-1)
 {
     for(unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
@@ -1675,6 +1678,7 @@ InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 Spaw
     {
         m_instanceSave = sInstanceSaveMgr.CreateInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), false);
         i_InstanceId = m_instanceSave->GetGUID();
+        m_instanceSave->SetUsedByMapState(true);
     }
 }
 

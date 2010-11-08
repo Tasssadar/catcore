@@ -56,6 +56,8 @@ class InstanceSave
         bool RemoveOrExtendPlayers(); //caled at reset
         uint32 GetEncounterMask() const { return m_encountersMask; }
         void AddEncounter(uint32 mask);
+        void SetUsedByMapState(bool used) { m_usedByMap = used; }
+        bool IsUsedByMap() const { return m_usedByMap; }
 
         bool LoadPlayers();
         void SaveToDb(bool players = false, bool data = false);
@@ -75,6 +77,7 @@ class InstanceSave
         PlrListSaves m_extended;
         uint32 resetTime; //timestamp
         uint32 m_encountersMask;
+        bool m_usedByMap;
 };
 
 class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSaveManager, MaNGOS::ClassLevelLockable<InstanceSaveManager, ACE_Thread_Mutex> >

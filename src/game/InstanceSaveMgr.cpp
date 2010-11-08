@@ -49,6 +49,7 @@ InstanceSave::InstanceSave(uint32 MapId, uint32 InstanceId, Difficulty difficult
     m_diff = difficulty;
     m_perm = perm;
     m_encountersMask = encountersMask;
+    m_usedByMap = false;
 
     // Calculate reset time
     uint32 now = time(NULL);
@@ -338,7 +339,7 @@ void InstanceSaveManager::CheckResetTimes()
         ++itr_next;
 
         // delete saves without players
-        if(!itr->second->HasPlayers())
+        if(!itr->second->HasPlayers() && !itr->second->IsUsedByMap())
         {
             DeleteSave(itr->first);
             continue;
