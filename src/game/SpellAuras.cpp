@@ -8668,6 +8668,10 @@ void Aura::PeriodicTick()
             if (!target->isAlive())
                 return;
 
+            // Aura of Despair
+            if (target->HasAura(62692))
+                return;
+
             // ignore non positive values (can be result apply spellmods to aura damage
             uint32 pdamage = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
 

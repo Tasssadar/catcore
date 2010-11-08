@@ -11285,6 +11285,10 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
         // Shamanistic Rage
         if (spellInfo->Id == 30824)
             return false;
+
+        // Judgements of the Wise
+        if (spellInfo->Id == 31930)
+            return false;
     }
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR END
 
