@@ -63,6 +63,9 @@ Map::~Map()
         dtFreeNavMesh(m_navMesh);
         m_navMesh = NULL;
     }
+
+    if(m_instanceSave)
+        m_instanceSave->SetUsedByMapState(false);
 }
 
 void Map::LoadVMap(int gx,int gy)
@@ -1675,6 +1678,7 @@ InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 Spaw
     {
         m_instanceSave = sInstanceSaveMgr.CreateInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), false);
         i_InstanceId = m_instanceSave->GetGUID();
+        m_instanceSave->SetUsedByMapState(true);
     }
 }
 
