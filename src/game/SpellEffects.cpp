@@ -3995,6 +3995,9 @@ void Spell::EffectEnergisePct(SpellEffectIndex eff_idx)
     if (m_spellInfo->EffectMiscValue[eff_idx] < 0 || m_spellInfo->EffectMiscValue[eff_idx] >= MAX_POWERS)
         return;
 
+    if (unitTarget->HasAura(62692))
+        return;
+
     Powers power = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
 
     uint32 maxPower = unitTarget->GetMaxPower(power);

@@ -11266,6 +11266,28 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
     if (spellInfo->Id == 63337)
         return false;
 
+    // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR BEGIN
+    if (HasAura(62692))
+    {
+        // Lifebloom
+        if (spellInfo->Id == 64372)                              
+            return false;
+
+        // Rapture
+        if (spellInfo->Id == 63652 || spellInfo->Id == 63653 ||
+            spellInfo->Id == 63654 || spellInfo->Id == 63655)
+            return false;
+
+        // Improved Stormstrike
+        if (spellInfo->Id == 63375)
+            return false;
+
+        // Shamanistic Rage
+        if (spellInfo->Id == 30824)
+            return false;
+    }
+    // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR END
+
     //If m_immuneToEffect type contain this effect type, IMMUNE effect.
     uint32 effect = spellInfo->Effect[index];
     SpellImmuneList const& effectList = m_spellImmune[IMMUNITY_EFFECT];

@@ -8697,6 +8697,10 @@ void Aura::PeriodicTick()
             if (!target->isAlive())
                 return;
 
+            // custom handleing for General Vezax's Aura of Despair
+            if (target->HasAura(62692) && (GetId() != 54428 || !(target->HasAura(53583) || target->HasAura(53585))))
+                return;
+
             // ignore non positive values (can be result apply spellmods to aura damage
             uint32 amount = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
 
