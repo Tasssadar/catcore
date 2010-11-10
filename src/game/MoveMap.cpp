@@ -21,8 +21,8 @@
 #include "Utilities/UnorderedMap.h"
 #include "World.h"
 
-inline uint32 packTileID(uint32 tileX, uint32 tileY) { return tileX<<16 | tileY; }
-inline void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>16; tileY = ID&0xFF; }
+uint32 packTileID(uint32 tileX, uint32 tileY) { return tileX<<16 | tileY; }
+void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>16; tileY = ID&0xFF; }
 
 void Map::LoadNavMesh(int gx, int gy)
 {
@@ -34,10 +34,10 @@ void Map::LoadNavMesh(int gx, int gy)
     {
         uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i.mmap")+1;
         char *fileName = new char[pathLen];
-        snprintf(fileName, pathLen, (char*)(sWorld.GetDataPath()+"mmaps/%03i.mmap").c_str(), i_id);
+        snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i.mmap").c_str(), i_id);
 
         FILE* file = fopen(fileName, "rb");
-        if(!file)
+        if (!file)
         {
             sLog.outDebug("Error: Could not open mmap file '%s'", fileName);
             delete [] fileName;
@@ -52,7 +52,7 @@ void Map::LoadNavMesh(int gx, int gy)
         delete [] fileName;
 
         m_navMesh = dtAllocNavMesh();
-        if(!m_navMesh->init(&params))
+        if (!m_navMesh->init(&params))
         {
             dtFreeNavMesh(m_navMesh);
             m_navMesh = NULL;
@@ -62,16 +62,16 @@ void Map::LoadNavMesh(int gx, int gy)
     }
 
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
-    if(m_mmapTileMap.find(packedGridPos) != m_mmapTileMap.end())
+    if (m_mmapLoadedTiles.find(packedGridPos) != m_mmapLoadedTiles.end())
         return;
 
     // mmaps/0000000.mmtile
     uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i%02i%02i.mmtile")+1;
     char *fileName = new char[pathLen];
-    snprintf(fileName, pathLen, (char*)(sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), i_id, gx, gy);
+    snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), i_id, gx, gy);
 
     FILE *file = fopen(fileName, "rb");
-    if(!file)
+    if (!file)
     {
         sLog.outDebug("Error: Could not open mmtile file '%s'", fileName);
         delete [] fileName;
@@ -103,7 +103,7 @@ void Map::LoadNavMesh(int gx, int gy)
         return;
     }
 
-    if(!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
+    if (!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
     {
         sLog.outError("Error: could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
         dtFree(data);
@@ -113,17 +113,17 @@ void Map::LoadNavMesh(int gx, int gy)
     // memory allocated for data is now managed by detour, and will be deallocated when the tile is removed
 
     uint32 packedTilePos = packTileID(uint32(header->x), uint32(header->y));
-    m_mmapTileMap.insert(std::pair<uint32, uint32>(packedGridPos, packedTilePos));
+    m_mmapLoadedTiles.insert(std::pair<uint32, uint32>(packedGridPos, packedTilePos));
     sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i(%u)[%02i,%02i]", i_id, gx, gy, i_id, GetInstanceId(), header->x, header->y);
 }
 
 void Map::UnloadNavMesh(int gx, int gy)
 {
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
-    if(m_mmapTileMap.find(packedGridPos) == m_mmapTileMap.end())
+    if (m_mmapLoadedTiles.find(packedGridPos) == m_mmapLoadedTiles.end())
         return;
 
-    uint32 packedTilePos = m_mmapTileMap[packedGridPos];
+    uint32 packedTilePos = m_mmapLoadedTiles[packedGridPos];
     uint32 tileX, tileY;
     unpackTileID(packedTilePos, tileX, tileY);
 
