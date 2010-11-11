@@ -7612,6 +7612,17 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     target = this;
                     break;
                 }
+                // Item - Paladin T8 Holy 2P Bonus
+                case 64890:
+                {
+                    // Holy Shock heal
+                    if (!(procSpell->SpellFamilyFlags & UI64LIT(0x0001000000000000)))
+                        return false;
+                    // 3 ticks
+                    basepoints[0] = triggerAmount*damage/300;
+                    triggered_spell_id = 64891;
+                    break;
+                }
             }
             break;
         }
