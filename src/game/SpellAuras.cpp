@@ -9881,9 +9881,9 @@ void Aura::HandleAuraOfDespair(bool apply, bool Real)
         return;
 
     if (target->HasSpell(30823) ||                                                      // Shamanistic Rage
-        target->HasSpell(31785) || target->HasSpell(33776) ||	                        // Spiritual Attunement
-        target->HasSpell(31876) || target->HasSpell(31877) ||target->HasSpell(31878))	// Judgements of the Wise
-        AddAndLinkAura(GetId(), 64646);             // Corrupted Wisdom
+        target->HasSpell(31785) || target->HasSpell(33776) ||                           // Spiritual Attunement
+        target->HasSpell(31876) || target->HasSpell(31877) ||target->HasSpell(31878))   // Judgements of the Wise
+        target->AddAndLinkAura(64646, apply);                                           // Corrupted Wisdom
 }
 
 //returns if we applied haste
