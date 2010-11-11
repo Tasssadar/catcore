@@ -3995,7 +3995,7 @@ void Spell::EffectEnergisePct(SpellEffectIndex eff_idx)
     if (m_spellInfo->EffectMiscValue[eff_idx] < 0 || m_spellInfo->EffectMiscValue[eff_idx] >= MAX_POWERS)
         return;
 
-    if (unitTarget->HasAura(62692))
+    if (unitTarget->HasAuraType(SPELL_AURA_OF_DESPAIR))
         return;
 
     Powers power = Powers(m_spellInfo->EffectMiscValue[eff_idx]);

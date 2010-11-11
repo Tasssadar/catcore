@@ -11278,16 +11278,16 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
         return false;
 
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR BEGIN
-    if (HasAura(62692))
+    if (HasAuraType(SPELL_AURA_OF_DESPAIR))
     {
         // Lifebloom
         if (spellInfo->Id == 64372)                              
             return false;
 
         // Rapture
-        if (spellInfo->Id == 63652 || spellInfo->Id == 63653 ||
-            spellInfo->Id == 63654 || spellInfo->Id == 63655)
-            return false;
+        //if (spellInfo->Id == 63652 || spellInfo->Id == 63653 ||
+        //    spellInfo->Id == 63654 || spellInfo->Id == 63655)
+        //    return false;
 
         // Improved Stormstrike
         if (spellInfo->Id == 63375)
@@ -16299,7 +16299,7 @@ void Unit::Regenerate(Powers power, uint32 diff)
             float ManaIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_MANA);
 
             // is under effect of disabled mana regen aura
-            if (HasAuraType(SPELL_AURA_STOP_MANA_REGEN))
+            if (HasAuraType(SPELL_AURA_OF_DESPAIR))
                 break;
 
             if (GetTypeId() == TYPEID_PLAYER)

@@ -344,7 +344,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleNoImmediateEffect,                         //291 SPELL_AURA_MOD_QUEST_XP_PCT           implemented in Player::GiveXP
     &Aura::HandleAuraOpenStable,                            //292 call stabled pet
     &Aura::HandleNULL,                                      //293 3 spells
-    &Aura::HandleNULL,                                      //294 SPELL_AURA_STOP_MANA_REGEN            implemented in Unit::Regenerate
+    &Aura::HandleAuraOfDespair,                             //294 SPELL_AURA_OF_DESPAIR            implemented in Unit::Regenerate
     &Aura::HandleUnused,                                    //295 unused (3.2.2a)
     &Aura::HandleNULL,                                      //296 2 spells
     &Aura::HandleNULL,                                      //297 1 spell (counter spell school?)
@@ -8669,7 +8669,7 @@ void Aura::PeriodicTick()
                 return;
 
             // Aura of Despair
-            if (target->HasAura(62692))
+            if (target->HasAuraType(SPELL_AURA_OF_DESPAIR))
                 return;
 
             // ignore non positive values (can be result apply spellmods to aura damage
@@ -8702,7 +8702,7 @@ void Aura::PeriodicTick()
                 return;
 
             // custom handleing for General Vezax's Aura of Despair
-            if (target->HasAura(62692) && (GetId() != 54428 || !(target->HasAura(53583) || target->HasAura(53585))))
+            if (target->HasAuraType(SPELL_AURA_OF_DESPAIR) && (GetId() != 54428 || !(target->HasAura(31785) || target->HasAura(33776))))
                 return;
 
             // ignore non positive values (can be result apply spellmods to aura damage
@@ -9873,6 +9873,18 @@ void Aura::HandleAuraOpenStable(bool apply, bool Real)
     data << uint64(caster->GetGUID());
     ((Player*)caster)->GetSession()->HandleListStabledPetsOpcode(data);
 } 
+
+void Aura::HandleAuraOfDespair(bool apply, bool Real)
+{
+    Unit* target = GetTarget();
+    if (!target || target->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (target->HasSpell(30823) ||                                                      // Shamanistic Rage
+        target->HasSpell(31785) || target->HasSpell(33776) ||	                        // Spiritual Attunement
+        target->HasSpell(31876) || target->HasSpell(31877) ||target->HasSpell(31878))	// Judgements of the Wise
+        AddAndLinkAura(GetId(), 64646);             // Corrupted Wisdom
+}
 
 //returns if we applied haste
 bool Aura::ApplyHasteToPeriodic()
