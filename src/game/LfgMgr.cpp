@@ -208,6 +208,8 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
 
             LfgLog("Remove group %u from queue, id %u", lfgGroup->GetId(), grp->first);
             uint64 guid = 0;
+            if(!lfgGroup->GetPremadePlayers()->empty())
+            {
             for(PlayerList::iterator plritr = lfgGroup->GetPremadePlayers()->begin(); plritr != lfgGroup->GetPremadePlayers()->end(); ++plritr)
             {
                 guid = *plritr;
@@ -226,6 +228,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                         member->m_lookingForGroup.groups.clear();
                     member->m_lookingForGroup.queuedDungeons.clear();
                 }
+            }
             }
             Group::member_citerator mitr, mitr_next;
             for(mitr = lfgGroup->GetMemberSlots().begin(); mitr != lfgGroup->GetMemberSlots().end(); mitr = mitr_next)
@@ -246,6 +249,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 itr->second->groups.erase(lfgGroup);
                 formedGroups[side].erase(lfgGroup);
                 sObjectMgr.RemoveGroup(lfgGroup);
+                LfgLog("Delete remove from queue");
                 delete lfgGroup;
             }
             if (itr->second->groups.empty() && itr->second->players.empty())
@@ -284,6 +288,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
                 {
                     sObjectMgr.RemoveGroup(*grpitr);
                     itr->second->groups.erase(*grpitr);
+                    LfgLog("Delete remove from queue single");
                     delete *grpitr;
                 }
             }
@@ -325,6 +330,7 @@ void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
             if(member && member->IsInWorld())
                 member->m_lookingForGroup.queuedDungeons.clear();
         }
+        LfgLog("group %u add to delete CheckedGroup", group->GetId());
         AddGroupToDelete(group);
         return; 
     }
@@ -669,6 +675,7 @@ void LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, Gro
         {
             PlrGrpItr->second->Disband(true);
             groups->erase(PlrGrpItr->second);
+            LfgLog("delete DoMerge()");
             delete PlrGrpItr->second;
         }
     }
@@ -771,6 +778,7 @@ bool LfgMgr::CheckFormedGroup(LfgGroup *group, uint8 side, bool checkTime)
         if(group->GetMembersCount() == 0)
         {
             AddGroupToDelete(group);
+            LfgLog("group %u add to delete CheckedFormed", group->GetId());
             return false;
         }
         group->AddLfgFlag(LFG_GRP_BONUS);
@@ -1318,6 +1326,7 @@ void LfgMgr::UpdateWaitTime(LfgGroup *group, uint32 dungeonId)
 
 void LfgMgr::DeleteGroups()
 {
+    LfgLog("Deleting groups...");
     for(GroupsList::iterator group = groupsForDelete.begin(); group != groupsForDelete.end(); ++group)
     {
         for(int i = 0; i < MAX_LFG_FACTION; ++i)
@@ -1356,7 +1365,10 @@ void LfgMgr::RemovePlayer(Player *player)
             }
 
             if ((*itr)->GetMembersCount() == 0)
+            {
+                LfgLog("group %u add to delete RemovePlayer", (*itr)->GetId());
                 AddGroupToDelete(*itr);
+            }
             else
             {
                // (*itr)->SendProposalUpdate(LFG_PROPOSAL_WAITING);

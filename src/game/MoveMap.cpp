@@ -28,7 +28,7 @@ void Map::LoadNavMesh(int gx, int gy)
 {
     if(!sWorld.MMapsEnabled())
         return;
-    FILE* file;
+   
 
     if(!m_navMesh)
     {
@@ -83,7 +83,7 @@ void Map::LoadNavMesh(int gx, int gy)
     fseek(file, 0, SEEK_SET);
 
     unsigned char* data =  (unsigned char*)dtAlloc(length, DT_ALLOC_PERM);
-    MANGOS_ASSERT(data);
+    ASSERT(data);
 
     fread(data, length, 1, file);
     fclose(file);
@@ -128,8 +128,8 @@ void Map::UnloadNavMesh(int gx, int gy)
     unpackTileID(packedTilePos, tileX, tileY);
 
     // unload, and mark as non loaded
-    m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0);
-    m_mmapTileMap.erase(packedGridPos);
+    if(m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0))
+        m_mmapTileMap.erase(packedGridPos);
 
     sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i(%u)", i_id, gx, gy, i_id, GetInstanceId());
 }

@@ -306,7 +306,7 @@ bool ChatHandler::HandleDebugMoveMapCommand(const char* args)
 
         dtNavMesh* navmesh = player->GetMap()->GetNavMesh();
         dtNavMeshQuery* query = dtAllocNavMeshQuery();
-        MANGOS_ASSERT(query);
+        ASSERT(query);
         query->init(navmesh, MESH_MAX_NODES);
 
         float extents[VERTEX_SIZE] = {2.f, 4.f, 2.f};
@@ -371,7 +371,7 @@ bool ChatHandler::HandleDebugMoveMapCommand(const char* args)
         // calculate navmesh tile location
         dtNavMesh* navmesh = player->GetMap()->GetNavMesh();
         dtNavMeshQuery* query = dtAllocNavMeshQuery();
-        MANGOS_ASSERT(query);
+        ASSERT(query);
         query->init(navmesh, MESH_MAX_NODES);
 
         const float* min = navmesh->getParams()->orig;
@@ -439,7 +439,7 @@ bool ChatHandler::HandleDebugMoveMapCommand(const char* args)
 
         dtNavMesh* navmesh = player->GetMap()->GetNavMesh();
         dtNavMeshQuery* query = dtAllocNavMeshQuery();
-        MANGOS_ASSERT(query);
+        ASSERT(query);
         query->init(navmesh, MESH_MAX_NODES);
 
         float x, y, z;
@@ -465,7 +465,7 @@ bool ChatHandler::HandleDebugMoveMapCommand(const char* args)
 
         dtNavMesh* navmesh = m_session->GetPlayer()->GetMap()->GetNavMesh();
         dtNavMeshQuery* query = dtAllocNavMeshQuery();
-        MANGOS_ASSERT(query);
+        ASSERT(query);
         query->init(navmesh, MESH_MAX_NODES);
 
         for(int32 i = 0; i < navmesh->getMaxTiles(); ++i)

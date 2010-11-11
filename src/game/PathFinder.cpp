@@ -37,12 +37,12 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
-    Map* map = m_sourceUnit->GetMap();
+    Map* map = m_sourceObject->GetMap();
     m_navMesh = map->GetNavMesh();
-    if(sWorld.MMapsEnabled() && m_navMesh)
+    if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
-        MANGOS_ASSERT(m_navMeshQuery);
+        ASSERT(m_navMeshQuery);
         m_navMeshQuery->init(m_navMesh, MESH_MAX_NODES);
 
         BuildPolyPath(startPoint, endPoint);
@@ -83,7 +83,7 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     PATH_DEBUG("++ PathInfo::Update() for %u \n", m_sourceObject->GetGUID());
 
     // make sure navMesh works - we can run on map w/o mmap
-    if(!m_navMesh || !sWorld.MMapsEnabled())
+    if(!m_navMesh || !sWorld.MMapsEnabled() || useStraightPath)
     {
         BuildShortcut();
         m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
@@ -119,36 +119,39 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     }
 }
 
-dtPolyRef PathInfo::getPathPolyByPosition(PathNode p, float &distance)
-{
-    distance = -1.0f; // set to invalid value
 
-    if(!m_navMesh || !m_pathPolyRefs || !m_polyLength)
+dtPolyRef PathInfo::getPathPolyByPosition(dtPolyRef *polyPath, uint32 polyPathSize, PathNode p, float *distance)
+{
+    if(!m_navMeshQuery || !polyPath || !polyPathSize)
         return INVALID_POLYREF;
 
     float point[VERTEX_SIZE] = {p.y, p.z, p.x};
     dtPolyRef nearestPoly = INVALID_POLYREF;
-    float minDist = FLT_MAX;
+    float minDist2d = FLT_MAX;
+    float minDist3d = 0.0f;
 
-    for(uint32 i = 0; i < m_polyLength; ++i)
-	{
-		float closestPoint[VERTEX_SIZE];
-		if (!m_navMeshQuery->closestPointOnPoly(m_pathPolyRefs[i], point, closestPoint))
-			continue;
+    for(uint32 i = 0; i < polyPathSize; ++i)
+    {
+        float closestPoint[VERTEX_SIZE];
+        if (!m_navMeshQuery->closestPointOnPoly(polyPath[i], point, closestPoint))
+            continue;
 
-		float d = dtVdistSqr(point, closestPoint);
-		if (d < minDist)
-		{
-			minDist = d;
-			nearestPoly = m_pathPolyRefs[i];
-		}
+        float d = dtVdist2DSqr(point, closestPoint);
+        if (d < minDist2d)
+        {
+            minDist2d = d;
+            nearestPoly = m_pathPolyRefs[i];
+            minDist3d = dtVdistSqr(point, closestPoint);
+        }
 
-        if(minDist < 4.0f) // shortcut out - close enough for us
+        if(minDist2d < 1.0f) // shortcut out - close enough for us
             break;
-	}
+    }
 
-    distance = dtSqrt(minDist);
-    return (distance < 6.0f) ? nearestPoly : INVALID_POLYREF;
+    if(distance)
+        *distance = dtSqrt(minDist3d);
+
+    return (minDist2d < 4.0f) ? nearestPoly : INVALID_POLYREF;
 }
 
 void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
@@ -160,8 +163,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     // first we check the current path
     // if the current path doesn't contain the current poly,
     // we need to use the expensive navMesh.findNearestPoly
-    dtPolyRef startPoly = getPathPolyByPosition(startPos, distToStartPoly);
-    dtPolyRef endPoly = getPathPolyByPosition(endPos, distToEndPoly);
+    dtPolyRef startPoly = getPathPolyByPosition(m_pathPolyRefs, m_polyLength, startPos, &distToStartPoly);
+    dtPolyRef endPoly = getPathPolyByPosition(m_pathPolyRefs, m_polyLength, endPos, &distToEndPoly);
 
     float startPoint[VERTEX_SIZE] = {startPos.y, startPos.z, startPos.x};
     float endPoint[VERTEX_SIZE] = {endPos.y, endPos.z, endPos.x};

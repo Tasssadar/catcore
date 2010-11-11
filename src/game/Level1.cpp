@@ -2473,7 +2473,7 @@ bool ChatHandler::HandleModifyDrunkCommand(const char* args)
 bool ChatHandler::HandleAddMarkCommand(const char* args)
 {
     if (!*args) return false;
-        uint32 itemId = 23018;
+        uint32 itemId = 42425;
  
     char* ccount = strtok(NULL, " ");
     int32 count = 1;
