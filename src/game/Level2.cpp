@@ -4715,7 +4715,7 @@ bool ChatHandler::HandleMmapPathCommand(const char* args)
         return true;
     }
 
-    char* para = strtok(args, " ");
+    char* para = strtok((char*)args, " ");
 
     bool useStraightPath = false;
     if (para && strcmp(para, "true") == 0)

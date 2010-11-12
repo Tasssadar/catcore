@@ -57,7 +57,6 @@ void
 MapManager::Initialize()
 {
     InitStateMachine();
-    InitMaxInstanceId();
 }
 
 void MapManager::InitStateMachine()
@@ -300,18 +299,6 @@ void MapManager::UnloadAll()
     {
         delete i_maps.begin()->second;
         i_maps.erase(i_maps.begin());
-    }
-}
-
-void MapManager::InitMaxInstanceId()
-{
-    i_MaxInstanceId = 0;
-
-    QueryResult *result = CharacterDatabase.Query( "SELECT MAX(id) FROM instance" );
-    if ( result )
-    {
-        i_MaxInstanceId = result->Fetch()[0].GetUInt32();
-        delete result;
     }
 }
 

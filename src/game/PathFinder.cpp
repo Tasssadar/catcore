@@ -37,8 +37,8 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
-    Map* map = m_sourceObject->GetBaseMap();
-    m_navMesh = map->GetNavMesh();
+    Map const *map = m_sourceObject->GetBaseMap();
+    m_navMesh = const_cast<dtNavMesh*>(map->GetNavMesh());
     if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
@@ -512,10 +512,10 @@ dtQueryFilter PathInfo::createFilter()
         includeFlags |= NAV_GROUND;          // walk
 
     if(creature->canSwim())
-        filter.includeFlags |= NAV_WATER;           // swim
+        includeFlags |= NAV_WATER;           // swim
 
     // creatures don't take environmental damage
-    if (creature->canSwim() || creature->IsPet())
+    if (creature->canSwim() || creature->isPet())
         includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
 
     // allow creatures to cheat and use different movement types if they are moved
@@ -612,10 +612,10 @@ uint32 PathInfo::fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32
     return req+size;
 }
 
+
 bool PathInfo::getSteerTarget(const float* startPos, const float* endPos,
                               const float minTargetDist, const dtPolyRef* path, const uint32 pathSize,
-                              float* steerPos, unsigned char& steerPosFlag, dtPolyRef& steerPosRef,
-                              float* outPoints, uint32* outPointCount)
+                              float* steerPos, unsigned char& steerPosFlag, dtPolyRef& steerPosRef)
 {
     // Find steer target.
     static const uint32 MAX_STEER_POINTS = 3;
@@ -627,13 +627,6 @@ bool PathInfo::getSteerTarget(const float* startPos, const float* endPos,
                                                 steerPath, steerPathFlags, steerPathPolys, (int*)&nsteerPath, MAX_STEER_POINTS);
     if (!nsteerPath)
         return false;
-
-    if (outPoints && outPointCount)
-    {
-        *outPointCount = nsteerPath;
-        for (uint32 i = 0; i < nsteerPath; ++i)
-            dtVcopy(&outPoints[i*VERTEX_SIZE], &steerPath[i*VERTEX_SIZE]);
-    }
 
     // Find vertex far enough to steer to.
     uint32 ns = 0;
@@ -650,7 +643,7 @@ bool PathInfo::getSteerTarget(const float* startPos, const float* endPos,
         return false;
 
     dtVcopy(steerPos, &steerPath[ns*VERTEX_SIZE]);
-    steerPos[1] = startPos[1];
+    steerPos[1] = startPos[1]; // keep Z value
     steerPosFlag = steerPathFlags[ns];
     steerPosRef = steerPathPolys[ns];
 

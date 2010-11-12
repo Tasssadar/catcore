@@ -16553,7 +16553,8 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     {
         lastCheckX += cos(checkAngle);
         lastCheckY += sin(checkAngle);
-        target->UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ-1, maxDiff+1);.
+        tmpZ -= 1;
+        target->UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, maxDiff+1);
         if(fabs(tmpZ - lastCheckZ) > maxElev || tmpZ == lastCheckZ-1)
             return false;
         lastCheckZ = tmpZ;

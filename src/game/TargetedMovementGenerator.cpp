@@ -235,7 +235,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
 
         // put targeted movement generators on a higher priority
         if (owner.GetObjectBoundingRadius())
-            i_destinationHolder.ResetUpdate(100);
+            i_destinationHolder.ResetUpdate(50);
 
         //More distance let have better performance, less distance let have more sensitive reaction at target move.
         float dist = i_target->GetObjectBoundingRadius() + owner.GetObjectBoundingRadius() + sWorld.getConfig(CONFIG_FLOAT_RATE_TARGET_POS_RECALCULATION_RANGE);

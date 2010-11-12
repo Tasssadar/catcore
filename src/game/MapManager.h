@@ -138,7 +138,6 @@ class MANGOS_DLL_DECL MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::
         TransportMap m_TransportsByMap;
 
         bool CanPlayerEnter(uint32 mapid, Player* player);
-        void InitMaxInstanceId();
         void InitializeVisibilityDistanceInfo();
 
         /* statistics */

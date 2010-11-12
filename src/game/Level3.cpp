@@ -6659,7 +6659,7 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     if(!sWorld.MMapsEnabled())
     {
         PSendSysMessage("Pathfinding is disabled!");
-        return;
+        return true;
     }
     PSendSysMessage("Calculating..");
     MapEntry const *mapEntry = NULL;
@@ -6674,7 +6674,9 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
         if(!mapEntry)
             continue;
         map = sMapMgr.CreateBaseMap(mapEntry->MapID);
-        if(map && (dtNavMesh == map->GetNavMesh()))
+        if(!map)
+            continue;
+        if(navmesh = map->GetNavMesh())
         {
             ++totalMaps;
             for (uint32 i = 0; i < navmesh->getMaxTiles(); ++i)
