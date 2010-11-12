@@ -37,7 +37,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
-    Map* map = m_sourceObject->GetMap();
+    Map* map = m_sourceObject->GetBaseMap();
     m_navMesh = map->GetNavMesh();
     if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
     {
@@ -550,7 +550,7 @@ bool PathInfo::canSwim()
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
-    m_sourceObject->GetMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+    m_sourceObject->GetBaseMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 
     switch (data.type)
     {

@@ -86,13 +86,13 @@ class PathInfo
         inline void getEndPosition(float &x, float &y, float &z) { x = m_endPosition.x; y = m_endPosition.y; z = m_endPosition.z; }
         inline void getActualEndPosition(float &x, float &y, float &z) { x = m_actualEndPosition.x; y = m_actualEndPosition.y; z = m_actualEndPosition.z; }
 
-        inline PathNode getStartPosition() { return m_startPosition; }
-        inline PathNode getNextPosition() { return m_nextPosition; }
-        inline PathNode getEndPosition() { return m_endPosition; }
-        inline PathNode getActualEndPosition() { return m_actualEndPosition; }
+        inline PathNode getStartPosition() const { return m_startPosition; }
+        inline PathNode getNextPosition() const { return m_nextPosition; }
+        inline PathNode getEndPosition() const { return m_endPosition; }
+        inline PathNode getActualEndPosition() const { return m_actualEndPosition; }
 
         inline PointPath& getFullPath() { return m_pathPoints; }
-        inline PathType getPathType() {return m_type;}
+        inline PathType getPathType() const { return m_type; }
 
     private:
 

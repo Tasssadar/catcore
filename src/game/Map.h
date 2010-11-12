@@ -379,7 +379,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         // begin movemap-related
     public:
-        dtNavMesh* GetNavMesh();
+        dtNavMesh const* GetNavMesh() const;
 
     private:
         void LoadNavMesh(int gx, int gy);
