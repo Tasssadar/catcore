@@ -349,7 +349,7 @@ class MANGOS_DLL_SPEC Group
         void DelinkMember(GroupReference* /*pRef*/ ) { }
 
         void AddBind(InstanceSave *save);
-        void BindToInstance(InstanceSave *save, bool permanent);
+        void BindToInstance(InstanceSave *save, bool permanent, bool sendNotice = false);
         void UnbindInstance(uint32 mapid, uint8 difficulty);
         InstanceSave* GetBoundInstance(uint32 mapId, Player* player);
         InstanceSave* GetBoundInstance(Map* aMap, Difficulty difficulty);

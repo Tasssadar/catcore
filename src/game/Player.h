@@ -2318,11 +2318,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         InstanceSave* GetBoundInstance(uint32 mapid, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
         void UnbindInstance(uint32 mapid, Difficulty difficulty);
-        void BindToInstance(Map *map, bool permanent)
+        void BindToInstance(Map *map, bool permanent, bool sendNotice = false)
         {
-            BindToInstance(map->GetInstanceSave(), permanent);
+            BindToInstance(map->GetInstanceSave(), permanent, sendNotice);
         }
-        void BindToInstance(InstanceSave* save, bool permanent);
+        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false));
         void SendRaidInfo();
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);

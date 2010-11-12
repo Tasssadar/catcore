@@ -1903,9 +1903,11 @@ void InstanceMap::PermBindAllPlayers(Player *player)
     if (!IsDungeon())
         return;
 
+    bool sendNotice = !GetInstanceSave()->IsPermanent();
+
     Group *group = player->GetGroup();
     if(group)
-        group->BindToInstance(GetInstanceSave(), true);
+        group->BindToInstance(GetInstanceSave(), true, sendNotice);
 
     // group members outside the instance group don't get bound
     for(MapRefManager::iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr)
@@ -1915,7 +1917,7 @@ void InstanceMap::PermBindAllPlayers(Player *player)
         // some players may already be permanently bound, in this case nothing happens
         InstanceSave *bind = plr->GetBoundInstance(GetId(), GetDifficulty());
         if (!bind || !bind->IsPermanent())
-            plr->BindToInstance(GetInstanceSave(), true);
+            plr->BindToInstance(GetInstanceSave(), true, sendNotice);
     }
 }
 

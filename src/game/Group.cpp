@@ -1732,7 +1732,7 @@ InstanceSave* Group::GetBoundInstance(Map* aMap, Difficulty difficulty)
         return NULL;
 }
 
-void Group::BindToInstance(InstanceSave *save, bool permanent)
+void Group::BindToInstance(InstanceSave *save, bool permanent, bool sendNotice)
 {
     if (!save || isBGGroup())
         return;
@@ -1748,7 +1748,7 @@ void Group::BindToInstance(InstanceSave *save, bool permanent)
     {
         plr = sObjectMgr.GetPlayer(citr->guid);
         if(plr)
-            plr->BindToInstance(save, permanent);
+            plr->BindToInstance(save, permanent, sendNotice);
         else
             save->AddPlayer(citr->guid);
     }
