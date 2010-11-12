@@ -6653,3 +6653,42 @@ bool ChatHandler::HandleBroadCastResetTimerCommand(const char* args)
     PSendSysMessage("Message %u not found.", id);
     return true;
 }
+
+bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
+{
+    if(!sWorld.MMapsEnabled())
+    {
+        PSendSysMessage("Pathfinding is disabled!");
+        return;
+    }
+    PSendSysMessage("Calculating..");
+    MapEntry const *mapEntry = NULL;
+    Map const *map = NULL;
+    const dtNavMesh* navmesh = NULL;
+    uint32 totalMaps = 0;
+    uint64 dataSize = 0;
+    uint32 tileCount = 0;
+    for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+    {
+        mapEntry = sMapStore.LookupEntry(i);
+        if(!mapEntry)
+            continue;
+        map = sMapMgr.CreateBaseMap(mapEntry->MapID);
+        if(map && (dtNavMesh == map->GetNavMesh()))
+        {
+            ++totalMaps;
+            for (uint32 i = 0; i < navmesh->getMaxTiles(); ++i)
+            {
+                const dtMeshTile* tile = navmesh->getTile(i);
+                if (!tile || !tile->header)
+                    continue;
+
+                ++tileCount;
+                dataSize += tile->dataSize;
+            }
+        }
+    }
+    PSendSysMessage("Navmesh loaded on %u maps.", totalMaps);
+    PSendSysMessage("Total of %u tiles loaded", tileCount);
+    PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
+}

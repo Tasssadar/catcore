@@ -4871,7 +4871,7 @@ bool ChatHandler::HandleMmapLoadedTilesCommand(const char* args)
 bool ChatHandler::HandleMmapStatsCommand(const char* args)
 {
     PSendSysMessage("mmap stats:");
-    PSendSysMessage("  global mmap pathfinding is %sabled", sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
+    PSendSysMessage("  global mmap pathfinding is %sabled", sWorld.MMapsEnabled() ? "en" : "dis");
 
     const dtNavMesh* navmesh = m_session->GetPlayer()->GetBaseMap()->GetNavMesh();
     if (!navmesh)
