@@ -536,6 +536,11 @@ class ChatHandler
         bool HandleWaterwalkCommand(const char* args);
         bool HandleQuitCommand(const char* args);
 
+        bool HandleMmapPathCommand(const char* args);
+        bool HandleMmapLocCommand(const char* args);
+        bool HandleMmapLoadedTilesCommand(const char* args);
+        bool HandleMmapStatsCommand(const char* args);
+
         //! Development Commands
         bool HandleSaveAllCommand(const char* args);
 
