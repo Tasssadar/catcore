@@ -37,11 +37,17 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
+<<<<<<< HEAD
     const TerrainInfo* terrain = m_sourceObject->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
         m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
 
     if (m_navMesh)
+=======
+    Map const *map = m_sourceObject->GetBaseMap();
+    m_navMesh = const_cast<dtNavMesh*>(map->GetNavMesh());
+    if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
+>>>>>>> parent of f4d8ee5... + Support underwater movement.
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         ASSERT(m_navMeshQuery);
@@ -212,6 +218,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         // TODO: swimming case
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
+<<<<<<< HEAD
         if(canFly() || canSwim())
         {
             Creature* owner = (Creature*)m_sourceObject;
@@ -231,6 +238,9 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         }
 
         if(buildShotrcut)
+=======
+        if(canFly())
+>>>>>>> parent of f4d8ee5... + Support underwater movement.
         {
             BuildShortcut();
             m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
@@ -476,7 +486,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
     if(pointCount < 2 || pointCount == MAX_POINT_PATH_LENGTH)
     {
         // only happens if pass bad data to findStraightPath or navmesh is broken
-        // single point paths can be generated here
+        // single point paths can be generated here 
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
@@ -518,8 +528,11 @@ dtQueryFilter PathInfo::createFilter()
         return filter;
 
     Creature* creature = (Creature*)m_sourceObject;
+<<<<<<< HEAD
     filter.includeFlags = 0;
     filter.excludeFlags = 0;
+=======
+>>>>>>> parent of f4d8ee5... + Support underwater movement.
 
     if(creature->canWalk())
         filter.includeFlags |= NAV_GROUND;          // walk
@@ -560,8 +573,12 @@ bool PathInfo::canSwim()
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
+<<<<<<< HEAD
     m_sourceObject->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 
+=======
+    m_sourceObject->GetBaseMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+>>>>>>> parent of f4d8ee5... + Support underwater movement.
 
     switch (data.type)
     {
