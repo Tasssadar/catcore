@@ -814,6 +814,7 @@ class MovementInfo
         uint32 GetVehicleFlags() const { return t_vehicle_flags; }
         uint32 GetFallTime() const { return fallTime; }
         void ChangePosition(float x, float y, float z, float o) { pos.x = x; pos.y = y; pos.z = z; pos.o = o; }
+        void ChangeOrientation(float o) { pos.o = o; }
         void UpdateTime(uint32 _time) { time = _time; }
         struct JumpInfo
         {
