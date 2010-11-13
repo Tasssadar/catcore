@@ -23,21 +23,21 @@
 #include "World.h"
 
 ////////////////// PathInfo //////////////////
-PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY, const float destZ, bool useStraightPath) :
+PathInfo::PathInfo(const Unit* owner, const float destX, const float destY, const float destZ, bool useStraightPath) :
     m_pathPolyRefs(NULL), m_polyLength(0), m_type(PATHFIND_BLANK), m_useStraightPath(useStraightPath),
-    m_sourceObject(from), m_navMesh(NULL), m_navMeshQuery(NULL)
+    m_sourceUnit(owner), m_navMesh(NULL), m_navMeshQuery(NULL)
 {
     PathNode endPoint(destX, destY, destZ);
     setEndPosition(endPoint);
 
     float x,y,z;
-    m_sourceObject->GetPosition(x, y, z);
+    m_sourceUnit->GetPosition(x, y, z);
     PathNode startPoint(x, y, z);
     setStartPosition(startPoint);
 
-    PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
+    PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceUnit->GetGUID());
 
-    Map const *map = m_sourceObject->GetBaseMap();
+    Map const *map = m_sourceUnit->GetBaseMap();
     m_navMesh = const_cast<dtNavMesh*>(map->GetNavMesh());
     if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
     {
@@ -56,7 +56,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
 PathInfo::~PathInfo()
 {
-    PATH_DEBUG("++ PathInfo::~PathInfo() for %u \n", m_sourceObject->GetGUID());
+    PATH_DEBUG("++ PathInfo::~PathInfo() for %u \n", m_sourceUnit->GetGUID());
 
     if (m_pathPolyRefs)
         delete [] m_pathPolyRefs;
@@ -73,14 +73,14 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     setEndPosition(newDest);
 
     float x, y, z;
-    m_sourceObject->GetPosition(x, y, z);
+    m_sourceUnit->GetPosition(x, y, z);
     PathNode newStart(x, y, z);
     PathNode oldStart = getStartPosition();
     setStartPosition(newStart);
 
     m_useStraightPath = useStraightPath;
 
-    PATH_DEBUG("++ PathInfo::Update() for %u \n", m_sourceObject->GetGUID());
+    PATH_DEBUG("++ PathInfo::Update() for %u \n", m_sourceUnit->GetGUID());
 
     // make sure navMesh works - we can run on map w/o mmap
     if(!m_navMesh || !sWorld.MMapsEnabled() || useStraightPath)
@@ -90,7 +90,7 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
         return true;
     }
 
-    float dist = m_sourceObject->GetObjectBoundingRadius();
+    float dist = m_sourceUnit->GetObjectBoundingRadius();
     bool oldDestInRange = inRange(oldDest, newDest, dist, dist);
 
     // this can happen only if caller did a bad job calculating the need for path update
@@ -198,7 +198,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         PATH_DEBUG("++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
-        m_type = (canFly()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+        m_type = (m_sourceUnit->GetTypeId() == TYPEID_UNIT && ((Creature*)m_sourceUnit)->canFly()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
         //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         return;
     }
@@ -207,13 +207,31 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     bool farFromPoly = (distToStartPoly > 7.0f || distToEndPoly > 7.0f);
     if (farFromPoly)
     {
-        // TODO: swimming case
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
-        if(canFly())
+
+        bool buildShotrcut = false;
+        if(m_sourceUnit->GetTypeId() == TYPEID_UNIT)
+        {
+            Creature* owner = (Creature*)m_sourceUnit;
+
+            if(m_sourceUnit->GetBaseMap()->IsUnderWater(endPos.x, endPos.y, endPos.z))
+            {
+                PATH_DEBUG("++ BuildPolyPath :: underWater case\n");
+                if(owner->canSwim() || owner->isPet())
+                    buildShotrcut = true;
+            }
+            else
+            {
+                PATH_DEBUG("++ BuildPolyPath :: flying case\n");
+                if(owner->canFly())
+                    buildShotrcut = true;
+            }
+        }
+
+        if(buildShotrcut)
         {
             BuildShortcut();
             m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-            PATH_DEBUG("++ BuildPolyPath :: flying case (type %u)\n", m_type);
             return;
         }
         else
@@ -316,7 +334,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         if (!m_navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint))
         {
             // suffixStartPoly is invalid somehow, or the navmesh is broken => error state
-            sLog.outError("%u's Path Build failed: invalid polyRef in path", m_sourceObject->GetGUID());
+            sLog.outError("%u's Path Build failed: invalid polyRef in path", m_sourceUnit->GetGUID());
 
             BuildShortcut();
             m_type = PATHFIND_NOPATH;
@@ -344,7 +362,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             // this is probably an error state, but we'll leave it
             // and hopefully recover on the next Update
             // we still need to copy our preffix
-            sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
+            sLog.outError("%u's Path Build failed: 0 length path", m_sourceUnit->GetGUID());
         }
 
         PATH_DEBUG("++  m_polyLength=%u prefixPolyLength=%u suffixPolyLength=%u \n",m_polyLength, prefixPolyLength, suffixPolyLength);
@@ -389,7 +407,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         if (!m_polyLength || dtResult != DT_SUCCESS || m_polyLength == MAX_PATH_LENGTH)
         {
             // only happens if we passed bad data to findPath(), or navmesh is messed up
-            sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
+            sLog.outError("%u's Path Build failed: 0 length path", m_sourceUnit->GetGUID());
             BuildShortcut();
             //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
             m_type = PATHFIND_NOPATH;
@@ -462,7 +480,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
     if (pointCount < 2 || dtResult != DT_SUCCESS || pointCount == MAX_POINT_PATH_LENGTH)
     {
         // only happens if pass bad data to findStraightPath or navmesh is broken
-        // single point paths can be generated here 
+        // single point paths can be generated here
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
@@ -483,6 +501,8 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
 
 void PathInfo::BuildShortcut()
 {
+    PATH_DEBUG("++ BuildShortcut :: making shortcut\n");
+
     clear();
 
     // make two point path, our curr pos is the start, and dest is the end
@@ -500,10 +520,10 @@ dtQueryFilter PathInfo::createFilter()
 {
     dtQueryFilter filter;
 
-    if(m_sourceObject->GetTypeId() != TYPEID_UNIT)
+    if(m_sourceUnit->GetTypeId() != TYPEID_UNIT)
         return filter;
 
-    Creature* creature = (Creature*)m_sourceObject;
+    Creature* creature = (Creature*)m_sourceUnit;
 
     unsigned short includeFlags = 0;
     unsigned short excludeFlags = 0;
@@ -529,28 +549,10 @@ dtQueryFilter PathInfo::createFilter()
     return filter;
 }
 
-bool PathInfo::canFly()
-{
-    if(m_sourceObject->GetTypeId() != TYPEID_UNIT)
-        return false;
-
-    Creature* creature = (Creature*)m_sourceObject;
-    return creature->canFly();
-}
-
-bool PathInfo::canSwim()
-{
-    if(m_sourceObject->GetTypeId() != TYPEID_UNIT)
-        return false;
-
-    Creature* creature = (Creature*)m_sourceObject;
-    return creature->canSwim();
-}
-
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
-    m_sourceObject->GetBaseMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+    m_sourceUnit->GetMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 
     switch (data.type)
     {
@@ -643,7 +645,7 @@ bool PathInfo::getSteerTarget(const float* startPos, const float* endPos,
         return false;
 
     dtVcopy(steerPos, &steerPath[ns*VERTEX_SIZE]);
-    steerPos[1] = startPos[1]; // keep Z value
+    steerPos[1] = startPos[1];  // keep Z value
     steerPosFlag = steerPathFlags[ns];
     steerPosRef = steerPathPolys[ns];
 
