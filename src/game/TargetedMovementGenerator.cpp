@@ -274,7 +274,8 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         else if (!i_angle && !owner.HasInArc(0.01f, next_point.x, next_point.y))
             owner.SetOrientation(owner.GetAngle(next_point.x, next_point.y));
 
-        if ((owner.IsStopped() && !i_destinationHolder.HasArrived()) || i_recalculateTravel)
+        //What is purpose of this?
+       /* if ((owner.IsStopped() && !i_destinationHolder.HasArrived()) || i_recalculateTravel)
         {
             i_recalculateTravel = false;
 
@@ -283,7 +284,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
 
             owner.StopMoving();
             static_cast<D*>(this)->_reachTarget(owner);
-        }
+        }*/
     }
     return true;
 }
