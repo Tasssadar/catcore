@@ -3016,16 +3016,34 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     //Stop moving before jump!
-    m_caster->StopMoving();
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+        m_caster->StopMoving();
 
-    PathInfo path(m_caster, x, y, z, false);
+    float cx, cy, cz;
+    m_caster->GetPosition(cx, cy, cz);
+
+    WorldPacket data(SMSG_MONSTER_MOVE);
+    data << m_caster->GetPackGUID();
+    data << uint8(0);
+    data << cx << cy << cz;
+    data << uint32(getMSTime());
+    data << uint8(splinetype);  
+    if (splinetype == SPLINETYPE_FACINGTARGET)
+        data << uint64(target->GetGUID());
+    data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
+    data << uint32(traveltime);
+    data << float(unk); // <<------ ?????
+    data << uint32(0);
+    data << uint32(1);
+    data << x << y << z;
+
+    // Not sure if pathfinding should be used here...
+  /*  PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
     uint32 start = 1;
     uint32 end = pointPath.size();
     uint32 pathSize = end - start;   
-    
-    float cx, cy, cz;
-    m_caster->GetPosition(cx, cy, cz);
+        
     WorldPacket data;
     if (pathSize == 1 || pathSize > 10)
     {
@@ -3075,7 +3093,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         float mid_Z = (cz + z) * 0.5f;
         for (uint32 i = start; i < end - 1; ++i)
             data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
-    }
+    } */
 
     if (target->GetTypeId() == TYPEID_PLAYER)
     {
@@ -3086,7 +3104,14 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 
     // Creature relocation
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
+    {
+       //m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
+        PointPath path;
+        path.resize(2);
+        path.set(0, PathNode(cx, cy, cz));
+        path.set(1, PathNode(x, y, z));
+        m_caster->GetMotionMaster()->MoveCharge(path, traveltime+1000.0f, 1, 1);
+    }
 }
 
 void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
