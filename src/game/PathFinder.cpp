@@ -427,7 +427,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     if(m_polyLength == 0 || m_polyLength == MAX_PATH_LENGTH)
     {
         // only happens if we passed bad data to findPath(), or navmesh is messed up
-        sLog.outError("%u's Path Build failed: %u length path", m_sourceObject->GetGUID(), m_polyLength);
+        sLog.outError("%u's Path Build failed: %u length path", m_sourceUnit->GetGUID(), m_polyLength);
         BuildShortcut();
         //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         m_type = PATHFIND_NOPATH;

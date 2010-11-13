@@ -734,7 +734,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "litak",          SEC_PLAYER,         true,  &ChatHandler::HandleLitakCommand,               "", NULL },
         { "assemblerandoms",SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReassembleRandomDungeonOptionsCommand,"", NULL },
         { "spocitejspojenyrepky",SEC_ADMINISTRATOR,true,&ChatHandler::HandleSpojenyRepky,              "", NULL },
-        { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats.            "", NULL },
+        { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats,            "", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };

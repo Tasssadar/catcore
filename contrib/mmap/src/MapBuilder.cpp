@@ -722,7 +722,7 @@ namespace MMAP
         float cellSize = .5f;       // larger number => less voxels => faster build time
                                     // too large, and tight spaces won't be pathable.
         float agentHeight = 1.5f;
-        float agentRadius = 0.631f; // Average object size from UDB + 0.1
+        float agentRadius = 0.4f;   // maybe..?
         float agentMaxClimb = 1.65f;
 
         IntermediateValues iv;
