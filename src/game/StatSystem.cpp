@@ -1100,7 +1100,7 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
     float bonusAP = 0.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
 
-    val = (GetStat(STAT_STRENGTH) - 20.0f) * 2;
+    val = (GetStat(STAT_STRENGTH) - 10.0f) * 2;
 
     Unit* owner = GetOwner();
 
