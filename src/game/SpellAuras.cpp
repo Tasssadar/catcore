@@ -5550,20 +5550,20 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
                     if (apply)
                     {
                         target->CastSpell(target, 62794, true);
-                        WorldPacket data(12);
+                        /*WorldPacket data(12);
                         data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
                         data << target->GetPackGUID();
                         data << uint32(0);
-                        target->SendMessageToSet(&data, true);
+                        target->SendMessageToSet(&data, true);*/
                     }
                     if (!apply)
                     {
                         target->RemoveAurasDueToSpell(62794);
-                        WorldPacket data(12);
+                        /*WorldPacket data(12);
                         data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
                         data << target->GetPackGUID();
                         data << uint32(0);
-                        target->SendMessageToSet(&data, true);
+                        target->SendMessageToSet(&data, true);*/
                         target->ExitVehicle();
                         if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                         {
@@ -5578,9 +5578,22 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
                     }
                     break;                        
                 }
-                /*case 63276:                       // Mark of Faceless
-                    target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_HEALTH_LEECH, apply);
-                    break;*/
+                case 63018:                       // Searing Light (XT-002)
+                case 65121:                       // Searing Light (h) (XT-002)
+                {
+                    if (!apply)
+                    {
+                        Unit* caster = GetCaster();
+                        if (!caster || (!caster->HasAura(65737) && !caster->HasAura(64193)))
+                            return;
+
+                        if (Creature* pTemp = target->SummonCreature(34004, target->GetPositionX(), target->GetPositionY(),
+                            target->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 90000))
+                            target->Attack(target);
+
+                    }
+                    break;
+                }
             }
             break;
         }
