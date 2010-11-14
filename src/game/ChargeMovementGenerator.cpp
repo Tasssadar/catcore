@@ -31,6 +31,26 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
         return;
 
     creature.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+
+    if((start - end) == 0)
+    {
+        float dist = creature.GetDistance(m_path[end].x, m_path[end].y, m_path[end].z);
+        float angle = creature.GetAngle(m_path[end].x, m_path[end].y);
+        bool outdoor = target->GetMap()->IsOutdoors(x, y, z);
+        float x, y, z;
+        creature.GetPosition(x, y, z);
+        for(uint32 i = 1; i < dist; ++i)
+        {
+            m_path.resize(m_path.size()+1);
+            m_path.set(end+1, m_path[end]);
+             
+            x += cos(angle);
+            y += sin(angle);
+            creature.UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
+            path.set(end, PathNode(x,y,z));
+            ++end;
+        }
+    }
 }
 
 template<>
