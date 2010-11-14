@@ -162,13 +162,14 @@ enum __QuestFlags
     // Mangos flags for set SpecialFlags in DB if required but used only at server
     QUEST_MANGOS_FLAGS_REPEATABLE           = 0x01000000,   // Set by 1 in SpecialFlags from DB
     QUEST_MANGOS_FLAGS_EXPLORATION_OR_EVENT = 0x02000000,   // Set by 2 in SpecialFlags from DB (if required area explore, spell SPELL_EFFECT_QUEST_COMPLETE casting, table `*_script` command SCRIPT_COMMAND_QUEST_EXPLORED use, set from script DLL)
-    QUEST_MANGOS_FLAGS_DB_ALLOWED = 0xFFFFFF | QUEST_MANGOS_FLAGS_REPEATABLE | QUEST_MANGOS_FLAGS_EXPLORATION_OR_EVENT,
+    QUEST_MANGOS_FLAGS_LFG_QUEST            = 0x04000000,   // Set by 4 in SpecialFlags from DB, ALWAYS gives XP, is repeatable, immediatly gives reward
+    QUEST_MANGOS_FLAGS_DB_ALLOWED = 0xFFFFFF | QUEST_MANGOS_FLAGS_REPEATABLE | QUEST_MANGOS_FLAGS_EXPLORATION_OR_EVENT | QUEST_MANGOS_FLAGS_LFG_QUEST,
 
     // Mangos flags for internal use only
-    QUEST_MANGOS_FLAGS_DELIVER              = 0x04000000,   // Internal flag computed only
-    QUEST_MANGOS_FLAGS_SPEAKTO              = 0x08000000,   // Internal flag computed only
-    QUEST_MANGOS_FLAGS_KILL_OR_CAST         = 0x10000000,   // Internal flag computed only
-    QUEST_MANGOS_FLAGS_TIMED                = 0x20000000,   // Internal flag computed only
+    QUEST_MANGOS_FLAGS_DELIVER              = 0x08000000,   // Internal flag computed only
+    QUEST_MANGOS_FLAGS_SPEAKTO              = 0x10000000,   // Internal flag computed only
+    QUEST_MANGOS_FLAGS_KILL_OR_CAST         = 0x20000000,   // Internal flag computed only
+    QUEST_MANGOS_FLAGS_TIMED                = 0x40000000,   // Internal flag computed only
 };
 
 struct QuestLocale
@@ -254,6 +255,7 @@ class Quest
         uint32 GetQuestCompleteScript() const { return QuestCompleteScript; }
         bool   IsRepeatable() const { return QuestFlags & QUEST_MANGOS_FLAGS_REPEATABLE; }
         bool   IsAutoComplete() const { return QuestMethod ? false : true; }
+        bool   IsLfgQuest() const { return QuestFlags & QUEST_MANGOS_FLAGS_LFG_QUEST; }
         uint32 GetFlags() const { return QuestFlags; }
         bool   IsDaily() const { return QuestFlags & QUEST_FLAGS_DAILY; }
         bool   IsWeekly() const { return QuestFlags & QUEST_FLAGS_WEEKLY; }

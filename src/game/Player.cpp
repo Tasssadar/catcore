@@ -14030,7 +14030,7 @@ void Player::CompleteQuest( uint32 quest_id )
 
         if (Quest const* qInfo = sObjectMgr.GetQuestTemplate(quest_id))
         {
-            if ( qInfo->HasFlag(QUEST_FLAGS_AUTO_REWARDED) )
+            if ( qInfo->HasFlag(QUEST_FLAGS_AUTO_REWARDED) || qInfo->IsLfgQuest())
                 RewardQuest(qInfo,0,this,false);
             else
                 SendQuestComplete( quest_id );
@@ -14115,7 +14115,7 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
     QuestStatusData& q_status = mQuestStatus[quest_id];
 
     // Not give XP in case already completed once repeatable quest
-    uint32 XP = q_status.m_rewarded ? 0 : uint32(pQuest->XPValue( this )*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
+    uint32 XP = (q_status.m_rewarded && !pQuest->IsLfgQuest()) ? 0 : uint32(pQuest->XPValue( this )*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
 
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         GiveXP( XP , NULL );

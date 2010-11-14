@@ -316,7 +316,6 @@ void LfgGroup::KilledCreature(Creature *creature)
             LfgReward *reward = sLfgMgr.GetDungeonReward(ID, plr->m_lookingForGroup.DoneDungeon(ID, plr), plr->getLevel());
             if (!reward)
                 continue;
-            reward->questInfo->SetFlag(QUEST_FLAGS_AUTO_REWARDED);
             plr->CompleteQuest(reward->questInfo->GetQuestId());
             if (IsRandom())
                 plr->RemoveAurasDueToSpell(LFG_RANDOM_COOLDOWN);
