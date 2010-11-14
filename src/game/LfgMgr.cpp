@@ -574,7 +574,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                     if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                         break;
 
-                    CanPlayerMerge(*specific, *random, citr->guid, &tmpRoles, &PlayerGroup);
+                    CanPlayerMerge(*random, *specific, citr->guid, &tmpRoles, &PlayerGroup);
                 }
                 if(tmpRoles.tank && tmpRoles.heal && tmpRoles.dps.size() == LFG_DPS_COUNT) // Full, break
                     break;
