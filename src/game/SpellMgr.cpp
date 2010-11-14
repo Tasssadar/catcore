@@ -2448,6 +2448,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     return false;
             }
             break;
+        case SPELLFAMILY_POTION:
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_POTION)
+            {
+                // Flaska a potak: Flask of the Frost Wyrm   a   Wild Magic    
+                if((spellInfo_2->Id == 53755 && spellInfo_1->Id == 53909) ||
+                   (spellInfo_1->Id == 53755 && spellInfo_2->Id == 53909 ))
+                    return false;
+            }
+            break;
         default:
             break;
     }
