@@ -644,6 +644,7 @@ void LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck
                 tmpRoles->SetAsRole(y, mergeGuid);
                 tmpRoles->SetAsRole(role, guid);
                 map->insert(std::make_pair<uint64, LfgGroup*>(guid, from));
+                cont = false;
                 break;
             }
         }
