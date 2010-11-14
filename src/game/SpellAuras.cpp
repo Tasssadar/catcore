@@ -5589,7 +5589,7 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
 
                         if (Creature* pTemp = target->SummonCreature(34004, target->GetPositionX(), target->GetPositionY(),
                             target->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 90000))
-                            target->Attack(target);
+                            target->Attack(target, false);
 
                     }
                     break;
