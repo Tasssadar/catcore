@@ -3392,10 +3392,10 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
             Aur->GetModifier()->m_amount += amount;
         }
     }
-    // Try SPELL_AURA_MOD_DEBUFF_RESISTANCE
+    // Try SPELL_AURA_MOD_DEBUFF_RESISTANCE - for spells with more than one effect
     int32 chance = 100;
     chance -= unitTarget->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(m_spellInfo->Dispel));
-    if (!roll_chance_i(chance))
+    if (eff_idx != EFFECT_INDEX_0 && !roll_chance_i(chance))
         return;
 
     if (duration != Aur->GetAuraMaxDuration())
@@ -4564,11 +4564,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         {
             if (aur->GetSpellProto()->Dispel == DISPEL_MAGIC)
             {
-                bool positive = true;
-                if (!aur->IsPositive())
-                    positive = false;
-                else
-                    positive = (aur->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE)==0;
+                bool positive = aur->IsPositive() ? (!(aur->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE)) : false;
 
                 // do not remove positive auras if friendly target
                 //               negative auras if non-friendly target

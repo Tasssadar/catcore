@@ -3336,6 +3336,9 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
     }
     // Apply mod
     modHitChance-=resist_mech;
+    // Chance resist debuff - only for SPELL_EFFECT_APPLY_AURA spells with one effect
+    if (spell->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_APPLY_AURA && !spell->Effect[EFFECT_INDEX_1] && !spell->Effect[EFFECT_INDEX_2])
+        modHitChance-=pVictim->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(spell->Dispel));
 
     int32 HitChance = modHitChance * 100;
     // Increase hit chance from attacker SPELL_AURA_MOD_SPELL_HIT_CHANCE and attacker ratings
@@ -5664,15 +5667,14 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo)
 
 void Unit::ProcDamageAndSpell(Unit *pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount,uint32 absorb, WeaponAttackType attType, SpellEntry const *procSpell)
 {
+    // send amount and absorb to correctly flag active spells -> on default all spells proc on absorbed dmg, exceptions are handled specifically by if (!damage) condition in their proc script
     // Not much to do if no flags are set.
-    // If it is a damaging/healing spell and it is fully absorbed, do not proc ... -> seems to be incorrect, commented and solved in specific cases :/
-    if (procAttacker/* && !(!amount && absorb)*/)
-        ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount);
+    if (procAttacker)
+        ProcDamageAndSpellFor(false,pVictim,procAttacker, procExtra,attType, procSpell, amount, absorb);
     // Now go on with a victim's events'n'auras
     // Not much to do if no flags are set or there is no victim
-    // amount + absorb to correctly flag active spells
     if (pVictim && pVictim->isAlive() && procVictim)
-        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount + absorb);
+        pVictim->ProcDamageAndSpellFor(true,this,procVictim, procExtra, attType, procSpell, amount, absorb);
 }
 
 void Unit::SendSpellMiss(Unit *target, uint32 spellID, SpellMissInfo missInfo)
@@ -7055,6 +7057,21 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         return false;
                     basepoints[0] = triggerAmount * damage / 100;
                     triggered_spell_id = 54755;
+                    break;
+                }
+                // Item - Druid T8 Restoration 4P Bonus
+                case 64760:
+                {
+                    if (!procSpell || GetTypeId() != TYPEID_PLAYER)
+                        return false;
+
+                    Aura* rejuvAura = pVictim->GetAura(SPELL_AURA_PERIODIC_HEAL, SPELLFAMILY_DRUID, UI64LIT(0x0000000000000010), NULL, GetGUID());
+                    if (!rejuvAura)
+                        return false;
+
+                    int32 healfromticks = rejuvAura->GetModifier()->m_amount * GetSpellAuraMaxTicks(procSpell);
+                    basepoints[0] = healfromticks * triggerAmount / 100;
+                    triggered_spell_id = 64801;
                     break;
                 }
                 // Item - Druid T10 Restoration 4P Bonus (Rejuvenation)
@@ -14402,7 +14419,7 @@ uint32 createProcExtendMask(SpellNonMeleeDamage *damageInfo, SpellMissInfo missC
     return procEx;
 }
 
-void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const * procSpell, uint32 damage )
+void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const * procSpell, uint32 damage, uint32 absorb )
 {
     // For melee/ranged based attack need update skills and set some Aura states
     if (procFlag & MELEE_BASED_TRIGGER_MASK)
@@ -14481,7 +14498,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
             continue;
 
         SpellProcEventEntry const* spellProcEvent = NULL;
-        if (!IsTriggeredAtSpellProcEvent(pTarget, itr->second, procSpell, procFlag, procExtra, attType, isVictim, (damage > 0), spellProcEvent))
+        if (!IsTriggeredAtSpellProcEvent(pTarget, itr->second, procSpell, procFlag, procExtra, attType, isVictim, ((damage + absorb) > 0), spellProcEvent))
            continue;
 
         itr->second->SetInUse(true);                        // prevent aura deletion
@@ -14674,7 +14691,14 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
                 || !roll_chance_f(25.0f))
             {
                 // If last charge dropped add spell to remove list
-                if (triggeredByAura->DropAuraCharge())
+                // if spell procs on damage, do not drop charge on full absorb (f.e. Inner Fire)
+                if (damage + absorb)
+                {
+                    if (damage)
+                        if (triggeredByAura->DropAuraCharge())
+                            removedSpells.push_back(triggeredByAura->GetId());
+                }
+                else if (triggeredByAura->DropAuraCharge())
                     removedSpells.push_back(triggeredByAura->GetId());
             }
         }
