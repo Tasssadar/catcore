@@ -7057,6 +7057,21 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     triggered_spell_id = 54755;
                     break;
                 }
+                // Item - Druid T8 Restoration 4P Bonus
+                case 64760:
+                {
+                    if (!procSpell || GetTypeId() != TYPEID_PLAYER)
+                        return false;
+
+                    Aura* rejuvAura = pVictim->GetAura(SPELL_AURA_PERIODIC_HEAL, SPELLFAMILY_DRUID, UI64LIT(0x0000000000000010), NULL, GetGUID());
+                    if (!rejuvAura)
+                        return false;
+
+                    int32 healfromticks = rejuvAura->GetModifier()->m_amount * GetSpellAuraMaxTicks(procSpell);
+                    basepoints[0] = healfromticks * triggerAmount / 100;
+                    triggered_spell_id = 64801;
+                    break;
+                }
                 // Item - Druid T10 Restoration 4P Bonus (Rejuvenation)
                 case 70664:
                 {
