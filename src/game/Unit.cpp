@@ -3336,6 +3336,9 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
     }
     // Apply mod
     modHitChance-=resist_mech;
+    // Chance resist debuff - only for SPELL_EFFECT_APPLY_AURA spells with one effect
+    if (spell->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_APPLY_AURA && !spell->Effect[EFFECT_INDEX_1] && !spell->Effect[EFFECT_INDEX_2])
+        modHitChance-=pVictim->GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(spell->Dispel));
 
     int32 HitChance = modHitChance * 100;
     // Increase hit chance from attacker SPELL_AURA_MOD_SPELL_HIT_CHANCE and attacker ratings
