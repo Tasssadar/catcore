@@ -1923,6 +1923,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                        (spellInfo_1->Id == 28878 && spellInfo_2->Id == 6562) )
                         return true;
 
+                    // Fortitude (Svitek) and Runescroll of Fortitude (plosny svitek)
+                    if ((spellInfo_1->SpellIconID == 312 && spellInfo_2->SpellIconID == 685) ||
+                        (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 685))
+                        return true;
+
                     break;
                 }
                 case SPELLFAMILY_MAGE:
@@ -2021,11 +2026,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 }
                 case SPELLFAMILY_PRIEST:
                 {
-                    // Power Word: Fortitude and Fortitude(Svitek)
+                    // Fortitude (Svitek) single target and Power Word: Fortitude
                     if (spellInfo_1->SpellIconID == 312 && spellInfo_2->SpellIconID == 685)
                         return true;
 
-                    // Fortitude(Svitek) and Prayer of Fortitude(plosna)
+                    // Fortitude(Svitek) single target and Prayer of Fortitude (plosna)
                     if (spellInfo_1->SpellIconID == 312 && spellInfo_2->SpellIconID == 1669)
                         return true;
 
@@ -2218,12 +2223,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             //Renewed hope and gift of the naaru(have diff spell families)
             else if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellVisual[0] == 7625)
                 return false;
-            // Power Word: Fortitude and Fortitude(Svitek)
-            else if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 685)
-                return true;
-            // Fortitude(Svitek) and Prayer of Fortitude(plosna)
-            else if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 1669)
-                return true;
+            else if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+            {
+                // Fortitude(Svitek) and Power Word: Fortitude
+                if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 685)
+                    return true;
+                // Fortitude(Svitek) and Prayer of Fortitude(plosna)
+                if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 1669)
+                    return true;
+            }
             break;
         case SPELLFAMILY_DRUID:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_DRUID )
