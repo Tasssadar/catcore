@@ -820,8 +820,10 @@ void LfgMgr::MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId)
         Player *member = sObjectMgr.GetPlayer(citr->guid);
         if (!member || !member->GetSession())
             continue;
-        SendLfgUpdateParty(member,  LFG_UPDATETYPE_ADDED_TO_QUEUE);
-        SendLfgUpdatePlayer(member, LFG_UPDATETYPE_ADDED_TO_QUEUE);
+        if(member->GetGroup())
+            SendLfgUpdateParty(member,  LFG_UPDATETYPE_ADDED_TO_QUEUE);
+        else
+            SendLfgUpdatePlayer(member, LFG_UPDATETYPE_ADDED_TO_QUEUE);
         m_queuedPlayers.insert(std::make_pair<uint64, uint32>(member->GetGUID(), entry->ID));
     }
     
