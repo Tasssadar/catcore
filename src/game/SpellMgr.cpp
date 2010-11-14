@@ -2019,6 +2019,18 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
                     break;
                 }
+                case SPELLFAMILY_PRIEST:
+                {
+                    // Power Word: Fortitude and Fortitude(Svitek)
+                    if (spellInfo_1->SpellIconID == 312 && spellInfo_2->SpellIconID == 685)
+                        return true;
+
+                    // Fortitude(Svitek) and Prayer of Fortitude(plosna)
+                    if (spellInfo_1->SpellIconID == 312 && spellInfo_2->SpellIconID == 1669)
+                        return true;
+
+                    break;
+                }
             }
             // Dragonmaw Illusion, Blood Elf Illusion, Human Illusion, Illidari Agent Illusion, Scarlet Crusade Disguise
             if (spellInfo_1->SpellIconID == 1691 && spellInfo_2->SpellIconID == 1691)
@@ -2206,6 +2218,12 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             //Renewed hope and gift of the naaru(have diff spell families)
             else if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellVisual[0] == 7625)
                 return false;
+            // Power Word: Fortitude and Fortitude(Svitek)
+            else if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 685)
+                return true;
+            // Fortitude(Svitek) and Prayer of Fortitude(plosna)
+            else if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 1669)
+                return true;
             break;
         case SPELLFAMILY_DRUID:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_DRUID )
