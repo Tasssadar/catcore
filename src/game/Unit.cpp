@@ -14691,8 +14691,8 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
                 || !roll_chance_f(25.0f))
             {
                 // If last charge dropped add spell to remove list
-                // if spell procs on damage, do not drop charge on full absorb (f.e. Inner Fire)
-                if (damage + absorb)
+                // if spell procs on damage and for victim, do not drop charge on full absorb (f.e. Inner Fire)
+                if ((damage + absorb) && isVictim)
                 {
                     if (damage)
                         if (triggeredByAura->DropAuraCharge())
