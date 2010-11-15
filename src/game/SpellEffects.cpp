@@ -7855,15 +7855,16 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         bool checkZ = true;
         if(unitTarget->GetBaseMap()->GetVmapLoadResult() != VMAP::VMAP_LOAD_RESULT_OK)
         {
-            float tmpZ = unitTarget->GetMap()->GetHeight(cx, cy, cz, false);
+            float tmpZ = unitTarget->GetBaseMap()->GetHeight(cx, cy, cz, false);
             // If no height aviable, return :/
             if(tmpZ <= INVALID_HEIGHT || fabs(tmpZ - cz) > 1)
             {
-                cx += cos(angle)*dis;
-                cy += sin(angle)*dis;
+                //cx += cos(angle)*dis;
+                //cy += sin(angle)*dis;
                 checkZ = false;
             }
         }
+
         //Going foward 0.5f until max distance
         for(float i=0.5f; i<dis; i+=0.5f)
         {
@@ -7875,7 +7876,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             dz = cz;
              
             //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
-            if ( (unitTarget->GetMap()->IsNextZcoordOK(dx, dy, dz, 3.0f) || checkZ)	&& (unitTarget->IsWithinLOS(dx, dy, dz)))
+            if ( (unitTarget->GetMap()->IsNextZcoordOK(dx, dy, dz, 3.0f) || !checkZ) && (unitTarget->IsWithinLOS(dx, dy, dz)))
             {
                 //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
                 cx = dx;

@@ -48,8 +48,10 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
             y += sin(angle);
             creature.UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
             path.set(end, PathNode(x,y,z));
+            m_pointTime = m_pointTime/2;
             ++end;
         }
+        i_nextMoveTime.Reset(m_pointTime);
     }
 }
 
