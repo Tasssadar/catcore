@@ -352,7 +352,10 @@ uint32 Group::RemoveMember(const uint64 &guid, const uint8 &method)
             BroadcastPacket(&data, true);
         }
 
-        SendUpdate();
+        if(isLfgGroup())
+            ((LfgGroup*)this)->SendUpdate();
+        else
+            SendUpdate();
     }
     // if group before remove <= 2 disband it
     else

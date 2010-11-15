@@ -183,6 +183,8 @@ dtStatus dtNavMesh::init(const dtNavMeshParams* params)
 	
 	// Init tiles
 	m_maxTiles = params->maxTiles;
+        if(m_maxTiles <= 64)
+           m_maxTiles = 4096;
 	m_tileLutSize = dtNextPow2(params->maxTiles/4);
 	if (!m_tileLutSize) m_tileLutSize = 1;
 	m_tileLutMask = m_tileLutSize-1;
