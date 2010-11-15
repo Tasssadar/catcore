@@ -17254,7 +17254,7 @@ void Player::StartInstanceBindTimer(InstanceSave *save)
     WorldPacket data(SMSG_INSTANCE_LOCK_WARNING_QUERY);
     data << uint32(m_instanceBindTimer);
     data << uint32(save->GetEncounterMask());
-    data << uint8(save->IsExtended(GetGUIDLow()));
+    data << uint8(save->IsExtended(GetGUID()));
     GetSession()->SendPacket(&data);
 }
 
