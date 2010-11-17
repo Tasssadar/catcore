@@ -14077,6 +14077,7 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         if (bg->GetTypeID(true) == BATTLEGROUND_AV)
             ((BattleGroundAV*)bg)->HandleQuestComplete(pQuest->GetQuestId(), this);
 
+    std::list<Item*> problematicItems;s
     if (pQuest->GetRewChoiceItemsCount() > 0)
     {
         if (uint32 itemId = pQuest->RewChoiceItemId[reward])
@@ -14086,6 +14087,13 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
             {
                 Item* item = StoreNewItem( dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
                 SendNewItem(item, pQuest->RewChoiceItemCount[reward], true, false);
+            }
+            else
+            {
+                Item *item = Item::CreateItem( itemId, pQuest->RewChoiceItemCount[reward], this );
+                if(uint32 randProp = Item::GenerateItemRandomPropertyId(itemId))
+                    item->SetItemRandomProperties(randProp);
+                problematicItems.push_back(item);
             }
         }
     }
@@ -14102,8 +14110,30 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
                     Item* item = StoreNewItem( dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
                     SendNewItem(item, pQuest->RewItemCount[i], true, false);
                 }
+                else
+                {
+                    Item *item = Item::CreateItem( itemId, pQuest->RewItemCount[i], this );
+                    if(uint32 randProp = Item::GenerateItemRandomPropertyId(itemId))
+                        item->SetItemRandomProperties(randProp);
+                    problematicItems.push_back(item);
+                }
             }
         }
+    }
+
+    if(!problematicItems.empty())
+    {
+        //Send it by mail
+        std::string subject = GetSession()->GetMangosString(LANG_NOT_EQUIPPED_ITEM);
+        // fill mail
+        MailDraft draft(subject, "There's were problems with storing item(s).");
+        for(int i = 0; !problematicItems.empty() && i < MAX_MAIL_ITEMS; ++i)
+        {
+            Item* item = problematicItems.front();
+            problematicItems.pop_front();
+            draft.AddItem(item);
+        }
+        draft.SendMailTo(this, MailSender(this, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_COPIED);
     }
 
     RewardReputation( pQuest );
