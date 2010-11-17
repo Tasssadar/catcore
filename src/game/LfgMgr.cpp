@@ -783,7 +783,14 @@ bool LfgMgr::CheckFormedGroup(LfgGroup *group, uint8 side, bool checkTime)
             return false;
         }
         group->AddLfgFlag(LFG_GRP_BONUS);
-        //Move group to queue
+        // Move group to queue
+
+        // we MUST set another group ID!
+        // seems on offi group is destroyed when rolecheck fails
+        sObjectMgr.RemoveGroup(group);
+        group->SetGroupId(sObjectMgr.GenerateGroupId());
+        sObjectMgr.AddGroup(group);
+
         MoveGroupToQueue(group, side);
         return false;
     }
