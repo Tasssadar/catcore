@@ -7858,6 +7858,8 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
                 checkZ = false;
             }
         }
+        if(m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
+            checkZ = false;
 
         //Going foward 0.5f until max distance
         for(float i=0.5f; i<dis; i+=0.5f)

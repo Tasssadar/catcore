@@ -16561,6 +16561,8 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         }
         float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
         float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true); // the one caster is standing on
+        if(groundC > INVALID_HEIGHT && !m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR))))
+            return false;
         if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
             return false;
     }
