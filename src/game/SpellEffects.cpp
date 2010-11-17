@@ -2990,12 +2990,6 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     bool outdoor = target->GetMap()->IsOutdoors(x, y, z);
     target->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
-    if(!m_caster->CanCharge(target, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
-    {
-        SendCastResult(SPELL_FAILED_TRY_AGAIN);
-        return;
-    }
-
     z+=0.5f;   
     float distance = m_caster->GetDistance(x,y,z); 
     float traveltime = 11.91f;  // feral charge
@@ -8034,12 +8028,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
     m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
-    if(!m_caster->CanCharge(unitTarget, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
-    {
-        SendCastResult(SPELL_FAILED_TRY_AGAIN);
-        return;
-    }
-
     z+= 0.5f;
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -8126,11 +8114,6 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
     m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
-    if(!m_caster->CanCharge((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) ? NULL : unitTarget, x, y, z, 1.5f, outdoor ? 10.0f : 3.0f))
-    {
-        SendCastResult(SPELL_FAILED_TRY_AGAIN);
-        return;
-    }
     //m_caster->MonsterMoveByPath(x, y, z, 25, false);
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
