@@ -440,7 +440,7 @@ void MotionMaster::MoveCharge(PointPath const& path, uint32 pointTime, uint32 st
     if (i_owner->GetTypeId()==TYPEID_PLAYER)
         return;
 
-    Mutate(new ChargeMovementGenerator<Creature>(path, pointTime, start, end));
+    Mutate(new ChargeMovementGenerator<Creature>((PointPath&)path, pointTime, start, end));
 }
 
 void MotionMaster::Mutate(MovementGenerator *m)

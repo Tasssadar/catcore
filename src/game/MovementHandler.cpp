@@ -573,7 +573,6 @@ void WorldSession::HandleMoveKnockBackAck( WorldPacket & recv_data )
     data << movementInfo.GetJumpInfo().xyspeed;
     data << movementInfo.GetJumpInfo().velocity;
     mover->SendMessageToSetExcept(&data, _player);
-    recv_data >> movementInfo;
 }
 
 void WorldSession::HandleMoveHoverAck( WorldPacket& recv_data )

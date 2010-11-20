@@ -1506,14 +1506,16 @@ void WorldObject::GetRandomPoint( float x, float y, float z, float distance, flo
 
 void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDiff) const
 {
-    //Cant modify in water
-    if(z != 0.0f && GetBaseMap()->IsInWater(x, y, z))
-        return;
+    //Cant modify in water - yes you can
+    //if(z != 0.0f && GetBaseMap()->IsInWater(x, y, z))
+    //    return;
 
     maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
     bool useVmaps = false;
-    float mapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), false, maxDiff);
-    float vmapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), true, maxDiff);
+    //float mapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), false, maxDiff);
+    //float vmapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), true, maxDiff);
+    float mapZ = GetMap()->GetHeight(x, y, z, false, maxDiff);
+    float vmapZ = GetMap()->GetHeight(x, y, z, true, maxDiff);
     if ( mapZ <  vmapZ ) // check use of vmaps
         useVmaps = true;
 
@@ -1537,7 +1539,7 @@ bool WorldObject::IsPositionValid() const
 
 bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
 {
-    float groundZ = GetBaseMap()->GetHeight(x, y, z, true);
+    float groundZ = GetBaseMap()->GetHeight(x, y, z, true, 50);
     if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
         return false;
     return true;

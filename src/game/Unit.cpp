@@ -15858,6 +15858,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
     {
         // All this is guessed, but looks cool
         float dis = horizontalSpeed;
+        if(dis < 1)
+            return;
         float fx, fy, fz;
         GetPosition(fx, fy, fz);
         fx += dis * vcos;
@@ -16548,7 +16550,7 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         return false;
 
     // Try to find two grounds...
-    if(fabs(z - cz) > 5.0f)
+    if(maxElev && fabs(z - cz) > 5.0f)
     {
         float tx,ty,tz;
         if(target)
@@ -16559,13 +16561,16 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
             ty = y;
             tz = z;
         }
-        float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true); // the one target is standing on
-        float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true); // the one caster is standing on
-        if(groundC > INVALID_HEIGHT && !m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR))))
-            return false;
+        float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
+        float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
+        //if(groundC > INVALID_HEIGHT && !m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR))))
+        //    return false;
         if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
             return false;
     }
+    // No need to check further
+    if(maxElev == 0.0f)
+        return true;
   
     float distance = GetDistance2d(x, y);
     float lastCheckX = cx;
@@ -16580,7 +16585,7 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         lastCheckX += cos(checkAngle);
         lastCheckY += sin(checkAngle);
         tmpZ -= 1;
-        target->UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, maxDiff+1);
+        UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, maxElev < 10 ? maxElev*4 : maxElev);
         if(fabs(tmpZ - lastCheckZ) > maxElev || tmpZ == lastCheckZ-1)
             return false;
         lastCheckZ = tmpZ;

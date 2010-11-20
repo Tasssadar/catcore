@@ -32,26 +32,35 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
 
     creature.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 
-    if((start - end) == 0)
+    if((m_start - m_end) == 0)
     {
-        float dist = creature.GetDistance(m_path[end].x, m_path[end].y, m_path[end].z);
-        float angle = creature.GetAngle(m_path[end].x, m_path[end].y);
-        bool outdoor = target->GetMap()->IsOutdoors(x, y, z);
+        float dist = creature.GetDistance(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
+        float angle = creature.GetAngle(m_path[m_end].x, m_path[m_end].y);
+        bool outdoor = creature.GetMap()->IsOutdoors(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
         float x, y, z;
         creature.GetPosition(x, y, z);
-        for(uint32 i = 1; i < dist; ++i)
+        float itr = 1;
+        if(m_pointTime > 200)
+        {
+            while(float(m_pointTime)/float(dist+itr/itr) <= 200 && itr < dist)
+                itr+=0.3f;
+        }
+        else itr = dist;
+
+        for(float i = 1; i < dist; i+=itr)
         {
             m_path.resize(m_path.size()+1);
-            m_path.set(end+1, m_path[end]);
+            m_path.set(m_end+1, m_path[m_end]);
              
             x += cos(angle);
             y += sin(angle);
             creature.UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
-            path.set(end, PathNode(x,y,z));
-            m_pointTime = m_pointTime/2;
-            ++end;
+             m_path.set(m_end, PathNode(x,y,z));
+            ++m_end;
         }
+        m_pointTime = float(m_pointTime)/float((m_end - m_start) + 1);
         i_nextMoveTime.Reset(m_pointTime);
+
     }
 }
 

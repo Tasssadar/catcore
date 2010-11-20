@@ -5541,10 +5541,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
                 if(target)
                 {
-                    float angle;
-                    
-                    angle = target->GetOrientation();
-                    angle += direction;
+                    float angle = target->GetOrientation() + direction;             
                     angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
                     angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F; 
                     target->GetPosition(x,y,z);
@@ -5556,7 +5553,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_BAD_TARGETS;
                 bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
                 m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
-                if(!m_caster->CanCharge(target, x, y, z, jump ? 30.0f : 1.5f, outdoor ? 10.0f : 3.0f))
+                if(!m_caster->CanCharge(target, x, y, z, jump ? 0.0f : 1.5f, outdoor ? 10.0f : 3.0f))
                     return SPELL_FAILED_NOPATH;
                 break;
             }
