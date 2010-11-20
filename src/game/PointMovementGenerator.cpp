@@ -33,6 +33,8 @@ void PointMovementGenerator<T>::Initialize(T &unit)
 
     unit.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 
+    unit.UpdateMovementFlags(true, i_x, i_y, i_z);
+
     Traveller<T> traveller(unit);
     i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
 
@@ -46,22 +48,20 @@ void PointMovementGenerator<T>::Initialize(T &unit)
         SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
     }
-
-    if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->canFly() &&
-        !(((Creature*)&unit)->canWalk() && ((Creature*)&unit)->IsAtGroundLevel(i_x, i_y, i_z)))
-        ((Creature&)unit).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 }
 
 template<class T>
 void PointMovementGenerator<T>::Finalize(T &unit)
 {
     unit.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+    unit.UpdateMovementFlags(true);
 }
 
 template<class T>
 void PointMovementGenerator<T>::Interrupt(T &unit)
 {
     unit.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+    unit.UpdateMovementFlags(true);
 }
 
 template<class T>

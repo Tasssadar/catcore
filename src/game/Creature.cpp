@@ -151,6 +151,8 @@ void Creature::AddToWorld()
         GetMap()->GetObjectsStore().insert<Creature>(GetGUID(), (Creature*)this);
 
     Unit::AddToWorld();
+
+    InitializeMovementFlags();
 }
 
 void Creature::RemoveFromWorld()

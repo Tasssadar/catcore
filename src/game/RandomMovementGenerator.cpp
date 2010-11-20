@@ -81,16 +81,11 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
     if (is_air_ok && !(creature.canWalk() && creature.IsAtGroundLevel(nx, ny, nz)))
-    {
         i_nextMoveTime.Reset(i_destinationHolder.GetTotalTravelTime());
-        creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-    }
     //else if (is_water_ok)                                 // Swimming mode to be done with more than this check
     else
-    {
         i_nextMoveTime.Reset(urand(500+i_destinationHolder.GetTotalTravelTime(), 10000+i_destinationHolder.GetTotalTravelTime()));
-        creature.AddSplineFlag(SPLINEFLAG_WALKMODE);
-    }
+    creature.UpdateMovementFlags(true, nx, ny, nz);
 }
 
 template<>

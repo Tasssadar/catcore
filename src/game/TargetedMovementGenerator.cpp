@@ -100,10 +100,7 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
     Traveller<T> traveller(owner);
     i_path->getNextPosition(x, y, z);
     i_destinationHolder.SetDestination(traveller, x, y, z, false);
-
-    if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
-        !(((Creature*)&owner)->canWalk() && ((Creature*)&owner)->IsAtGroundLevel(x,y,z)))
-        ((Creature&)owner).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+    owner.UpdateMovementFlags(true, x, y, z);
 
     // send the path if:
     //    we have brand new path
@@ -127,7 +124,7 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
         SplineFlags flags = (owner.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&owner)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         owner.SendMonsterMoveByPath(pointPath, 1, endIndex, flags, traveltime);
     }
-
+    
     D::_addUnitStateMove(owner);
 }
 
@@ -204,9 +201,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         _setTargetLocation(owner);
         float x,y,z;
         i_destinationHolder.GetLocationNowNoMicroMovement(x,y,z);
-        if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
-            !(((Creature*)&owner)->canWalk() && ((Creature*)&owner)->IsAtGroundLevel(x,y,z)))
-            ((Creature&)owner).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+        owner.UpdateMovementFlags(true, x,y,z);
     }
             
     if(pathLost)
@@ -323,12 +318,14 @@ template<class T>
 void ChaseMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
+    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
 void ChaseMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
+    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -398,6 +395,7 @@ template<class T>
 void FollowMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
+    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }
@@ -406,6 +404,7 @@ template<class T>
 void FollowMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
+    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }

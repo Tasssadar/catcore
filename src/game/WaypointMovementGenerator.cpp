@@ -77,9 +77,6 @@ void WaypointMovementGenerator<Creature>::LoadPath(Creature &creature)
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
     CreatureTraveller traveller(creature);
 
-    if (creature.canFly())
-        creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
     MoveToNextNode(traveller);
 }
@@ -93,11 +90,13 @@ void WaypointMovementGenerator<Creature>::Initialize(Creature &creature)
 void WaypointMovementGenerator<Creature>::Finalize(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+    creature.UpdateMovementFlags(true);
 }
 
 void WaypointMovementGenerator<Creature>::Interrupt(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+    creature.UpdateMovementFlags(true);
 }
 
 void WaypointMovementGenerator<Creature>::Reset(Creature &creature)
@@ -152,9 +151,6 @@ bool WaypointMovementGenerator<Creature>::Update(Creature &creature, const uint3
             SetStoppedByPlayer(false);
 
             creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
-
-            if (creature.canFly())
-                creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
             // Now we re-set destination to same node and start travel
             MoveToNextNode(traveller);
@@ -249,9 +245,6 @@ bool WaypointMovementGenerator<Creature>::Update(Creature &creature, const uint3
         {
             creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
-            if (creature.canFly())
-                creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-
             if (WaypointBehavior *behavior = i_path->at(i_currentNode).behavior)
             {
                 if (behavior->model2 != 0)
@@ -310,6 +303,8 @@ void WaypointMovementGenerator<Creature>::MoveToNextNode(CreatureTraveller &trav
     PathInfo sub_path(owner, node.x, node.y, node.z);
     PointPath pointPath = sub_path.getFullPath();
 
+    owner.UpdateMovementFlags(true, node.x, node.y, node.z);
+
     float speed = traveller.Speed()*0.001f; // in ms
     uint32 traveltime = uint32(pointPath.GetTotalLength()/speed);
     owner->SendMonsterMoveByPath(pointPath, 1, pointPath.size(), owner->GetSplineFlags(), traveltime);
@@ -365,11 +360,13 @@ void FlightPathMovementGenerator::Finalize(Player & player)
         // when client side flight end early in comparison server side
         player.StopMoving();
     }
+    player.UpdateMovementFlags(true);
 }
 
 void FlightPathMovementGenerator::Interrupt(Player & player)
 {
     player.clearUnitState(UNIT_STAT_IN_FLIGHT);
+    player.UpdateMovementFlags(true);
 }
 
 void FlightPathMovementGenerator::Reset(Player & player)

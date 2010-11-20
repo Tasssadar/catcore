@@ -16599,3 +16599,169 @@ void Unit::AddAndLinkAura(uint32 auraId, bool apply)
         RemoveAurasDueToSpell(auraId);
         
 }
+
+void Unit::InitializeMovementFlags()
+{
+    if (GetTypeId() != TYPEID_UNIT)
+        return;
+
+    Creature *creature = (Creature*)this;
+    float cx, cy, cz;
+    GetPosition(cx, cy, cz);
+
+    //Reset first
+    m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
+    m_movementInfo.SetMovementFlags2(MOVEFLAG2_NONE);
+    creature->SetSplineFlags(SPLINEFLAG_NONE);
+
+
+    // Vehicle - FIXME!
+    if(creature->isVehicle()
+    {
+        m_movementInfo.AddMovementFlags2(MOVEFLAG2_ALLOW_PITCHING);
+        if(!creature->canFly())
+        {
+            m_movementInfo.AddMovementFlags2(MOVEFLAG2_NO_STRAFE);
+            m_movementInfo.AddMovementFlags2(MOVEFLAG2_NO_JUMPING);
+        }
+    }
+
+    // Flying or swimming
+    bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
+    if(swimming || (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz)))
+    {
+        m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+        m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+        creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+        if(swimming)
+            m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+    }
+}
+
+void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
+{
+    uint32 moveFlags = m_movementInfo.GetMovementFlags();
+    uint16 moveFlags2 = m_movementInfo.GetMovementFlags2();
+
+    // Vehicle
+    if (GetVehicleGUID() && !m_movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
+        m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+    if (GetTypeId() == TYPEID_UNIT)
+    {
+        Creature *creature = (Creature*)this;
+        float cx, cy, cz;
+        GetPosition(cx, cy, cz);
+
+        // Flying or swimming
+        bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
+        bool fly = (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz));
+        if(swimming || fly)
+        {
+            moveFlags |= MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING;
+            
+            if(swimming)
+                moveFlags |= MOVEFLAG_SWIMMING;
+
+            if(resetPitch && z != 0)
+            {
+                if(cz - z < -1.5f)
+                {
+                    moveFlags |= MOVEFLAG_PITCH_UP | MOVEFLAG_ASCENDING;
+                    creature->AddSplineFlag(SPLINEFLAG_PITCH_UP);
+                }
+                else
+                {
+                    moveFlags &= ~(MOVEFLAG_PITCH_UP | MOVEFLAG_ASCENDING);
+                    creature->RemoveSplineFlag(SPLINEFLAG_PITCH_UP); 
+                }
+                
+                if(cz - z > 1.5f)
+                {
+                    moveFlags |= MOVEFLAG_PITCH_DOWN | MOVEFLAG_DESCENDING;
+                    creature->AddSplineFlag(SPLINEFLAG_PITCH_DOWN);
+                }
+                else
+                {
+                    moveFlags &= ~(MOVEFLAG_PITCH_DOWN | MOVEFLAG_DESCENDING);
+                    creature->RemoveSplineFlag(SPLINEFLAG_PITCH_DOWN);
+                }
+            }
+        }
+        else if(moveFlags & MOVEFLAG_FLYING)
+        {
+            moveFlags &= ~(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+            if(moveFlags & MOVEFLAG_SWIMMING)
+                moveFlags &= ~(MOVEFLAG_SWIMMING);
+
+            creature->RemoveSplineFlag(SPLINEFLAG_UNKNOWN7);
+
+            if(moveFlags & MOVEFLAG_PITCH_DOWN)
+            {
+                moveFlags &= ~(MOVEFLAG_PITCH_DOWN | MOVEFLAG_DESCENDING);
+                creature->RemoveSplineFlag(SPLINEFLAG_PITCH_DOWN);
+            }
+            if(moveFlags & MOVEFLAG_PITCH_UP)
+            {
+                moveFlags &= ~(MOVEFLAG_PITCH_UP | MOVEFLAG_ASCENDING);
+                creature->RemoveSplineFlag(SPLINEFLAG_PITCH_UP); 
+            }
+        }
+        // And moving
+        if(resetPitch)
+        {
+            if(x != 0 && y != 0 && z != 0)
+            {
+                if(!fly && !swimming)
+                {
+                    moveFlags |= MOVEFLAG_WALK_MODE;
+                    creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
+                }
+                else
+                    creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
+                if(HasInArc(M_PI_F, x, y))
+                {
+                    creature->AddSplineFlag(SPLINEFLAG_FORWARD);
+                    moveFlags |= MOVEFLAG_FORWARD;
+                }
+                else
+                {
+                    creature->AddSplineFlag(SPLINEFLAG_BACKWARD);
+                    moveFlags |= MOVEFLAG_BACKWARD;
+                }
+            }
+            else
+            {
+                moveFlags &= ~(MOVEFLAG_WALK_MODE);
+                if(moveFlags & MOVEFLAG_FORWARD)
+                {
+                    moveFlags &= ~(MOVEFLAG_FORWARD);
+                    creature->RemoveSplineFlag(SPLINEFLAG_FORWARD);
+                }
+                else
+                {
+                    moveFlags &= ~(MOVEFLAG_BACKWARD);
+                    creature->RemoveSplineFlag(SPLINEFLAG_BACKWARD);
+                }
+            }
+        }
+    }
+    // Player
+    else
+    {
+        Player *player = (Player*)this;
+        if(player->GetTransport())
+            moveFlags |= MOVEFLAG_ONTRANSPORT;
+        else if(moveFlags & MOVEFLAG_ONTRANSPORT && GetVehicleGUID())
+            moveFlags &= ~(MOVEFLAG_ONTRANSPORT);
+
+        if (player->isInFlight())
+        {
+            ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
+            moveFlags |= MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED;
+        }
+    }
+    m_movementInfo.SetMovementFlags(MovementFlags(moveFlags));
+    m_movementInfo.SetMovementFlags2(MovementFlags2(moveFlags2));
+}
