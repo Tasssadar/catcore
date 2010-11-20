@@ -16616,19 +16616,19 @@ void Unit::InitializeMovementFlags()
 
 
     // Vehicle - FIXME!
-    if(creature->isVehicle()
+    if(creature->isVehicle())
     {
-        m_movementInfo.AddMovementFlags2(MOVEFLAG2_ALLOW_PITCHING);
+        m_movementInfo.AddMovementFlag2(MOVEFLAG2_ALLOW_PITCHING);
         if(!creature->canFly())
         {
-            m_movementInfo.AddMovementFlags2(MOVEFLAG2_NO_STRAFE);
-            m_movementInfo.AddMovementFlags2(MOVEFLAG2_NO_JUMPING);
+            m_movementInfo.AddMovementFlag2(MOVEFLAG2_NO_STRAFE);
+            m_movementInfo.AddMovementFlag2(MOVEFLAG2_NO_JUMPING);
         }
     }
 
     // Flying or swimming
     bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
-    if(swimming || (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz)))
+    if(swimming || (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz))))
     {
         m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
         m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
@@ -16655,7 +16655,7 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
 
         // Flying or swimming
         bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
-        bool fly = (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz));
+        bool fly = (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz)));
         if(swimming || fly)
         {
             moveFlags |= MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING;
@@ -16663,7 +16663,7 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
             if(swimming)
                 moveFlags |= MOVEFLAG_SWIMMING;
 
-            if(resetPitch && z != 0)
+            if(updateMovement && z != 0)
             {
                 if(cz - z < -1.5f)
                 {
@@ -16708,15 +16708,12 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
             }
         }
         // And moving
-        if(resetPitch)
+        if(updateMovement)
         {
             if(x != 0 && y != 0 && z != 0)
             {
                 if(!fly && !swimming)
-                {
-                    moveFlags |= MOVEFLAG_WALK_MODE;
                     creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                }
                 else
                     creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
@@ -16733,7 +16730,6 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
             }
             else
             {
-                moveFlags &= ~(MOVEFLAG_WALK_MODE);
                 if(moveFlags & MOVEFLAG_FORWARD)
                 {
                     moveFlags &= ~(MOVEFLAG_FORWARD);

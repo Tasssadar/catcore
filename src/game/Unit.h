@@ -780,7 +780,7 @@ class MovementInfo
         void RemoveMovementFlag2(MovementFlags2 f) { moveFlags2 &= ~f; }
         bool HasMovementFlag2(MovementFlags2 f) const { return moveFlags2 & f; }
         MovementFlags2 GetMovementFlags2() const { return MovementFlags2(moveFlags2); }
-        void SetMovementFlags(MovementFlags2 f) { moveFlags2 = f; }
+        void SetMovementFlags2(MovementFlags2 f) { moveFlags2 = f; }
 
         // Position manipulations
         Position const *GetPos() const { return &pos; }
