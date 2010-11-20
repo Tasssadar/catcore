@@ -2318,6 +2318,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Tricks of the Trade
                 if (spellInfo_1->SpellIconID == 3413 && spellInfo_2->SpellIconID == 3413)
                     return false;
+
+                // Deadly Poison (ranks...)
+                if ( (spellInfo_1->SpellFamilyFlags & UI64LIT(0x10000)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x10000)))
+                    return false;
             }
 
             //Overkill
