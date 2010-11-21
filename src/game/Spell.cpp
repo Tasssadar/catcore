@@ -5550,7 +5550,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 float direction = 0;
                 bool set = false;
                 bool jump = m_spellInfo->Effect[i] == SPELL_EFFECT_JUMP2;
-                if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_SELF2 && jump)
+                if (m_spellInfo->EffectImplicitTargetA[i] == TARGET_SELF2 && jump)
                     target = m_originalCaster;
                 else if(jump)
                     direction = M_PI_F;
@@ -5559,7 +5559,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     x = m_targets.m_destX;
                     y = m_targets.m_destY;
                     z = m_targets.m_destZ;
-                    set = true
+                    set = true;
                 }
                 if(target)
                 {
@@ -5573,7 +5573,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
                 if(!set)
                     return SPELL_FAILED_BAD_TARGETS;
-                bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
+                bool outdoor = m_caster->GetTerrain()->IsOutdoors(x, y, z);
                 m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
                 if(!m_caster->CanCharge(target, x, y, z, jump ? 0.0f : 1.5f, outdoor ? 10.0f : 3.0f))
                     return SPELL_FAILED_NOPATH;

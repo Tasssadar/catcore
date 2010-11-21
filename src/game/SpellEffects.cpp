@@ -3042,7 +3042,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
     y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
 
-    bool outdoor = target->GetMap()->IsOutdoors(x, y, z);
+    bool outdoor = target->GetTerrain()->IsOutdoors(x, y, z);
     target->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
     z+=0.5f;   
@@ -8082,7 +8082,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float x, y, z;
     unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
 
-    bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
+    bool outdoor = m_caster->GetTerrain()->IsOutdoors(x, y, z);
     m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
     z+= 0.5f;
@@ -8168,7 +8168,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
        ((Creature *)unitTarget)->StopMoving();
 
-    bool outdoor = m_caster->GetMap()->IsOutdoors(x, y, z);
+    bool outdoor = m_caster->GetTerrain()->IsOutdoors(x, y, z);
     m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
 
     //m_caster->MonsterMoveByPath(x, y, z, 25, false);

@@ -1730,7 +1730,7 @@ void WorldObject::SetMap(Map * map)
 
 TerrainInfo const* WorldObject::GetTerrain() const
 {
-    MANGOS_ASSERT(m_currMap);
+    ASSERT(m_currMap);
     return m_currMap->GetTerrain();
 }
 

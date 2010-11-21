@@ -36,7 +36,7 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
     {
         float dist = creature.GetDistance(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
         float angle = creature.GetAngle(m_path[m_end].x, m_path[m_end].y);
-        bool outdoor = creature.GetMap()->IsOutdoors(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
+        bool outdoor = creature.GetTerrain()->IsOutdoors(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
         float x, y, z;
         creature.GetPosition(x, y, z);
         float itr = 1;

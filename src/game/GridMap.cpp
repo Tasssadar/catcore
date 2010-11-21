@@ -655,8 +655,8 @@ TerrainInfo::~TerrainInfo()
 
 GridMap * TerrainInfo::Load(const uint32 x, const uint32 y)
 {
-    MANGOS_ASSERT(x < MAX_NUMBER_OF_GRIDS);
-    MANGOS_ASSERT(y < MAX_NUMBER_OF_GRIDS);
+    ASSERT(x < MAX_NUMBER_OF_GRIDS);
+    ASSERT(y < MAX_NUMBER_OF_GRIDS);
 
     //reference grid as a first step
     RefGrid(x, y);
@@ -672,8 +672,8 @@ GridMap * TerrainInfo::Load(const uint32 x, const uint32 y)
 //schedule lazy GridMap object cleanup
 void TerrainInfo::Unload(const uint32 x, const uint32 y)
 {
-    MANGOS_ASSERT(x < MAX_NUMBER_OF_GRIDS);
-    MANGOS_ASSERT(y < MAX_NUMBER_OF_GRIDS);
+    ASSERT(x < MAX_NUMBER_OF_GRIDS);
+    ASSERT(y < MAX_NUMBER_OF_GRIDS);
 
     if(m_GridMaps[x][y])
     {
@@ -723,8 +723,8 @@ void TerrainInfo::CleanUpGrids(const uint32 diff)
 
 int TerrainInfo::RefGrid(const uint32& x, const uint32& y)
 {
-    MANGOS_ASSERT(x < MAX_NUMBER_OF_GRIDS);
-    MANGOS_ASSERT(y < MAX_NUMBER_OF_GRIDS);
+    ASSERT(x < MAX_NUMBER_OF_GRIDS);
+    ASSERT(y < MAX_NUMBER_OF_GRIDS);
 
     LOCK_GUARD _lock(m_refMutex);
     return (m_GridRef[x][y] += 1);
@@ -732,8 +732,8 @@ int TerrainInfo::RefGrid(const uint32& x, const uint32& y)
 
 int TerrainInfo::UnrefGrid(const uint32& x, const uint32& y)
 {
-    MANGOS_ASSERT(x < MAX_NUMBER_OF_GRIDS);
-    MANGOS_ASSERT(y < MAX_NUMBER_OF_GRIDS);
+    ASSERT(x < MAX_NUMBER_OF_GRIDS);
+    ASSERT(y < MAX_NUMBER_OF_GRIDS);
 
     int16& iRef = m_GridRef[x][y];
 
@@ -1129,7 +1129,11 @@ float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= N
 
 bool TerrainInfo::VmapLoaded(float x, float y) const
 {
-    return m_GridMaps[x][y]->ExistVMap(m_mapId, x, y);
+    GridPair p = MaNGOS::ComputeGridPair(x, y);
+
+    int gx=63-p.x_coord;
+    int gy=63-p.y_coord;
+    return GridMap::ExistVMap(m_mapId,gx,gy); 
 }
 
 //////////////////////////////////////////////////////////////////////////

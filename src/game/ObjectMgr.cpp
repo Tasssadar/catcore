@@ -3588,6 +3588,7 @@ void ObjectMgr::LoadGroups()
             count++;
 
             uint32 memberGuidlow = fields[0].GetUInt32();
+            ObjectGuid memberGuid = ObjectGuid(HIGHGUID_PLAYER, memberGuidlow);
             bool   assistent     = fields[1].GetBool();
             uint8  subgroup      = fields[2].GetUInt8();
             uint32 groupId       = fields[3].GetUInt32();

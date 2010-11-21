@@ -63,6 +63,7 @@
 #include "Mail.h"
 #include "GameEventMgr.h"
 #include "LfgMgr.h"
+#include "ItemPrototype.h"
 
 #include <cmath>
 
@@ -10011,13 +10012,6 @@ uint8 Player::_CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, uint3
     if (pItem)
     {
         // item used
-        if (pItem->HasTemporaryLoot())
-        {
-            if (no_space_count)
-                *no_space_count = count;
-            return EQUIP_ERR_ALREADY_LOOTED;
-        }
-
         if (pItem->IsBindedNotWith(this))
         {
             if (no_space_count)
@@ -10505,10 +10499,6 @@ uint8 Player::CanStoreItems( Item **pItems,int count) const
         if (!pProto)
             return EQUIP_ERR_ITEM_NOT_FOUND;
 
-        // item used
-        if (pItem->HasTemporaryLoot())
-            return EQUIP_ERR_ALREADY_LOOTED;
-
         // item it 'bind'
         if (pItem->IsBindedNotWith(this))
             return EQUIP_ERR_DONT_OWN_THAT_ITEM;
@@ -10712,9 +10702,6 @@ uint8 Player::CanEquipItem( uint8 slot, uint16 &dest, Item *pItem, bool swap, bo
         ItemPrototype const *pProto = pItem->GetProto();
         if (pProto)
         {
-            // item used
-            if (pItem->HasTemporaryLoot())
-                return EQUIP_ERR_ALREADY_LOOTED;
 
             if (pItem->IsBindedNotWith(this))
                 return EQUIP_ERR_DONT_OWN_THAT_ITEM;
@@ -10859,10 +10846,6 @@ uint8 Player::CanUnequipItem( uint16 pos, bool swap ) const
     if ( !pProto )
         return EQUIP_ERR_ITEM_NOT_FOUND;
 
-    // item used
-    if (pItem->HasTemporaryLoot())
-        return EQUIP_ERR_ALREADY_LOOTED;
-
     // do not allow unequipping gear except weapons, offhands, projectiles, relics in
     // - combat
     // - in-progress arenas
@@ -10893,10 +10876,6 @@ uint8 Player::CanBankItem( uint8 bag, uint8 slot, ItemPosCountVec &dest, Item *p
     ItemPrototype const *pProto = pItem->GetProto();
     if (!pProto)
         return swap ? EQUIP_ERR_ITEMS_CANT_BE_SWAPPED : EQUIP_ERR_ITEM_NOT_FOUND;
-
-    // item used
-    if (pItem->HasTemporaryLoot())
-        return EQUIP_ERR_ALREADY_LOOTED;
 
     if (pItem->IsBindedNotWith(this))
         return EQUIP_ERR_DONT_OWN_THAT_ITEM;
@@ -11123,7 +11102,7 @@ uint8 Player::CanUseItem( Item *pItem, bool not_loading ) const
             }
 
             // reputation for BOA items checked only at buy/quest rewarding (quest accepting in fact by quest rep requirements)
-            if (!(pProto->Flags & ITEM_FLAG_BOA) && pProto->RequiredReputationFaction &&
+            if (!(pProto->Flags & ITEM_FLAGS_BOA) && pProto->RequiredReputationFaction &&
                 uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
                 return EQUIP_ERR_CANT_EQUIP_REPUTATION;
 
@@ -14069,7 +14048,7 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         if (bg->GetTypeID(true) == BATTLEGROUND_AV)
             ((BattleGroundAV*)bg)->HandleQuestComplete(pQuest->GetQuestId(), this);
 
-    std::list<Item*> problematicItems;s
+    std::list<Item*> problematicItems;
     if (pQuest->GetRewChoiceItemsCount() > 0)
     {
         if (uint32 itemId = pQuest->RewChoiceItemId[reward])

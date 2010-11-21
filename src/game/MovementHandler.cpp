@@ -74,7 +74,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
 
     // mount allow check, must be before SendInitialPacketsBeforeAddToMap()
-    if (!GetPlayer()->GetMap()->IsOutdoors(loc.coord_x, loc.coord_y, loc.coord_z))
+    if (!GetPlayer()->GetTerrain()->IsOutdoors(loc.coord_x, loc.coord_y, loc.coord_z))
     {
         _player->RemoveSpellsCausingAura(SPELL_AURA_FLY);
         _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);

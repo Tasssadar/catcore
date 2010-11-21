@@ -91,7 +91,7 @@ void MapManager::InitializeVisibilityDistanceInfo()
 
 Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
 {
-    MANGOS_ASSERT(obj);
+    ASSERT(obj);
     //if(!obj->IsInWorld()) sLog.outError("GetMap: called for map %d with object (typeid %d, guid %d, mapid %d, instanceid %d) who is not in world!", id, obj->GetTypeId(), obj->GetGUIDLow(), obj->GetMapId(), obj->GetInstanceId());
     Guard _guard(*this);
     
@@ -102,7 +102,7 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
 
     if(entry->Instanceable())
     {
-        MANGOS_ASSERT(obj->GetTypeId() == TYPEID_PLAYER);
+        ASSERT(obj->GetTypeId() == TYPEID_PLAYER);
         //create InstanceMap object
         if(obj->GetTypeId() == TYPEID_PLAYER)
             m = CreateInstance(id, (Player*)obj);
@@ -278,7 +278,7 @@ MapManager::Update(uint32 diff)
         (*iter)->Update(i_timer.GetCurrent());
 
     //remove all maps which can be unloaded
-    MapMapType::iterator iter = i_maps.begin();
+    iter = i_maps.begin();
     while(iter != i_maps.end())
     {
         Map * pMap = iter->second;
@@ -375,14 +375,14 @@ Map* MapManager::CreateInstance(uint32 id, Player * player)
     {
         // find existing bg map for player
         NewInstanceId = player->GetBattleGroundId();
-        MANGOS_ASSERT(NewInstanceId);
+        ASSERT(NewInstanceId);
         map = FindMap(id, NewInstanceId);
-        MANGOS_ASSERT(map);
+        ASSERT(map);
     }
     else if (InstanceSave* pSave = player->GetBoundInstanceSaveForSelfOrGroup(id))
     {
         // solo/perm/group
-        NewInstanceId = pSave->GetInstanceId();
+        NewInstanceId = pSave->GetGUID();
         map = FindMap(id, NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)
@@ -414,12 +414,12 @@ InstanceMap* MapManager::CreateInstanceMap(uint32 id, uint32 InstanceId, Difficu
     if (!sMapStore.LookupEntry(id))
     {
         sLog.outError("CreateInstanceMap: no entry for map %d", id);
-        MANGOS_ASSERT(false);
+        ASSERT(false);
     }
     if (!ObjectMgr::GetInstanceTemplate(id))
     {
         sLog.outError("CreateInstanceMap: no instance template for map %d", id);
-        MANGOS_ASSERT(false);
+        ASSERT(false);
     }
 
     // some instances only have one difficulty
@@ -429,7 +429,7 @@ InstanceMap* MapManager::CreateInstanceMap(uint32 id, uint32 InstanceId, Difficu
     DEBUG_LOG("MapInstanced::CreateInstanceMap: %s map instance %d for %d created with difficulty %d", save?"":"new ", InstanceId, id, difficulty);
 
     InstanceMap *map = new InstanceMap(id, i_gridCleanUpDelay, InstanceId, difficulty);
-    MANGOS_ASSERT(map->IsDungeon());
+    ASSERT(map->IsDungeon());
 
     bool load_data = save != NULL;
     map->CreateInstanceData(load_data);
@@ -446,7 +446,7 @@ BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId,
     uint8 spawnMode = bracketEntry ? bracketEntry->difficulty : REGULAR_DIFFICULTY;
 
     BattleGroundMap *map = new BattleGroundMap(id, i_gridCleanUpDelay, InstanceId, spawnMode);
-    MANGOS_ASSERT(map->IsBattleGroundOrArena());
+    ASSERT(map->IsBattleGroundOrArena());
     map->SetBG(bg);
     bg->SetBgMap(map);
 

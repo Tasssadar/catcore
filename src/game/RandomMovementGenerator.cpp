@@ -31,7 +31,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
 
     creature.GetRespawnCoord(X, Y, Z, &ori, &wander_distance);
 
-    t = creature.GetPositionZ();
+    Z = creature.GetPositionZ();
     TerrainInfo const* map = creature.GetTerrain();
 
     // For 2D/3D system selection
@@ -59,7 +59,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
         const float distanceZ = rand_norm_f() * sqrtf(dist)/2.0f;
         nz = Z + distanceZ;
         float tz = map->GetHeight(nx, ny, nz-2.0f, false);  // Map check only, vmap needed here but need to alter vmaps checks for height.
-        float wz = map->GetWaterLevel(nx, ny);
+        float wz = map->GetWaterLevel(nx, ny, nz);
 
         // Problem here, we must fly above the ground and water, not under. Let's try on next tick
         if (tz >= nz || wz >= nz)
@@ -69,7 +69,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     else                                                    // 2D only
     {
         nz = Z;
-        if (!map->IsNextZcoordOK(nx, ny, nz, dist))
+        if (!creature.GetMap()->IsNextZcoordOK(nx, ny, nz, dist))
             return;                                         // let's forget this bad coords where a z cannot be find and retry at next tick
         creature.UpdateGroundPositionZ(nx, ny, nz, dist);
     }

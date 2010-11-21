@@ -56,7 +56,6 @@ int32 ReputationMgr::GetBaseReputation(FactionEntry const* factionEntry) const
 
     uint32 raceMask = m_player->getRaceMask();
     uint32 classMask = m_player->getClassMask();
-    }
 
     int idx = factionEntry->GetIndexFitTo(raceMask, classMask);
 

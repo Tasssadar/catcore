@@ -44,7 +44,7 @@ inline int CellHelper(const float radius)
 
 inline CellArea Cell::CalculateCellArea(float x, float y, float radius)
 {
-    if (radius <= 0.0f || !obj.IsInWorld())
+    if (radius <= 0.0f)
         return CellArea();
 
     return CellArea

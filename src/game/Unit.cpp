@@ -2899,9 +2899,9 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst (const Unit *pVictim, WeaponAttack
 
     // Max 40% chance to score a glancing blow against mobs that are higher level (can do only players and pets and not with ranged weapon)
     if( attType != RANGED_ATTACK &&
-        (GetTypeId() == TYPEID_PLAYER || ((Creature*)this)->IsPet()) &&
-        pVictim->GetTypeId() != TYPEID_PLAYER && !((Creature*)pVictim)->IsPet() &&
-        getLevel() < pVictim->GetLevelForTarget(this) )
+        (GetTypeId() == TYPEID_PLAYER || ((Creature*)this)->isPet()) &&
+        pVictim->GetTypeId() != TYPEID_PLAYER && !((Creature*)pVictim)->isPet() &&
+        getLevel() < pVictim->getLevelForTarget(this) )
     {
         // cap possible value (with bonuses > max skill)
         int32 skill = attackerWeaponSkill;
@@ -15856,7 +15856,10 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         fy += dis * vsin;
  
         bool outdoor = GetTerrain()->IsOutdoors(fx, fy, fz);
-        UpdateGroundPositionZ(fx, fy, fz, outdoor ? 20.0f : 3.0f);
+        float tmpZ = fz+dis;
+        UpdateGroundPositionZ(fx, fy, tmpZ, dis*2);
+        if(tmpZ != fz+dis)
+           fz = tmpZ;
 
         // Try to find ground bellow
         float ground2 = GetTerrain()->GetHeight(fx, fy, fz-2.1f, true);
@@ -16424,7 +16427,7 @@ bool Unit::IsAllowedDamageInArea(Unit* pVictim) const
         return true;
 
     // can damage own pet anywhere
-    if (pVictim->GetOwnerGuid() == GetObjectGuid())
+    if (pVictim->GetOwnerGUID() == GetGUID())
         return true;
 
     // can damage non player controlled victim anywhere
@@ -16652,7 +16655,7 @@ void Unit::InitializeMovementFlags()
     }
 
     // Flying or swimming
-    bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
+    bool swimming = (creature->canSwim() && GetTerrain()->IsInWater(cx, cy, cz));
     if(swimming || (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz))))
     {
         m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
@@ -16679,7 +16682,7 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
         GetPosition(cx, cy, cz);
 
         // Flying or swimming
-        bool swimming = (creature->canSwim() && GetMap()->IsInWater(cx, cy, cz));
+        bool swimming = (creature->canSwim() && GetTerrain()->IsInWater(cx, cy, cz));
         bool fly = (creature->canFly() && (!creature->canWalk() || !IsAtGroundLevel(cx, cy, cz)));
         if(swimming || fly)
         {
@@ -16737,10 +16740,10 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z)
         {
             if(x != 0 && y != 0 && z != 0)
             {
-                if(!fly && !swimming)
-                    creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                else
-                    creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+             //   if(!fly && !swimming)
+       //             creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
+           //     else
+         //           creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
                 if(HasInArc(M_PI_F, x, y))
                 {

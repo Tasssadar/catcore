@@ -61,12 +61,6 @@ Map::~Map()
     if(m_TerrainData->Release())
         sTerrainMgr.UnloadTerrain(m_TerrainData->GetMapId());
 
-    if (m_navMesh)
-    {
-        dtFreeNavMesh(m_navMesh);
-        m_navMesh = NULL;
-    }
-
     if(m_instanceSave)
         m_instanceSave->SetUsedByMapState(false);
 }
@@ -79,9 +73,6 @@ void Map::LoadMapAndVMap(int gx,int gy)
     GridMap * pInfo = m_TerrainData->Load(gx, gy);
     if(pInfo)
         m_bLoadedGrids[gx][gy] = true;
-
-    if(i_InstanceId == 0)
-        LoadNavMesh(gx,gy);
 }
 
 Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
@@ -89,8 +80,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
   i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
   m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_instanceSave(NULL),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
-  i_gridExpiry(expiry), m_parentMap(_parent ? _parent : this),
-  m_navMesh(NULL), m_TerrainData(sTerrainMgr.LoadTerrain(id))
+  i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id))
 {
     for(unsigned int j=0; j < MAX_NUMBER_OF_GRIDS; ++j)
     {
@@ -924,7 +914,6 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
     {
         m_bLoadedGrids[gx][gy] = false;
         m_TerrainData->Unload(gx, gy);
-        UnloadNavMesh(gx, gy);
     }
 
     DEBUG_LOG("Unloading grid[%u,%u] for map %u finished", x,y, i_id);

@@ -39,7 +39,7 @@ PathInfo::PathInfo(const Unit* owner, const float destX, const float destY, cons
 
     const TerrainInfo* terrain = m_sourceUnit->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
-        m_navMesh = terrain->GetNavMesh();
+        m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
 
     if (m_navMesh)
     {

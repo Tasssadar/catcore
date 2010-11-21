@@ -429,6 +429,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool isTotem() const { return m_subtype == CREATURE_SUBTYPE_TOTEM; }
         bool isTemporarySummon() const { return m_subtype == CREATURE_SUBTYPE_TEMPORARY_SUMMON; }
 
+        bool IsCorpse() const { return ((Creature*)this)->getDeathState() ==  CORPSE; }
+        bool IsDespawned() const { return ((Creature*)this)->getDeathState() ==  DEAD; }
         void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
         bool isRacialLeader() const { return GetCreatureInfo()->RacialLeader; }
         bool isCivilian() const { return GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_CIVILIAN; }

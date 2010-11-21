@@ -537,7 +537,7 @@ void Creature::Update(uint32 diff)
                 RegenerateHealth();
             break;
         }
-        case DEAD_FALLING:
+        case CORPSE_FALLING:
         {
             setDeathState(JUST_DIED);
         }
@@ -1387,7 +1387,7 @@ bool Creature::FallGround()
     if (fabs(GetPositionZ() - tz) < 0.1f)
         return false;
 
-    Unit::setDeathState(DEAD_FALLING);
+    Unit::setDeathState(CORPSE_FALLING);
     float dz = tz - GetPositionZ();
     float distance = sqrt(dz*dz);
 

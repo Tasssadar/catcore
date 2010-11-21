@@ -417,7 +417,7 @@ void WorldSession::LogoutPlayer(bool Save)
 
         // remove player from the group if he is:
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
-        if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && !player->GetGroup()->isLfgGroup() && m_Socket)
+        if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && !_player->GetGroup()->isLfgGroup() && m_Socket)
             _player->RemoveFromGroup();
 
         ///- Send update to group

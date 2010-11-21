@@ -26,7 +26,6 @@
 #include "CellImpl.h"
 #include "Map.h"
 #include "MapManager.h"
-#include "MapInstanced.h"
 #include "InstanceSaveMgr.h"
 #include "Timer.h"
 #include "GridNotifiersImpl.h"

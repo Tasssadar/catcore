@@ -261,16 +261,26 @@ class MANGOS_DLL_SPEC AchievementMgr
         void CompletedAchievement(AchievementEntry const* entry);
         Player* GetPlayer() { return m_player;}
 
+        CompletedAchievementData const* GetCompleteData(uint32 achievement_id) const
+        {
+            CompletedAchievementMap::const_iterator itr = m_completedAchievements.find(achievement_id);
+            return itr != m_completedAchievements.end() ? &itr->second : NULL;
+        }
+
+        bool HasAchievement(uint32 achievement_id) const { return GetCompleteData(achievement_id) != NULL; }
+        static uint32 GetCriteriaProgressMaxCounter(AchievementCriteriaEntry const* entry);
+
     private:
         enum ProgressType { PROGRESS_SET, PROGRESS_ACCUMULATE, PROGRESS_HIGHEST };
         void SendAchievementEarned(AchievementEntry const* achievement);
         void SendCriteriaUpdate(uint32 id, CriteriaProgress const* progress);
-        void SetCriteriaProgress(AchievementCriteriaEntry const* entry, uint32 changeValue, ProgressType ptype = PROGRESS_SET);
+        void SetCriteriaProgress(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement, uint32 changeValue, ProgressType ptype = PROGRESS_SET);
         void CompletedCriteriaFor(AchievementEntry const* achievement);
         bool IsCompletedCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement);
         bool IsCompletedAchievement(AchievementEntry const* entry);
         void CompleteAchievementsWithRefs(AchievementEntry const* entry);
         void BuildAllDataPacket(WorldPacket *data);
+        void IncompletedAchievement(AchievementEntry const* entry);
 
         Player* m_player;
         CriteriaProgressMap m_criteriaProgress;

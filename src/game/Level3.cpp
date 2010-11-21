@@ -6661,6 +6661,8 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
         PSendSysMessage("Pathfinding is disabled!");
         return true;
     }
+//FIXME
+/*
     PSendSysMessage("Calculating..");
     MapEntry const *mapEntry = NULL;
     Map const *map = NULL;
@@ -6693,4 +6695,5 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     PSendSysMessage("Navmesh loaded on %u maps.", totalMaps);
     PSendSysMessage("Total of %u tiles loaded", tileCount);
     PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
+*/
 }

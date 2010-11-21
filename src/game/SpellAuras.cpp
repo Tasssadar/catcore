@@ -2206,18 +2206,6 @@ void Aura::TriggerSpell()
                 triggerTarget->CastCustomSpell(triggerTarget, trigger_spell_id, &mana, NULL, NULL, true, NULL, this);
                 return;
             }
-<<<<<<< HEAD
-        }
-    }
-
-    // some triggered spells require specific equipment
-    if (triggeredSpellInfo && triggeredSpellInfo->EquippedItemClass >=0 && triggerTarget->GetTypeId()==TYPEID_PLAYER)
-    {
-        // main hand weapon required
-        if (triggeredSpellInfo && triggeredSpellInfo->AttributesEx3 & SPELL_ATTR_EX3_MAIN_HAND)
-        {
-            Item* item = ((Player*)triggerTarget)->GetWeaponForAttack(BASE_ATTACK, true, false);
-=======
             case 51405:                                     // Digging for Treasure
             {
                 const uint32 spell_list[7] =
@@ -2244,7 +2232,18 @@ void Aura::TriggerSpell()
                     if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                         pCaster->CastSpell(target, 51872, true, NULL, this);
                 }
->>>>>>> 1215b2e... [10723] Add dummy aura effect of 51405 and dummy effect of 51420
+             }
+        }
+    }
+
+    // some triggered spells require specific equipment
+    if (triggeredSpellInfo && triggeredSpellInfo->EquippedItemClass >=0 && triggerTarget->GetTypeId()==TYPEID_PLAYER)
+    {
+        // main hand weapon required
+        if (triggeredSpellInfo && triggeredSpellInfo->AttributesEx3 & SPELL_ATTR_EX3_MAIN_HAND)
+        {
+            Item* item = ((Player*)triggerTarget)->GetWeaponForAttack(BASE_ATTACK, true, false);
+
 
             // skip spell if no weapon in slot or broken
             if (!item)
