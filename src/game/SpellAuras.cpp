@@ -1838,6 +1838,20 @@ void Aura::TriggerSpell()
                         triggerTarget->CastCustomSpell(triggerTarget, 29879, &bpDamage, NULL, NULL, true, NULL, this, casterGUID);
                         return;
                     }
+                    case 51405:                             // Digging for Treasure
+                    {
+                        target->HandleEmote(EMOTE_STATE_WORK);
+                        // Pet will be following owner, this makes him stop
+                        target->addUnitState(UNIT_STAT_STUNNED);
+                        return;
+                    }
+                    case 62061:                             // Festive Holiday Mount
+                    {
+                        if (target->HasAuraType(SPELL_AURA_MOUNTED))
+                            // Reindeer Transformation
+                            target->CastSpell(target, 25860, true, NULL, this);
+                        return;
+                    }
                     // Inoculate Nestlewood Owlkin
                     case 29528:
                         if (triggerTarget->GetTypeId() != TYPEID_UNIT)// prevent error reports in case ignored player target
@@ -2192,6 +2206,7 @@ void Aura::TriggerSpell()
                 triggerTarget->CastCustomSpell(triggerTarget, trigger_spell_id, &mana, NULL, NULL, true, NULL, this);
                 return;
             }
+<<<<<<< HEAD
         }
     }
 
@@ -2202,6 +2217,34 @@ void Aura::TriggerSpell()
         if (triggeredSpellInfo && triggeredSpellInfo->AttributesEx3 & SPELL_ATTR_EX3_MAIN_HAND)
         {
             Item* item = ((Player*)triggerTarget)->GetWeaponForAttack(BASE_ATTACK, true, false);
+=======
+            case 51405:                                     // Digging for Treasure
+            {
+                const uint32 spell_list[7] =
+                {
+                    51441,                                  // hare
+                    51397,                                  // crystal
+                    51398,                                  // armor
+                    51400,                                  // gem
+                    51401,                                  // platter
+                    51402,                                  // treasure
+                    51443                                   // bug
+                };
+
+                target->CastSpell(target, spell_list[urand(0,6)], true);
+
+                target->HandleEmote(EMOTE_STATE_NONE);
+                target->clearUnitState(UNIT_STAT_STUNNED);
+                return;
+            }
+            case 51870:                                     // Collect Hair Sample
+            {
+                if (Unit* pCaster = GetCaster())
+                {
+                    if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                        pCaster->CastSpell(target, 51872, true, NULL, this);
+                }
+>>>>>>> 1215b2e... [10723] Add dummy aura effect of 51405 and dummy effect of 51420
 
             // skip spell if no weapon in slot or broken
             if (!item)
@@ -2341,11 +2384,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         return;
                     case 48025:                             // Headless Horseman's Mount
                         Spell::SelectMountByAreaAndSkill(target, 51621, 48024, 51617, 48023, 0);
-                        return;
-                    case 62061:                             // Festive Holiday Mount
-                        if (target->HasAuraType(SPELL_AURA_MOUNTED))
-                            // Reindeer Transformation
-                            target->CastSpell(target, 25860, true, NULL, this);
                         return;
                     case 63322:
                     {
