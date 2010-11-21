@@ -124,20 +124,6 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
     return m;
 }
 
-Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
-{
-    ASSERT(obj);
-    //if (!obj->IsInWorld()) sLog.outError("GetMap: called for map %d with object (typeid %d, guid %d, mapid %d, instanceid %d) who is not in world!", id, obj->GetTypeId(), obj->GetGUIDLow(), obj->GetMapId(), obj->GetInstanceId());
-    Map *m = _createBaseMap(id);
-
-    if (m && (obj->GetTypeId() == TYPEID_PLAYER) && m->Instanceable())
-        m = ((MapInstanced*)m)->CreateInstance((Player*)obj);
-
-=======
->>>>>>> ff5232c... [10727] Map system re-engineered. Special thanks to Blueboy for tests.
-    return m;
-}
-
 Map* MapManager::CreateBgMap(uint32 mapid, BattleGround* bg)
 {
     TerrainInfo * pData = sTerrainMgr.LoadTerrain(mapid);
