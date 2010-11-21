@@ -240,6 +240,7 @@ public:
     bool GetAreaInfo(float x, float y, float z, uint32 &mogpflags, int32 &adtId, int32 &rootId, int32 &groupId) const;
     bool IsOutdoors(float x, float y, float z) const;
 
+    bool VmapLoaded(float x, float y) const;
 
     //this method should be used only by TerrainManager
     //to cleanup unreferenced GridMap objects - they are too heavy
@@ -287,8 +288,6 @@ private:
     void UnloadNavMesh(int gx, int gy);
     dtNavMesh* m_navMesh;
     UNORDERED_MAP<uint32, dtTileRef> m_mmapLoadedTiles;    // maps [map grid coords] to [dtTile]
-
-    static std::set<uint32> s_mmapDisabledIds;      // stores list of mapids which do not use pathfinding
     // end movemap-related
 };
 

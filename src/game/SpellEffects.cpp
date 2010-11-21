@@ -7892,7 +7892,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         bool useVmap = false;
         bool swapZone = true;
 
-        if ( unitTarget->GetMap()->GetHeight(cx, cy, cz, false) <  unitTarget->GetMap()->GetHeight(cx, cy, cz, true) )
+        if ( unitTarget->GetTerrain()->GetHeight(cx, cy, cz, false) <  unitTarget->GetTerrain()->GetHeight(cx, cy, cz, true) )
             useVmap = true;
 
         const int itr = int(dis/0.5f);
@@ -7902,9 +7902,9 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         dy = cy;
 
         bool checkZ = true;
-        if(unitTarget->GetBaseMap()->GetVmapLoadResult() != VMAP::VMAP_LOAD_RESULT_OK)
+        if(!unitTarget->GetTerrain()->VmapLoaded(cx, cy))
         {
-            float tmpZ = unitTarget->GetBaseMap()->GetHeight(cx, cy, cz, false);
+            float tmpZ = unitTarget->GetTerrain()->GetHeight(cx, cy, cz, false);
             // If no height aviable, return :/
             if(tmpZ <= INVALID_HEIGHT || fabs(tmpZ - cz) > 1)
             {

@@ -15855,11 +15855,11 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         fx += dis * vcos;
         fy += dis * vsin;
  
-        bool outdoor = GetBaseMap()->IsOutdoors(fx, fy, fz);
+        bool outdoor = GetTerrain()->IsOutdoors(fx, fy, fz);
         UpdateGroundPositionZ(fx, fy, fz, outdoor ? 20.0f : 3.0f);
 
         // Try to find ground bellow
-        float ground2 = GetBaseMap()->GetHeight(fx, fy, fz-2.1f, true);
+        float ground2 = GetTerrain()->GetHeight(fx, fy, fz-2.1f, true);
         if(ground2 > INVALID_HEIGHT && fabs(ground2 - fz) > 2.0f)
             fz = ground2;
 
@@ -16552,17 +16552,17 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     float cx, cy, cz;
     GetPosition(cx, cy, cz);
 
-    if(GetBaseMap()->GetVmapLoadResult() != VMAP::VMAP_LOAD_RESULT_OK)
+    if(!GetTerrain()->VmapLoaded(cx, cy))
     {
-        float tmpZ = GetBaseMap()->GetHeight(cx, cy, cz, false);
-        float tmpZt = GetBaseMap()->GetHeight(x, y, z, false);
+        float tmpZ = GetTerrain()->GetHeight(cx, cy, cz, false);
+        float tmpZt = GetTerrain()->GetHeight(x, y, z, false);
         // If no height aviable, return :/
         if(tmpZ <= INVALID_HEIGHT || tmpZt <= INVALID_HEIGHT || 
             fabs(tmpZ - cz) > 1 || fabs(tmpZt - z) > 1)
             return true;
     }
 
-    if (!GetBaseMap()->IsNextZcoordOK(x, y, z, maxDiff))
+    if (!GetMap()->IsNextZcoordOK(x, y, z, maxDiff))
         return false;
 
     // No need to check further
@@ -16602,8 +16602,8 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
             ty = y;
             tz = z;
         }
-        float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
-        float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
+        float groundT = GetTerrain()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
+        float groundC = GetTerrain()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
 
         // Cant check if target or caster is in air
         if(groundT <= INVALID_HEIGHT || fabs(groundT - tz) > 1.0f || groundC <= INVALID_HEIGHT || fabs(groundC - cz) > 1.0f)

@@ -1127,6 +1127,11 @@ float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= N
     return VMAP_INVALID_HEIGHT_VALUE;
 }
 
+bool TerrainInfo::VmapLoaded(float x, float y) const
+{
+    return m_GridMaps[x][y]->ExistVMap(m_mapId, x, y);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<TerrainManager, ACE_Thread_Mutex>
