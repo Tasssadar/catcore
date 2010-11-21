@@ -16549,25 +16549,6 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     if (!GetBaseMap()->IsNextZcoordOK(x, y, z, maxDiff))
         return false;
 
-    // Try to find two grounds...
-    if(maxElev && fabs(z - cz) > 5.0f)
-    {
-        float tx,ty,tz;
-        if(target)
-            target->GetPosition(tx,ty,tz);
-        else
-        {
-            tx = x;
-            ty = y;
-            tz = z;
-        }
-        float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
-        float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
-        //if(groundC > INVALID_HEIGHT && !m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR))))
-        //    return false;
-        if(groundT > INVALID_HEIGHT && groundC > INVALID_HEIGHT && fabs(groundT - groundC) > 3.0f && groundT > groundC)
-            return false;
-    }
     // No need to check further
     if(maxElev == 0.0f)
         return true;
@@ -16592,6 +16573,29 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         ++dist;
     }
     while(dist < distance);
+
+    // Try to find two grounds...
+    if(fabs(z - cz) > 5.0f)
+    {
+        float tx,ty,tz;
+        if(target)
+            target->GetPosition(tx,ty,tz);
+        else
+        {
+            tx = x;
+            ty = y;
+            tz = z;
+        }
+        float groundT = GetBaseMap()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
+        float groundC = GetBaseMap()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
+
+        // Cant check if target or caster is in air
+        if(groundT <= INVALID_HEIGHT || fabs(groundT - tz) > 1.0f || groundC <= INVALID_HEIGHT || fabs(groundC - cz) > 1.0f)
+            return true;
+
+        if(fabs(groundT - groundC) > 3.0f && groundT > groundC)
+            return false;
+    }
 
     return true;
 }
