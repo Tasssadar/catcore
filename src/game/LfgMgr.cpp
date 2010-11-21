@@ -169,9 +169,6 @@ void LfgMgr::AddToQueue(Player *player, bool updateQueue)
             LfgLog("Player %u cant join lfg because he is queued in %u!", player->GetGUID(), IsPlayerInQueue(player->GetGUID()));
             return;
         }
-
-        SendJoinResult(player, LFG_JOIN_OK);
-        SendLfgUpdatePlayer(player, LFG_UPDATETYPE_JOIN_PROPOSAL);
         
         for (LfgDungeonList::const_iterator it = player->m_lookingForGroup.queuedDungeons.begin(); it != player->m_lookingForGroup.queuedDungeons.end(); ++it)
         {
@@ -179,6 +176,9 @@ void LfgMgr::AddToQueue(Player *player, bool updateQueue)
             queue->second->players.insert(player->GetGUID());
             m_queuedPlayers.insert(std::make_pair<uint64, uint32>(player->GetGUID(), (*it)->ID));
         }
+
+        SendJoinResult(player, LFG_JOIN_OK);
+        SendLfgUpdatePlayer(player, LFG_UPDATETYPE_JOIN_PROPOSAL);
     }
     if (sWorld.getConfig(CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE) && updateQueue)
         UpdateQueue(side);
@@ -210,25 +210,25 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
             uint64 guid = 0;
             if(!lfgGroup->GetPremadePlayers()->empty())
             {
-            for(PlayerList::iterator plritr = lfgGroup->GetPremadePlayers()->begin(); plritr != lfgGroup->GetPremadePlayers()->end(); ++plritr)
-            {
-                guid = *plritr;
-                if(!group->isLfgGroup())
+                for(PlayerList::iterator plritr = lfgGroup->GetPremadePlayers()->begin(); plritr != lfgGroup->GetPremadePlayers()->end(); ++plritr)
                 {
-                    LfgLog("Remove member - remove from queue if join as not lfg party");
-                    lfgGroup->RemoveMember(guid, 0);
-                    m_queuedPlayers.erase(guid);
-                }
-                Player *member = sObjectMgr.GetPlayer(guid);
-                if (member && member->GetSession())
-                {
-                    SendLfgUpdateParty(member, LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
-                    SendLfgUpdatePlayer(member, LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
+                    guid = *plritr;
                     if(!group->isLfgGroup())
-                        member->m_lookingForGroup.groups.clear();
-                    member->m_lookingForGroup.queuedDungeons.clear();
+                    {
+                        LfgLog("Remove member - remove from queue if join as not lfg party");
+                        lfgGroup->RemoveMember(guid, 0);
+                        m_queuedPlayers.erase(guid);
+                    }
+                    Player *member = sObjectMgr.GetPlayer(guid);
+                    if (member && member->GetSession())
+                    {
+                        SendLfgUpdateParty(member, LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
+                        SendLfgUpdatePlayer(member, LFG_UPDATETYPE_REMOVED_FROM_QUEUE);
+                        if(!group->isLfgGroup())
+                            member->m_lookingForGroup.groups.clear();
+                        member->m_lookingForGroup.queuedDungeons.clear();
+                    }
                 }
-            }
             }
             Group::member_citerator mitr, mitr_next;
             for(mitr = lfgGroup->GetMemberSlots().begin(); mitr != lfgGroup->GetMemberSlots().end(); mitr = mitr_next)
@@ -254,8 +254,9 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
             }
             if (itr->second->groups.empty() && itr->second->players.empty())
             {
+                LfgLog("Erasing queue, leave group");
                 delete itr->second;
-                m_queuedDungeons[side].erase(itr);
+                m_queuedDungeons[side].erase(itr->first);
             }
         }
     }
@@ -295,7 +296,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
             if (itr->second->groups.empty() && itr->second->players.empty())
             {
                 delete itr->second;
-                m_queuedDungeons[side].erase(itr);
+                m_queuedDungeons[side].erase(itr->first);
             }
         }
         player->m_lookingForGroup.queuedDungeons.clear();
@@ -359,6 +360,16 @@ void LfgMgr::UpdateQueue(uint8 side)
         for(GroupsList::iterator offitr = itr->second->groups.begin(); offitr != itr->second->groups.end(); ++offitr)
             (*offitr)->RemoveOfflinePlayers();
         DeleteGroups();
+
+        // Deleted in progress, from other thread maybe
+        if(!itr->second->dungeonInfo)
+        {
+            // not needed...I think
+            //m_queuedDungeons[side].erase(itr->first);
+            //itr = m_queuedDungeons[side].begin();
+            LfgLog("Invalid queue %u", itr->first);
+            continue;
+        }
 
         //Try to merge groups
         MergeGroups(&itr->second->groups, itr->second->dungeonInfo, side);
@@ -485,7 +496,8 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
             Group::member_citerator citr, citr_next;
            
             tmpRoles.Reset();
-            tmpRoles.dps = *(*grpitr1)->GetDps();
+            for(PlayerList::iterator dpsitr = (*grpitr1)->GetDps()->begin(); dpsitr != (*grpitr1)->GetDps()->end(); ++dpsitr)
+                tmpRoles.dps.insert(*dpsitr);
             tmpRoles.tank = (*grpitr1)->GetTank();
             tmpRoles.heal = (*grpitr1)->GetHeal();
             PlayerGroup.clear();
@@ -520,12 +532,12 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
             if((*grpitr1)->GetPlayerRole(citr->guid, false) != DAMAGE || role == DAMAGE)
                 continue;                  
 
-            if(role & TANK && !(*grpitr1)->GetTank())
+            if((role & TANK) && !(*grpitr1)->GetTank())
             {
                 (*grpitr1)->GetDps()->erase(citr->guid);
                 (*grpitr1)->SetTank(citr->guid);
             }
-            else if(role & HEALER && !(*grpitr1)->GetHeal())
+            else if((role & HEALER) && !(*grpitr1)->GetHeal())
             {
                 (*grpitr1)->GetDps()->erase(citr->guid);
                 (*grpitr1)->SetHeal(citr->guid);
@@ -551,7 +563,8 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 continue;
             // Copy roles to temp structure...
             tmpRoles.Reset();
-            tmpRoles.dps = *(*specific)->GetDps();
+            for(PlayerList::iterator dpsitr = (*specific)->GetDps()->begin(); dpsitr != (*specific)->GetDps()->end(); ++dpsit
+                tmpRoles.dps.insert(*dpsitr);
             tmpRoles.tank = (*specific)->GetTank();
             tmpRoles.heal = (*specific)->GetHeal();
             PlayerGroup.clear();
@@ -814,6 +827,8 @@ bool LfgMgr::CheckFormedGroup(LfgGroup *group, uint8 side, bool checkTime)
         group->TeleportToDungeon();
         return false;
     }
+    // if nothing happens, send just status update
+    group->SendProposalUpdate(LFG_PROPOSAL_WAITING);
     return true;
 }
  
@@ -1353,7 +1368,7 @@ void LfgMgr::DeleteGroups()
     groupsForDelete.clear();
 }
 
-void LfgMgr::RemovePlayer(Player *player)
+void LfgMgr::RemovePlayer(Player *player, bool update)
 {
     for(int i = 0; i < MAX_LFG_FACTION; ++i)
     {
@@ -1387,7 +1402,7 @@ void LfgMgr::RemovePlayer(Player *player)
         }
     }
     if (!player->m_lookingForGroup.queuedDungeons.empty())
-        RemoveFromQueue(player);
+        RemoveFromQueue(player, update);
     m_queuedPlayers.erase(player->GetGUID());
 }
 

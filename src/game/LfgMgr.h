@@ -257,7 +257,7 @@ class MANGOS_DLL_SPEC LfgMgr
 
         void AddToQueue(Player *player, bool updateQueue = true);
         void RemoveFromQueue(Player *player, bool updateQueue = true);
-        void RemovePlayer(Player *player);
+        void RemovePlayer(Player *player, bool update = true);
 
         void SendLfgPlayerInfo(Player *plr);
         void SendLfgUpdatePlayer(Player *plr, uint8 updateType);

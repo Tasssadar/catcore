@@ -46,6 +46,7 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
     recv_data.read_skip<uint8>();                           // unk - always 0
     recv_data >> count;
 
+
     Player *player = _player; // If in dungeon group, then set to leader
     
     //Some first checks
@@ -71,6 +72,10 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
     //TODO: Implement this
     else if (count > 1 || (player->GetMap()->IsDungeon() && (!player->GetGroup() || !player->GetGroup()->isLfgGroup())))
         error = LFG_JOIN_DUNGEON_INVALID;
+
+    if (!player->m_lookingForGroup.queuedDungeons.empty() || sLfgMgr.IsPlayerInQueue(player->GetGUID()))
+        sLfgMgr.RemovePlayer(player, false);
+
 
     if (error != LFG_JOIN_OK)
     {
@@ -129,10 +134,6 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
             sLfgMgr.SendJoinResult(player, error);
             return;
         }
-        //Already queued for this dungeon, dunno how this can happen, but it happens
-        if (player->m_lookingForGroup.queuedDungeons.find(dungeonInfo) != player->m_lookingForGroup.queuedDungeons.end() ||
-            sLfgMgr.IsPlayerInQueue(player->GetGUID()))
-            sLfgMgr.RemovePlayer(player);
 
         player->m_lookingForGroup.queuedDungeons.insert(dungeonInfo);
     } 
@@ -191,7 +192,6 @@ void WorldSession::HandleLfgProposalResult(WorldPacket& recv_data)
     if (LfgGroup *group = sObjectMgr.GetLfgGroupById(groupid))
     {
         group->GetProposalAnswers()->insert(std::pair<uint64, uint8>(_player->GetGUID(), accept));       
-        group->SendProposalUpdate(LFG_PROPOSAL_WAITING);
         sLfgMgr.UpdateFormedGroups(group);
     }
 }
