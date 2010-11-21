@@ -418,11 +418,32 @@ void WorldSession::DoLootRelease(ObjectGuid lguid)
 
                 uint32 count = pItem->GetCount();
 
-                // >=5 checked in spell code, but will work for cheating cases also with removing from another stacks.
-                if (count > 5)
-                    count = 5;
+                    // reset loot for allow repeat looting if stack > 5
+                    pItem->loot.clear();
+                    pItem->SetLootState(ITEM_LOOT_REMOVED);
 
-                player->DestroyItemCount(pItem, count, true);
+                    player->DestroyItemCount(pItem, count, true);
+                    break;
+                }
+                case LOOT_DISENCHANTING:
+                {
+                    if (!pItem->loot.isLooted())
+                        player->AutoStoreLoot(pItem->loot); // can be lost if no space
+                    pItem->loot.clear();
+                    pItem->SetLootState(ITEM_LOOT_REMOVED);
+                    player->DestroyItem( pItem->GetBagSlot(),pItem->GetSlot(), true);
+                    break;
+                }
+                default:
+                {
+                    // must be destroyed only if no loot 
+                    if (pItem->loot.isLooted())
+                    {
+                        pItem->SetLootState(ITEM_LOOT_REMOVED);
+                        player->DestroyItem( pItem->GetBagSlot(),pItem->GetSlot(), true);
+                    }
+                    break;
+                }
             }
             else
                 // FIXME: item don't must be deleted in case not fully looted state. But this pre-request implement loot saving in DB at item save. Or checting possible.
