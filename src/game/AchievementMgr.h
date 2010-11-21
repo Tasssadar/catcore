@@ -33,12 +33,14 @@ typedef std::list<AchievementEntry const*>         AchievementEntryList;
 
 typedef std::map<uint32,AchievementCriteriaEntryList> AchievementCriteriaListByAchievement;
 typedef std::map<uint32,AchievementEntryList>         AchievementListByReferencedId;
+typedef std::map<uint32,time_t>                       AchievementCriteriaFailTimeMap;
 
 struct CriteriaProgress
 {
     uint32 counter;
     time_t date;
     bool changed;
+    bool timedCriteriaFailed;
 };
 
 enum AchievementCriteriaRequirementType
@@ -248,6 +250,10 @@ class MANGOS_DLL_SPEC AchievementMgr
         void LoadFromDB(QueryResult *achievementResult, QueryResult *criteriaResult);
         void SaveToDB();
         void ResetAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0);
+
+        void StartTimedAchievementCriteria(AchievementCriteriaTypes type, uint32 timedRequirementId, time_t startTime = 0);
+        void DoFailedTimedAchievementCriterias();
+
         void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0, Unit *unit=NULL, uint32 time=0);
         void CheckAllAchievementCriteria();
         void SendAllAchievementData();
@@ -269,6 +275,7 @@ class MANGOS_DLL_SPEC AchievementMgr
         Player* m_player;
         CriteriaProgressMap m_criteriaProgress;
         CompletedAchievementMap m_completedAchievements;
+        AchievementCriteriaFailTimeMap m_criteriaFailTimes;
 };
 
 class MANGOS_DLL_SPEC AchievementGlobalMgr

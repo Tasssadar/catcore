@@ -542,8 +542,15 @@ void AchievementMgr::SaveToDB()
                 ssdel << iter->first;
             }
 
-            // store data only for real progress
-            if (iter->second.counter != 0)
+            // store data only for real progress, exceptions are timedCriterias, they are also stored for counter == 0
+            bool needSave = iter->second.counter != 0;
+            if (!needSave)
+            {
+                AchievementCriteriaEntry const* criteria = sAchievementCriteriaStore.LookupEntry(iter->first);
+                needSave = criteria && criteria->timeLimit > 0;
+            }
+
+            if (needSave)
             {
                 /// first new/changed record prefix
                 if (!need_execute_ins)
@@ -616,13 +623,37 @@ void AchievementMgr::LoadFromDB(QueryResult *achievementResult, QueryResult *cri
                 continue;
             }
 
-            if (criteria->timeLimit && time_t(date + criteria->timeLimit) < time(NULL))
-                continue;
-
             CriteriaProgress& progress = m_criteriaProgress[id];
             progress.counter = counter;
             progress.date    = date;
             progress.changed = false;
+            progress.timedCriteriaFailed = false;
+
+            // A failed achievement will be removed on next tick - TODO: Possible that timer 2 is reseted
+            if (criteria->timeLimit)
+            {
+                AchievementEntry const* achievement = sAchievementStore.LookupEntry(criteria->referredAchievement);
+
+                // Add not-completed achievements to time map
+                if (!IsCompletedCriteria(criteria, achievement))
+                {
+                    time_t failTime = time_t(progress.date + criteria->timeLimit);
+                    m_criteriaFailTimes[criteria->ID] = failTime;
+                    // A failed Achievement - will be removed by DoFailedTimedAchievementCriterias on next tick for player
+                    if (failTime <= time(NULL))
+                        progress.timedCriteriaFailed = true;
+                }
+            }
+
+            // check intergiry with max allowed counter value
+            if (uint32 maxcounter = GetCriteriaProgressMaxCounter(criteria))
+            {
+                if (progress.counter > maxcounter)
+                {
+                    progress.counter = maxcounter;
+                    progress.changed = true;
+                }
+            }
         } while(criteriaResult->NextRow());
         delete criteriaResult;
     }
@@ -676,14 +707,15 @@ void AchievementMgr::SendCriteriaUpdate(uint32 id, CriteriaProgress const* progr
     WorldPacket data(SMSG_CRITERIA_UPDATE, 8+4+8);
     data << uint32(id);
 
+    time_t now = time(NULL);
     // the counter is packed like a packed Guid
     data.appendPackGUID(progress->counter);
 
     data << GetPlayer()->GetPackGUID();
-    data << uint32(0);
-    data << uint32(secsToTimeBitFields(progress->date));
-    data << uint32(0);  // timer 1
-    data << uint32(0);  // timer 2
+    data << uint32(progress->timedCriteriaFailed ? 1 : 0);
+    data << uint32(secsToTimeBitFields(now));
+    data << uint32(now - progress->date);                   // timer 1
+    data << uint32(now - progress->date);                   // timer 2
     GetPlayer()->SendDirectMessage(&data);
 }
 
@@ -708,6 +740,113 @@ static const uint32 achievIdForDangeon[][4] =
     { 2219,      false,     false,  true  },
     { 0,         false,     false,  false }
 };
+
+/**
+ * this function will be called whenever the user might have done a timed-criteria relevant action, or by scripting side?
+ */
+void AchievementMgr::StartTimedAchievementCriteria(AchievementCriteriaTypes type, uint32 timedRequirementId, time_t startTime /*= 0*/)
+{
+    DETAIL_FILTER_LOG(LOG_FILTER_ACHIEVEMENT_UPDATES, "AchievementMgr::StartTimedAchievementCriteria(%u, %u)", type, timedRequirementId);
+
+    if (!sWorld.getConfig(CONFIG_BOOL_GM_ALLOW_ACHIEVEMENT_GAINS) && m_player->GetSession()->GetSecurity() > SEC_PLAYER)
+        return;
+
+    AchievementCriteriaEntryList const& achievementCriteriaList = sAchievementMgr.GetAchievementCriteriaByType(type);
+    for(AchievementCriteriaEntryList::const_iterator i = achievementCriteriaList.begin(); i!=achievementCriteriaList.end(); ++i)
+    {
+        AchievementCriteriaEntry const *achievementCriteria = (*i);
+
+        // only apply to specific timedRequirementId related criteria
+        if (achievementCriteria->timedCriteriaMiscId != timedRequirementId)
+            continue;
+
+        if (!achievementCriteria->IsExplicitlyStartedTimedCriteria())
+            continue;
+
+        AchievementEntry const *achievement = sAchievementStore.LookupEntry(achievementCriteria->referredAchievement);
+        if (!achievement)
+            continue;
+
+        if ((achievement->factionFlag == ACHIEVEMENT_FACTION_FLAG_HORDE    && GetPlayer()->GetTeam() != HORDE) ||
+            (achievement->factionFlag == ACHIEVEMENT_FACTION_FLAG_ALLIANCE && GetPlayer()->GetTeam() != ALLIANCE))
+            continue;
+
+        // don't update already completed criteria
+        if (IsCompletedCriteria(achievementCriteria,achievement))
+            continue;
+
+        // Only the Quest-Complete Timed Achievements need the groupcheck, so this check is only needed here
+        if (achievementCriteria->requiredType == ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUEST && GetPlayer()->GetGroup())
+            continue;
+
+        // do not start already failed timers
+        if (startTime && time_t(startTime + achievementCriteria->timeLimit) < time(NULL))
+            continue;
+
+        CriteriaProgress* progress = NULL;
+
+        CriteriaProgressMap::iterator iter = m_criteriaProgress.find(achievementCriteria->ID);
+        if (iter == m_criteriaProgress.end())
+            progress = &m_criteriaProgress[achievementCriteria->ID];
+        else
+            progress = &iter->second;
+
+        progress->changed = true;
+        progress->counter = 0;
+
+        // Start with given startTime or now
+        progress->date = startTime ? startTime : time(NULL);
+        progress->timedCriteriaFailed = false;
+
+        // Add to timer map
+        m_criteriaFailTimes[achievementCriteria->ID] = time_t(progress->date + achievementCriteria->timeLimit);
+
+        SendCriteriaUpdate(achievementCriteria->ID, progress);
+    }
+}
+
+/**
+ * this function will be called whenever there could be a timed achievement criteria failed because of ellapsed time
+ */
+void AchievementMgr::DoFailedTimedAchievementCriterias()
+{
+    if (m_criteriaFailTimes.empty())
+        return;
+
+    time_t now = time(NULL);
+    for (AchievementCriteriaFailTimeMap::iterator iter = m_criteriaFailTimes.begin(); iter != m_criteriaFailTimes.end();)
+    {
+        if (iter->second > now)
+        {
+            ++iter;
+            continue;
+        }
+
+        // Possible failed achievement criteria found
+        AchievementCriteriaEntry const* criteria = sAchievementCriteriaStore.LookupEntry(iter->first);
+        AchievementEntry const* achievement = sAchievementStore.LookupEntry(criteria->referredAchievement);
+
+        // Send Fail for failed criterias
+        if (!IsCompletedCriteria(criteria, achievement))
+        {
+            DETAIL_FILTER_LOG(LOG_FILTER_ACHIEVEMENT_UPDATES, "AchievementMgr::DoFailedTimedAchievementCriterias for criteria %u", criteria->ID);
+
+            CriteriaProgressMap::iterator pro_iter = m_criteriaProgress.find(criteria->ID);
+            MANGOS_ASSERT(pro_iter != m_criteriaProgress.end());
+
+            CriteriaProgress* progress = &pro_iter->second;
+
+            // Set to failed, and send to client
+            progress->timedCriteriaFailed = true;
+            SendCriteriaUpdate(criteria->ID, progress);
+
+            // Remove failed progress
+            m_criteriaProgress.erase(pro_iter);
+        }
+
+        iter = m_criteriaFailTimes.erase(iter);
+    }
+}
 
 /**
  * this function will be called whenever the user might have done a criteria relevant action
@@ -1896,9 +2035,24 @@ void AchievementMgr::SetCriteriaProgress(AchievementCriteriaEntry const* entry, 
         if (changeValue == 0)
             return;
 
-        progress = &m_criteriaProgress[entry->ID];
-        progress->counter = changeValue;
+        // not start manually started timed achievements
+        if (criteria->IsExplicitlyStartedTimedCriteria())
+            return;
+
+        progress = &m_criteriaProgress[criteria->ID];
+
         progress->date = time(NULL);
+        progress->timedCriteriaFailed = false;
+
+        // timed criterias are added to fail-timer map, and send the starting with counter=0
+        if (criteria->timeLimit)
+        {
+            m_criteriaFailTimes[criteria->ID] = time_t(progress->date + criteria->timeLimit);
+            progress->counter = 0;
+            SendCriteriaUpdate(criteria->ID, progress);
+        }
+
+        newValue = changeValue;
     }
     else
     {
@@ -1929,18 +2083,57 @@ void AchievementMgr::SetCriteriaProgress(AchievementCriteriaEntry const* entry, 
         progress->counter = newValue;
     }
 
+    progress->counter = newValue;
     progress->changed = true;
 
-    if (entry->timeLimit)
-    {
-        time_t now = time(NULL);
-        if (time_t(progress->date + entry->timeLimit) < now)
-            progress->counter = 1;
+    // update client side value
+    SendCriteriaUpdate(criteria->ID,progress);
 
-        // also it seems illogical, the timeframe will be extended at every criteria update
-        progress->date = now;
+    // nothing do for counter case
+    if (achievement->flags & ACHIEVEMENT_FLAG_COUNTER)
+        return;
+
+    // update dependent achievements state at criteria complete
+    if (old_value < progress->counter)
+    {
+        if(IsCompletedCriteria(criteria, achievement))
+            CompletedCriteriaFor(achievement);
+
+        // check again the completeness for SUMM and REQ COUNT achievements,
+        // as they don't depend on the completed criteria but on the sum of the progress of each individual criteria
+        if (achievement->flags & ACHIEVEMENT_FLAG_SUMM)
+        {
+            if (IsCompletedAchievement(achievement))
+                CompletedAchievement(achievement);
+        }
+
+        if(AchievementEntryList const* achRefList = sAchievementMgr.GetAchievementByReferencedId(achievement->ID))
+        {
+            for(AchievementEntryList::const_iterator itr = achRefList->begin(); itr != achRefList->end(); ++itr)
+                if(IsCompletedAchievement(*itr))
+                    CompletedAchievement(*itr);
+        }
     }
-    SendCriteriaUpdate(entry->ID,progress);
+    // update dependent achievements state at criteria incomplete
+    else if (old_value > progress->counter)
+    {
+        if (progress->counter < max_value)
+        {
+            WorldPacket data(SMSG_CRITERIA_DELETED,4);
+            data << uint32(criteria->ID);
+            m_player->SendDirectMessage(&data);
+        }
+
+        if (HasAchievement(achievement->ID))
+            if(!IsCompletedAchievement(achievement))
+                IncompletedAchievement(achievement);
+
+        if(AchievementEntryList const* achRefList = sAchievementMgr.GetAchievementByReferencedId(achievement->ID))
+            for(AchievementEntryList::const_iterator itr = achRefList->begin(); itr != achRefList->end(); ++itr)
+                if (HasAchievement((*itr)->ID))
+                    if(!IsCompletedAchievement(*itr))
+                        IncompletedAchievement(*itr);
+    }
 }
 
 void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement)
@@ -2040,15 +2233,16 @@ void AchievementMgr::BuildAllDataPacket(WorldPacket *data)
     }
     *data << int32(-1);
 
+    time_t now = time(NULL);
     for(CriteriaProgressMap::const_iterator iter = m_criteriaProgress.begin(); iter!=m_criteriaProgress.end(); ++iter)
     {
         *data << uint32(iter->first);
         data->appendPackGUID(iter->second.counter);
         *data << GetPlayer()->GetPackGUID();
-        *data << uint32(0);
-        *data << uint32(secsToTimeBitFields(iter->second.date));
-        *data << uint32(0);
-        *data << uint32(0);
+        *data << uint32(iter->second.timedCriteriaFailed ? 1 : 0);
+        *data << uint32(secsToTimeBitFields(now));
+        *data << uint32(now - iter->second.date);
+        *data << uint32(now - iter->second.date);
     }
 
     *data << int32(-1);

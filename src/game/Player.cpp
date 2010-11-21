@@ -1223,6 +1223,9 @@ void Player::Update( uint32 p_time )
     if (!IsInWorld())
         return;
 
+    // remove failed timed Achievements
+    GetAchievementMgr().DoFailedTimedAchievementCriterias();
+
     // undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(NULL))
     {
