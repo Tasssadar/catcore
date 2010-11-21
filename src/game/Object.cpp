@@ -1162,17 +1162,17 @@ void WorldObject::SetOrientation(float orientation)
 
 uint32 WorldObject::GetZoneId() const
 {
-    return GetBaseMap()->GetZoneId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetZoneId(m_positionX, m_positionY, m_positionZ);
 }
 
 uint32 WorldObject::GetAreaId() const
 {
-    return GetBaseMap()->GetAreaId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetAreaId(m_positionX, m_positionY, m_positionZ);
 }
 
 void WorldObject::GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const
 {
-    GetBaseMap()->GetZoneAndAreaId(zoneid, areaid, m_positionX, m_positionY, m_positionZ);
+    GetTerrain()->GetZoneAndAreaId(zoneid, areaid, m_positionX, m_positionY, m_positionZ);
 }
 
 InstanceData* WorldObject::GetInstanceData() const
@@ -1514,8 +1514,8 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
     bool useVmaps = false;
     //float mapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), false, maxDiff);
     //float vmapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), true, maxDiff);
-    float mapZ = GetMap()->GetHeight(x, y, z, false, maxDiff);
-    float vmapZ = GetMap()->GetHeight(x, y, z, true, maxDiff);
+    float mapZ = GetTerrain()->GetHeight(x, y, z, false, maxDiff);
+    float vmapZ = GetTerrain()->GetHeight(x, y, z, true, maxDiff);
     if ( mapZ <  vmapZ ) // check use of vmaps
         useVmaps = true;
 
@@ -1528,6 +1528,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
         normalizedZ = useVmaps ? vmapZ : mapZ;
         if (normalizedZ <= INVALID_HEIGHT || fabs(normalizedZ-z) > maxDiff)
             return;                                        // Do nothing in case of another bad result 
+
     }
     z = normalizedZ + 0.05f;                                // just to be sure that we are not a few pixel under the surface
 }
@@ -1539,7 +1540,7 @@ bool WorldObject::IsPositionValid() const
 
 bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
 {
-    float groundZ = GetBaseMap()->GetHeight(x, y, z, true, 50);
+    float groundZ = GetTerrain()->GetHeight(x, y, z, true, 50);
     if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
         return false;
     return true;
@@ -1727,10 +1728,10 @@ void WorldObject::SetMap(Map * map)
     m_InstanceId = map->GetInstanceId();
 }
 
-Map const* WorldObject::GetBaseMap() const
+TerrainInfo const* WorldObject::GetTerrain() const
 {
-    ASSERT(m_currMap);
-    return m_currMap->GetParent();
+    MANGOS_ASSERT(m_currMap);
+    return m_currMap->GetTerrain();
 }
 
 void WorldObject::AddObjectToRemoveList()

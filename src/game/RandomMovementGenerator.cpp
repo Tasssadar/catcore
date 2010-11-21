@@ -31,8 +31,8 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
 
     creature.GetRespawnCoord(X, Y, Z, &ori, &wander_distance);
 
-    z = creature.GetPositionZ();
-    Map const* map = creature.GetBaseMap();
+    t = creature.GetPositionZ();
+    TerrainInfo const* map = creature.GetTerrain();
 
     // For 2D/3D system selection
     //bool is_land_ok  = creature.canWalk();                // not used?
