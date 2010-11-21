@@ -37,9 +37,11 @@ PathInfo::PathInfo(const Unit* owner, const float destX, const float destY, cons
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceUnit->GetGUID());
 
-    Map const *map = m_sourceUnit->GetBaseMap();
-    m_navMesh = const_cast<dtNavMesh*>(map->GetNavMesh());
-    if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
+    const TerrainInfo* terrain = m_sourceUnit->GetTerrain();
+    if(sWorld.MMapsEnabled() && !useStraightPath)
+        m_navMesh = terrain->GetNavMesh();
+
+    if (m_navMesh)
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         ASSERT(m_navMeshQuery);
@@ -214,7 +216,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         {
             Creature* owner = (Creature*)m_sourceUnit;
 
-            if(m_sourceUnit->GetBaseMap()->IsUnderWater(endPos.x, endPos.y, endPos.z))
+            if (m_sourceUnit->GetTerrain()->IsUnderWater(endPos.x, endPos.y, endPos.z))
             {
                 PATH_DEBUG("++ BuildPolyPath :: underWater case\n");
                 if(owner->canSwim() || owner->isPet())
@@ -552,7 +554,7 @@ dtQueryFilter PathInfo::createFilter()
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
-    m_sourceUnit->GetMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+    m_sourceUnit->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 
     switch (data.type)
     {
