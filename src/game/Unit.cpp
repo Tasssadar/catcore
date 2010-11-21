@@ -15875,7 +15875,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
 
         // Somehing in LoS, shorten the track, this is average only :/
         float distance = GetDistance(fx, fy, fz);
-        if(!IsWithinLOS(fx, fy, fz))
+        //if(!IsWithinLOS(fx, fy, fz))
         {
             float dist = 1;
             
