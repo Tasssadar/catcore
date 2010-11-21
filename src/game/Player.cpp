@@ -11126,19 +11126,9 @@ uint8 Player::CanUseItem( Item *pItem, bool not_loading ) const
                 }
             }
 
-            if (pProto->RequiredSkill != 0)
-            {
-                if (GetSkillValue( pProto->RequiredSkill ) == 0)
-                    return EQUIP_ERR_NO_REQUIRED_PROFICIENCY;
-
-                if (GetSkillValue( pProto->RequiredSkill ) < pProto->RequiredSkillRank)
-                    return EQUIP_ERR_CANT_EQUIP_SKILL;
-            }
-
-            if (pProto->RequiredSpell != 0 && !HasSpell(pProto->RequiredSpell))
-                return EQUIP_ERR_NO_REQUIRED_PROFICIENCY;
-
-            if (pProto->RequiredReputationFaction && uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
+            // reputation for BOA items checked only at buy/quest rewarding (quest accepting in fact by quest rep requirements)
+            if (!(pProto->Flags & ITEM_FLAG_BOA) && pProto->RequiredReputationFaction &&
+                uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
                 return EQUIP_ERR_CANT_EQUIP_REPUTATION;
 
             if (getLevel() < pProto->RequiredLevel)
