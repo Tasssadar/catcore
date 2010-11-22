@@ -16585,7 +16585,7 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
         lastCheckX += cos(checkAngle);
         lastCheckY += sin(checkAngle);
         tmpZ -= 1;
-        UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, maxElev < 10 ? maxElev*4 : maxElev);
+        UpdateGroundPositionZ(lastCheckX, lastCheckY, tmpZ, MAX_FALL_DISTANCE);
         if(fabs(tmpZ - lastCheckZ) > maxElev || tmpZ == lastCheckZ-1)
             return false;
         lastCheckZ = tmpZ;
@@ -16605,8 +16605,8 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
             ty = y;
             tz = z;
         }
-        float groundT = GetTerrain()->GetHeight(tx, ty, tz, true, 150.0f); // the one target is standing on
-        float groundC = GetTerrain()->GetHeight(tx, ty, cz, true, 150.0f); // the one caster is standing on
+        float groundT = GetTerrain()->GetHeight(tx, ty, tz, true, MAX_FALL_DISTANCE); // the one target is standing on
+        float groundC = GetTerrain()->GetHeight(tx, ty, cz, true, MAX_FALL_DISTANCE); // the one caster is standing on
 
         // Cant check if target or caster is in air
         if(groundT <= INVALID_HEIGHT || fabs(groundT - tz) > 1.0f || groundC <= INVALID_HEIGHT || fabs(groundC - cz) > 1.0f)

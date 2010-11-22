@@ -3043,7 +3043,8 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
 
     bool outdoor = target->GetTerrain()->IsOutdoors(x, y, z);
-    target->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
+    float range = m_caster->GetDistance(x, y, z);
+    target->UpdateGroundPositionZ(x, y, z, range+5.0f);
 
     z+=0.5f;   
     float distance = m_caster->GetDistance(x,y,z); 
@@ -8081,9 +8082,8 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     //3.666666 instead of ATTACK_DISTANCE(5.0f) in below seem to give more accurate result.
     float x, y, z;
     unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
-
-    bool outdoor = m_caster->GetTerrain()->IsOutdoors(x, y, z);
-    m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
+    float range = m_caster->GetDistance(x, y, z);
+    m_caster->UpdateGroundPositionZ(x, y, z, range+5.0f);
 
     z+= 0.5f;
 
@@ -8168,8 +8168,8 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
        ((Creature *)unitTarget)->StopMoving();
 
-    bool outdoor = m_caster->GetTerrain()->IsOutdoors(x, y, z);
-    m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
+    float range = m_caster->GetDistance(x, y, z);
+    m_caster->UpdateGroundPositionZ(x, y, z, range+5.0f);
 
     //m_caster->MonsterMoveByPath(x, y, z, 25, false);
     PathInfo path(m_caster, x, y, z, false);
