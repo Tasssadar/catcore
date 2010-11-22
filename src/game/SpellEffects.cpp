@@ -3044,7 +3044,14 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 
     bool outdoor = target->GetTerrain()->IsOutdoors(x, y, z);
     float range = m_caster->GetDistance(x, y, z);
+    float tmpZ = z;
     target->UpdateGroundPositionZ(x, y, z, range+5.0f);
+    // try to find higher
+    if(z == tmpZ)
+    {
+        z += 5.0f;
+        target->UpdateGroundPositionZ(x, y, z, range+10.0f);
+    }
 
     z+=0.5f;   
     float distance = m_caster->GetDistance(x,y,z); 
@@ -8083,7 +8090,14 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float x, y, z;
     unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
     float range = m_caster->GetDistance(x, y, z);
-    m_caster->UpdateGroundPositionZ(x, y, z, range+5.0f);
+    float tmpZ = z;
+    unitTarget->UpdateGroundPositionZ(x, y, z, range+5.0f);
+    // try to find higher
+    if(z == tmpZ)
+    {
+        z += 5.0f;
+        unitTarget->UpdateGroundPositionZ(x, y, z, range+10.0f);
+    }
 
     z+= 0.5f;
 
@@ -8169,7 +8183,14 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
        ((Creature *)unitTarget)->StopMoving();
 
     float range = m_caster->GetDistance(x, y, z);
+    float tmpZ = z;
     m_caster->UpdateGroundPositionZ(x, y, z, range+5.0f);
+    // try to find higher
+    if(z == tmpZ)
+    {
+        z += 5.0f;
+        m_caster->UpdateGroundPositionZ(x, y, z, range+10.0f);
+    }
 
     //m_caster->MonsterMoveByPath(x, y, z, 25, false);
     PathInfo path(m_caster, x, y, z, false);
