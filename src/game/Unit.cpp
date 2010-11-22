@@ -15857,7 +15857,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
  
         bool outdoor = GetTerrain()->IsOutdoors(fx, fy, fz);
         float tmpZ = fz+dis;
-        UpdateGroundPositionZ(fx, fy, tmpZ, dis*2);
+        // Wanna find ground, no care how far is it, visual effect apprears to be correct
+        UpdateGroundPositionZ(fx, fy, tmpZ, MAX_FALL_DISTANCE); 
         if(tmpZ != fz+dis)
            fz = tmpZ;
 
@@ -15871,7 +15872,6 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         //if(!IsWithinLOS(fx, fy, fz))
         {
             float dist = 1;
-            
             float elevation = (GetPositionZ() - fz) / distance;
             float lastX, lastY, lastZ;
             GetPosition(lastX, lastY, lastZ);
