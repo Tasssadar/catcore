@@ -5532,10 +5532,15 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_EFFECT_LEAP_BACK:
             {
-                if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER)
-                    if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000400000000000)) // Disengage
-                        if (!m_caster->isInCombat())
-                            return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+                // Disengage
+                if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000400000000000))
+                {
+                    if (!m_caster->isInCombat())
+                        return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+
+                    if (m_caster->hasUnitState(UNIT_STAT_ROOT))
+                        return SPELL_FAILED_ROOTED;
+                }
                 break;
             }
             case SPELL_EFFECT_JUMP2:
