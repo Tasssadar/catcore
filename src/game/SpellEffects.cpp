@@ -2359,7 +2359,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 53271:
                 {
                     Pet* pet = m_caster->GetPet();
-                    if (!pet || !unitTarget)
+                    if (!pet || !pet->isAlive() || !unitTarget)
                         return;
 
                     // prevent pet's Master Call fail when pet rooted 
