@@ -4197,6 +4197,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hibernate
             else if (spellproto->SpellFamilyFlags & UI64LIT(0x0002000001000000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000))
                 return DIMINISHING_HIBERNATE;
+            // Entangling Roots / Nature's Grasp
+            else if (spellproto->SpellFamilyFlags & UI64LIT(0x200))
+                return DIMINISHING_CONTROL_ROOT;
             break;
         }
         case SPELLFAMILY_WARRIOR:
