@@ -2284,6 +2284,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if ((spellInfo_1->SpellIconID == 225 && spellInfo_2->SpellIconID == 2246) ||
                    (spellInfo_2->SpellIconID == 225 && spellInfo_1->SpellIconID == 2246))
                    return false;
+
+                //  Insect Swarm
+                if (spellInfo_1->SpellFamilyFlags == UI64LIT(0x200000) && spellInfo_2->SpellFamilyFlags == UI64LIT(0x200000))
+                    return false;
             }
 
             // Leader of the Pack and Scroll of Stamina (multi-family check)
