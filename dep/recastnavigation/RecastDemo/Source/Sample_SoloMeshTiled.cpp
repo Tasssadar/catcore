@@ -86,10 +86,8 @@ public:
 			m_sample->setHighlightedTile(m_hitPos);
 	}
 	
-	virtual void handleToggle() {}
-
 	virtual void handleStep() {}
-
+	
 	virtual void handleUpdate(const float /*dt*/) {}
 
 	virtual void handleRender()
@@ -269,7 +267,6 @@ void Sample_SoloMeshTiled::handleDebugMode()
 		valid[DRAWMODE_NAVMESH] = m_navMesh != 0;
 		valid[DRAWMODE_NAVMESH_TRANS] = m_navMesh != 0;
 		valid[DRAWMODE_NAVMESH_BVTREE] = m_navMesh != 0;
-		valid[DRAWMODE_NAVMESH_NODES] = m_navQuery != 0;
 		valid[DRAWMODE_NAVMESH_INVIS] = m_navMesh != 0;
 		valid[DRAWMODE_MESH] = true;
 		valid[DRAWMODE_VOXELS] = hasSolid;
@@ -303,8 +300,6 @@ void Sample_SoloMeshTiled::handleDebugMode()
 		m_drawMode = DRAWMODE_NAVMESH_TRANS;
 	if (imguiCheck("Navmesh BVTree", m_drawMode == DRAWMODE_NAVMESH_BVTREE, valid[DRAWMODE_NAVMESH_BVTREE]))
 		m_drawMode = DRAWMODE_NAVMESH_BVTREE;
-	if (imguiCheck("Navmesh Nodes", m_drawMode == DRAWMODE_NAVMESH_NODES, valid[DRAWMODE_NAVMESH_NODES]))
-		m_drawMode = DRAWMODE_NAVMESH_NODES;
 	if (imguiCheck("Voxels", m_drawMode == DRAWMODE_VOXELS, valid[DRAWMODE_VOXELS]))
 		m_drawMode = DRAWMODE_VOXELS;
 	if (imguiCheck("Walkable Voxels", m_drawMode == DRAWMODE_VOXELS_WALKABLE, valid[DRAWMODE_VOXELS_WALKABLE]))
@@ -377,19 +372,16 @@ void Sample_SoloMeshTiled::handleRender()
 	const float s = m_tileSize*m_cellSize;
 	duDebugDrawGridXZ(&dd, bmin[0],bmin[1],bmin[2], tw,th, s, duRGBA(0,0,0,64), 1.0f);
 	
-	if (m_navMesh && m_navQuery &&
+	if (m_navMesh &&
 		(m_drawMode == DRAWMODE_NAVMESH ||
 		 m_drawMode == DRAWMODE_NAVMESH_TRANS ||
 		 m_drawMode == DRAWMODE_NAVMESH_BVTREE ||
-		 m_drawMode == DRAWMODE_NAVMESH_NODES ||
 		 m_drawMode == DRAWMODE_NAVMESH_INVIS))
 	{
 		if (m_drawMode != DRAWMODE_NAVMESH_INVIS)
 			duDebugDrawNavMeshWithClosedList(&dd, *m_navMesh, *m_navQuery, m_navMeshDrawFlags);
 		if (m_drawMode == DRAWMODE_NAVMESH_BVTREE)
 			duDebugDrawNavMeshBVTree(&dd, *m_navMesh);
-		if (m_drawMode == DRAWMODE_NAVMESH_NODES)
-			duDebugDrawNavMeshNodes(&dd, *m_navQuery);
 	}
 	
 	glDepthMask(GL_TRUE);
@@ -722,8 +714,8 @@ bool Sample_SoloMeshTiled::handleBuild()
 	m_cfg.walkableRadius = (int)ceilf(m_agentRadius / m_cfg.cs);
 	m_cfg.maxEdgeLen = (int)(m_edgeMaxLen / m_cellSize);
 	m_cfg.maxSimplificationError = m_edgeMaxError;
-	m_cfg.minRegionArea = (int)rcSqr(m_regionMinSize);		// Note: area = size*size
-	m_cfg.mergeRegionArea = (int)rcSqr(m_regionMergeSize);	// Note: area = size*size
+	m_cfg.minRegionSize = (int)rcSqr(m_regionMinSize);
+	m_cfg.mergeRegionSize = (int)rcSqr(m_regionMergeSize);
 	m_cfg.maxVertsPerPoly = (int)m_vertsPerPoly;
 	m_cfg.tileSize = (int)m_tileSize;
 	m_cfg.borderSize = m_cfg.walkableRadius + 3; // Reserve enough padding.
@@ -738,10 +730,10 @@ bool Sample_SoloMeshTiled::handleBuild()
 	rcCalcGridSize(m_cfg.bmin, m_cfg.bmax, m_cfg.cs, &m_cfg.width, &m_cfg.height);
 	
 	// Reset build times gathering.
-	m_ctx->resetTimers();
+	m_ctx->resetBuildTimes();
 	
 	// Start the build process.	
-	m_ctx->startTimer(RC_TIMER_TOTAL);
+	rcTimeVal totStartTime = m_ctx->getTime();
 
 	// Calculate the number of tiles in the output and initialize tiles.
 	m_tileSet = new TileSet;
@@ -787,7 +779,7 @@ bool Sample_SoloMeshTiled::handleBuild()
 	{
 		for (int x = 0; x < m_tileSet->width; ++x)
 		{
-			m_ctx->startTimer(RC_TIMER_TEMP);
+			rcTimeVal startTime = m_ctx->getTime();
 			
 			Tile& tile = m_tileSet->tiles[x + y*m_tileSet->width];
 			tile.x = x;
@@ -805,7 +797,7 @@ bool Sample_SoloMeshTiled::handleBuild()
 			tbmax[0] = tileCfg.bmax[0];
 			tbmax[1] = tileCfg.bmax[2];
 			int cid[512];// TODO: Make grow when returning too many items.
-			const int ncid = rcGetChunksOverlappingRect(chunkyMesh, tbmin, tbmax, cid, 512);
+			const int ncid = rcGetChunksInRect(chunkyMesh, tbmin, tbmax, cid, 512);
 			if (!ncid)
 				continue;
 			
@@ -869,7 +861,7 @@ bool Sample_SoloMeshTiled::handleBuild()
 				continue;
 			}
 			
-			if (!rcBuildRegions(m_ctx, *tile.chf, tileCfg.borderSize, tileCfg.minRegionArea, tileCfg.mergeRegionArea))
+			if (!rcBuildRegions(m_ctx, *tile.chf, tileCfg.borderSize, tileCfg.minRegionSize, tileCfg.mergeRegionSize))
 			{
 				m_ctx->log(RC_LOG_ERROR, "buildTiledNavigation: [%d,%d] Could not build regions.", x, y);
 				continue;
@@ -922,9 +914,8 @@ bool Sample_SoloMeshTiled::handleBuild()
 				tile.cset = 0;
 			}
 			
-			m_ctx->stopTimer(RC_TIMER_TOTAL);
-
-			tile.buildTime += m_ctx->getAccumulatedTime(RC_TIMER_TOTAL);
+			rcTimeVal endTime = m_ctx->getTime();
+			tile.buildTime += m_ctx->getDeltaTimeUsec(startTime, endTime);
 			
 			// Some extra code to measure some per tile statistics,
 			// such as build time and how many polygons there are per tile.
@@ -1058,7 +1049,6 @@ bool Sample_SoloMeshTiled::handleBuild()
 		params.offMeshConDir = m_geom->getOffMeshConnectionDirs();
 		params.offMeshConAreas = m_geom->getOffMeshConnectionAreas();
 		params.offMeshConFlags = m_geom->getOffMeshConnectionFlags();
-		params.offMeshConUserID = m_geom->getOffMeshConnectionId();
 		params.offMeshConCount = m_geom->getOffMeshConnectionCount();
 		params.walkableHeight = m_agentHeight;
 		params.walkableRadius = m_agentRadius;
@@ -1082,26 +1072,26 @@ bool Sample_SoloMeshTiled::handleBuild()
 			return false;
 		}
 		
-		if (m_navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA) != DT_SUCCESS)
+		if (!m_navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA))
 		{
 			dtFree(navData);
 			m_ctx->log(RC_LOG_ERROR, "Could not init Detour navmesh");
 			return false;
 		}
 
-		if (m_navQuery->init(m_navMesh, 2048) != DT_SUCCESS)
+		if (!m_navQuery->init(m_navMesh, 2048))
 		{
 			m_ctx->log(RC_LOG_ERROR, "Could not init Detour navmesh query");
 			return false;
 		}
 	}
 		
-	m_ctx->stopTimer(RC_TIMER_TOTAL);
+	rcTimeVal totEndTime = m_ctx->getTime();
 	
-	duLogBuildTimes(*m_ctx, m_ctx->getAccumulatedTime(RC_TIMER_TOTAL));
+	duLogBuildTimes(m_ctx, m_ctx->getDeltaTimeUsec(totStartTime, totEndTime));
 	m_ctx->log(RC_LOG_PROGRESS, ">> Polymesh: %d vertices  %d polygons", m_pmesh->nverts, m_pmesh->npolys);
 
-	m_totalBuildTimeMs = m_ctx->getAccumulatedTime(RC_TIMER_TOTAL)/1000.0f;
+	m_totalBuildTimeMs = m_ctx->getDeltaTimeUsec(totStartTime, totEndTime)/1000.0f;
 
 	if (m_tool)
 		m_tool->init(this);

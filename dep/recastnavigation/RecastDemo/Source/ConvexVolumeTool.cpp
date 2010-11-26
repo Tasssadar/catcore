@@ -230,10 +230,6 @@ void ConvexVolumeTool::handleClick(const float* /*s*/, const float* p, bool shif
 	
 }
 
-void ConvexVolumeTool::handleToggle()
-{
-}
-
 void ConvexVolumeTool::handleStep()
 {
 }

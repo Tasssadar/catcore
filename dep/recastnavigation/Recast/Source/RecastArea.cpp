@@ -27,14 +27,14 @@
 #include "RecastAssert.h"
 
 
-bool rcErodeWalkableArea(rcContext* ctx, int radius, rcCompactHeightfield& chf)
+bool rcErodeWalkableArea(rcBuildContext* ctx, int radius, rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
 	const int w = chf.width;
 	const int h = chf.height;
 	
-	ctx->startTimer(RC_TIMER_ERODE_AREA);
+	rcTimeVal startTime = ctx->getTime();
 	
 	unsigned char* dist = (unsigned char*)rcAlloc(sizeof(unsigned char)*chf.spanCount, RC_ALLOC_TEMP);
 	if (!dist)
@@ -196,7 +196,9 @@ bool rcErodeWalkableArea(rcContext* ctx, int radius, rcCompactHeightfield& chf)
 	
 	rcFree(dist);
 	
-	ctx->stopTimer(RC_TIMER_ERODE_AREA);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_ERODE_AREA, ctx->getDeltaTimeUsec(startTime, endTime));
 	
 	return true;
 }
@@ -214,14 +216,14 @@ static void insertSort(unsigned char* a, const int n)
 }
 
 
-bool rcMedianFilterWalkableArea(rcContext* ctx, rcCompactHeightfield& chf)
+bool rcMedianFilterWalkableArea(rcBuildContext* ctx, rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
 	const int w = chf.width;
 	const int h = chf.height;
 	
-	ctx->startTimer(RC_TIMER_MEDIAN_AREA);
+	rcTimeVal startTime = ctx->getTime();
 	
 	unsigned char* areas = (unsigned char*)rcAlloc(sizeof(unsigned char)*chf.spanCount, RC_ALLOC_TEMP);
 	if (!areas)
@@ -283,17 +285,19 @@ bool rcMedianFilterWalkableArea(rcContext* ctx, rcCompactHeightfield& chf)
 	
 	rcFree(areas);
 
-	ctx->stopTimer(RC_TIMER_MEDIAN_AREA);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_MEDIAN_AREA, ctx->getDeltaTimeUsec(startTime, endTime));
 	
 	return true;
 }
 
-void rcMarkBoxArea(rcContext* ctx, const float* bmin, const float* bmax, unsigned char areaId,
+void rcMarkBoxArea(rcBuildContext* ctx, const float* bmin, const float* bmax, unsigned char areaId,
 				   rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_MARK_BOX_AREA);
+	rcTimeVal startTime = ctx->getTime();
 
 	int minx = (int)((bmin[0]-chf.bmin[0])/chf.cs);
 	int miny = (int)((bmin[1]-chf.bmin[1])/chf.ch);
@@ -322,13 +326,16 @@ void rcMarkBoxArea(rcContext* ctx, const float* bmin, const float* bmax, unsigne
 				rcCompactSpan& s = chf.spans[i];
 				if ((int)s.y >= miny && (int)s.y <= maxy)
 				{
-					chf.areas[i] = areaId;
+					if (areaId < chf.areas[i])
+						chf.areas[i] = areaId;
 				}
 			}
 		}
 	}
 
-	ctx->stopTimer(RC_TIMER_MARK_BOX_AREA);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_MARK_BOX_AREA, ctx->getDeltaTimeUsec(startTime, endTime));
 
 }
 
@@ -347,13 +354,13 @@ static int pointInPoly(int nvert, const float* verts, const float* p)
 	return c;
 }
 
-void rcMarkConvexPolyArea(rcContext* ctx, const float* verts, const int nverts,
+void rcMarkConvexPolyArea(rcBuildContext* ctx, const float* verts, const int nverts,
 						  const float hmin, const float hmax, unsigned char areaId,
 						  rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_MARK_CONVEXPOLY_AREA);
+	rcTimeVal startTime = ctx->getTime();
 
 	float bmin[3], bmax[3];
 	rcVcopy(bmin, verts);
@@ -395,19 +402,24 @@ void rcMarkConvexPolyArea(rcContext* ctx, const float* verts, const int nverts,
 				rcCompactSpan& s = chf.spans[i];
 				if ((int)s.y >= miny && (int)s.y <= maxy)
 				{
-					float p[3];
-					p[0] = chf.bmin[0] + (x+0.5f)*chf.cs; 
-					p[1] = 0;
-					p[2] = chf.bmin[2] + (z+0.5f)*chf.cs; 
-
-					if (pointInPoly(nverts, verts, p))
+					if (areaId < chf.areas[i])
 					{
-						chf.areas[i] = areaId;
+						float p[3];
+						p[0] = chf.bmin[0] + (x+0.5f)*chf.cs; 
+						p[1] = 0;
+						p[2] = chf.bmin[2] + (z+0.5f)*chf.cs; 
+
+						if (pointInPoly(nverts, verts, p))
+						{
+							chf.areas[i] = areaId;
+						}
 					}
 				}
 			}
 		}
 	}
 
-	ctx->stopTimer(RC_TIMER_MARK_CONVEXPOLY_AREA);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_MARK_CONVEXPOLY_AREA, ctx->getDeltaTimeUsec(startTime, endTime));
 }

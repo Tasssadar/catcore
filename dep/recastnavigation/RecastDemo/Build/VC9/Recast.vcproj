@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Recast"
 	ProjectGUID="{CEF242C5-E9A3-403B-BAFF-99397BDA5730}"
 	RootNamespace="Recast"
@@ -192,7 +192,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\Recast\Include\RecastAssert.h"
+					RelativePath="..\..\..\Recast\Include\RecastLog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\Recast\Include\RecastTimer.h"
 					>
 				</File>
 			</Filter>
@@ -220,6 +224,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\Recast\Source\RecastLog.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\Recast\Source\RecastMesh.cpp"
 					>
 				</File>
@@ -235,6 +243,10 @@
 					RelativePath="..\..\..\Recast\Source\RecastRegion.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\Recast\Source\RecastTimer.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -245,10 +257,6 @@
 				>
 				<File
 					RelativePath="..\..\..\Detour\Include\DetourAlloc.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\Detour\Include\DetourAssert.h"
 					>
 				</File>
 				<File
@@ -264,15 +272,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\Detour\Include\DetourNavMeshQuery.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\Detour\Include\DetourNode.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\Detour\Include\DetourObstacleAvoidance.h"
 					>
 				</File>
 			</Filter>
@@ -296,15 +296,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\Detour\Source\DetourNavMeshQuery.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\Detour\Source\DetourNode.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\Detour\Source\DetourObstacleAvoidance.cpp"
 					>
 				</File>
 			</Filter>
@@ -321,18 +313,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Include\ConvexVolumeTool.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Include\CrowdManager.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Include\CrowdTool.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Include\Debug.h"
 					>
 				</File>
 				<File
@@ -364,10 +344,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Include\PerfTimer.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Include\Sample.h"
 					>
 				</File>
@@ -388,10 +364,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Include\SampleInterfaces.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Include\SlideShow.h"
 					>
 				</File>
@@ -407,10 +379,6 @@
 					RelativePath="..\..\Include\TestCase.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Include\ValueHistory.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Source"
@@ -421,18 +389,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Source\ConvexVolumeTool.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Source\CrowdManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Source\CrowdTool.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Source\Debug.cpp"
 					>
 				</File>
 				<File
@@ -468,10 +424,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Source\PerfTimer.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Source\Sample.cpp"
 					>
 				</File>
@@ -492,19 +444,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Source\SampleInterfaces.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Source\SlideShow.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Source\TestCase.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Source\ValueHistory.cpp"
 					>
 				</File>
 			</Filter>

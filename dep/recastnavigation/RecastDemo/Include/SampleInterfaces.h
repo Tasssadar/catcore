@@ -16,21 +16,16 @@
 // 3. This notice may not be removed or altered from any source distribution.
 //
 
-#ifndef SAMPLEINTERFACES_H
-#define SAMPLEINTERFACES_H
-
 #include "DebugDraw.h"
 #include "Recast.h"
 #include "RecastDump.h"
-#include "PerfTimer.h"
 
 // These are example implementations of various interfaces used in Recast and Detour.
 
 // Recast build context.
-class BuildContext : public rcContext
+class BuildContext : public rcBuildContext
 {
-	TimeVal m_startTime[RC_MAX_TIMERS];
-	int m_accTime[RC_MAX_TIMERS];
+	int m_buildTime[RC_MAX_TIMES];
 
 	static const int MAX_MESSAGES = 1000;
 	const char* m_messages[MAX_MESSAGES];
@@ -41,8 +36,17 @@ class BuildContext : public rcContext
 	
 public:
 	BuildContext();
-	virtual ~BuildContext();
+	~BuildContext();
 	
+	// Get current time in platform specific units.
+	virtual rcTimeVal getTime();
+	// Returns time passed from 'start' to 'end' in microseconds.
+	virtual int getDeltaTimeUsec(const rcTimeVal start, const rcTimeVal end);
+	
+	// Resets log.
+	virtual void resetLog();
+	// Logs a message.
+	virtual void log(const rcLogCategory category, const char* format, ...);
 	// Dumps the log to stdout.
 	void dumpLog(const char* format, ...);
 	// Returns number of log messages.
@@ -50,14 +54,12 @@ public:
 	// Returns log message text.
 	const char* getLogText(const int i) const;
 	
-protected:	
-	// Virtual functions for custom implementations.
-	virtual void doResetLog();
-	virtual void doLog(const rcLogCategory /*category*/, const char* /*msg*/, const int /*len*/);
-	virtual void doResetTimers();
-	virtual void doStartTimer(const rcTimerLabel /*label*/);
-	virtual void doStopTimer(const rcTimerLabel /*label*/);
-	virtual int doGetAccumulatedTime(const rcTimerLabel /*label*/) const;
+	// Resets build time collecting.
+	virtual void resetBuildTimes();
+	// Reports build time of specified label for accumulation.
+	virtual void reportBuildTime(const rcBuilTimeLabel label, const int time);
+	// Returns accumulated build time for specified label, or -1 if no time was reported.
+	virtual int getBuildTime(const rcBuilTimeLabel label);
 };
 
 // OpenGL debug draw implementation.
@@ -86,6 +88,3 @@ public:
 	virtual bool write(const void* ptr, const size_t size);
 	virtual bool read(void* ptr, const size_t size);
 };
-
-#endif // SAMPLEINTERFACES_H
-

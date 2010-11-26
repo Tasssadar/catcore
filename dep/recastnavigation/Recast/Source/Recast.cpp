@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include "Recast.h"
 #include "RecastAlloc.h"
 #include "RecastAssert.h"
@@ -30,25 +29,6 @@
 float rcSqrt(float x)
 {
 	return sqrtf(x);
-}
-
-
-void rcContext::log(const rcLogCategory category, const char* format, ...)
-{
-	if (!m_logEnabled)
-		return;
-	static const int MSG_SIZE = 512;
-	char msg[MSG_SIZE];
-	va_list ap;
-	va_start(ap, format);
-	int len = vsnprintf(msg, MSG_SIZE, format, ap);
-	if (len >= MSG_SIZE)
-	{
-		len = MSG_SIZE-1;
-		msg[MSG_SIZE-1] = '\0';
-	}
-	va_end(ap);
-	doLog(category, msg, len);
 }
 
 rcHeightfield* rcAllocHeightfield()
@@ -163,7 +143,7 @@ void rcCalcGridSize(const float* bmin, const float* bmax, float cs, int* w, int*
 	*h = (int)((bmax[2] - bmin[2])/cs+0.5f);
 }
 
-bool rcCreateHeightfield(rcContext* /*ctx*/, rcHeightfield& hf, int width, int height,
+bool rcCreateHeightfield(rcBuildContext* /*ctx*/, rcHeightfield& hf, int width, int height,
 						 const float* bmin, const float* bmax,
 						 float cs, float ch)
 {
@@ -192,7 +172,7 @@ static void calcTriNormal(const float* v0, const float* v1, const float* v2, flo
 	rcVnormalize(norm);
 }
 
-void rcMarkWalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAngle,
+void rcMarkWalkableTriangles(rcBuildContext* /*ctx*/, const float walkableSlopeAngle,
 							 const float* verts, int /*nv*/,
 							 const int* tris, int nt,
 							 unsigned char* areas)
@@ -200,7 +180,7 @@ void rcMarkWalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAngle,
 	// TODO: VC complains about unref formal variable, figure out a way to handle this better.
 //	rcAssert(ctx);
 	
-	const float walkableThr = cosf(walkableSlopeAngle/180.0f*RC_PI);
+	const float walkableThr = cosf(walkableSlopeAngle/180.0f*(float)M_PI);
 
 	float norm[3];
 	
@@ -214,7 +194,7 @@ void rcMarkWalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAngle,
 	}
 }
 
-void rcClearUnwalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAngle,
+void rcClearUnwalkableTriangles(rcBuildContext* /*ctx*/, const float walkableSlopeAngle,
 								const float* verts, int /*nv*/,
 								const int* tris, int nt,
 								unsigned char* areas)
@@ -222,7 +202,7 @@ void rcClearUnwalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAng
 	// TODO: VC complains about unref formal variable, figure out a way to handle this better.
 //	rcAssert(ctx);
 	
-	const float walkableThr = cosf(walkableSlopeAngle/180.0f*RC_PI);
+	const float walkableThr = cosf(walkableSlopeAngle/180.0f*(float)M_PI);
 	
 	float norm[3];
 	
@@ -236,7 +216,7 @@ void rcClearUnwalkableTriangles(rcContext* /*ctx*/, const float walkableSlopeAng
 	}
 }
 
-int rcGetHeightFieldSpanCount(rcContext* /*ctx*/, rcHeightfield& hf)
+int rcGetHeightFieldSpanCount(rcBuildContext* /*ctx*/, rcHeightfield& hf)
 {
 	// TODO: VC complains about unref formal variable, figure out a way to handle this better.
 //	rcAssert(ctx);
@@ -258,12 +238,12 @@ int rcGetHeightFieldSpanCount(rcContext* /*ctx*/, rcHeightfield& hf)
 	return spanCount;
 }
 
-bool rcBuildCompactHeightfield(rcContext* ctx, const int walkableHeight, const int walkableClimb,
+bool rcBuildCompactHeightfield(rcBuildContext* ctx, const int walkableHeight, const int walkableClimb,
 							   rcHeightfield& hf, rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_BUILD_COMPACTHEIGHTFIELD);
+	rcTimeVal startTime = ctx->getTime();
 	
 	const int w = hf.width;
 	const int h = hf.height;
@@ -387,11 +367,13 @@ bool rcBuildCompactHeightfield(rcContext* ctx, const int walkableHeight, const i
 	
 	if (tooHighNeighbour > MAX_LAYERS)
 	{
-		ctx->log(RC_LOG_ERROR, "rcBuildCompactHeightfield: Heightfield has too many layers %d (max: %d)",
+		ctx->log(RC_LOG_ERROR, "rcBuildCompactHeightfield: Heighfield has too many layers %d (max: %d)",
 				 tooHighNeighbour, MAX_LAYERS);
 	}
 		
-	ctx->stopTimer(RC_TIMER_BUILD_COMPACTHEIGHTFIELD);
+	rcTimeVal endTime = ctx->getTime();
+
+	ctx->reportBuildTime(RC_TIME_BUILD_COMPACTHEIGHFIELD, ctx->getDeltaTimeUsec(startTime, endTime));
 	
 	return true;
 }

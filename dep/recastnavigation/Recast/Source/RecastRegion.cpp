@@ -437,19 +437,12 @@ static unsigned short* expandRegions(int maxIter, unsigned short level,
 
 struct rcRegion
 {
-	inline rcRegion(unsigned short i) :
-		spanCount(0),
-		id(i),
-		areaType(0),
-		remap(false),
-		visited(false)
-	{}
+	inline rcRegion(unsigned short i) : count(0), id(i), area(0), remap(false) {}
 	
-	int spanCount;					// Number of spans belonging to this region
-	unsigned short id;				// ID of the region
-	unsigned char areaType;			// Are type.
+	int count;
+	unsigned short id;
+	unsigned char area;
 	bool remap;
-	bool visited;
 	rcIntArray connections;
 	rcIntArray floors;
 };
@@ -494,7 +487,7 @@ static void replaceNeighbour(rcRegion& reg, unsigned short oldId, unsigned short
 
 static bool canMergeWithRegion(const rcRegion& rega, const rcRegion& regb)
 {
-	if (rega.areaType != regb.areaType)
+	if (rega.area != regb.area)
 		return false;
 	int n = 0;
 	for (int i = 0; i < rega.connections.size(); ++i)
@@ -570,8 +563,8 @@ static bool mergeRegions(rcRegion& rega, rcRegion& regb)
 	
 	for (int j = 0; j < regb.floors.size(); ++j)
 		addUniqueFloorRegion(rega, regb.floors[j]);
-	rega.spanCount += regb.spanCount;
-	regb.spanCount = 0;
+	rega.count += regb.count;
+	regb.count = 0;
 	regb.connections.resize(0);
 
 	return true;
@@ -694,7 +687,7 @@ static void walkContour(int x, int y, int i, int dir,
 	}
 }
 
-static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegionSize,
+static bool filterSmallRegions(rcBuildContext* ctx, int minRegionSize, int mergeRegionSize,
 							   unsigned short& maxRegionId,
 							   rcCompactHeightfield& chf,
 							   unsigned short* srcReg)
@@ -727,7 +720,7 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 					continue;
 				
 				rcRegion& reg = regions[r];
-				reg.spanCount++;
+				reg.count++;
 				
 				
 				// Update floors.
@@ -744,7 +737,7 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 				if (reg.connections.size() > 0)
 					continue;
 				
-				reg.areaType = chf.areas[i];
+				reg.area = chf.areas[i];
 				
 				// Check if this cell is next to a border.
 				int ndir = -1;
@@ -766,73 +759,28 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 			}
 		}
 	}
-
-	// Remove too small regions.
-	rcIntArray stack(32);
-	rcIntArray trace(32);
+	
+	// Remove too small unconnected regions.
 	for (int i = 0; i < nreg; ++i)
 	{
 		rcRegion& reg = regions[i];
 		if (reg.id == 0 || (reg.id & RC_BORDER_REG))
 			continue;                       
-		if (reg.spanCount == 0)
-			continue;
-		if (reg.visited)
+		if (reg.count == 0)
 			continue;
 		
-		// Count the total size of all the connected regions.
-		// Also keep track of the regions connects to a tile border.
-		bool connectsToBorder = false;
-		int spanCount = 0;
-		stack.resize(0);
-		trace.resize(0);
-
-		reg.visited = true;
-		stack.push(i);
-		
-		while (stack.size())
+		if (reg.connections.size() == 1 && reg.connections[0] == 0)
 		{
-			// Pop
-			int ri = stack.pop();
-			
-			rcRegion& creg = regions[ri];
-
-			spanCount += creg.spanCount;
-			trace.push(ri);
-
-			for (int j = 0; j < creg.connections.size(); ++j)
+			if (reg.count < minRegionSize)
 			{
-				if (creg.connections[j] & RC_BORDER_REG)
-				{
-					connectsToBorder = true;
-					continue;
-				}
-				rcRegion& nreg = regions[creg.connections[j]];
-				if (nreg.visited)
-					continue;
-				if (nreg.id == 0 || (nreg.id & RC_BORDER_REG))
-					continue;
-				// Visit
-				stack.push(nreg.id);
-				nreg.visited = true;
-			}
-		}
-		
-		// If the accumulated regions size is too small, remove it.
-		// Do not remove areas which connect to tile borders
-		// as their size cannot be estimated correctly and removing them
-		// can potentially remove necessary areas.
-		if (spanCount < minRegionArea && !connectsToBorder)
-		{
-			// Kill all visited regions.
-			for (int j = 0; j < trace.size(); ++j)
-			{
-				regions[trace[j]].spanCount = 0;
-				regions[trace[j]].id = 0;
+				// Non-connected small region, remove.
+				reg.count = 0;
+				reg.id = 0;
 			}
 		}
 	}
-		
+	
+	
 	// Merge too small regions to neighbour regions.
 	int mergeCount = 0 ;
 	do
@@ -843,11 +791,11 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 			rcRegion& reg = regions[i];
 			if (reg.id == 0 || (reg.id & RC_BORDER_REG))
 				continue;                       
-			if (reg.spanCount == 0)
+			if (reg.count == 0)
 				continue;
 			
 			// Check to see if the region should be merged.
-			if (reg.spanCount > mergeRegionSize && isRegionConnectedToBorder(reg))
+			if (reg.count > mergeRegionSize && isRegionConnectedToBorder(reg))
 				continue;
 			
 			// Small region with more than 1 connection.
@@ -860,11 +808,11 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 				if (reg.connections[j] & RC_BORDER_REG) continue;
 				rcRegion& mreg = regions[reg.connections[j]];
 				if (mreg.id == 0 || (mreg.id & RC_BORDER_REG)) continue;
-				if (mreg.spanCount < smallest &&
+				if (mreg.count < smallest &&
 					canMergeWithRegion(reg, mreg) &&
 					canMergeWithRegion(mreg, reg))
 				{
-					smallest = mreg.spanCount;
+					smallest = mreg.count;
 					mergeId = mreg.id;
 				}
 			}
@@ -938,11 +886,11 @@ static bool filterSmallRegions(rcContext* ctx, int minRegionArea, int mergeRegio
 }
 
 
-bool rcBuildDistanceField(rcContext* ctx, rcCompactHeightfield& chf)
+bool rcBuildDistanceField(rcBuildContext* ctx, rcCompactHeightfield& chf)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_BUILD_DISTANCEFIELD);
+	rcTimeVal startTime = ctx->getTime();
 	
 	if (chf.dist)
 	{
@@ -966,14 +914,14 @@ bool rcBuildDistanceField(rcContext* ctx, rcCompactHeightfield& chf)
 	
 	unsigned short maxDist = 0;
 
-	ctx->startTimer(RC_TIMER_BUILD_DISTANCEFIELD_DIST);
+	rcTimeVal distStartTime = ctx->getTime();
 	
 	calculateDistanceField(chf, src, maxDist);
 	chf.maxDistance = maxDist;
 	
-	ctx->stopTimer(RC_TIMER_BUILD_DISTANCEFIELD_DIST);
+	rcTimeVal distEndTime = ctx->getTime();
 	
-	ctx->startTimer(RC_TIMER_BUILD_DISTANCEFIELD_BLUR);
+	rcTimeVal blurStartTime = ctx->getTime();
 	
 	// Blur
 	if (boxBlur(chf, 1, src, dst) != src)
@@ -982,19 +930,24 @@ bool rcBuildDistanceField(rcContext* ctx, rcCompactHeightfield& chf)
 	// Store distance.
 	chf.dist = src;
 	
-	ctx->stopTimer(RC_TIMER_BUILD_DISTANCEFIELD_BLUR);
-
-	ctx->stopTimer(RC_TIMER_BUILD_DISTANCEFIELD);
+	rcTimeVal blurEndTime = ctx->getTime();
 	
 	rcFree(dst);
+	
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_BUILD_DISTANCEFIELD, ctx->getDeltaTimeUsec(startTime, endTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_DISTANCEFIELD_DIST, ctx->getDeltaTimeUsec(distStartTime, distEndTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_DISTANCEFIELD_BLUR, ctx->getDeltaTimeUsec(blurStartTime, blurEndTime));
 	
 	return true;
 }
 
-static void paintRectRegion(int minx, int maxx, int miny, int maxy, unsigned short regId,
+static void paintRectRegion(int minx, int maxx, int miny, int maxy,
+							unsigned short regId,
 							rcCompactHeightfield& chf, unsigned short* srcReg)
 {
-	const int w = chf.width;	
+	const int w = chf.width;
 	for (int y = miny; y < maxy; ++y)
 	{
 		for (int x = minx; x < maxx; ++x)
@@ -1020,12 +973,12 @@ struct rcSweepSpan
 	unsigned short nei;	// neighbour id
 };
 
-bool rcBuildRegionsMonotone(rcContext* ctx, rcCompactHeightfield& chf,
-							const int borderSize, const int minRegionArea, const int mergeRegionArea)
+bool rcBuildRegionsMonotone(rcBuildContext* ctx, rcCompactHeightfield& chf,
+							const int borderSize, const int minRegionSize, const int mergeRegionSize)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_BUILD_REGIONS);
+	rcTimeVal startTime = ctx->getTime();
 	
 	const int w = chf.width;
 	const int h = chf.height;
@@ -1049,16 +1002,12 @@ bool rcBuildRegionsMonotone(rcContext* ctx, rcCompactHeightfield& chf,
 	
 	
 	// Mark border regions.
-	if (borderSize > 0)
+	if (borderSize)
 	{
-		// Make sure border will not overflow.
-		const int bw = rcMin(w, borderSize);
-		const int bh = rcMin(h, borderSize);
-		// Paint regions
-		paintRectRegion(0, bw, 0, h, id|RC_BORDER_REG, chf, srcReg); id++;
-		paintRectRegion(w-bw, w, 0, h, id|RC_BORDER_REG, chf, srcReg); id++;
-		paintRectRegion(0, w, 0, bh, id|RC_BORDER_REG, chf, srcReg); id++;
-		paintRectRegion(0, w, h-bh, h, id|RC_BORDER_REG, chf, srcReg); id++;
+		paintRectRegion(0, borderSize, 0, h, id|RC_BORDER_REG, chf, srcReg); id++;
+		paintRectRegion(w-borderSize, w, 0, h, id|RC_BORDER_REG, chf, srcReg); id++;
+		paintRectRegion(0, w, 0, borderSize, id|RC_BORDER_REG, chf, srcReg); id++;
+		paintRectRegion(0, w, h-borderSize, h, id|RC_BORDER_REG, chf, srcReg); id++;
 	}
 	
 	rcIntArray prev(256);
@@ -1152,30 +1101,33 @@ bool rcBuildRegionsMonotone(rcContext* ctx, rcCompactHeightfield& chf,
 		}
 	}
 
-	ctx->startTimer(RC_TIMER_BUILD_REGIONS_FILTER);
+	rcTimeVal filterStartTime = ctx->getTime();
 
 	// Filter out small regions.
 	chf.maxRegions = id;
-	if (!filterSmallRegions(ctx, minRegionArea, mergeRegionArea, chf.maxRegions, chf, srcReg))
+	if (!filterSmallRegions(ctx, minRegionSize, mergeRegionSize, chf.maxRegions, chf, srcReg))
 		return false;
 
-	ctx->stopTimer(RC_TIMER_BUILD_REGIONS_FILTER);
+	rcTimeVal filterEndTime = ctx->getTime();
 	
 	// Store the result out.
 	for (int i = 0; i < chf.spanCount; ++i)
 		chf.spans[i].reg = srcReg[i];
 	
-	ctx->stopTimer(RC_TIMER_BUILD_REGIONS);
+	rcTimeVal endTime = ctx->getTime();
+
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS, ctx->getDeltaTimeUsec(startTime, endTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS_FILTER, ctx->getDeltaTimeUsec(filterStartTime, filterEndTime));
 
 	return true;
 }
 
-bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
-					const int borderSize, const int minRegionArea, const int mergeRegionArea)
+bool rcBuildRegions(rcBuildContext* ctx, rcCompactHeightfield& chf,
+					const int borderSize, const int minRegionSize, const int mergeRegionSize)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_BUILD_REGIONS);
+	rcTimeVal startTime = ctx->getTime();
 	
 	const int w = chf.width;
 	const int h = chf.height;
@@ -1187,7 +1139,7 @@ bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
 		return false;
 	}
 	
-	ctx->startTimer(RC_TIMER_BUILD_REGIONS_WATERSHED);
+	rcTimeVal regStartTime = ctx->getTime();
 	
 	rcIntArray stack(1024);
 	rcIntArray visited(1024);
@@ -1214,12 +1166,15 @@ bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
 	paintRectRegion(w-borderSize, w, 0, h, regionId|RC_BORDER_REG, chf, srcReg); regionId++;
 	paintRectRegion(0, w, 0, borderSize, regionId|RC_BORDER_REG, chf, srcReg); regionId++;
 	paintRectRegion(0, w, h-borderSize, h, regionId|RC_BORDER_REG, chf, srcReg); regionId++;
+
+	rcTimeVal expTime = 0;
+	rcTimeVal floodTime = 0;
 	
 	while (level > 0)
 	{
 		level = level >= 2 ? level-2 : 0;
 		
-		ctx->startTimer(RC_TIMER_BUILD_REGIONS_EXPAND);
+		rcTimeVal expStartTime = ctx->getTime();
 		
 		// Expand current regions until no empty connected cells found.
 		if (expandRegions(expandIters, level, chf, srcReg, srcDist, dstReg, dstDist, stack) != srcReg)
@@ -1228,9 +1183,9 @@ bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
 			rcSwap(srcDist, dstDist);
 		}
 		
-		ctx->stopTimer(RC_TIMER_BUILD_REGIONS_EXPAND);
+		expTime += ctx->getTime() - expStartTime;
 		
-		ctx->startTimer(RC_TIMER_BUILD_REGIONS_FLOOD);
+		rcTimeVal floodStartTime = ctx->getTime();
 		
 		// Mark new regions with IDs.
 		for (int y = 0; y < h; ++y)
@@ -1249,7 +1204,7 @@ bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
 			}
 		}
 		
-		ctx->stopTimer(RC_TIMER_BUILD_REGIONS_FLOOD);
+		floodTime += ctx->getTime() - floodStartTime;
 		
 	}
 	
@@ -1260,23 +1215,29 @@ bool rcBuildRegions(rcContext* ctx, rcCompactHeightfield& chf,
 		rcSwap(srcDist, dstDist);
 	}
 	
-	ctx->stopTimer(RC_TIMER_BUILD_REGIONS_WATERSHED);
+	rcTimeVal regEndTime = ctx->getTime();
 	
-	ctx->startTimer(RC_TIMER_BUILD_REGIONS_FILTER);
+	rcTimeVal filterStartTime = ctx->getTime();
 	
 	// Filter out small regions.
 	chf.maxRegions = regionId;
-	if (!filterSmallRegions(ctx, minRegionArea, mergeRegionArea, chf.maxRegions, chf, srcReg))
+	if (!filterSmallRegions(ctx, minRegionSize, mergeRegionSize, chf.maxRegions, chf, srcReg))
 		return false;
 	
-	ctx->stopTimer(RC_TIMER_BUILD_REGIONS_FILTER);
+	rcTimeVal filterEndTime = ctx->getTime();
 		
 	// Write the result out.
 	for (int i = 0; i < chf.spanCount; ++i)
 		chf.spans[i].reg = srcReg[i];
 	
-	ctx->stopTimer(RC_TIMER_BUILD_REGIONS);
+	rcTimeVal endTime = ctx->getTime();
 	
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS, ctx->getDeltaTimeUsec(startTime, endTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS_WATERSHED, ctx->getDeltaTimeUsec(regStartTime, regEndTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS_EXPAND, ctx->getDeltaTimeUsec(0, expTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS_FLOOD, ctx->getDeltaTimeUsec(0, floodTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_REGIONS_FILTER, ctx->getDeltaTimeUsec(filterStartTime, filterEndTime));
+		
 	return true;
 }
 

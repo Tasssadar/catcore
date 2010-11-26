@@ -340,7 +340,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 			endi = ai;
 		}
 		
-		// Tessellate only outer edges oredges between areas.
+		// Tesselate only outer edges oredges between areas.
 		if ((points[ci*4+3] & RC_CONTOUR_REG_MASK) == 0 ||
 			(points[ci*4+3] & RC_AREA_BORDER))
 		{
@@ -402,7 +402,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
 			int maxi = -1;
 			int ci = (ai+1) % pn;
 
-			// Tessellate only outer edges or edges between areas.
+			// Tesselate only outer edges or edges between areas.
 			bool tess = false;
 			// Wall edges.
 			if ((buildFlags & RC_CONTOUR_TESS_WALL_EDGES) && (points[ci*4+3] & RC_CONTOUR_REG_MASK) == 0)
@@ -592,7 +592,7 @@ static bool mergeContours(rcContour& ca, rcContour& cb, int ia, int ib)
 	return true;
 }
 
-bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
+bool rcBuildContours(rcBuildContext* ctx, rcCompactHeightfield& chf,
 					 const float maxError, const int maxEdgeLen,
 					 rcContourSet& cset, const int buildFlags)
 {
@@ -601,7 +601,7 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 	const int w = chf.width;
 	const int h = chf.height;
 	
-	ctx->startTimer(RC_TIMER_BUILD_CONTOURS);
+	rcTimeVal startTime = ctx->getTime();
 	
 	rcVcopy(cset.bmin, chf.bmin);
 	rcVcopy(cset.bmax, chf.bmax);
@@ -621,7 +621,8 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 		return false;
 	}
 	
-	ctx->startTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
+	rcTimeVal traceStartTime = ctx->getTime();
+					
 	
 	// Mark boundaries.
 	for (int y = 0; y < h; ++y)
@@ -656,9 +657,9 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 		}
 	}
 	
-	ctx->stopTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
+	rcTimeVal traceEndTime = ctx->getTime();
 	
-	ctx->startTimer(RC_TIMER_BUILD_CONTOURS_SIMPLIFY);
+	rcTimeVal simplifyStartTime = ctx->getTime();
 	
 	rcIntArray verts(256);
 	rcIntArray simplified(64);
@@ -693,7 +694,7 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 					if (cset.nconts >= maxContours)
 					{
 						// Allocate more contours.
-						// This can happen when there are tiny holes in the heightfield.
+						// This can happen when there are tiny holes in the heighfield.
 						const int oldMax = maxContours;
 						maxContours *= 2;
 						rcContour* newConts = (rcContour*)rcAlloc(sizeof(rcContour)*maxContours, RC_ALLOC_PERM);
@@ -749,7 +750,7 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 	}
 	
 	// Check and merge droppings.
-	// Sometimes the previous algorithms can fail and create several contours
+	// Sometimes the previous algorithms can fail and create several countours
 	// per area. This pass will try to merge the holes into the main region.
 	for (int i = 0; i < cset.nconts; ++i)
 	{
@@ -796,9 +797,13 @@ bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 		}
 	}
 	
-	ctx->stopTimer(RC_TIMER_BUILD_CONTOURS_SIMPLIFY);
+	rcTimeVal simplifyEndTime = ctx->getTime();
 	
-	ctx->stopTimer(RC_TIMER_BUILD_CONTOURS);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_BUILD_CONTOURS, ctx->getDeltaTimeUsec(startTime, endTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_CONTOURS_TRACE, ctx->getDeltaTimeUsec(traceStartTime, traceEndTime));
+	ctx->reportBuildTime(RC_TIME_BUILD_CONTOURS_SIMPLIFY, ctx->getDeltaTimeUsec(simplifyStartTime, simplifyEndTime));
 	
 	return true;
 }

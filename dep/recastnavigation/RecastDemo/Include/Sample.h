@@ -19,11 +19,10 @@
 #ifndef RECASTSAMPLE_H
 #define RECASTSAMPLE_H
 
-#include <string.h>
-
 #include "Recast.h"
 #include "SampleInterfaces.h"
 
+#include <string.h>
 
 // Tool types.
 enum SampleToolType
@@ -67,7 +66,6 @@ struct SampleTool
 	virtual void handleClick(const float* s, const float* p, bool shift) = 0;
 	virtual void handleRender() = 0;
 	virtual void handleRenderOverlay(double* proj, double* model, int* view) = 0;
-	virtual void handleToggle() = 0;
 	virtual void handleStep() = 0;
 	virtual void handleUpdate(const float dt) = 0;
 };
@@ -97,15 +95,15 @@ protected:
 	
 	SampleTool* m_tool;
 	
-	BuildContext* m_ctx;
-    
+	rcBuildContext* m_ctx;
+
     char m_meshName[128];
 	
 public:
 	Sample();
 	virtual ~Sample();
 	
-	void setContext(BuildContext* ctx) { m_ctx = ctx; }
+	void setContext(rcBuildContext* ctx) { m_ctx = ctx; }
 	
 	void setTool(SampleTool* tool);
 	
@@ -113,7 +111,6 @@ public:
 	virtual void handleTools();
 	virtual void handleDebugMode();
 	virtual void handleClick(const float* s, const float* p, bool shift);
-	virtual void handleToggle();
 	virtual void handleStep();
 	virtual void handleRender();
 	virtual void handleRenderOverlay(double* proj, double* model, int* view);
@@ -135,9 +132,9 @@ public:
 
 	void resetCommonSettings();
 	void handleCommonSettings();
-    
-    inline void setMeshName(char* meshName) { memcpy(m_meshName, meshName, 128*sizeof(char)); }
-    inline char* getMeshName() { return m_meshName; }
+
+    void setMeshName(char* meshName) { strncpy(m_meshName, meshName, 128); }
+    char* getMeshName() { return m_meshName; }
 };
 
 

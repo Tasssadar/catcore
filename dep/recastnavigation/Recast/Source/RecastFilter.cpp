@@ -23,11 +23,11 @@
 #include "RecastAssert.h"
 
 
-void rcFilterLowHangingWalkableObstacles(rcContext* ctx, const int walkableClimb, rcHeightfield& solid)
+void rcFilterLowHangingWalkableObstacles(rcBuildContext* ctx, const int walkableClimb, rcHeightfield& solid)
 {
 	rcAssert(ctx);
 
-	ctx->startTimer(RC_TIMER_FILTER_LOW_OBSTACLES);
+	rcTimeVal startTime = ctx->getTime();
 	
 	const int w = solid.width;
 	const int h = solid.height;
@@ -56,15 +56,17 @@ void rcFilterLowHangingWalkableObstacles(rcContext* ctx, const int walkableClimb
 		}
 	}
 
-	ctx->stopTimer(RC_TIMER_FILTER_LOW_OBSTACLES);
+	rcTimeVal endTime = ctx->getTime();
+	
+	ctx->reportBuildTime(RC_TIME_FILTER_LOW_OBSTACLES, ctx->getDeltaTimeUsec(startTime, endTime));
 }
 	
-void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walkableClimb,
+void rcFilterLedgeSpans(rcBuildContext* ctx, const int walkableHeight, const int walkableClimb,
 						rcHeightfield& solid)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_FILTER_BORDER);
+	rcTimeVal startTime = ctx->getTime();
 
 	const int w = solid.width;
 	const int h = solid.height;
@@ -146,14 +148,16 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 		}
 	}
 	
-	ctx->stopTimer(RC_TIMER_FILTER_BORDER);
+	rcTimeVal endTime = ctx->getTime();
+
+	ctx->reportBuildTime(RC_TIME_FILTER_BORDER, ctx->getDeltaTimeUsec(startTime, endTime));
 }	
 
-void rcFilterWalkableLowHeightSpans(rcContext* ctx, int walkableHeight, rcHeightfield& solid)
+void rcFilterWalkableLowHeightSpans(rcBuildContext* ctx, int walkableHeight, rcHeightfield& solid)
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_FILTER_WALKABLE);
+	rcTimeVal startTime = ctx->getTime();
 	
 	const int w = solid.width;
 	const int h = solid.height;
@@ -175,5 +179,7 @@ void rcFilterWalkableLowHeightSpans(rcContext* ctx, int walkableHeight, rcHeight
 		}
 	}
 	
-	ctx->stopTimer(RC_TIMER_FILTER_WALKABLE);
+	rcTimeVal endTime = ctx->getTime();
+
+	ctx->reportBuildTime(RC_TIME_FILTER_WALKABLE, ctx->getDeltaTimeUsec(startTime, endTime));
 }
