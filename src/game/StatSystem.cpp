@@ -1209,10 +1209,11 @@ void Pet::UpdateDamagePhysical(WeaponAttackType attType)
     // how much AP is needed for 1 dps
     float ap_coef = 14.0f;
 
+    // seems some pets have different ap coefficient then ussual
     switch (GetEntry())
     {
-        case 17252:
-        case 1863:
+        case 1863:                  // Succubus
+        case 17252:                 // Felguard
             ap_coef = 11.11f;
             break;
         default:
@@ -1253,18 +1254,18 @@ void Pet::UpdateDamagePhysical(WeaponAttackType attType)
         
         else if (owner && owner->getClass() == CLASS_WARLOCK)
         {
+            // there should be modifying coefficient values (find out due to testing)
             switch (GetEntry())
             {
-                case 1863:
-                case 17252:
-
-                    total_pct *= 1.05f;
+                case 417:                   // Felhunter
+                    total_pct *= 0.80f;
                     break;
-                case 1860:
+                case 1860:                  // Voidwalker
                     total_pct *= 0.86f;
                     break;
-                case 417:
-                    total_pct *= 0.80f;
+                case 1863:                  // Succubus
+                case 17252:                 // Felguard
+                    total_pct *= 1.05f;
                     break;
                 default:
                     break;
