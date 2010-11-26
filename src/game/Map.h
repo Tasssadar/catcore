@@ -330,6 +330,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         template<class T>
             void DeleteFromWorld(T*);
+        // end movemap-related
 };
 
 enum InstanceResetMethod
