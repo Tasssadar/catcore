@@ -1168,7 +1168,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                 bool triggered_not_delay = false;
 
                 // Explosive Shot triggered, but still does DoT damage and should not delay...
-                if (spellProto && spellProto->Id == 53352 && triggerAura && triggerAura->GetAuraTicks() => 1)
+                if (spellProto && spellProto->Id == 53352 && triggerAura && triggerAura->GetAuraTicks() >= 1)
                     triggered_not_delay = true;
 
                 if (!triggered_not_delay)

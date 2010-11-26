@@ -4183,7 +4183,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
                 return DIMINISHING_LIMITONLY;
             // Seduction
-            else if (spellproto->SpellFamilyFlags & UI64LIT(0x1000000040000000)
+            else if (spellproto->SpellFamilyFlags & UI64LIT(0x1000000040000000))
                 return DIMINISHING_FEAR_BLIND;
             break;
         }
