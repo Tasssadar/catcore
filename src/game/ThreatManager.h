@@ -92,7 +92,7 @@ class MANGOS_DLL_SPEC HostileReference : public Reference<Unit, ThreatManager>
 
         //=================================================
 
-        uint64 getUnitGuid() const { return iUnitGuid; }
+        ObjectGuid getUnitGuid() const { return iUnitGuid; }
 
         //=================================================
         // reference is not needed anymore. realy delete it !
@@ -122,7 +122,7 @@ class MANGOS_DLL_SPEC HostileReference : public Reference<Unit, ThreatManager>
     private:
         float iThreat;
         float iTempThreatModifyer;                          // used for taunt
-        uint64 iUnitGuid;
+        ObjectGuid iUnitGuid;
         bool iOnline;
         bool iAccessible;
 };

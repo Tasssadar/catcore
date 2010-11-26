@@ -13358,6 +13358,11 @@ Unit* Unit::GetUnit(WorldObject const& object, uint64 guid)
     return ObjectAccessor::GetUnit(object,guid);
 }
 
+Unit* Unit::GetUnit(WorldObject const& object, ObjectGuid guid)
+{
+    return ObjectAccessor::GetUnit(object,guid);
+}
+
 bool Unit::isVisibleForInState( Player const* u, WorldObject const* viewPoint, bool inVisibleList ) const
 {
     return isVisibleForOrDetect(u, viewPoint, false, inVisibleList, false);
@@ -15995,7 +16000,7 @@ void Unit::SendThreatUpdate()
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
-            data.appendPackGUID((*itr)->getUnitGuid());
+            data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat());
         }
         SendMessageToSet(&data, false);
@@ -16010,11 +16015,11 @@ void Unit::SendHighestThreatUpdate(HostileReference* pHostilReference)
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_HIGHEST_THREAT_UPDATE Message");
         WorldPacket data(SMSG_HIGHEST_THREAT_UPDATE, 8 + 8 + count * 8);
         data << GetPackGUID();
-        data.appendPackGUID(pHostilReference->getUnitGuid());
+        data.appendPackGUID(pHostilReference->getUnitGuid().GetRawValue());
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
-            data.appendPackGUID((*itr)->getUnitGuid());
+            data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat());
         }
         SendMessageToSet(&data, false);
@@ -16034,7 +16039,7 @@ void Unit::SendThreatRemove(HostileReference* pHostileReference)
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_THREAT_REMOVE Message");
     WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
     data << GetPackGUID();
-    data.appendPackGUID(pHostileReference->getUnitGuid());
+    data.appendPackGUID(pHostileReference->getUnitGuid().GetRawValue());
     SendMessageToSet(&data, false);
 }
 

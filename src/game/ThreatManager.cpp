@@ -58,7 +58,7 @@ HostileReference::HostileReference(Unit* pUnit, ThreatManager *pThreatManager, f
     iThreat = pThreat;
     iTempThreatModifyer = 0.0f;
     link(pUnit, pThreatManager);
-    iUnitGuid = pUnit->GetGUID();
+    iUnitGuid = pUnit->GetObjectGuid();
     iOnline = true;
     iAccessible = true;
 }
