@@ -630,6 +630,7 @@ bool LfgGroup::HasCorrectLevel(uint8 level)
         case LFG_GROUPTYPE_WTLK_HEROIC:
             return (level == 80);
     }
+	return true;
 }
 void LfgGroup::SendUpdate()
 {

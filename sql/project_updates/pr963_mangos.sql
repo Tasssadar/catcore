@@ -1,0 +1,1 @@
+ALTER TABLE `pet_levelstats` ADD `mindmg` smallint(5) unsigned NOT NULL, `maxdmg` smallint(5) unsigned NOT NULL;

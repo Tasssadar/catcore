@@ -1160,20 +1160,34 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         {
             if ( damagetype != DOT )
             {
-                for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
-                {
-                    // skip channeled spell (processed differently below)
-                    if (i == CURRENT_CHANNELED_SPELL)
-                        continue;
+                Aura* triggerAura = NULL;
 
-                    if (Spell* spell = pVictim->GetCurrentSpell(CurrentSpellTypes(i)))
+                if (GetTypeId()==TYPEID_PLAYER)
+                    triggerAura = pVictim->GetAura(SPELL_AURA_PERIODIC_DUMMY, SPELLFAMILY_HUNTER, UI64LIT(0x8000000000000000), NULL, ((Player*)this)->GetGUID());
+
+                bool triggered_not_delay = false;
+
+                // Explosive Shot triggered, but still does DoT damage and should not delay...
+                if (spellProto && spellProto->Id == 53352 && triggerAura && triggerAura->GetAuraTicks() >= 1)
+                    triggered_not_delay = true;
+
+                if (!triggered_not_delay)
+                {
+                    for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
                     {
-                        if (spell->getState() == SPELL_STATE_PREPARING)
+                        // skip channeled spell (processed differently below)
+                        if (i == CURRENT_CHANNELED_SPELL)
+                            continue;
+
+                        if (Spell* spell = pVictim->GetCurrentSpell(CurrentSpellTypes(i)))
                         {
-                            if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
-                                pVictim->InterruptSpell(CurrentSpellTypes(i));
-                            else
-                                spell->Delayed();
+                            if (spell->getState() == SPELL_STATE_PREPARING)
+                            {
+                                if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
+                                    pVictim->InterruptSpell(CurrentSpellTypes(i));
+                                else
+                                    spell->Delayed();
+                            }
                         }
                     }
                 }
@@ -13344,6 +13358,11 @@ Unit* Unit::GetUnit(WorldObject const& object, uint64 guid)
     return ObjectAccessor::GetUnit(object,guid);
 }
 
+Unit* Unit::GetUnit(WorldObject const& object, ObjectGuid guid)
+{
+    return ObjectAccessor::GetUnit(object,guid);
+}
+
 bool Unit::isVisibleForInState( Player const* u, WorldObject const* viewPoint, bool inVisibleList ) const
 {
     return isVisibleForOrDetect(u, viewPoint, false, inVisibleList, false);
@@ -15981,7 +16000,7 @@ void Unit::SendThreatUpdate()
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
-            data.appendPackGUID((*itr)->getUnitGuid());
+            data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat());
         }
         SendMessageToSet(&data, false);
@@ -15996,11 +16015,11 @@ void Unit::SendHighestThreatUpdate(HostileReference* pHostilReference)
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_HIGHEST_THREAT_UPDATE Message");
         WorldPacket data(SMSG_HIGHEST_THREAT_UPDATE, 8 + 8 + count * 8);
         data << GetPackGUID();
-        data.appendPackGUID(pHostilReference->getUnitGuid());
+        data.appendPackGUID(pHostilReference->getUnitGuid().GetRawValue());
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
-            data.appendPackGUID((*itr)->getUnitGuid());
+            data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat());
         }
         SendMessageToSet(&data, false);
@@ -16020,7 +16039,7 @@ void Unit::SendThreatRemove(HostileReference* pHostileReference)
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_THREAT_REMOVE Message");
     WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
     data << GetPackGUID();
-    data.appendPackGUID(pHostileReference->getUnitGuid());
+    data.appendPackGUID(pHostileReference->getUnitGuid().GetRawValue());
     SendMessageToSet(&data, false);
 }
 

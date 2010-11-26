@@ -2359,7 +2359,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 53271:
                 {
                     Pet* pet = m_caster->GetPet();
-                    if (!pet || !unitTarget)
+                    if (!pet || !pet->isAlive() || !unitTarget)
                         return;
 
                     // prevent pet's Master Call fail when pet rooted 
@@ -7101,7 +7101,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                         // Search only Serpent Sting, Viper Sting, Scorpid Sting auras
                         uint64 familyFlag = aura->GetSpellProto()->SpellFamilyFlags;
-                        if (!(familyFlag & UI64LIT(0x000000800000C000)))
+                        if (!aura || !aura->GetSpellProto() || aura->GetSpellProto()->SpellFamilyName != SPELLFAMILY_HUNTER || !(familyFlag & UI64LIT(0x000000800000C000)))
                             continue;
 
                         // Refresh aura duration
@@ -7116,7 +7116,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         }
 
                         // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
-                        if ((familyFlag & UI64LIT(0x0000008000000000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
+                        else if ((familyFlag & UI64LIT(0x0000008000000000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
                         {
                             uint32 target_max_mana = unitTarget->GetMaxPower(POWER_MANA);
                             if (!target_max_mana)
@@ -7139,7 +7139,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         }
 
                         // Scorpid Sting - Attempts to Disarm the target for 10 sec. This effect cannot occur more than once per 1 minute.
-                        if (familyFlag & UI64LIT(0x0000000000008000))
+                        else if (familyFlag & UI64LIT(0x0000000000008000))
                             spellId = 53359;                // Chimera Shot - Scorpid
                         // ?? nothing say in spell desc (possibly need addition check)
                         //if ((familyFlag & UI64LIT(0x0000010000000000)) || // dot

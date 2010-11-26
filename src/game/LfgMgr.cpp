@@ -563,7 +563,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 continue;
             // Copy roles to temp structure...
             tmpRoles.Reset();
-            for(PlayerList::iterator dpsitr = (*specific)->GetDps()->begin(); dpsitr != (*specific)->GetDps()->end(); ++dpsit
+            for(PlayerList::iterator dpsitr = (*specific)->GetDps()->begin(); dpsitr != (*specific)->GetDps()->end(); ++dpsitr)
                 tmpRoles.dps.insert(*dpsitr);
             tmpRoles.tank = (*specific)->GetTank();
             tmpRoles.heal = (*specific)->GetHeal();
@@ -1302,6 +1302,7 @@ uint32 LfgMgr::GetAvgWaitTime(uint32 dugeonId, uint8 slot, uint8 roles)
             return (m_waitTimes[LFG_WAIT_TIME].find(dugeonId)->second / 1000);
         }
     }
+	return 0;
 }
 
 void LfgMgr::UpdateWaitTime(LfgGroup *group, uint32 dungeonId)

@@ -465,7 +465,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
                 return SPELL_HAND;
 
             // skip Heart of the Crusader that have also same spell family mask
-            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000820180400)) && (spellInfo->AttributesEx3 & 0x200) && (spellInfo->SpellIconID != 237))
+            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000821180400)) && (spellInfo->AttributesEx3 & 0x200) && (spellInfo->SpellIconID != 237))
                 return SPELL_JUDGEMENT;
 
             // only paladin auras have this (for palaldin class family)
@@ -2284,6 +2284,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if ((spellInfo_1->SpellIconID == 225 && spellInfo_2->SpellIconID == 2246) ||
                    (spellInfo_2->SpellIconID == 225 && spellInfo_1->SpellIconID == 2246))
                    return false;
+
+                //  Insect Swarm
+                if (spellInfo_1->SpellFamilyFlags == UI64LIT(0x200000) && spellInfo_2->SpellFamilyFlags == UI64LIT(0x200000))
+                    return false;
             }
 
             // Leader of the Pack and Scroll of Stamina (multi-family check)
@@ -4179,7 +4183,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
                 return DIMINISHING_LIMITONLY;
             // Seduction
-            else if (spellproto->SpellFamilyFlags & UI64LIT(0x00040000000))
+            else if (spellproto->SpellFamilyFlags & UI64LIT(0x1000000040000000))
                 return DIMINISHING_FEAR_BLIND;
             break;
         }
@@ -4197,6 +4201,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hibernate
             else if (spellproto->SpellFamilyFlags & UI64LIT(0x0002000001000000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000))
                 return DIMINISHING_HIBERNATE;
+            // Entangling Roots / Nature's Grasp
+            else if (spellproto->SpellFamilyFlags & UI64LIT(0x200))
+                return DIMINISHING_CONTROL_ROOT;
             break;
         }
         case SPELLFAMILY_WARRIOR:

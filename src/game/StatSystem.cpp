@@ -1206,7 +1206,21 @@ void Pet::UpdateDamagePhysical(WeaponAttackType attType)
 
     float att_speed = float(GetAttackTime(BASE_ATTACK))/1000.0f;
 
-    float base_value  = GetModifierValue(unitMod, BASE_VALUE) + GetTotalAttackPowerValue(attType)/ 14.0f * att_speed;
+    // how much AP is needed for 1 dps
+    float ap_coef = 14.0f;
+
+    // seems some pets have different ap coefficient then ussual
+    switch (GetEntry())
+    {
+        case 1863:                  // Succubus
+        case 17252:                 // Felguard
+            ap_coef = 11.11f;
+            break;
+        default:
+            break;
+    }
+
+    float base_value  = GetModifierValue(unitMod, BASE_VALUE) + GetTotalAttackPowerValue(attType)/ ap_coef * att_speed;
     float base_pct    = GetModifierValue(unitMod, BASE_PCT);
     float total_value = GetModifierValue(unitMod, TOTAL_VALUE);
     float total_pct   = GetModifierValue(unitMod, TOTAL_PCT);
@@ -1237,6 +1251,26 @@ void Pet::UpdateDamagePhysical(WeaponAttackType attType)
         Unit* owner = GetOwner();
         if (owner && owner->getClass() == CLASS_PRIEST)
             total_value += 0.3f * owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW);
+        
+        else if (owner && owner->getClass() == CLASS_WARLOCK)
+        {
+            // there should be modifying coefficient values (find out due to testing)
+            switch (GetEntry())
+            {
+                case 417:                   // Felhunter
+                    total_pct *= 0.80f;
+                    break;
+                case 1860:                  // Voidwalker
+                    total_pct *= 0.86f;
+                    break;
+                case 1863:                  // Succubus
+                case 17252:                 // Felguard
+                    total_pct *= 1.05f;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     float mindamage = ((base_value + weapon_mindamage) * base_pct + total_value) * total_pct;

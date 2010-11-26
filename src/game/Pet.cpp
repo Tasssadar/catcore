@@ -849,10 +849,11 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     {
         case SUMMON_PET:
         {
-            float mindmg = float(petlevel - (petlevel / 4));
-            float maxdmg = float(petlevel + (petlevel / 4));
-
             PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(creature_ID, petlevel);
+
+            float mindmg = (pInfo && pInfo->mindmg) ? float(pInfo->mindmg) : float(petlevel - (petlevel / 4));
+            float maxdmg = (pInfo && pInfo->maxdmg) ? float(pInfo->maxdmg) : float(petlevel + (petlevel / 4));
+
             if (pInfo)                                       // exist in DB
             {
                 SetCreateHealth(pInfo->health);

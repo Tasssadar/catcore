@@ -342,15 +342,6 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
 
     m_spellSchoolMask = GetSpellSchoolMask(info);           // Can be override for some spell (wand shoot for example)
 
-    if (m_attackType == RANGED_ATTACK)
-    {
-        // wand case
-        if ((m_caster->getClassMask() & CLASSMASK_WAND_USERS) != 0 && m_caster->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (Item* pItem = ((Player*)m_caster)->GetWeaponForAttack(RANGED_ATTACK))
-                m_spellSchoolMask = SpellSchoolMask(1 << pItem->GetProto()->Damage[0].DamageType);
-        }
-    }
     // Set health leech amount to zero
     m_healthLeech = 0;
 
@@ -360,6 +351,16 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
         m_originalCasterGUID = m_caster->GetObjectGuid();
 
     UpdateOriginalCasterPointer();
+
+    if (m_attackType == RANGED_ATTACK)
+    {
+        // wand case
+        if (m_originalCaster && (m_originalCaster->getClassMask() & CLASSMASK_WAND_USERS) != 0 && m_originalCaster->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (Item* pItem = ((Player*)m_originalCaster)->GetWeaponForAttack(RANGED_ATTACK))
+                m_spellSchoolMask = SpellSchoolMask(1 << pItem->GetProto()->Damage[0].DamageType);
+        }
+    }
 
     for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
         m_currentBasePoints[i] = m_spellInfo->CalculateSimpleValue(SpellEffectIndex(i));
@@ -1261,7 +1262,7 @@ void Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask)
             {
                 if (!(m_spellInfo->Id == 39897 || m_spellInfo->Id == 32592 || m_spellInfo->Id == 32375|| m_spellInfo->Id == 1725 ||
                     m_spellInfo->Id == 1038 || (m_spellInfo->SpellFamilyFlags2 & UI64LIT(0x00000100)) || m_spellInfo->Id == 3600 ||
-                    m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_THREAT))
+                    m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_THREAT || m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_MODIFY_THREAT_PERCENT))
                     unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
             }
 
@@ -5532,10 +5533,15 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_EFFECT_LEAP_BACK:
             {
-                if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER)
-                    if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000400000000000)) // Disengage
-                        if (!m_caster->isInCombat())
-                            return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+                // Disengage
+                if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000400000000000))
+                {
+                    if (!m_caster->isInCombat())
+                        return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+
+                    if (m_caster->hasUnitState(UNIT_STAT_ROOT))
+                        return SPELL_FAILED_ROOTED;
+                }
                 break;
             }
             case SPELL_EFFECT_JUMP2:
