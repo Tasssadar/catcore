@@ -55,7 +55,7 @@ void TerrainInfo::LoadNavMesh(int gx, int gy)
         {
             dtFreeNavMesh(m_navMesh);
             m_navMesh = NULL;
-            sLog.outError("Failed to initialize mmap %03u from file %s", m_mapId, fileName);
+            sLog.outError("Error: Failed to initialize mmap %03u from file %s", i_id, fileName);
             return;
         }
     }
@@ -74,7 +74,7 @@ void TerrainInfo::LoadNavMesh(int gx, int gy)
     FILE *file = fopen(fileName, "rb");
     if (!file)
     {
-        sLog.outDebug("Could not open mmtile file '%s'", fileName);
+        sLog.outDebug("Error: Could not open mmtile file '%s'", fileName);
         delete [] fileName;
         return;
     }
@@ -93,20 +93,20 @@ void TerrainInfo::LoadNavMesh(int gx, int gy)
     dtMeshHeader* header = (dtMeshHeader*)data;
     if (header->magic != DT_NAVMESH_MAGIC)
     {
-        sLog.outError("%03u%02i%02i.mmtile has an invalid header", i_id, gx, gy);
+        sLog.outError("Error: %03u%02i%02i.mmtile has an invalid header", i_id, gx, gy);
         dtFree(data);
         return;
     }
     if (header->version != DT_NAVMESH_VERSION)
     {
-        sLog.outError("%03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
+        sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
         dtFree(data);
         return;
     }
 
-    if (DT_SUCCESS != m_navMesh->addTile(data, length, DT_TILE_FREE_DATA, 0, NULL))
+    if (!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
     {
-        sLog.outError("Could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
+        sLog.outError("Error: could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
         dtFree(data);
         return;
     }
@@ -131,15 +131,10 @@ void TerrainInfo::UnloadNavMesh(int gx, int gy)
     unpackTileID(packedTilePos, tileX, tileY);
 
     // unload, and mark as non loaded
-    if(DT_SUCCESS != m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), NULL, NULL))
-    {
-        sLog.outError("Could not unload %03u%02i%02i.mmtile from navmesh", m_mapId, gx, gy);
-    }
-    else
-    {
-        m_mmapLoadedTiles.erase(packedGridPos);
-        sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i", m_mapId, gx, gy, m_mapId);
-    }
+    if(m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0))
+        m_mmapTileMap.erase(packedGridPos);
+
+    sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i(%u)", i_id, gx, gy, i_id, GetInstanceId());
 }
 
 dtNavMesh const* TerrainInfo::GetNavMesh() const
