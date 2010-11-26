@@ -359,13 +359,18 @@ ThreatList ThreatContainer::getPlayerThreatList() const
 {
     ThreatList unitlist = iThreatList;
     ThreatList playerlist;
+    //Unit* source;
 
     for(ThreatList::const_iterator i = unitlist.begin(); i != unitlist.end(); ++i)
     {
-        if (!(*i)->getTarget())
-           continue;
-        if ((*i)->getTarget()->GetTypeId() == TYPEID_PLAYER)
-           playerlist.push_back(*i);
+        if ((*i)->getUnitGuid().IsPlayer())
+            playerlist.push_back(*i);
+
+        /*if (!source)
+            source = (*i)->getSourceUnit();
+        Unit* unit = Unit::GetUnit(*source, (*i)->getUnitGuid());
+        if (unit && unit->GetTypeId() == TYPEID_PLAYER)
+           playerlist.push_back(*i);*/
     }
 
     return playerlist;

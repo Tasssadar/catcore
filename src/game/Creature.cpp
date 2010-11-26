@@ -2011,6 +2011,11 @@ Player* Creature::SelectAttackingPlayer(AttackingTarget target, uint32 position)
         if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
             threatlist.remove(*i);*/
 
+    //ThreatList threatlist = getThreatManager().getThreatList();
+    //for(ThreatList::const_iterator i = threatlist.begin(); i != threatlist.end(); ++i)
+    //	if (!(*i)->getUnitGuid().IsPlayer())
+    //        threatlist.remove(*i);
+
     ThreatList threatlist = getThreatManager().getPlayerThreatList();
 
     ThreatList::const_iterator i = threatlist.begin();
@@ -2024,17 +2029,17 @@ Player* Creature::SelectAttackingPlayer(AttackingTarget target, uint32 position)
         case ATTACKING_TARGET_RANDOM:
         {
             advance(i, position + (rand() % (threatlist.size() - position)));
-            return (Player*)Unit::GetUnit(*this, (*i)->getUnitGuid());
+            return sObjectMgr.GetPlayer((*i)->getUnitGuid());
         }
         case ATTACKING_TARGET_TOPAGGRO:
         {
             advance(i, position);
-            return (Player*)Unit::GetUnit(*this, (*i)->getUnitGuid());
+            return sObjectMgr.GetPlayer((*i)->getUnitGuid());
         }
         case ATTACKING_TARGET_BOTTOMAGGRO:
         {
             advance(r, position);
-            return (Player*)Unit::GetUnit(*this, (*r)->getUnitGuid());
+            return sObjectMgr.GetPlayer((*r)->getUnitGuid());
         }
         // TODO: implement these
         //case ATTACKING_TARGET_RANDOM_PLAYER:
