@@ -4030,6 +4030,8 @@ CREATE TABLE `pet_levelstats` (
   `sta` smallint(5) unsigned NOT NULL,
   `inte` smallint(5) unsigned NOT NULL,
   `spi` smallint(5) unsigned NOT NULL,
+  `mindmg` smallint(5) unsigned NOT NULL,
+  `maxdmg` smallint(5) unsigned NOT NULL,
   PRIMARY KEY  (`creature_entry`,`level`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 PACK_KEYS=0 COMMENT='Stores pet levels stats.';
 
