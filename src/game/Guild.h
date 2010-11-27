@@ -24,6 +24,7 @@
 
 #include "Common.h"
 #include "Item.h"
+#include "ObjectMgr.h"
 
 class Item;
 
@@ -437,6 +438,8 @@ class Guild
         void DeleteFriendlyGuildId();
         MemberList const *GetMembers() const { return &members; }
 
+        uint32 GetFriendlyGroupId() { return m_friendlyGuildGroupId; }
+
     protected:
         void AddRank(const std::string& name,uint32 rights,uint32 money);
 
@@ -478,8 +481,7 @@ class Guild
         uint8 m_PurchasedTabs;
 
         //Friendly guild - they share guild chats
-        uint32 m_friendlyGuildId;
-        Guild *m_friendlyGuild;
+        uint32 m_friendlyGuildGroupId;
 
     private:
         // used only from high level Swap/Move functions

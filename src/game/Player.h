@@ -1516,10 +1516,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void RegenerateHealth(uint32 diff);
         void setRegenTimer(uint32 time) {m_regenTimer = time;}
         void RegenerateAll(uint32 diff = REGEN_TIME_FULL);
-        void setMainWeaponChangeTimer(uint32 time) {m_mainWeaponChangeTimer = time;}
-        void setOffWeaponChangeTimer(uint32 time) {m_offWeaponChangeTimer = time;}
-        void setRangedWeaponChangeTimer(uint32 time) {m_rangedWeaponChangeTimer = time;}
-
 
         uint32 GetMoney() const { return GetUInt32Value (PLAYER_FIELD_COINAGE); }
         void ModifyMoney( int32 d )
@@ -2325,7 +2321,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             BindToInstance(map->GetInstanceSave(), permanent, sendNotice);
         }
-        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false));
+        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false);
         void SendRaidInfo();
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
@@ -2584,9 +2580,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 m_drunkTimer;
         uint16 m_drunk;
-        uint32 m_mainWeaponChangeTimer;
-        uint32 m_offWeaponChangeTimer;
-        uint32 m_rangedWeaponChangeTimer;
 
         uint32 m_zoneUpdateId;
         uint32 m_zoneUpdateTimer;
