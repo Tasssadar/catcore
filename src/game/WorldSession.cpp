@@ -44,7 +44,11 @@ bool MapSessionFilter::Process(WorldPacket * packet)
 {
     OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
     //let's check if our opcode can be really processed in Map::Update()
-    if(!opHandle.threadSafe)
+    if(opHandle.packetProcessing == PROCESS_INPLACE)
+        return true;
+
+    //we do not process thread-unsafe packets
+    if(opHandle.packetProcessing == PROCESS_THREADUNSAFE)
         return false;
 
     Player * plr = m_pSession->GetPlayer();
@@ -61,7 +65,11 @@ bool WorldSessionFilter::Process(WorldPacket* packet)
 {
     OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
     //check if packet handler is supposed to be safe
-    if(!opHandle.threadSafe)
+    if(opHandle.packetProcessing == PROCESS_INPLACE)
+        return true;
+
+    //thread-unsafe packets should be processed in World::UpdateSessions()
+    if(opHandle.packetProcessing == PROCESS_THREADUNSAFE)
         return true;
 
     //no player attached? -> our client! ^^
