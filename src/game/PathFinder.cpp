@@ -212,7 +212,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         // TODO: swimming case
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
-        if(canFly())
+        if(canFly() || canSwim())
         {
             Creature* owner = (Creature*)m_sourceObject;
 

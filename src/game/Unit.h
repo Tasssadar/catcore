@@ -1975,7 +1975,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void AddAndLinkAura(uint32 auraId, bool apply);
 
         void InitializeMovementFlags();
-        void UpdateMovementFlags(bool updateMovement, float x = 0, float y = 0, float z = 0);
+        void UpdateMovementFlags(bool updateMovement, float x = 0, float y = 0, float z = 0, bool walkmode = false);
 
     protected:
         explicit Unit ();
