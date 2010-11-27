@@ -232,15 +232,18 @@ Guild * ObjectMgr::GetGuildByName(const std::string& guildname) const
     return NULL;
 }
 
-GuildList ObjectMgr::GetGroupedGuilds(uint32 groupId) const
+GuildList* ObjectMgr::GetGroupedGuilds(uint32 groupId)
 {
+    if (!groupId)
+        return NULL;
+
     GuildList m_friendlyGuildList;
 
     for(GuildMap::const_iterator itr = mGuildMap.begin(); itr != mGuildMap.end(); ++itr)
         if (itr->second->GetFriendlyGroupId() == groupId)
             m_friendlyGuildList.push_back(itr->second);
 
-    return m_friendlyGuildList;
+    return &m_friendlyGuildList;
 }
 
 std::string ObjectMgr::GetGuildNameById(uint32 GuildId) const

@@ -544,25 +544,23 @@ void Guild::BroadcastToGuild(WorldSession *session, const std::string& msg, uint
         WorldPacket data;
         ChatHandler(session).FillMessageData(&data, CHAT_MSG_GUILD, language, 0, msg.c_str());
 
-        for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
-        {
-            Player *pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
-
-            if (pl && pl->GetSession() && HasRankRight(pl->GetRank(),GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetGUIDLow()) )
-                pl->GetSession()->SendPacket(&data);
-        }
-
-        GuildList m_friendly = sObjectMgr.GetGroupedGuilds(m_friendlyGuildGroupId);
+        // handling friendly guilds
+        GuildList m_friendly = *sObjectMgr.GetGroupedGuilds(m_friendlyGuildGroupId);
+        
+        // no friendly guilds found, broadcast only to this guild
         if (m_friendly.empty())
         {
-            DeleteFriendlyGuildId();
+            for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
+            {
+                Player *pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+
+                if (pl && pl->GetSession() && HasRankRight(pl->GetRank(),GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetGUIDLow()) )
+                    pl->GetSession()->SendPacket(&data);
+            }
             return;
         }
 
-        /*for(GuildMap::const_iterator itr = mGuildMap.begin(); itr != mGuildMap.end(); ++itr)
-        {
-            if (itr->second->m_friendlyGuildGroupId == m_friendlyGuildGroupId)*/
-        
+        // friendly guilds found, also contains this guild so ...
         for(GuildList::const_iterator i = m_friendly.begin(); i != m_friendly.end(); ++i)
         {
             for(MemberList::const_iterator itr = (*i)->GetMembers()->begin(); itr != (*i)->GetMembers()->end(); ++itr)
