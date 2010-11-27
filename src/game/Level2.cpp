@@ -4777,7 +4777,7 @@ bool ChatHandler::HandleMmapLocCommand(const char* args)
 
     dtNavMeshQuery* query = dtAllocNavMeshQuery();
     ASSERT(query);
-    query->init(navmesh, MESH_MAX_NODES);
+    query->init((dtNavMesh*)navmesh, MESH_MAX_NODES);
 
     const float* min = navmesh->getParams()->orig;
 
@@ -4852,7 +4852,7 @@ bool ChatHandler::HandleMmapLoadedTilesCommand(const char* args)
 
     dtNavMeshQuery* query = dtAllocNavMeshQuery();
     ASSERT(query);
-    query->init(navmesh, MESH_MAX_NODES);
+    query->init((dtNavMesh*)navmesh, MESH_MAX_NODES);
 
     for (int32 i = 0; i < navmesh->getMaxTiles(); ++i)
     {

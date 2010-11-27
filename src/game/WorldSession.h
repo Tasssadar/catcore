@@ -43,6 +43,7 @@ class LoginQueryHolder;
 class CharacterHandler;
 class GMTicket;
 class MovementInfo;
+class WorldSession;
 
 struct OpcodeHandler;
 
@@ -146,14 +147,14 @@ enum TutorialDataState
 class PacketFilter
 {
 public:
-    explicit PacketFilter(WorldSession * pSession) : m_pSession(pSession) {}
+    explicit PacketFilter(WorldSession *pSession) : m_pSession(pSession) {}
     virtual ~PacketFilter() {}
 
-    virtual bool Process(WorldPacket * packet) { return true; }
+    virtual bool Process(WorldPacket *packet) { return true; }
     virtual bool ProcessLogout() const { return true; }
 
 protected:
-    WorldSession * const m_pSession;
+    WorldSession const *m_pSession;
 };
 //process only thread-safe packets in Map::Update()
 class MapSessionFilter : public PacketFilter

@@ -199,7 +199,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x0AA*/ { "SMSG_DESTROY_OBJECT",                          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x0AB*/ { "CMSG_USE_ITEM",                                STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleUseItemOpcode             },
     /*0x0AC*/ { "CMSG_OPEN_ITEM",                               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleOpenItemOpcode            },
-    /*0x0AD*/ { "CMSG_READ_ITEM",                               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleReadItemO                 },
+    /*0x0AD*/ { "CMSG_READ_ITEM",                               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleReadItem                  },
     /*0x0AE*/ { "SMSG_READ_ITEM_OK",                            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x0AF*/ { "SMSG_READ_ITEM_FAILED",                        STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x0B0*/ { "SMSG_ITEM_COOLDOWN",                           STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
