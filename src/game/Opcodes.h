@@ -1365,6 +1365,7 @@ struct OpcodeHandler
 {
     char const* name;
     SessionStatus status;
+    bool threadSafe;
     void (WorldSession::*handler)(WorldPacket& recvPacket);
 };
 
