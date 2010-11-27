@@ -454,9 +454,6 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     m_questRewardTalentCount = 0;
 
     m_regenTimer = 0;
-    m_mainWeaponChangeTimer = 0;
-    m_offWeaponChangeTimer = 0;
-    m_rangedWeaponChangeTimer = 0;
 
     m_zoneUpdateId = 0;
     m_zoneUpdateTimer = 0;
@@ -1391,31 +1388,6 @@ void Player::Update( uint32 p_time )
             m_regenTimer = 0;
         else
             m_regenTimer -= p_time;
-    }
-
-    // mainhand, offhand and ranged weapon timers
-    if (m_mainWeaponChangeTimer > 0)
-    {
-        if (p_time >= m_mainWeaponChangeTimer)
-            m_mainWeaponChangeTimer = 0;
-        else
-            m_mainWeaponChangeTimer -= p_time;
-    }
-
-    if (m_offWeaponChangeTimer > 0)
-    {
-        if (p_time >= m_offWeaponChangeTimer)
-            m_offWeaponChangeTimer = 0;
-        else
-            m_offWeaponChangeTimer -= p_time;
-    }
-
-    if (m_rangedWeaponChangeTimer > 0)
-    {
-        if (p_time >= m_rangedWeaponChangeTimer)
-            m_rangedWeaponChangeTimer = 0;
-        else
-            m_rangedWeaponChangeTimer -= p_time;
     }
 
     if (m_zoneUpdateTimer > 0)
@@ -10753,15 +10725,6 @@ uint8 Player::CanEquipItem( uint8 slot, uint16 &dest, Item *pItem, bool swap, bo
                             return EQUIP_ERR_NOT_DURING_ARENA_MATCH;
                 }
 
-                if (isInCombat()&& eslot == EQUIPMENT_SLOT_MAINHAND && m_mainWeaponChangeTimer != 0)
-                    return EQUIP_ERR_CANT_DO_RIGHT_NOW;         // maybe exist better error
-
-                if (isInCombat()&& eslot == EQUIPMENT_SLOT_OFFHAND && m_offWeaponChangeTimer != 0)
-                    return EQUIP_ERR_CANT_DO_RIGHT_NOW;         // maybe exist better error
-
-                if (isInCombat()&& eslot == EQUIPMENT_SLOT_RANGED && m_rangedWeaponChangeTimer != 0)
-                    return EQUIP_ERR_CANT_DO_RIGHT_NOW;         // maybe exist better error
-
                 if (IsNonMeleeSpellCasted(false))
                     return EQUIP_ERR_CANT_DO_RIGHT_NOW;
             }
@@ -11426,7 +11389,7 @@ Item* Player::EquipItem( uint16 pos, Item *pItem, bool update )
 
             _ApplyItemMods(pItem, slot, true);
 
-            if (slot == EQUIPMENT_SLOT_MAINHAND && pProto && isInCombat() && m_mainWeaponChangeTimer == 0)
+            if ((slot == EQUIPMENT_SLOT_MAINHAND || slot == EQUIPMENT_SLOT_OFFHAND || slot == EQUIPMENT_SLOT_RANGED) && pProto && isInCombat())
             {
                 uint32 cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s;
 
@@ -11439,53 +11402,6 @@ Item* Player::EquipItem( uint16 pos, Item *pItem, bool update )
                     sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
                 else
                 {
-                    m_mainWeaponChangeTimer = spellProto->StartRecoveryTime;
-
-                    WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
-                    data << uint64(GetGUID());
-                    data << uint8(1);
-                    data << uint32(cooldownSpell);
-                    data << uint32(0);
-                    GetSession()->SendPacket(&data);
-                }
-            }
-            else if (slot == EQUIPMENT_SLOT_OFFHAND && pProto && isInCombat() && m_offWeaponChangeTimer == 0)
-            {
-                uint32 cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s;
-
-                if (getClass() == CLASS_ROGUE)
-                    cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s;
-
-                SpellEntry const* spellProto = sSpellStore.LookupEntry(cooldownSpell);
-
-                if (!spellProto)
-                    sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
-                else
-                {
-                    m_offWeaponChangeTimer = spellProto->StartRecoveryTime;
-
-                    WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
-                    data << uint64(GetGUID());
-                    data << uint8(1);
-                    data << uint32(cooldownSpell);
-                    data << uint32(0);
-                    GetSession()->SendPacket(&data);
-                }
-            }
-            else if (slot == EQUIPMENT_SLOT_RANGED && pProto && isInCombat() && m_rangedWeaponChangeTimer == 0)
-            {
-                uint32 cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s;
-
-                if (getClass() == CLASS_ROGUE)
-                    cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s;
-
-                SpellEntry const* spellProto = sSpellStore.LookupEntry(cooldownSpell);
-
-                if (!spellProto)
-                    sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
-                else
-                {
-                    m_rangedWeaponChangeTimer = spellProto->StartRecoveryTime;
 
                     WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
                     data << uint64(GetGUID());
@@ -11672,6 +11588,32 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
                     {
                         UpdateExpertise(OFF_ATTACK);
                         UpdateArmorPenetration();
+                    }
+                    // Apply CD on spells at unequiping from weapon slot
+                    if (isAlive())
+                    {
+                        if ((slot == EQUIPMENT_SLOT_MAINHAND || slot == EQUIPMENT_SLOT_OFFHAND || slot == EQUIPMENT_SLOT_RANGED) && pProto && isInCombat())
+                        {
+                            uint32 cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s;
+
+                            if (getClass() == CLASS_ROGUE)
+                                cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s;
+
+                            SpellEntry const* spellProto = sSpellStore.LookupEntry(cooldownSpell);
+
+                            if (!spellProto)
+                                sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
+                            else
+                            {
+
+                                WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
+                                data << uint64(GetGUID());
+                                data << uint8(1);
+                                data << uint32(cooldownSpell);
+                                data << uint32(0);
+                                GetSession()->SendPacket(&data);
+                            }
+                        }
                     }
                 }
             }
