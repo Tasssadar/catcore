@@ -471,6 +471,7 @@ struct VehicleDataStructure
 
 typedef UNORDERED_MAP<uint32, VehicleDataStructure> VehicleDataMap;
 typedef std::map<uint32,uint32> VehicleSeatDataMap;
+typedef std::list<Guild*> GuildList;
 
 class ObjectMgr
 {
@@ -508,6 +509,8 @@ class ObjectMgr
         Player* GetPlayer(ObjectGuid guid) const { return ObjectAccessor::FindPlayer(guid); }
 
         static GameObjectInfo const *GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry<GameObjectInfo>(id); }
+
+        GuildList GetGroupedGuilds(uint32 groupId) const;
 
         void LoadGameobjectInfo();
         void AddGameobjectInfo(GameObjectInfo *goinfo);

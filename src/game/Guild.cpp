@@ -48,8 +48,7 @@ Guild::Guild()
     m_OnlineMembers = 0;
     m_GuildBankMoney = 0;
     m_PurchasedTabs = 0;
-    m_friendlyGuildId = 0;
-    m_friendlyGuild = NULL;
+    m_friendlyGuildGroupId = 0;
 
     m_GuildEventLogNextGuid = 0;
     m_GuildBankEventLogNextGuid_Money = 0;
@@ -230,7 +229,7 @@ bool Guild::LoadGuildFromDB(QueryResult *guildDataResult)
     m_CreatedDate     = fields[10].GetUInt64();
     m_GuildBankMoney  = fields[11].GetUInt64();
     m_PurchasedTabs   = fields[12].GetUInt32();
-    m_friendlyGuildId = fields[13].GetUInt32();
+    m_friendlyGuildGroupId = fields[13].GetUInt32();
 
     if (m_PurchasedTabs > GUILD_BANK_MAX_TABS)
         m_PurchasedTabs = GUILD_BANK_MAX_TABS;
@@ -552,19 +551,25 @@ void Guild::BroadcastToGuild(WorldSession *session, const std::string& msg, uint
             if (pl && pl->GetSession() && HasRankRight(pl->GetRank(),GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetGUIDLow()) )
                 pl->GetSession()->SendPacket(&data);
         }
-        if (m_friendlyGuildId && !m_friendlyGuild)
+
+        GuildList m_friendly = sObjectMgr.GetGroupedGuilds(m_friendlyGuildGroupId);
+        if (m_friendly.empty())
         {
-            m_friendlyGuild = sObjectMgr.GetGuildById(m_friendlyGuildId);
-            if (!m_friendlyGuild)
-                DeleteFriendlyGuildId();
+            DeleteFriendlyGuildId();
+            return;
         }
-        if (m_friendlyGuild)
+
+        /*for(GuildMap::const_iterator itr = mGuildMap.begin(); itr != mGuildMap.end(); ++itr)
         {
-            for(MemberList::const_iterator itr = m_friendlyGuild->GetMembers()->begin(); itr != m_friendlyGuild->GetMembers()->end(); ++itr)
+            if (itr->second->m_friendlyGuildGroupId == m_friendlyGuildGroupId)*/
+        
+        for(GuildList::const_iterator i = m_friendly.begin(); i != m_friendly.end(); ++i)
+        {
+            for(MemberList::const_iterator itr = (*i)->GetMembers()->begin(); itr != (*i)->GetMembers()->end(); ++itr)
             {
                 Player *pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
-                if (pl && pl->GetSession() && m_friendlyGuild->HasRankRight(pl->GetRank(),GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetGUIDLow()) )
+                if (pl && pl->GetSession() && (*i)->HasRankRight(pl->GetRank(),GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetGUIDLow()) )
                     pl->GetSession()->SendPacket(&data);
             }
         }
@@ -2444,6 +2449,6 @@ bool GuildItemPosCount::isContainedIn(GuildItemPosCountVec const &vec) const
 void Guild::DeleteFriendlyGuildId()
 {
     CharacterDatabase.PExecute("UPDATE guild SET friendlyGuildId = '0' WHERE guildid ='%u'", m_Id);
-    m_friendlyGuild = NULL;
-    m_friendlyGuildId = 0; 
+    //m_friendlyGuild = NULL;
+    m_friendlyGuildGroupId = 0; 
 }
