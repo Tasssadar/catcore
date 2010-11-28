@@ -19855,9 +19855,9 @@ void Player::SetBattleGroundEntryPoint()
         else
             m_bgData.mountSpell = 0;
 
-        if(!m_bgData.mountSpell && plr->getClass() == CLASS_DRUID)
+        if(!m_bgData.mountSpell && getClass() == CLASS_DRUID)
         {
-            Unit::AuraList const& auras = plr->GetAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
+            Unit::AuraList const& auras = GetAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
             if (!auras.empty())
                 m_bgData.mountSpell = (*auras.begin())->GetId();
         }
