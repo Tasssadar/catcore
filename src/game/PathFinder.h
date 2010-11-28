@@ -145,10 +145,13 @@ class PathInfo
         // smooth path functions
         uint32 fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32 maxPath,
                              const dtPolyRef* visited, const uint32 nvisited);
-        bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist,
+/*        bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist,
                             const dtPolyRef* path, const uint32 pathSize, float* steerPos,
                             unsigned char& steerPosFlag, dtPolyRef& steerPosRef,
-                            float* outPoints = 0, uint32* outPountcount = 0);
+                            float* outPoints = 0, uint32* outPountcount = 0);*/
+        bool getSteerTarget(const float* startPos, const float* endPos,
+                            const float minTargetDist, const dtPolyRef* path, const uint32 pathSize,
+                            float* steerPos, unsigned char& steerPosFlag, dtPolyRef& steerPosRef);
         uint32 findSmoothPath(const float* startPos, const float* endPos,
                               const dtPolyRef* polyPath, const uint32 polyPathSize,
                               float* smoothPath, const uint32 smoothPathMaxSize);

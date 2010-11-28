@@ -24,6 +24,7 @@
 #include "Utilities/LinkedReference/Reference.h"
 #include "UnitEvents.h"
 #include "Timer.h"
+#include "ObjectGuid.h"
 #include <list>
 
 //==============================================================

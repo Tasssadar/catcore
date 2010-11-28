@@ -46,6 +46,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
 
     nx = X + distanceX;
     ny = Y + distanceY;
+    nz = Z;
 
     // prevent invalid coordinates generation
     MaNGOS::NormalizeMapCoord(nx);
@@ -57,7 +58,12 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     {
         // Limit height change
         const float distanceZ = rand_norm_f() * sqrtf(dist)/2.0f;
-        nz = Z + distanceZ;
+        if(urand(0, 1))
+            nz += distanceZ;
+        else
+            nz -= distanceZ;
+        if(fabs(nz-Z) > wander_distance)
+            nz = Z;
         float tz = map->GetHeight(nx, ny, nz-2.0f, false);  // Map check only, vmap needed here but need to alter vmaps checks for height.
         float wz = map->GetWaterLevel(nx, ny, nz);
 
@@ -85,7 +91,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     //else if (is_water_ok)                                 // Swimming mode to be done with more than this check
     else
         i_nextMoveTime.Reset(urand(500+i_destinationHolder.GetTotalTravelTime(), 10000+i_destinationHolder.GetTotalTravelTime()));
-    creature.UpdateMovementFlags(true, nx, ny, nz);
+    creature.UpdateMovementFlags(true, nx, ny, nz, true);
 }
 
 template<>

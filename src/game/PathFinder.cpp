@@ -207,15 +207,16 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
 
     // we may need a better number here
     bool farFromPoly = (distToStartPoly > 7.0f || distToEndPoly > 7.0f);
+    bool buildShotrcut = false;
     if (farFromPoly)
     {
         // TODO: swimming case
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
-        if(canFly())
+        if(canFly() || canSwim())
         {
-            Creature* owner = (Creature*)m_sourceUnit;
+            Creature* owner = (Creature*)m_sourceObject;
 
-            if (m_sourceUnit->GetTerrain()->IsUnderWater(endPos.x, endPos.y, endPos.z))
+            if (m_sourceObject->GetTerrain()->IsUnderWater(endPos.x, endPos.y, endPos.z))
             {
                 PATH_DEBUG("++ BuildPolyPath :: underWater case\n");
                 if(owner->canSwim() || owner->isPet())
@@ -425,7 +426,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     if(m_polyLength == 0 || m_polyLength == MAX_PATH_LENGTH)
     {
         // only happens if we passed bad data to findPath(), or navmesh is messed up
-        sLog.outError("%u's Path Build failed: %u length path", m_sourceUnit->GetGUID(), m_polyLength);
+        sLog.outError("%u's Path Build failed: %u length path", m_sourceObject->GetGUID(), m_polyLength);
         BuildShortcut();
         //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         m_type = PATHFIND_NOPATH;
@@ -524,11 +525,11 @@ dtQueryFilter PathInfo::createFilter()
         filter.includeFlags |= NAV_GROUND;          // walk
 
     if(creature->canSwim())
-        includeFlags |= NAV_WATER;           // swim
+        filter.includeFlags |= NAV_WATER;           // swim
 
     // creatures don't take environmental damage
     if (creature->canSwim() || creature->isPet())
-        includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
+        filter.includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
 
     // allow creatures to cheat and use different movement types if they are moved
     // forcefully into terrain they can't normally move in

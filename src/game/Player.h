@@ -2321,7 +2321,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             BindToInstance(map->GetInstanceSave(), permanent, sendNotice);
         }
-        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false));
+        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false);
         void SendRaidInfo();
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);

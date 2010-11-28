@@ -470,6 +470,12 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
                 if (!auras.empty())
                     mount_spell = (*auras.begin())->GetId();
             }
+            if(!mount_spell && plr->getClass() == CLASS_DRUID)
+            {
+                Unit::AuraList const& auras = plr->GetAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
+                if (!auras.empty())
+                    mount_spell = (*auras.begin())->GetId();
+            }
             //Nearest graveyard if in dungeon
             if (plr->GetMap()->IsDungeon())
             {

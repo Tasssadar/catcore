@@ -6696,4 +6696,5 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     PSendSysMessage("Total of %u tiles loaded", tileCount);
     PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
 */
+    return true;
 }

@@ -303,7 +303,7 @@ void WaypointMovementGenerator<Creature>::MoveToNextNode(CreatureTraveller &trav
     PathInfo sub_path(owner, node.x, node.y, node.z);
     PointPath pointPath = sub_path.getFullPath();
 
-    owner->UpdateMovementFlags(true, node.x, node.y, node.z);
+    owner->UpdateMovementFlags(true, node.x, node.y, node.z, true);
 
     float speed = traveller.Speed()*0.001f; // in ms
     uint32 traveltime = uint32(pointPath.GetTotalLength()/speed);
