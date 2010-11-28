@@ -2026,6 +2026,8 @@ void Player::ProcessDelayedOperations()
     {
         if (m_bgData.mountSpell)
         {
+            if(getClass() == CLASS_DRUID && HasSpell(m_bgData.mountSpell))
+                RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT);
             CastSpell(this, m_bgData.mountSpell, true);
             m_bgData.mountSpell = 0;
         }
@@ -2059,6 +2061,8 @@ void Player::ProcessDelayedOperations()
     {
         if (m_lookingForGroup.mount_spell)
         {
+            if(getClass() == CLASS_DRUID && HasSpell(m_lookingForGroup.mount_spell))
+                RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT);
             CastSpell(this, m_lookingForGroup.mount_spell, true);
             m_lookingForGroup.mount_spell = 0;
         }
@@ -19845,6 +19849,15 @@ void Player::SetBattleGroundEntryPoint()
         if (IsMounted())
         {
             AuraList const& auras = GetAurasByType(SPELL_AURA_MOUNTED);
+            if (!auras.empty())
+                m_bgData.mountSpell = (*auras.begin())->GetId();
+        }
+        else
+            m_bgData.mountSpell = 0;
+
+        if(!m_bgData.mountSpell && plr->getClass() == CLASS_DRUID)
+        {
+            Unit::AuraList const& auras = plr->GetAurasByType(SPELL_AURA_MOD_SHAPESHIFT);
             if (!auras.empty())
                 m_bgData.mountSpell = (*auras.begin())->GetId();
         }
