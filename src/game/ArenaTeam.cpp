@@ -21,6 +21,7 @@
 #include "ObjectGuid.h"
 #include "ArenaTeam.h"
 #include "World.h"
+#include "Chat.h"
 
 ArenaTeam::ArenaTeam()
 {
@@ -829,4 +830,33 @@ void ArenaTeam::UpdateAllRanks()
         team->second->SetRank(rank);
         team->second->NotifyStatsChanged();
     }
+}
+
+bool ArenaTeam::MembersOnline(Player* reportTo)
+{
+    bool foundMissing = false;
+    for(MemberList::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
+    {
+        Player* plr = sObjectMgr.GetPlayer(itr->guid);
+        if (!plr)
+        {
+            ChatHandler(reportTo).PSendSysMessage("Missing player's guid is: %u", itr->guid);
+            foundMissing = true;
+            continue;
+        }
+
+        if (!plr->GetSession())
+        {
+            ChatHandler(reportTo).PSendSysMessage("Missing player is: %s", plr);
+            foundMissing = true;
+        }
+    }
+
+    return !foundMissing;
+}
+
+void ArenaTeam::WriteMemberGuidsIntoList(GuidList &list)
+{
+    for (MemberList::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
+        list.push_back(itr->guid);
 }

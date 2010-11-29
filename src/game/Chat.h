@@ -536,6 +536,7 @@ class ChatHandler
         bool HandleRepairitemsCommand(const char* args);
         bool HandleWaterwalkCommand(const char* args);
         bool HandleQuitCommand(const char* args);
+        bool HandleArenaJoinCommand(const char* args);
 
         bool HandleMmapPathCommand(const char* args);
         bool HandleMmapLocCommand(const char* args);

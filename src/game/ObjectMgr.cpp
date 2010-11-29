@@ -48,6 +48,7 @@
 #include "Mail.h"
 #include "InstanceData.h"
 #include "LfgGroup.h"
+#include "Chat.h"
 
 #include <limits>
 
@@ -9375,4 +9376,90 @@ GameObjectDataPair const* FindGOData::GetResult() const
         return i_spawnedData;
 
     return i_anyData;
+}
+
+void ObjectMgr::AddArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
+{
+    mArenaReadyCheck.push_back(readyCheck);
+}
+
+void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
+{
+    mArenaReadyCheck.remove(readyCheck);
+    delete readyCheck;
+}
+
+ArenaJoinReadyCheck* ObjectMgr::FindProperArenaJoinReadyCheck(uint64 guid)
+{
+    for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
+    {
+        for(GuidList::iterator i = (*itr)->GetPendingPlayers().begin(); i != (*itr)->GetPendingPlayers().end(); ++i)
+            if ((*i) == guid)
+                return *itr;
+    }
+    return NULL;
+}
+
+// ArenaJoinReadyCheck
+void ArenaJoinReadyCheck::Initialize()
+{
+    // guid list of all players from both teams
+    ArenaTeam1->WriteMemberGuidsIntoList(lPending);
+    ArenaTeam2->WriteMemberGuidsIntoList(lPending);
+
+    SendReadyCheckPacket();
+
+}
+
+void ArenaJoinReadyCheck::SendReadyCheckPacket()
+{
+    WorldPacket data(MSG_RAID_READY_CHECK, 8);
+    data << Initiater->GetGUID();
+    for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+    {
+        Player* plr = sObjectMgr.GetPlayer(*itr);
+        if (plr)
+            plr->GetSession()->SendPacket(&data);
+    }
+}
+void ArenaJoinReadyCheck::HandlePlayerGuid(uint64 guid, uint8 state)
+{
+    RemoveFromPending(guid);
+    if (!state)
+        lNotReady.push_back(guid);
+    else
+        lReady.push_back(guid);
+
+	Player* plr = sObjectMgr.GetPlayer(guid);	
+	if (Initiater)
+		ChatHandler(Initiater).PSendSysMessage("Player's %s ready state is: %s", plr->GetName(), state ? "ready" : "not ready");
+    Check();
+}
+
+void ArenaJoinReadyCheck::RemoveFromPending(uint64 guid)
+{
+    for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+        if((*itr) == guid)
+            lPending.erase(itr);
+}
+
+void ArenaJoinReadyCheck::Check()
+{
+    if (!lPending.empty())
+        return;
+
+    // ready check complete
+    if (!lNotReady.empty())
+    {
+        // ready check failed
+        // deleting this, removing from list ...
+		DeleteArenaJoinReadyCheck(*this);
+		if (Initiater)
+			ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
+    }
+    else
+    {
+        // ready check complete
+        // create map, teleport players to map
+    }
 }

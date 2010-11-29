@@ -52,6 +52,7 @@
 #include "InstanceData.h"
 #include "CreatureEventAIMgr.h"
 #include "DBCEnums.h"
+#include "ArenaTeam.h"
 
 //reload commands
 bool ChatHandler::HandleReloadAllCommand(const char*)
@@ -6696,5 +6697,82 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     PSendSysMessage("Total of %u tiles loaded", tileCount);
     PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
 */
+    return true;
+}
+bool ChatHandler::HandleArenaJoinCommand(const char* args)
+{
+    if (!*args)
+    {
+        sLog.outError("No arguments found");
+        return false;
+    }
+
+    Player* _player = m_session->GetPlayer();
+
+    char* pteam1 = strtok((char*)args, " ");
+    char* pteam2 = strtok(NULL, " ");
+
+    if (!pteam1 || !pteam2)
+    {
+        sLog.outError("Wrong arguments ?");
+        return false;
+    }
+
+    float team_id1 = (uint32)atof(pteam1);
+    float team_id2 = (uint32)atof(pteam2);
+
+    ArenaTeam* team1 = sObjectMgr.GetArenaTeamById(team_id1);
+    ArenaTeam* team2 = sObjectMgr.GetArenaTeamById(team_id1);
+
+    if (!team1 || !team2)
+    {
+        sLog.outError("Arena Teams not found");
+        return false;
+    }
+
+    uint32 const m_correctSize = 3;
+    bool   m_hasCorrectSize = true;
+    if (team1->GetMembersSize() != m_correctSize)
+    {
+        ChatHandler(_player).PSendSysMessage("Team1 has noncorrect size, size should be %u but is %u",
+            m_correctSize, team1->GetMembersSize());
+        m_hasCorrectSize = false;
+    }
+    
+    if (team2->GetMembersSize() != m_correctSize)
+    {
+        ChatHandler(_player).PSendSysMessage("Team2 has noncorrect size, size should be %u but is %u",
+            m_correctSize, team2->GetMembersSize());		
+        m_hasCorrectSize = false;
+    }
+
+    if (!m_hasCorrectSize)
+        return false;
+    
+    bool  m_isEveryoneOnline = true;
+    if (team1->MembersOnline(_player))
+        ChatHandler(_player).PSendSysMessage("Team1:: All members are online");
+    else
+        m_isEveryoneOnline = false;
+
+    if (team2->MembersOnline(_player))
+        ChatHandler(_player).PSendSysMessage("Team1:: All members are online");
+    else
+        m_isEveryoneOnline = false;
+
+    if (!m_isEveryoneOnline)
+        return false;
+
+    // All checks should be complete, lets initiate ready check
+    ArenaJoinReadyCheck* readyCheck = new ArenaJoinReadyCheck(_player, team1, team2);
+    sObjectMgr.AddArenaJoinReadyCheck(readyCheck);
+    
+    /*
+    // sending packet
+    WorldPacket data(MSG_RAID_READY_CHECK, 8);
+    data << _player->GetGUID();
+    team1->BroadcastPacket(&data);
+    team2->BroadcastPacket(&data);
+    */
     return true;
 }

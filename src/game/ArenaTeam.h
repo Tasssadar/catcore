@@ -118,7 +118,7 @@ struct ArenaTeamStats
 };
 
 #define MAX_ARENA_SLOT 3                                    // 0..2 slots
-
+typedef std::list<uint64> GuidList;
 class ArenaTeam
 {
     public:
@@ -215,6 +215,8 @@ class ArenaTeam
 
         void FinishWeek();
         void FinishGame(int32 mod, bool CountMatch = true);
+        bool MembersOnline(Player* reportTo);
+        void WriteMemberGuidsIntoList(GuidList &list);
 
     protected:
 

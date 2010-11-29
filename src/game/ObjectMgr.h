@@ -469,9 +469,33 @@ struct VehicleDataStructure
     uint32 req_aura;                                        // requieres aura on player to enter (eg. in wintergrasp)
 };
 
+typedef std::list<uint64> GuidList;
+class ArenaJoinReadyCheck
+{
+    public:
+        ArenaJoinReadyCheck(Player* m_initiater, ArenaTeam* m_team1, ArenaTeam* m_team2) :
+          Initiater(m_initiater), ArenaTeam1(m_team1), ArenaTeam2(m_team2) { Initialize(); }
+          
+        void Initialize();
+        void SendReadyCheckPacket();
+        GuidList GetPendingPlayers() { return lPending; }
+
+        void HandlePlayerGuid(uint64 guid, uint8 state);
+        void RemoveFromPending(uint64 guid);
+        void Check();
+    private:
+        Player*    Initiater;
+        ArenaTeam* ArenaTeam1;
+        ArenaTeam* ArenaTeam2;
+        GuidList   lPending;
+        GuidList   lReady;
+        GuidList   lNotReady;
+};
+
 typedef UNORDERED_MAP<uint32, VehicleDataStructure> VehicleDataMap;
 typedef std::map<uint32,uint32> VehicleSeatDataMap;
 typedef std::list<Guild*> GuildList;
+typedef std::list<ArenaJoinReadyCheck*> ArenaReadyCheckList;
 
 class ObjectMgr
 {
@@ -535,6 +559,9 @@ class ObjectMgr
         void RemoveArenaTeam(uint32 Id);
         ArenaTeamMap::iterator GetArenaTeamMapBegin() { return mArenaTeamMap.begin(); }
         ArenaTeamMap::iterator GetArenaTeamMapEnd()   { return mArenaTeamMap.end(); }
+
+        void AddArenaJoinReadyCheck(ArenaJoinReadyCheck* readyCheck);
+        void DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck);
 
         static CreatureInfo const *GetCreatureTemplate( uint32 id );
         CreatureModelInfo const *GetCreatureModelInfo( uint32 modelid );
@@ -1060,6 +1087,8 @@ class ObjectMgr
 
         void SetMaxInstanceId(uint32 id) { m_InstanceGuids.Set(id+1); }
 
+        ArenaJoinReadyCheck* FindProperArenaJoinReadyCheck(uint64 guid);
+
     protected:
 
         // first free id for selected id type
@@ -1177,6 +1206,7 @@ class ObjectMgr
         PointOfInterestLocaleMap mPointOfInterestLocaleMap;
         RespawnTimes mCreatureRespawnTimes;
         RespawnTimes mGORespawnTimes;
+        ArenaReadyCheckList mArenaReadyCheck;
 
         // Storage for Conditions. First element (index 0) is reserved for zero-condition (nothing required)
         typedef std::vector<PlayerCondition> ConditionStore;

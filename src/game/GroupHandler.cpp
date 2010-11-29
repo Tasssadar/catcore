@@ -30,6 +30,7 @@
 #include "Util.h"
 #include "Vehicle.h"
 #include "LfgGroup.h"
+#include "Chat.h"
 
 /* differeces from off:
     -you can uninvite yourself - is is useful
@@ -630,28 +631,33 @@ void WorldSession::HandleRaidReadyCheckOpcode( WorldPacket & recv_data )
 {
     if (recv_data.empty())                                   // request
     {
-        Group *group = GetPlayer()->GetGroup();
+        /*Group *group = GetPlayer()->GetGroup();
         if (!group)
             return;
 
-        /** error handling **/
+        // error handling
         if (!group->IsLeader(GetPlayer()->GetGUID()) && !group->IsAssistant(GetPlayer()->GetGUID()))
             return;
-        /********************/
 
         // everything is fine, do it
         WorldPacket data(MSG_RAID_READY_CHECK, 8);
         data << GetPlayer()->GetGUID();
         group->BroadcastPacket(&data, false, -1);
 
-        group->OfflineReadyCheck();
+        group->OfflineReadyCheck();*/
+        ChatHandler(GetPlayer()).PSendSysMessage("This is not currently opperational");
     }
     else                                                    // answer
     {
         uint8 state;
         recv_data >> state;
 
-        Group *group = GetPlayer()->GetGroup();
+        ArenaJoinReadyCheck* readyCheck = sObjectMgr.FindProperArenaJoinReadyCheck(GetPlayer()->GetGUID());
+        if (!readyCheck)
+            return;
+
+        readyCheck->HandlePlayerGuid(GetPlayer()->GetGUID(), state);
+        /*Group *group = GetPlayer()->GetGroup();
         if (!group)
             return;
 
@@ -659,7 +665,7 @@ void WorldSession::HandleRaidReadyCheckOpcode( WorldPacket & recv_data )
         WorldPacket data(MSG_RAID_READY_CHECK_CONFIRM, 9);
         data << uint64(GetPlayer()->GetGUID());
         data << uint8(state);
-        group->BroadcastReadyCheck(&data);
+        group->BroadcastReadyCheck(&data);*/
     }
 }
 
