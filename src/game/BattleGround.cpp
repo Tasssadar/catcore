@@ -801,8 +801,8 @@ void BattleGround::EndBattleGround(uint32 winner)
     // arena rating calculation
     if (isArena() && isRated() && winner)
     {
-        winner_arena_team = sObjectMgr.GetArenaTeamById(winner ? GetArenaTeamIdForTeam(winner) : ALLIANCE);
-        loser_arena_team = sObjectMgr.GetArenaTeamById(winner ? GetArenaTeamIdForTeam(GetOtherTeam(winner)): HORDE);
+        winner_arena_team = sObjectMgr.GetArenaTeamById(winner ? GetArenaTeamIdForTeam(winner) : GetArenaTeamIdForTeam(ALLIANCE));
+        loser_arena_team = sObjectMgr.GetArenaTeamById(winner ? GetArenaTeamIdForTeam(GetOtherTeam(winner)): GetArenaTeamIdForTeam(HORDE));
         if (winner_arena_team && loser_arena_team)
         {
             loser_rating = loser_arena_team->GetStats().rating;
