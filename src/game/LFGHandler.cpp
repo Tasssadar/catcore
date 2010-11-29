@@ -73,15 +73,15 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
     else if (count > 1 || (player->GetMap()->IsDungeon() && (!player->GetGroup() || !player->GetGroup()->isLfgGroup())))
         error = LFG_JOIN_DUNGEON_INVALID;
 
-    if (!player->m_lookingForGroup.queuedDungeons.empty() || sLfgMgr.IsPlayerInQueue(player->GetGUID()))
-        sLfgMgr.RemovePlayer(player, false);
-
-
     if (error != LFG_JOIN_OK)
     {
         sLfgMgr.SendJoinResult(player, error);
         return;
     }
+
+    if (!player->m_lookingForGroup.queuedDungeons.empty() || sLfgMgr.IsPlayerInQueue(player->GetGUID()))
+        sLfgMgr.RemovePlayer(player, false);
+
     // for every dungeon check also if theres some error
     for(uint8 i = 0; i < count; ++i)
     {
@@ -260,8 +260,9 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
     for(GroupMap::iterator itr = _player->m_lookingForGroup.groups.begin(); itr != _player->m_lookingForGroup.groups.end(); ++itr)
     {
         group = sObjectMgr.GetLfgGroupById(itr->second);
-        if(!group || !group->IsActiveRoleCheck())
+        if(!group || !group->IsActiveRoleCheck() || itr->second != group->GetId())
             continue;
+
         sLfgMgr.LfgLog("Set roles dung %u, group %u, player %u", itr->first, itr->second, _player->GetGUID());   
 
         group->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));

@@ -386,8 +386,10 @@ Map* MapManager::CreateInstance(uint32 id, Player * player)
         map = FindMap(id, NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)
+        {
             pNewMap = CreateInstanceMap(id, NewInstanceId, pSave->GetDifficulty(), pSave);
-        NewInstanceId = pNewMap->GetInstanceId();
+            NewInstanceId = pNewMap->GetInstanceId();
+        }
     }
     else
     {
