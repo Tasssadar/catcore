@@ -324,6 +324,11 @@ bool IsNoStackAuraDueToAura(uint32 spellId_1, SpellEffectIndex effIndex_1, uint3
     if (!spellInfo_1 || !spellInfo_2) return false;
     if (spellInfo_1->Id == spellId_2) return false;
 
+    // Flask of the Frost Wyrm and Wild Magic - have equal ItemType...
+    if((spellInfo_2->Id == 53755 && spellInfo_1->Id == 53909) ||
+      (spellInfo_1->Id == 53755 && spellInfo_2->Id == 53909 ))
+        return false;
+
     if (spellInfo_1->Effect[effIndex_1] != spellInfo_2->Effect[effIndex_2] ||
         spellInfo_1->EffectItemType[effIndex_1] != spellInfo_2->EffectItemType[effIndex_2] ||
         spellInfo_1->EffectMiscValue[effIndex_1] != spellInfo_2->EffectMiscValue[effIndex_2] ||
@@ -2480,15 +2485,6 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
                 // Blood Presence and Blood Presence (triggered)
                 if (spellInfo_1->SpellIconID == 2636 && spellInfo_2->SpellIconID == 2636)
-                    return false;
-            }
-            break;
-        case SPELLFAMILY_POTION:
-            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_POTION)
-            {
-                // Flaska a potak: Flask of the Frost Wyrm   a   Wild Magic    
-                if((spellInfo_2->Id == 53755 && spellInfo_1->Id == 53909) ||
-                   (spellInfo_1->Id == 53755 && spellInfo_2->Id == 53909 ))
                     return false;
             }
             break;
