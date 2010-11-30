@@ -3016,7 +3016,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 {
     Unit* target = unitTarget;
 
-    float x, y, z, direction, angle, unk;
+    float x, y, z, direction, angle, velocity;
     SplineType splinetype = SPLINETYPE_NORMAL;
     // Death Grip
     if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_SELF2)
@@ -3054,24 +3054,15 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     z+=0.5f;   
-    float distance = m_caster->GetDistance(x,y,z); 
+    float distance = m_caster->GetDistance2d(x,y); 
     float traveltime = 11.91f;  // feral charge
     if(m_spellInfo->Id == 49575) // death grip
         traveltime = 16.05f;
     traveltime *= distance;
-    //Calculate feral charge unk
-    // Need WAY more research for this one...
-    // This is ..*cough*.. OK, but really no precise.
-    unk = 30.0f;
-    if(splinetype == SPLINETYPE_FACINGTARGET)
-    {
-        unk = (distance-13.942f)*0.6146*1.58;
-        if (unk > 10.411f)
-            unk = distance*1.62f;
-        else
-            unk = distance*(10.411-unk);    
-    }
 
+    // Yep, this is it. Thank you so much silverIce!
+    velocity = float((float(m_spellInfo->EffectMiscValueA[eff_idx])/10.0f)*8)/float(pow(traveltime/1000.0f, 2.0f));
+ 
     //Stop moving before jump!
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         m_caster->StopMoving();
@@ -3089,7 +3080,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         data << uint64(target->GetGUID());
     data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
     data << uint32(traveltime);
-    data << float(unk); // <<------ ?????
+    data << float(velocity);
     data << uint32(0);
     data << uint32(1);
     data << x << y << z;
