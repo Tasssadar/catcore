@@ -11393,6 +11393,8 @@ Item* Player::EquipItem( uint16 pos, Item *pItem, bool update )
                     sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
                 else
                 {
+                    
+                    GetGlobalCooldownMgr().AddGlobalCooldown(spellProto, spellProto->StartRecoveryTime);
 
                     WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
                     data << uint64(GetGUID());
@@ -11596,6 +11598,8 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
                                 sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
                             else
                             {
+
+                                GetGlobalCooldownMgr().AddGlobalCooldown(spellProto, spellProto->StartRecoveryTime);
 
                                 WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
                                 data << uint64(GetGUID());

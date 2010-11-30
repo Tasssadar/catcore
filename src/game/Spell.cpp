@@ -4561,7 +4561,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     }
 
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
+    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown() && m_spellInfo->Id != SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s && m_spellInfo->Id != SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s)
         return SPELL_FAILED_NOT_READY;
 
     // Lock and Load Marker - sets Lock and Load cooldown
