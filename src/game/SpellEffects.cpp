@@ -7126,14 +7126,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                         // Search only Serpent Sting, Viper Sting, Scorpid Sting auras
                         uint64 familyFlag = aura->GetSpellProto()->SpellFamilyFlags;
-                        if (!aura || !aura->GetSpellProto() || aura->GetSpellProto()->SpellFamilyName != SPELLFAMILY_HUNTER || !(familyFlag & UI64LIT(0x000000800000C000)))
+                        if (!aura || !aura->GetSpellProto() || aura->GetSpellProto()->SpellFamilyName != SPELLFAMILY_HUNTER || !(familyFlag & UI64LIT(0x000000800000C000)) || aura->GetEffIndex() != EFFECT_INDEX_0)
                             continue;
 
                         // Refresh aura duration
                         aura->RefreshAura();
 
                         // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
-                        if ((familyFlag & UI64LIT(0x0000000000004000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
+                        if ((familyFlag & UI64LIT(0x0000000000004000)))
                         {
                             // m_amount does include RAP bonus
                             basePoint = aura->GetModifier()->m_amount * aura->GetAuraMaxTicks() * 40 / 100;
@@ -7141,7 +7141,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         }
 
                         // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
-                        else if ((familyFlag & UI64LIT(0x0000008000000000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
+                        else if ((familyFlag & UI64LIT(0x0000008000000000)))
                         {
                             uint32 target_max_mana = unitTarget->GetMaxPower(POWER_MANA);
                             if (!target_max_mana)
@@ -7172,6 +7172,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         //{
                         //    spellId = 53366; // 53366 Chimera Shot - Wyvern
                         //}
+                        break;
                     }
 
                     if (spellId)
