@@ -9432,7 +9432,7 @@ void ArenaJoinReadyCheck::HandlePlayerGuid(uint64 guid, uint8 state)
 
 	Player* plr = sObjectMgr.GetPlayer(guid);	
 	if (Initiater)
-		ChatHandler(Initiater).PSendSysMessage("Player's %s ready state is: %s", plr->GetName(), state ? "ready" : "not ready");
+	    ChatHandler(Initiater).PSendSysMessage("Player's %s ready state is: %s", plr->GetName(), state ? "ready" : "not ready");
     Check();
 }
 
@@ -9453,9 +9453,9 @@ void ArenaJoinReadyCheck::Check()
     {
         // ready check failed
         // deleting this, removing from list ...
-		DeleteArenaJoinReadyCheck(*this);
-		if (Initiater)
-			ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
+	 sObjectMgr.DeleteArenaJoinReadyCheck(this);
+	 if (Initiater)
+	     ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
     }
     else
     {
