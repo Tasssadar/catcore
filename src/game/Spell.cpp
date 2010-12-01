@@ -5118,6 +5118,61 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (m_caster->hasUnitState(UNIT_STAT_ROOT))
             return SPELL_FAILED_ROOTED;
 
+    // Dispel check - only if the first effect is dispel
+    if (!m_IsTriggeredSpell && (m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_DISPEL))
+    {
+        Unit const * target = m_targets.getUnitTarget();
+        if (target)
+        {
+            if (!GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0])))
+            {
+                bool check = true;
+                uint32 dispelMask = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[EFFECT_INDEX_0]));
+
+                for (uint8 effIndex = EFFECT_INDEX_0; effIndex < MAX_EFFECT_INDEX; ++effIndex)
+                {
+                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_DISPEL)
+                        dispelMask |= GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[effIndex]));
+                    // If there is any other effect don't check
+                    else if (m_spellInfo->Effect[effIndex])
+                    {
+                        check = false;
+                        break;
+                    }
+                }
+
+                if (check)
+                {
+                    bool success = true;
+
+                    Unit::AuraMap const& auras = target->GetAuras();
+                    for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    {
+                        Aura * aura = itr->second;
+
+                        if (aura && (1 << aura->GetSpellProto()->Dispel) & dispelMask)
+                        {
+                            if (aura->GetSpellProto()->Dispel == DISPEL_MAGIC)
+                            {
+                                bool positive = aura->IsPositive() ? !(aura->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) : false;
+
+                                // Can only dispel positive auras on enemies and negative on allies
+                                if (positive == target->IsFriendlyTo(m_caster))
+                                {
+                                    success = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!success)
+                        return SPELL_FAILED_NOTHING_TO_DISPEL;
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         // for effects of spells that have only one target
