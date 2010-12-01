@@ -537,6 +537,7 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     m_canTitanGrip = false;
     m_ammoDPS = 0.0f;
 
+    m_lastpetnumber = 0;
     m_temporaryUnsummonedPetNumber = 0;
     //cache for UNIT_CREATED_BY_SPELL to allow
     //returning reagents for temporarily removed pets
@@ -1221,9 +1222,6 @@ void Player::Update( uint32 p_time )
 {
     if (!IsInWorld())
         return;
-
-    // remove failed timed Achievements
-    GetAchievementMgr().DoFailedTimedAchievementCriterias();
 
     // undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(NULL))
@@ -11395,6 +11393,8 @@ Item* Player::EquipItem( uint16 pos, Item *pItem, bool update )
                     sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
                 else
                 {
+                    
+                    GetGlobalCooldownMgr().AddGlobalCooldown(spellProto, spellProto->StartRecoveryTime);
 
                     WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
                     data << uint64(GetGUID());
@@ -11598,6 +11598,8 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
                                 sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
                             else
                             {
+
+                                GetGlobalCooldownMgr().AddGlobalCooldown(spellProto, spellProto->StartRecoveryTime);
 
                                 WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
                                 data << uint64(GetGUID());
@@ -18283,7 +18285,7 @@ void Player::RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent)
     if (pet && m_temporaryUnsummonedPetNumber && m_temporaryUnsummonedPetNumber != pet->GetCharmInfo()->GetPetNumber() && mode == PET_SAVE_AS_CURRENT)
         mode = PET_SAVE_NOT_IN_SLOT;
 
-    if (returnreagent && pet && mode != PET_SAVE_AS_CURRENT)
+    if (returnreagent && pet && mode != PET_SAVE_AS_CURRENT && !InBattleGround())
     {
         //returning of reagents only for players, so best done here
         uint32 spellId = pet ? pet->GetUInt32Value(UNIT_CREATED_BY_SPELL) : m_oldpetspell;

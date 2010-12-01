@@ -15876,8 +15876,6 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
     {
         // All this is guessed, but looks cool
         float dis = horizontalSpeed;
-        if(dis < 1)
-            return;
         float fx, fy, fz;
         GetPosition(fx, fy, fz);
         fx += dis * vcos;
@@ -15898,6 +15896,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         // Somehing in LoS, shorten the track, this is average only :/
         float distance = GetDistance(fx, fy, fz);
         //if(!IsWithinLOS(fx, fy, fz))
+        if(distance > 0)
         {
             float dist = 1;
             float elevation = (GetPositionZ() - fz) / distance;
@@ -16010,7 +16009,7 @@ void Unit::SendThreatUpdate()
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
             data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
-            data << uint32((*itr)->getThreat());
+            data << uint32((*itr)->getThreat()*100);
         }
         SendMessageToSet(&data, false);
     }
@@ -16696,6 +16695,8 @@ void Unit::InitializeMovementFlags()
 
 void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, bool walkmode)
 {
+    if(!IsInWorld())
+        return;
     uint32 moveFlags = m_movementInfo.GetMovementFlags();
     uint16 moveFlags2 = m_movementInfo.GetMovementFlags2();
 

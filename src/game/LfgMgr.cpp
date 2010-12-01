@@ -532,15 +532,12 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
             if((*grpitr1)->GetPlayerRole(citr->guid, false) != DAMAGE || role == DAMAGE)
                 continue;                  
 
-            if((role & TANK) && !(*grpitr1)->GetTank())
+            for(uint8 y = TANK; y <= HEALER; y *= 2)
             {
+                if(!(role & y) || !(*grpitr1)->HasFreeRole(y))
+                    continue;
                 (*grpitr1)->GetDps()->erase(citr->guid);
-                (*grpitr1)->SetTank(citr->guid);
-            }
-            else if((role & HEALER) && !(*grpitr1)->GetHeal())
-            {
-                (*grpitr1)->GetDps()->erase(citr->guid);
-                (*grpitr1)->SetHeal(citr->guid);
+                (*grpitr1)->SetAsRole(y, citr->guid);
             }
         }
     }
@@ -689,6 +686,8 @@ void LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, Gro
         {
             PlrGrpItr->second->Disband(true);
             groups->erase(PlrGrpItr->second);
+            rolecheckGroups.erase(PlrGrpItr->second);
+            sObjectMgr.RemoveGroup(PlrGrpItr->second);
             LfgLog("delete DoMerge()");
             delete PlrGrpItr->second;
         }

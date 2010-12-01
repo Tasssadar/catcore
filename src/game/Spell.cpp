@@ -302,7 +302,7 @@ void SpellCastTargets::write( ByteBuffer& data ) const
 
     if ( m_targetMask & TARGET_FLAG_DEST_LOCATION )
     {
-        data << m_destTransportGUID.WriteAsPacked();
+        data << uint8(0);//m_destTransportGUID.WriteAsPacked();
         data << m_destX << m_destY << m_destZ;
     }
 
@@ -4561,7 +4561,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     }
 
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
+    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown() && m_spellInfo->Id != SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s && m_spellInfo->Id != SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s)
         return SPELL_FAILED_NOT_READY;
 
     // Lock and Load Marker - sets Lock and Load cooldown
@@ -5118,6 +5118,61 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (m_caster->hasUnitState(UNIT_STAT_ROOT))
             return SPELL_FAILED_ROOTED;
 
+    // Dispel check - only if the first effect is dispel
+    if (!m_IsTriggeredSpell && (m_spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_DISPEL))
+    {
+        Unit const * target = m_targets.getUnitTarget();
+        if (target)
+        {
+            if (!GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0])))
+            {
+                bool check = true;
+                uint32 dispelMask = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[EFFECT_INDEX_0]));
+
+                for (uint8 effIndex = EFFECT_INDEX_0; effIndex < MAX_EFFECT_INDEX; ++effIndex)
+                {
+                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_DISPEL)
+                        dispelMask |= GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[effIndex]));
+                    // If there is any other effect don't check
+                    else if (m_spellInfo->Effect[effIndex])
+                    {
+                        check = false;
+                        break;
+                    }
+                }
+
+                if (check)
+                {
+                    bool success = true;
+
+                    Unit::AuraMap const& auras = target->GetAuras();
+                    for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    {
+                        Aura * aura = itr->second;
+
+                        if (aura && (1 << aura->GetSpellProto()->Dispel) & dispelMask)
+                        {
+                            if (aura->GetSpellProto()->Dispel == DISPEL_MAGIC)
+                            {
+                                bool positive = aura->IsPositive() ? !(aura->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) : false;
+
+                                // Can only dispel positive auras on enemies and negative on allies
+                                if (positive == target->IsFriendlyTo(m_caster))
+                                {
+                                    success = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!success)
+                        return SPELL_FAILED_NOTHING_TO_DISPEL;
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         // for effects of spells that have only one target
@@ -5505,6 +5560,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             case SPELL_EFFECT_LEAP:
             case SPELL_EFFECT_TELEPORT_UNITS_FACE_CASTER:
             {
+                /*
                 float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
                 float fx = m_caster->GetPositionX() + dis * cos(m_caster->GetOrientation());
                 float fy = m_caster->GetPositionY() + dis * sin(m_caster->GetOrientation());
@@ -5517,6 +5573,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 // Control the caster to not climb or drop when +-fz > 8
                 if(!(fz <= caster_pos_z + 8 && fz >= caster_pos_z - 8))
                     return SPELL_FAILED_TRY_AGAIN;
+                */
 
                 // not allow use this effect at battleground until battleground start
                 if (m_caster->GetTypeId() == TYPEID_PLAYER)
@@ -5686,10 +5743,6 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_ONLY_ABOVEWATER;
 
                 if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->GetTransport())
-                    return SPELL_FAILED_NO_MOUNTS_ALLOWED;
-
-                // Ignore map check if spell have AreaId. AreaId already checked and this prevent special mount spells
-                if (m_caster->GetTypeId() == TYPEID_PLAYER && !m_IsTriggeredSpell && !m_spellInfo->AreaGroupId)
                     return SPELL_FAILED_NO_MOUNTS_ALLOWED;
 
                 ShapeshiftForm form = m_caster->m_form;

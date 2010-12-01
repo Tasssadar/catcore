@@ -3016,7 +3016,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 {
     Unit* target = unitTarget;
 
-    float x, y, z, direction, angle, unk;
+    float x, y, z, direction, angle, velocity;
     SplineType splinetype = SPLINETYPE_NORMAL;
     // Death Grip
     if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_SELF2)
@@ -3054,24 +3054,17 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     z+=0.5f;   
-    float distance = m_caster->GetDistance(x,y,z); 
+    float distance = m_caster->GetDistance2d(x,y); 
     float traveltime = 11.91f;  // feral charge
     if(m_spellInfo->Id == 49575) // death grip
         traveltime = 16.05f;
     traveltime *= distance;
-    //Calculate feral charge unk
-    // Need WAY more research for this one...
-    // This is ..*cough*.. OK, but really no precise.
-    unk = 30.0f;
-    if(splinetype == SPLINETYPE_FACINGTARGET)
-    {
-        unk = (distance-13.942f)*0.6146*1.58;
-        if (unk > 10.411f)
-            unk = distance*1.62f;
-        else
-            unk = distance*(10.411-unk);    
-    }
 
+    // Yep, this is it. Thank you so much silverIce!
+    float maxHeight = m_spellInfo->EffectMiscValueA[eff_idx];
+    maxHeight = (maxHeight == 0) ? 0.5f : maxHeight/10.0f; 
+    velocity = float((maxHeight/10.0f)*8)/float(pow(traveltime/1000.0f, 2.0f));
+ 
     //Stop moving before jump!
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         m_caster->StopMoving();
@@ -3089,7 +3082,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         data << uint64(target->GetGUID());
     data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
     data << uint32(traveltime);
-    data << float(unk); // <<------ ?????
+    data << float(velocity);
     data << uint32(0);
     data << uint32(1);
     data << x << y << z;
@@ -4677,7 +4670,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         if (!success_list.empty())
         {
             int32 count = success_list.size();
-            WorldPacket data(SMSG_SPELLDISPELLOG, 8+8+4+1+4+damage*5);
+            WorldPacket data(SMSG_SPELLDISPELLOG, 8+8+4+1+4+count*5);
             data << unitTarget->GetPackGUID();              // Victim GUID
             data << m_caster->GetPackGUID();                // Caster GUID
             data << uint32(m_spellInfo->Id);                // Dispel spell id
@@ -4704,7 +4697,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         if (!fail_list.empty())
         {
             // Failed to dispell
-            WorldPacket data(SMSG_DISPEL_FAILED, 8+8+4+4+damage*4);
+            WorldPacket data(SMSG_DISPEL_FAILED, 8+8+4+4*fail_list.size());
             data << uint64(m_caster->GetGUID());            // Caster GUID
             data << uint64(unitTarget->GetGUID());          // Victim GUID
             data << uint32(m_spellInfo->Id);                // Dispell spell id
@@ -6055,6 +6048,38 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
         {
             switch(m_spellInfo->Id)
             {
+                case 6962:
+                {
+                    if(m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    Player* plr = ((Player*)m_caster);
+                    if(plr && plr->GetLastPetNumber())
+                    {
+                        PetType NewPetType = (plr->getClass()==CLASS_HUNTER) ? HUNTER_PET : SUMMON_PET;
+                        if (Pet* NewPet = new Pet(NewPetType))
+                        {
+                            if(NewPet->LoadPetFromDB(plr, 0, plr->GetLastPetNumber(), true))
+                            {
+                                NewPet->SetHealth(NewPet->GetMaxHealth());
+                                NewPet->SetPower(NewPet->getPowerType(),NewPet->GetMaxPower(NewPet->getPowerType()));
+
+                                switch (NewPet->GetEntry())
+                                {
+                                    case 11859:
+                                    case    89:
+                                        NewPet->SetEntry(416);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else
+                                delete NewPet;
+                        }
+                    }
+                    return;
+                }
                 case 8856:                                  // Bending Shinbone
                 {
                     if (!itemTarget && m_caster->GetTypeId()!=TYPEID_PLAYER)
@@ -7101,14 +7126,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                         // Search only Serpent Sting, Viper Sting, Scorpid Sting auras
                         uint64 familyFlag = aura->GetSpellProto()->SpellFamilyFlags;
-                        if (!aura || !aura->GetSpellProto() || aura->GetSpellProto()->SpellFamilyName != SPELLFAMILY_HUNTER || !(familyFlag & UI64LIT(0x000000800000C000)))
+                        if (!aura || !aura->GetSpellProto() || aura->GetSpellProto()->SpellFamilyName != SPELLFAMILY_HUNTER || !(familyFlag & UI64LIT(0x000000800000C000)) || aura->GetEffIndex() != EFFECT_INDEX_0)
                             continue;
 
                         // Refresh aura duration
                         aura->RefreshAura();
 
                         // Serpent Sting - Instantly deals 40% of the damage done by your Serpent Sting.
-                        if ((familyFlag & UI64LIT(0x0000000000004000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
+                        if ((familyFlag & UI64LIT(0x0000000000004000)))
                         {
                             // m_amount does include RAP bonus
                             basePoint = aura->GetModifier()->m_amount * aura->GetAuraMaxTicks() * 40 / 100;
@@ -7116,7 +7141,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         }
 
                         // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
-                        else if ((familyFlag & UI64LIT(0x0000008000000000)) && aura->GetEffIndex() == EFFECT_INDEX_0)
+                        else if ((familyFlag & UI64LIT(0x0000008000000000)))
                         {
                             uint32 target_max_mana = unitTarget->GetMaxPower(POWER_MANA);
                             if (!target_max_mana)
@@ -7147,6 +7172,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         //{
                         //    spellId = 53366; // 53366 Chimera Shot - Wyvern
                         //}
+                        break;
                     }
 
                     if (spellId)
@@ -8694,6 +8720,8 @@ void Spell::EffectSpiritHeal(SpellEffectIndex /*eff_idx*/)
 
     ((Player*)unitTarget)->ResurrectPlayer(1.0f);
     ((Player*)unitTarget)->SpawnCorpseBones();
+
+    ((Player*)unitTarget)->CastSpell(unitTarget, 6962, true);
 }
 
 // remove insignia spell effect

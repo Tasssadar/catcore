@@ -33,14 +33,12 @@ typedef std::list<AchievementEntry const*>         AchievementEntryList;
 
 typedef std::map<uint32,AchievementCriteriaEntryList> AchievementCriteriaListByAchievement;
 typedef std::map<uint32,AchievementEntryList>         AchievementListByReferencedId;
-typedef std::map<uint32,time_t>                       AchievementCriteriaFailTimeMap;
 
 struct CriteriaProgress
 {
     uint32 counter;
     time_t date;
     bool changed;
-    bool timedCriteriaFailed;
 };
 
 enum AchievementCriteriaRequirementType
@@ -250,10 +248,6 @@ class MANGOS_DLL_SPEC AchievementMgr
         void LoadFromDB(QueryResult *achievementResult, QueryResult *criteriaResult);
         void SaveToDB();
         void ResetAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0);
-
-        void StartTimedAchievementCriteria(AchievementCriteriaTypes type, uint32 timedRequirementId, time_t startTime = 0);
-        void DoFailedTimedAchievementCriterias();
-
         void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1=0, uint32 miscvalue2=0, Unit *unit=NULL, uint32 time=0);
         void CheckAllAchievementCriteria();
         void SendAllAchievementData();
@@ -261,31 +255,20 @@ class MANGOS_DLL_SPEC AchievementMgr
         void CompletedAchievement(AchievementEntry const* entry);
         Player* GetPlayer() { return m_player;}
 
-        CompletedAchievementData const* GetCompleteData(uint32 achievement_id) const
-        {
-            CompletedAchievementMap::const_iterator itr = m_completedAchievements.find(achievement_id);
-            return itr != m_completedAchievements.end() ? &itr->second : NULL;
-        }
-
-        bool HasAchievement(uint32 achievement_id) const { return GetCompleteData(achievement_id) != NULL; }
-        static uint32 GetCriteriaProgressMaxCounter(AchievementCriteriaEntry const* entry);
-
     private:
         enum ProgressType { PROGRESS_SET, PROGRESS_ACCUMULATE, PROGRESS_HIGHEST };
         void SendAchievementEarned(AchievementEntry const* achievement);
         void SendCriteriaUpdate(uint32 id, CriteriaProgress const* progress);
-        void SetCriteriaProgress(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement, uint32 changeValue, ProgressType ptype = PROGRESS_SET);
+        void SetCriteriaProgress(AchievementCriteriaEntry const* entry, uint32 changeValue, ProgressType ptype = PROGRESS_SET);
         void CompletedCriteriaFor(AchievementEntry const* achievement);
         bool IsCompletedCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement);
         bool IsCompletedAchievement(AchievementEntry const* entry);
         void CompleteAchievementsWithRefs(AchievementEntry const* entry);
         void BuildAllDataPacket(WorldPacket *data);
-        void IncompletedAchievement(AchievementEntry const* entry);
 
         Player* m_player;
         CriteriaProgressMap m_criteriaProgress;
         CompletedAchievementMap m_completedAchievements;
-        AchievementCriteriaFailTimeMap m_criteriaFailTimes;
 };
 
 class MANGOS_DLL_SPEC AchievementGlobalMgr

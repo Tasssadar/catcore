@@ -1730,7 +1730,9 @@ void WorldObject::SetMap(Map * map)
 
 TerrainInfo const* WorldObject::GetTerrain() const
 {
-    ASSERT(m_currMap);
+    //ASSERT(m_currMap);
+    if(!m_currMap)
+        return NULL;
     return m_currMap->GetTerrain();
 }
 
