@@ -657,6 +657,7 @@ void WorldSession::HandleRaidReadyCheckOpcode( WorldPacket & recv_data )
             return;
 
         readyCheck->HandlePlayerGuid(GetPlayer()->GetGUID(), state);
+
         /*Group *group = GetPlayer()->GetGroup();
         if (!group)
             return;

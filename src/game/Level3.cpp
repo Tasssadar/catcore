@@ -6718,16 +6718,16 @@ bool ChatHandler::HandleArenaJoinCommand(const char* args)
         return false;
     }
 
-    float team_id1 = (uint32)atof(pteam1);
-    float team_id2 = (uint32)atof(pteam2);
-
+    uint32 team_id1 = (uint32)atof(pteam1);
+    uint32 team_id2 = (uint32)atof(pteam2);
+ 
     ArenaTeam* team1 = sObjectMgr.GetArenaTeamById(team_id1);
-    ArenaTeam* team2 = sObjectMgr.GetArenaTeamById(team_id1);
+    ArenaTeam* team2 = sObjectMgr.GetArenaTeamById(team_id2);
 
     if (!team1 || !team2)
     {
-        sLog.outError("Arena Teams not found");
-        return false;
+        ChatHandler(_player).PSendSysMessage("Team 1 %s, Team 2 %s", team1 ? "found" : "not found", team2 ? "found" : "not found");
+        return true;
     }
 
     uint32 const m_correctSize = 3;
@@ -6747,32 +6747,25 @@ bool ChatHandler::HandleArenaJoinCommand(const char* args)
     }
 
     if (!m_hasCorrectSize)
-        return false;
+        return true;
     
     bool  m_isEveryoneOnline = true;
     if (team1->MembersOnline(_player))
-        ChatHandler(_player).PSendSysMessage("Team1:: All members are online");
+        ChatHandler(_player).PSendSysMessage("Team1:: All members are prepaired for ready check");
     else
         m_isEveryoneOnline = false;
 
     if (team2->MembersOnline(_player))
-        ChatHandler(_player).PSendSysMessage("Team1:: All members are online");
+        ChatHandler(_player).PSendSysMessage("Team2:: All members are prepaired for ready check");
     else
         m_isEveryoneOnline = false;
 
     if (!m_isEveryoneOnline)
-        return false;
+        return true;
 
     // All checks should be complete, lets initiate ready check
     ArenaJoinReadyCheck* readyCheck = new ArenaJoinReadyCheck(_player, team1, team2);
     sObjectMgr.AddArenaJoinReadyCheck(readyCheck);
     
-    /*
-    // sending packet
-    WorldPacket data(MSG_RAID_READY_CHECK, 8);
-    data << _player->GetGUID();
-    team1->BroadcastPacket(&data);
-    team2->BroadcastPacket(&data);
-    */
     return true;
 }

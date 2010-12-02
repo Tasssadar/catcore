@@ -478,7 +478,7 @@ class ArenaJoinReadyCheck
           
         void Initialize();
         void SendReadyCheckPacket();
-        GuidList GetPendingPlayers() { return lPending; }
+        GuidList const& GetPendingPlayers() const{ return lPending; }
 
         void HandlePlayerGuid(uint64 guid, uint8 state);
         void RemoveFromPending(uint64 guid);

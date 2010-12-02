@@ -834,25 +834,46 @@ void ArenaTeam::UpdateAllRanks()
 
 bool ArenaTeam::MembersOnline(Player* reportTo)
 {
-    bool foundMissing = false;
+    bool foundNotPrepared = false;
     for(MemberList::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
     {
         Player* plr = sObjectMgr.GetPlayer(itr->guid);
         if (!plr)
         {
-            ChatHandler(reportTo).PSendSysMessage("Missing player's guid is: %u", itr->guid);
-            foundMissing = true;
+            std::string name;
+            if (reportTo && sObjectMgr.GetPlayerNameByGUID(itr->guid, name))
+                ChatHandler(reportTo).PSendSysMessage("Missing player's name is %s", name.c_str());
+            else if (reportTo)
+                ChatHandler(reportTo).PSendSysMessage("Missing player's guid is %s", itr->guid);  
+            foundNotPrepared = true;
             continue;
         }
 
-        if (!plr->GetSession())
+        else if (!plr->GetSession())
         {
-            ChatHandler(reportTo).PSendSysMessage("Missing player is: %s", plr);
-            foundMissing = true;
+            if (reportTo)
+                ChatHandler(reportTo).PSendSysMessage("Missing player is: %s , is just being teleporting?", plr->GetName());
+            foundNotPrepared = true;
+            continue;
+        }
+        else if (!plr->GetGroup())
+        {
+            if (reportTo)
+                ChatHandler(reportTo).PSendSysMessage("Player %s is without group", plr->GetName());
+            foundNotPrepared = true;
+            continue;
+            
+        }
+        else if (plr->GetGUID() != reportTo->GetGUID())
+        {
+            if (reportTo)
+                ChatHandler(reportTo).PSendSysMessage("You can't join yourself!");
+            foundNotPrepared = true;
+            continue;
         }
     }
 
-    return !foundMissing;
+    return !foundNotPrepared;
 }
 
 void ArenaTeam::WriteMemberGuidsIntoList(GuidList &list)

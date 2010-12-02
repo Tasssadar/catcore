@@ -9392,11 +9392,10 @@ void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 ArenaJoinReadyCheck* ObjectMgr::FindProperArenaJoinReadyCheck(uint64 guid)
 {
     for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
-    {
-        for(GuidList::iterator i = (*itr)->GetPendingPlayers().begin(); i != (*itr)->GetPendingPlayers().end(); ++i)
+        for(GuidList::const_iterator i = (*itr)->GetPendingPlayers().begin(); i != (*itr)->GetPendingPlayers().end(); ++i)
             if ((*i) == guid)
                 return *itr;
-    }
+
     return NULL;
 }
 
@@ -9430,17 +9429,24 @@ void ArenaJoinReadyCheck::HandlePlayerGuid(uint64 guid, uint8 state)
     else
         lReady.push_back(guid);
 
-	Player* plr = sObjectMgr.GetPlayer(guid);	
-	if (Initiater)
-	    ChatHandler(Initiater).PSendSysMessage("Player's %s ready state is: %s", plr->GetName(), state ? "ready" : "not ready");
+    Player* plr = sObjectMgr.GetPlayer(guid);	
+    if (Initiater)
+        ChatHandler(Initiater).PSendSysMessage("Player's %s  is: %s", plr->GetName(), state ? "ready" : "not ready");
+
     Check();
 }
 
 void ArenaJoinReadyCheck::RemoveFromPending(uint64 guid)
 {
-    for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+    for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); )
+    {
         if((*itr) == guid)
+        {
             lPending.erase(itr);
+            itr = lPending.begin();
+        }
+        else ++itr;
+    }
 }
 
 void ArenaJoinReadyCheck::Check()
@@ -9453,13 +9459,14 @@ void ArenaJoinReadyCheck::Check()
     {
         // ready check failed
         // deleting this, removing from list ...
-	 sObjectMgr.DeleteArenaJoinReadyCheck(this);
-	 if (Initiater)
-	     ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
+        if (Initiater)
+            ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
+
+        sObjectMgr.DeleteArenaJoinReadyCheck(this);
     }
     else
     {
-        // ready check complete
+        // TODO: ready check complete
         // create map, teleport players to map
     }
 }
