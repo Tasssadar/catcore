@@ -1573,6 +1573,23 @@ struct SpellEntry
         return EffectSpellClassMaskA + effect * 3;
     }
 
+    bool HasEffect(uint16 effect)
+    {
+        for(uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (Effect[i] == effect)
+                return true;
+
+        return false;
+    }
+
+    bool AppliesAura(uint16 aura)
+    {
+        for(uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (EffectApplyAuraName[i] == aura)
+                return true;
+
+        return false;
+    }
     private:
         // prevent creating custom entries (copy data from original in fact)
         SpellEntry(SpellEntry const&);                      // DON'T must have implementation
