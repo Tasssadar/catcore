@@ -545,7 +545,7 @@ void Guild::BroadcastToGuild(WorldSession *session, const std::string& msg, uint
         ChatHandler(session).FillMessageData(&data, CHAT_MSG_GUILD, language, 0, msg.c_str());
 
         // handling friendly guilds
-        GuildList m_friendly = *sObjectMgr.GetGroupedGuilds(m_friendlyGuildGroupId);
+        GuildList m_friendly = sObjectMgr.GetGroupedGuilds(m_friendlyGuildGroupId);
         
         // no friendly guilds found, broadcast only to this guild
         if (m_friendly.empty())
