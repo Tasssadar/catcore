@@ -12294,10 +12294,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     {
         if (GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER)
         {
-            if (((Player*)this)->GetTeam() == ((Player*)u)->GetTeam())
-                invisible = false;
-            else
+            if (IsHostileTo(u))
                 invisible = true;
+            else
+                invisible = false;
         }
         else
             invisible = false;
