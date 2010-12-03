@@ -535,7 +535,7 @@ class ObjectMgr
 
         static GameObjectInfo const *GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry<GameObjectInfo>(id); }
 
-        GuildList* GetGroupedGuilds(uint32 groupId);
+        GuildList GetGroupedGuilds(uint32 groupId);
 
         void LoadGameobjectInfo();
         void AddGameobjectInfo(GameObjectInfo *goinfo);

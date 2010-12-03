@@ -138,12 +138,13 @@ class MANGOS_DLL_SPEC ThreatContainer
 {
     private:
         ThreatList iThreatList;
+        ThreatList iPlayerThreatList;
         bool iDirty;
     protected:
         friend class ThreatManager;
 
         void remove(HostileReference* pRef) { iThreatList.remove(pRef); }
-        void addReference(HostileReference* pHostileReference) { iThreatList.push_back(pHostileReference); }
+        void addReference(HostileReference* pHostileReference);
         void clearReferences();
         // Sort the list if necessary
         void update();
@@ -169,7 +170,7 @@ class MANGOS_DLL_SPEC ThreatContainer
 
         ThreatList const& getThreatList() const { return iThreatList; }
         
-        ThreatList getPlayerThreatList() const;
+        ThreatList const& getPlayerThreatList() const { return iPlayerThreatList; }
 };
 
 //=================================================

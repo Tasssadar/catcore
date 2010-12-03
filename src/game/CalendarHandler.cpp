@@ -69,7 +69,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket &/*recv_data*/)
     data << (uint32) counter;                               // raid resets
 
     MapEntry const *entry = NULL;
-    for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+    for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
     {
         entry = sMapStore.LookupEntry(i);
         if(!entry || !entry->IsRaid())

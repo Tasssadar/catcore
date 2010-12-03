@@ -214,6 +214,7 @@ void ThreatContainer::clearReferences()
         delete (*i);
     }
     iThreatList.clear();
+    iPlayerThreatList.clear();
 }
 
 //============================================================
@@ -355,25 +356,11 @@ HostileReference* ThreatContainer::selectNextVictim(Creature* pAttacker, Hostile
     return currentRef;
 }
 
-ThreatList ThreatContainer::getPlayerThreatList() const
+void ThreatContainer::addReference(HostileReference* pHostileReference)
 {
-    ThreatList unitlist = iThreatList;
-    ThreatList playerlist;
-    //Unit* source;
-
-    for(ThreatList::const_iterator i = unitlist.begin(); i != unitlist.end(); ++i)
-    {
-        if ((*i)->getUnitGuid().IsPlayer())
-            playerlist.push_back(*i);
-
-        /*if (!source)
-            source = (*i)->getSourceUnit();
-        Unit* unit = Unit::GetUnit(*source, (*i)->getUnitGuid());
-        if (unit && unit->GetTypeId() == TYPEID_PLAYER)
-           playerlist.push_back(*i);*/
-    }
-
-    return playerlist;
+    iThreatList.push_back(pHostileReference);
+    if (pHostileReference->getUnitGuid().IsPlayer())
+        iPlayerThreatList.push_back(pHostileReference);
 }
 
 //============================================================
@@ -607,14 +594,3 @@ void ThreatManager::UpdateForClient(uint32 diff)
         iUpdateNeed = false;
     }
 }
-
-/*ThreatList ThreatManager::getPlayerThreatList() const
-{
-    ThreatList playerlist = iThreatContainer.getThreatList();
-
-    for(ThreatList::const_iterator i = playerlist.begin(); i != playerlist.end(); ++i)
-        if((*i)->getSourceUnit() || (*i)->getSourceUnit()->GetTypeId() != TYPEID_PLAYER)
-            playerlist.remove(*i);
-
-    return playerlist;
-}*/

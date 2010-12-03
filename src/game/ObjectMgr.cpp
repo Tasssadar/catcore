@@ -234,18 +234,18 @@ Guild * ObjectMgr::GetGuildByName(const std::string& guildname) const
     return NULL;
 }
 
-GuildList* ObjectMgr::GetGroupedGuilds(uint32 groupId)
+GuildList ObjectMgr::GetGroupedGuilds(uint32 groupId)
 {
-    if (!groupId)
-        return NULL;
-
     GuildList m_friendlyGuildList;
+
+    if (!groupId)
+        return m_friendlyGuildList;
 
     for(GuildMap::const_iterator itr = mGuildMap.begin(); itr != mGuildMap.end(); ++itr)
         if (itr->second->GetFriendlyGroupId() == groupId)
             m_friendlyGuildList.push_back(itr->second);
 
-    return &m_friendlyGuildList;
+    return m_friendlyGuildList;
 }
 
 std::string ObjectMgr::GetGuildNameById(uint32 GuildId) const
@@ -4866,21 +4866,7 @@ void ObjectMgr::LoadSpellScripts()
         }
 
         //check for correct spellEffect
-        bool found = false;
-        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
-        {
-            // skip empty effects
-            if (!spellInfo->Effect[i])
-                continue;
-
-            if (spellInfo->Effect[i] == SPELL_EFFECT_SCRIPT_EFFECT)
-            {
-                found =  true;
-                break;
-            }
-        }
-
-        if (!found)
+        if (!IsSpellHaveEffect(spellInfo, SPELL_EFFECT_SCRIPT_EFFECT))
             sLog.outErrorDb("Table `spell_scripts` has unsupported spell (Id: %u) without SPELL_EFFECT_SCRIPT_EFFECT (%u) spell effect",itr->first,SPELL_EFFECT_SCRIPT_EFFECT);
     }
 }
