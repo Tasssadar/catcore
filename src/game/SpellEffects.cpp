@@ -3061,7 +3061,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     traveltime *= distance;
 
     // Yep, this is it. Thank you so much silverIce!
-    float maxHeight = m_spellInfo->EffectMiscValueA[eff_idx];
+    float maxHeight = m_spellInfo->EffectMiscValue[eff_idx];
     maxHeight = (maxHeight == 0) ? 0.5f : maxHeight/10.0f; 
     velocity = float((maxHeight/10.0f)*8)/float(pow(traveltime/1000.0f, 2.0f));
  
