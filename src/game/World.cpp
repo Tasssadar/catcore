@@ -930,7 +930,7 @@ void World::LoadConfigSettings(bool reload)
     {
         MapEntry const *mapEntry = NULL;
         std::stringstream str;
-        for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+        for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
         {
             mapEntry = sMapStore.LookupEntry(i);
             if(!mapEntry)
@@ -1436,7 +1436,7 @@ void World::SetInitialWorldSettings()
     {
         MapEntry const *mapEntry = NULL;
         std::stringstream str;
-        for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+        for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
         {
             mapEntry = sMapStore.LookupEntry(i);
             if(!mapEntry)

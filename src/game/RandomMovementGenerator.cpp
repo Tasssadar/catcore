@@ -27,7 +27,7 @@ template<>
 void
 RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
 {
-    float X,Y,Z,z,nx,ny,nz,wander_distance,ori,dist;
+    float X,Y,Z,nx,ny,nz,wander_distance,ori,dist;
 
     creature.GetRespawnCoord(X, Y, Z, &ori, &wander_distance);
 
