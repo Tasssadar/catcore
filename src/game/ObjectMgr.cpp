@@ -49,6 +49,7 @@
 #include "InstanceData.h"
 #include "LfgGroup.h"
 #include "Chat.h"
+#include "BattleGroundMgr.h"
 
 #include <limits>
 
@@ -9468,5 +9469,81 @@ void ArenaJoinReadyCheck::Check()
     {
         // TODO: ready check complete
         // create map, teleport players to map
+
+        // we successfully created a pool
+        // looking for bracket, used for Nagrand Arena map
+        PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(562,80);
+        if (!bracketEntry)
+        {
+            sLog.outError("ArenaJoinCheck:: Bracket not found !");
+            return;
+        }
+        BattleGround * bg = sBattleGroundMgr.CreateNewBattleGround(BATTLEGROUND_AA, bracketEntry, 3, true);
+        if (!bg)
+        {
+            sLog.outError("ArenaJoinCheck::Cannot creature arena!");
+            return;
+        }
+        
+        // invite those selection pools
+        //for(uint32 i = 0; i < BG_TEAMS_COUNT; i++)
+        //	for(GroupsQueueType::const_iterator citr = m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.begin(); citr != m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.end(); ++citr)
+        //		InviteGroupToBG((*citr), bg2, (*citr)->Team);
+        MoveToArena(bg);
+
+        // start bg
+        bg->StartBattleGround();
+    }
+}
+
+void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
+{
+    for(GuidList::iterator itr = lReady.begin(); itr != lReady.end(); ++itr)
+    {
+        Player* plr = sObjectMgr.GetPlayer(*itr);
+        if (!plr)
+            continue;
+
+        //if (!_player->IsInvitedForBattleGroundQueueType(bgQueueTypeId))
+        //	return;                                 // cheating?
+        
+        if (!plr->InBattleGround())
+             plr->SetBattleGroundEntryPoint();
+    
+         // resurrect the player
+         if (!plr->isAlive())
+         {
+             plr->ResurrectPlayer(1.0f);
+             plr->SpawnCorpseBones();
+         }
+         // stop taxi flight at port
+          if (plr->isInFlight())
+          {
+              plr->GetMotionMaster()->MovementExpired(false);
+              plr->m_taxi.ClearTaxiDestinations();
+          }
+
+          WorldPacket data;
+          sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, 0, STATUS_IN_PROGRESS, 0, bg->GetStartTime(), bg->GetArenaType());
+          plr->GetSession()->SendPacket(&data);
+
+          // remove battleground queue status from BGmgr
+          //bgQueue.RemovePlayer(_player->GetGUID(), false);
+          // this is still needed here if battleground "jumping" shouldn't add deserter debuff
+          // also this is required to prevent stuck at old battleground after SetBattleGroundId set to new
+          if (BattleGround *currentBg = plr->GetBattleGround())
+              currentBg->RemovePlayerAtLeave(plr->GetGUID(), false, true);
+
+          // set the destination instance id
+          plr->SetBattleGroundId(bg->GetInstanceID(), bg->GetTypeID());
+          // set the destination team
+          uint32 team = ArenaTeam1->HaveMember(plr->GetGUID()) ? ALLIANCE : HORDE;
+          plr->SetBGTeam(team);
+          // bg->HandleBeforeTeleportToBattleGround(_player);
+          
+          uint32 mapid = bg->GetMapId();
+          float x, y, z, O;
+          bg->GetTeamStartLoc(team, x, y, z, O);
+          plr->TeleportTo(mapid, x, y, z, O);
     }
 }

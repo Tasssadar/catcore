@@ -483,6 +483,7 @@ class ArenaJoinReadyCheck
         void HandlePlayerGuid(uint64 guid, uint8 state);
         void RemoveFromPending(uint64 guid);
         void Check();
+        void MoveToArena(BattleGround * bg);
     private:
         Player*    Initiater;
         ArenaTeam* ArenaTeam1;

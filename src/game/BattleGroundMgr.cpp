@@ -878,21 +878,6 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
             //this switch can be much shorter
             MaxPlayersPerTeam = arenaType;
             MinPlayersPerTeam = arenaType;
-            /*switch(arenaType)
-            {
-            case ARENA_TYPE_2v2:
-                MaxPlayersPerTeam = 2;
-                MinPlayersPerTeam = 2;
-                break;
-            case ARENA_TYPE_3v3:
-                MaxPlayersPerTeam = 3;
-                MinPlayersPerTeam = 3;
-                break;
-            case ARENA_TYPE_5v5:
-                MaxPlayersPerTeam = 5;
-                MinPlayersPerTeam = 5;
-                break;
-            }*/
         }
     }
 
