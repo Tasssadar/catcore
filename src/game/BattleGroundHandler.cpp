@@ -75,6 +75,7 @@ void WorldSession::SendBattlegGroundList( uint64 guid, BattleGroundTypeId bgType
 
 void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
 {
+    return;
     uint64 guid;
     uint32 bgTypeId_;
     uint32 instanceId;
