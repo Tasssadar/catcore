@@ -2406,6 +2406,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 getFakeTeam() { return m_fakeTeam; };
         void SetFakeTeam(uint8 side) { m_fakeTeam = side; };
         uint32 getOriginalTeam() { return TeamForRace(getRace()); };
+
+        bool IsSpectator() const { return m_isSpectator; }
+        bool SetSpectator(bool set) { m_isSpectator = set; }
+        ArenaList *
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2720,6 +2724,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         // TEAMBG helpers
         bool m_isInTeamBG;
         uint8 m_fakeTeam; // 0 nothing, 1 blue(ali), 2 red(horde)
+
+        bool m_isSpectator;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

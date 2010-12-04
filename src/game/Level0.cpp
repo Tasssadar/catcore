@@ -92,10 +92,12 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     //uint32 maxQueuedClientsNum = sWorld.GetMaxQueuedSessionCount();
     std::string str = secsToTimeString(sWorld.GetUptime());
     char const* valhalla_rev = REVISION_VP;
+    char const* valhalla_rev_tour = REVISION_TOURNAMENT;
     char const* valhalla_rev_date = REVISION_VP_DATE;
 
+    PSendSysMessage("Arena Tournament mod revision %s", valhalla_rev_tour);
     PSendSysMessage("CatCore [%s][%s] - MaNGOS modified for Valhalla Server", valhalla_rev, valhalla_rev_date);
-    
+      
     if (GetAccessLevel() > SEC_PLAYER)
     {
         //Dont use mangos revision anymore since we backport only few commits

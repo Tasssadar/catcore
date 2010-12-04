@@ -486,6 +486,10 @@ void WorldSession::HandleCharCreateOpcode( WorldPacket & recv_data )
 
 void WorldSession::HandleCharDeleteOpcode( WorldPacket & recv_data )
 {
+    WorldPacket data(SMSG_CHAR_DELETE, 1);
+    data << (uint8)CHAR_DELETE_FAILED;
+    SendPacket( &data );
+    return;
     uint64 guid;
     recv_data >> guid;
 
