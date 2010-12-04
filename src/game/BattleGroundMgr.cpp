@@ -1509,6 +1509,9 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
 // create a new battleground that will really be used to play
 BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, bool isRated)
 {
+    BattleGroundTypeId arenas[] = {BATTLEGROUND_NA, BATTLEGROUND_BE, BATTLEGROUND_RL, BATTLEGROUND_DS, BATTLEGROUND_RV};
+    uint8 bgTypeId = arenas[urand(0, 4)];
+
     // get the template BG
     BattleGround *bg_template = GetBattleGroundTemplate(bgTypeId);
     if (!bg_template)
@@ -1516,67 +1519,19 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
         sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
         return NULL;
     }
-
-    //for arenas there is random map used
-    if (bg_template->isArena())
-    {
-        BattleGroundTypeId arenas[] = {BATTLEGROUND_NA, BATTLEGROUND_BE, BATTLEGROUND_RL, BATTLEGROUND_DS, BATTLEGROUND_RV};
-        uint32 arena_num = isRated ? urand(0, 2) : urand(3, 4);
-        bgTypeId = arenas[arena_num];
-        bg_template = GetBattleGroundTemplate(bgTypeId);
-        if (!bg_template)
-        {
-            sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
-            return NULL;
-        }
-    }
-
-    bool isRandom = false;
-
-    if (bgTypeId==BATTLEGROUND_RB)
-    {
-        BattleGroundTypeId random_bgs[] = {BATTLEGROUND_WS, BATTLEGROUND_AB, BATTLEGROUND_EY/*, BATTLEGROUND_AV, BATTLEGROUND_SA, BATTLEGROUND_IC*/};
-        uint32 bg_num = urand(0,2/*5*/);
-        bgTypeId = random_bgs[bg_num];
-        bg_template = GetBattleGroundTemplate(bgTypeId);
-        if (!bg_template)
-        {
-            sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
-            return NULL;
-        }
-        isRandom = true;
-    }
-
+    
     BattleGround *bg = NULL;
     // create a copy of the BG template
     switch(bgTypeId)
     {
-        case BATTLEGROUND_AV:
-            bg = new BattleGroundAV(*(BattleGroundAV*)bg_template);
-            break;
-        case BATTLEGROUND_WS:
-            bg = new BattleGroundWS(*(BattleGroundWS*)bg_template);
-            break;
-        case BATTLEGROUND_AB:
-            bg = new BattleGroundAB(*(BattleGroundAB*)bg_template);
-            break;
         case BATTLEGROUND_NA:
             bg = new BattleGroundNA(*(BattleGroundNA*)bg_template);
             break;
         case BATTLEGROUND_BE:
             bg = new BattleGroundBE(*(BattleGroundBE*)bg_template);
             break;
-        case BATTLEGROUND_AA:
-            bg = new BattleGroundAA(*(BattleGroundAA*)bg_template);
-            break;
-        case BATTLEGROUND_EY:
-            bg = new BattleGroundEY(*(BattleGroundEY*)bg_template);
-            break;
         case BATTLEGROUND_RL:
             bg = new BattleGroundRL(*(BattleGroundRL*)bg_template);
-            break;
-        case BATTLEGROUND_SA:
-            bg = new BattleGroundSA(*(BattleGroundSA*)bg_template);
             break;
         case BATTLEGROUND_DS:
             bg = new BattleGroundDS(*(BattleGroundDS*)bg_template);
@@ -1584,15 +1539,17 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
         case BATTLEGROUND_RV:
             bg = new BattleGroundRV(*(BattleGroundRV*)bg_template);
             break;
-        case BATTLEGROUND_IC:
-            bg = new BattleGroundIC(*(BattleGroundIC*)bg_template);
-            break;
-        case BATTLEGROUND_RB:
-            bg = new BattleGroundRB(*(BattleGroundRB*)bg_template);
-            break;
         default:
             //error, but it is handled few lines above
             return 0;
+    }
+    
+    // looking for bracket, used for Nagrand Arena map
+    PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(562,80);
+    if (!bracketEntry)
+    {
+        sLog.outError("ArenaJoinCheck:: Bracket not found !");
+        return;
     }
 
     // set before Map creating for let use proper difficulty
@@ -1601,17 +1558,17 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
     // will also set m_bgMap, instanceid
     sMapMgr.CreateBgMap(bg->GetMapId(), bg);
 
-    bg->SetClientInstanceID(CreateClientVisibleInstanceId(isRandom ? BATTLEGROUND_RB : bgTypeId, bracketEntry->GetBracketId()));
+    bg->SetClientInstanceID(CreateClientVisibleInstanceId(bgTypeId, bracketEntry->GetBracketId()));
 
     // reset the new bg (set status to status_wait_queue from status_none)
     bg->Reset();
 
     // start the joining of the bg
     bg->SetStatus(STATUS_WAIT_JOIN);
-    bg->SetArenaType(arenaType);
-    bg->SetRated(isRated);
-    bg->SetRandom(isRandom);
-    bg->SetTypeID(isRandom ? BATTLEGROUND_RB : bgTypeId);
+    bg->SetArenaType(3);
+    bg->SetRated(true);
+    bg->SetRandom(false);
+    bg->SetTypeID(bgTypeId);
     bg->SetRandomTypeID(bgTypeId);
 
     return bg;

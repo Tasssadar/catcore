@@ -9457,13 +9457,6 @@ void ArenaJoinReadyCheck::Check()
         // create map, teleport players to map
 
         // we successfully created a pool
-        // looking for bracket, used for Nagrand Arena map
-        PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(562,80);
-        if (!bracketEntry)
-        {
-            sLog.outError("ArenaJoinCheck:: Bracket not found !");
-            return;
-        }
 
         // creating battleground
         BattleGround * bg = sBattleGroundMgr.CreateNewBattleGround();
