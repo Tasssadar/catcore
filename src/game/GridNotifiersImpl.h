@@ -107,7 +107,7 @@ inline void MaNGOS::CreatureRelocationNotifier::Visit(CreatureMapType &m)
 
 inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
 {
-    if (!target->isAlive() || target->isInFlight() )
+    if (!target->isAlive() || target->isInFlight() || i_check->IsSpectator() || target->IsSpectator())
         return;
 
     if (target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->isTotem())

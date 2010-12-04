@@ -615,6 +615,8 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     //TeamBG helpers
     m_isInTeamBG = false;
     m_fakeTeam = 0;
+
+    m_isSpectator = false;
 }
 
 Player::~Player ()

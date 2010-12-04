@@ -304,6 +304,9 @@ void WorldSession::HandleGameobjectReportUse(WorldPacket& recvPacket)
 
 void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
 {
+    if(_player->IsSpectator())
+        return;
+
     uint32 spellId;
     uint8  cast_count, unk_flags;
     recvPacket >> cast_count;

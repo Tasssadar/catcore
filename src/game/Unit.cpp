@@ -641,6 +641,10 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
 
 uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const *spellProto, bool durabilityLoss, uint32 absorb)
 {
+    if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()) ||
+        pVictim->GetTypeId() == TYPEID_PLAYER && ((Player*)pVictim)->IsSpectator())
+        return;
+
     // remove affects from victim (including from 0 damage and DoTs)
     if (pVictim != this)
         pVictim->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
@@ -12151,6 +12155,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Always can see self
     if (u==this)
         return true;
+
+    // normal players or npcs cant see player in spectator mode
+    if(u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator() && (GetTypeId() != TYPEID_PLAYER || !((Player*)this)->IsSpectator()))
+        return false;
 
     // player visible for other player if not logout and at same transport
     // including case when player is out of world
