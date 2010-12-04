@@ -9748,9 +9748,9 @@ bool Unit::Attack(Unit *victim, bool meleeAttack)
         ((Creature*)this)->CallAssistance();
     }
 
-    // delay offhand weapon attack to next attack time
+    /*// delay offhand weapon attack to next attack time --> WTF? naka total mrte sracka fu
     if (haveOffhandWeapon())
-        resetAttackTimer(OFF_ATTACK);
+        resetAttackTimer(OFF_ATTACK);*/
 
     if (meleeAttack)
         SendMeleeAttackStart(victim);
