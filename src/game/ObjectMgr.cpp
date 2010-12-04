@@ -9453,7 +9453,7 @@ void ArenaJoinReadyCheck::Check()
     }
     else
     {
-        // TODO: ready check complete
+        // ready check complete
         // create map, teleport players to map
 
         // we successfully created a pool
@@ -9464,18 +9464,19 @@ void ArenaJoinReadyCheck::Check()
             sLog.outError("ArenaJoinCheck:: Bracket not found !");
             return;
         }
-        BattleGround * bg = sBattleGroundMgr.CreateNewBattleGround(BATTLEGROUND_AA, bracketEntry, 3, true);
+
+        // creating battleground
+        BattleGround * bg = sBattleGroundMgr.CreateNewBattleGround();
         if (!bg)
         {
             sLog.outError("ArenaJoinCheck::Cannot creature arena!");
             return;
         }
         
-        // invite those selection pools
-        //for(uint32 i = 0; i < BG_TEAMS_COUNT; i++)
-        //	for(GroupsQueueType::const_iterator citr = m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.begin(); citr != m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.end(); ++citr)
-        //		InviteGroupToBG((*citr), bg2, (*citr)->Team);
         MoveToArena(bg);
+        
+        bg->SetArenaTeamIdForTeam(ALLIANCE, ArenaTeam1->GetId());
+        bg->SetArenaTeamIdForTeam(HORDE, ArenaTeam2->GetId());
 
         // start bg
         bg->StartBattleGround();
@@ -9489,9 +9490,6 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
         Player* plr = sObjectMgr.GetPlayer(*itr);
         if (!plr)
             continue;
-
-        //if (!_player->IsInvitedForBattleGroundQueueType(bgQueueTypeId))
-        //	return;                                 // cheating?
         
         if (!plr->InBattleGround())
              plr->SetBattleGroundEntryPoint();
@@ -9513,8 +9511,6 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
           sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, 0, STATUS_IN_PROGRESS, 0, bg->GetStartTime(), bg->GetArenaType());
           plr->GetSession()->SendPacket(&data);
 
-          // remove battleground queue status from BGmgr
-          //bgQueue.RemovePlayer(_player->GetGUID(), false);
           // this is still needed here if battleground "jumping" shouldn't add deserter debuff
           // also this is required to prevent stuck at old battleground after SetBattleGroundId set to new
           if (BattleGround *currentBg = plr->GetBattleGround())
@@ -9522,11 +9518,16 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
 
           // set the destination instance id
           plr->SetBattleGroundId(bg->GetInstanceID(), bg->GetTypeID());
+
           // set the destination team
-          uint32 team = ArenaTeam1->HaveMember(plr->GetGUID()) ? ALLIANCE : HORDE;
-          plr->SetBGTeam(team);
-          // bg->HandleBeforeTeleportToBattleGround(_player);
+          uint32 team = ArenaTeam1->HaveMember(plr->GetGUID()) ? ALLIANCE : ArenaTeam2->HaveMember(plr->GetGUID()) ? HORDE : 0;
           
+          if (!team)
+              return;
+
+          plr->SetBGTeam(team);
+          bg->IncreaseInvitedCount(team);
+            
           uint32 mapid = bg->GetMapId();
           float x, y, z, O;
           bg->GetTeamStartLoc(team, x, y, z, O);
