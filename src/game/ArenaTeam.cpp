@@ -864,7 +864,7 @@ bool ArenaTeam::MembersOnline(Player* reportTo)
             continue;
             
         }
-        else if (plr->GetGUID() != reportTo->GetGUID())
+        else if (plr->GetGUID() == reportTo->GetGUID())
         {
             if (reportTo)
                 ChatHandler(reportTo).PSendSysMessage("You can't join yourself!");
