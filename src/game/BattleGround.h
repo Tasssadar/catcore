@@ -111,7 +111,8 @@ enum BattleGroundTimeIntervals
     RESPAWN_IMMEDIATELY             = 0,                    // secs
     BUFF_RESPAWN_TIME               = 180,                  // secs
     ARENA_SPAWN_BUFF_OBJECTS        = 90000,                // ms - 90sec after start
-    ARENA_TIME_LIMIT                = 2820000,              // ms - 47 minutes after start
+    ARENA_TIME_LIMIT                = 900000,//2820000,     // ms - 47 minutes after start
+	                                                        // 15 minutes, no one gives a crap about 47 minutes arenas
 };
 
 enum BattleGroundStartTimeIntervals
