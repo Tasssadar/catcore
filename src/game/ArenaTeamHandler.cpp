@@ -74,6 +74,9 @@ void WorldSession::HandleArenaTeamRosterOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleArenaTeamInviteOpcode(WorldPacket & recv_data)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
+
     DEBUG_LOG("CMSG_ARENA_TEAM_INVITE");
 
     uint32 ArenaTeamId;                                     // arena team id
@@ -152,6 +155,8 @@ void WorldSession::HandleArenaTeamInviteOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleArenaTeamAcceptOpcode(WorldPacket & /*recv_data*/)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_ACCEPT");                // empty opcode
 
     ArenaTeam *at = sObjectMgr.GetArenaTeamById(_player->GetArenaTeamIdInvited());
@@ -185,6 +190,8 @@ void WorldSession::HandleArenaTeamAcceptOpcode(WorldPacket & /*recv_data*/)
 
 void WorldSession::HandleArenaTeamDeclineOpcode(WorldPacket & /*recv_data*/)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_DECLINE");               // empty opcode
 
     _player->SetArenaTeamIdInvited(0);                      // no more invited
@@ -192,6 +199,8 @@ void WorldSession::HandleArenaTeamDeclineOpcode(WorldPacket & /*recv_data*/)
 
 void WorldSession::HandleArenaTeamLeaveOpcode(WorldPacket & recv_data)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_LEAVE");
 
     uint32 ArenaTeamId;                                     // arena team id
@@ -227,6 +236,8 @@ void WorldSession::HandleArenaTeamLeaveOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleArenaTeamDisbandOpcode(WorldPacket & recv_data)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_DISBAND");
 
     uint32 ArenaTeamId;                                     // arena team id
@@ -247,6 +258,8 @@ void WorldSession::HandleArenaTeamDisbandOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleArenaTeamRemoveOpcode(WorldPacket & recv_data)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_REMOVE");
 
     uint32 ArenaTeamId;
@@ -289,6 +302,8 @@ void WorldSession::HandleArenaTeamRemoveOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleArenaTeamLeaderOpcode(WorldPacket & recv_data)
 {
+    SendArenaTeamCommandResult(ERR_ARENA_TEAM_INVITE_SS, "", "", ERR_ARENA_TEAMS_LOCKED);
+    return;
     DEBUG_LOG("CMSG_ARENA_TEAM_LEADER");
 
     uint32 ArenaTeamId;
