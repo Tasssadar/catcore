@@ -1457,9 +1457,12 @@ void LfgMgr::DeleteGroups()
 
             formedGroups[i].erase(*group);
         }
-        (*group)->Disband(true);
-        sObjectMgr.RemoveGroup(*group);
-        delete *group;
+        if(sObjectMgr.GetLfgGroupById(*group->GetId()))
+        {
+            (*group)->Disband(true);
+            sObjectMgr.RemoveGroup(*group);
+            delete *group;
+        }
     }
     groupsForDelete.clear();
 }
