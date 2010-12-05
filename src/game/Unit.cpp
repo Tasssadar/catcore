@@ -8508,6 +8508,18 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
+                // Blood Draining - heal proc
+                case 64568:
+                {
+                    if (GetHealth() >= (GetMaxHealth() *35 / 100))
+                       return false;
+                    Aura *aur = GetAura(auraSpellInfo->Id, EFFECT_INDEX_0);
+                    uint8 stacks = aur->GetStackAmount();
+                    basepoints[0] = damage * stacks;
+                    target = this;
+                    trigger_spell_id = 64569;
+                    break;
+                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
