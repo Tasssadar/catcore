@@ -15947,6 +15947,12 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         StopMoving();
 
         float time = 12.0f*distance;
+        float velocity = verticalSpeed*10.0f;
+        if(distance != GetDistance(fx, fy, fz))
+        {
+            float height = float(velocity*pow(time/1000.0f, 2.0f)/8.0f)*10.0f;
+            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f));
+        }
         
         WorldPacket data(SMSG_MONSTER_MOVE);
         data << GetPackGUID();
@@ -15954,9 +15960,9 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << GetPositionX() << GetPositionY() << GetPositionZ();
         data << uint32(getMSTime());
         data << uint8(SPLINETYPE_NORMAL);  
-        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK | SPLINEFLAG_FALLING);
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK);
         data << uint32(time);
-        data << float(verticalSpeed*10.0f); // <<------ ?????
+        data << float(velocity);
         data << uint32(0);
         data << uint32(1);
         data << fx << fy << fz;

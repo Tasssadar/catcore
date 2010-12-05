@@ -3054,11 +3054,12 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     }
 
     z+=0.5f;   
-    float distance = m_caster->GetDistance2d(x,y); 
-    float traveltime = 11.91f;  // feral charge
+    float distance = m_caster->GetDistance2d(x,y);
+    float speed = 84.0f;
     if(m_spellInfo->Id == 49575) // death grip
-        traveltime = 16.05f;
-    traveltime *= distance;
+        speed = 62.0f;
+    speed *= 0.001f;
+    float traveltime = distance/speed; 
 
     // Yep, this is it. Thank you so much silverIce!
     float maxHeight = m_spellInfo->EffectMiscValue[eff_idx];
