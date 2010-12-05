@@ -5164,6 +5164,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                                     break;
                                 }
                             }
+                            else
+                                failed = false;
                         }
                     }
 
