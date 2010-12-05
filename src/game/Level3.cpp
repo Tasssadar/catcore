@@ -6661,11 +6661,10 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
         PSendSysMessage("Pathfinding is disabled!");
         return true;
     }
-//FIXME
-/*
+
     PSendSysMessage("Calculating..");
     MapEntry const *mapEntry = NULL;
-    Map const *map = NULL;
+    TerrainInfo *terrain = NULL;
     const dtNavMesh* navmesh = NULL;
     uint32 totalMaps = 0;
     uint64 dataSize = 0;
@@ -6675,10 +6674,10 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
         mapEntry = sMapStore.LookupEntry(i);
         if(!mapEntry)
             continue;
-        map = sMapMgr.CreateBaseMap(mapEntry->MapID);
-        if(!map)
+        terrain = sTerrainMgr.LoadTerrain(mapEntry->MapID);
+        if(!terrain)
             continue;
-        if(navmesh = map->GetNavMesh())
+        if(navmesh = terrain->GetNavMesh())
         {
             ++totalMaps;
             for (uint32 i = 0; i < navmesh->getMaxTiles(); ++i)
@@ -6695,6 +6694,5 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     PSendSysMessage("Navmesh loaded on %u maps.", totalMaps);
     PSendSysMessage("Total of %u tiles loaded", tileCount);
     PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
-*/
     return true;
 }
