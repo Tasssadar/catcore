@@ -4879,6 +4879,10 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
         if (GetSpellSchoolMask(GetSpellProto()) & SPELL_SCHOOL_MASK_FROST)
             target->ModifyAuraState(AURA_STATE_FROZEN, apply);
 
+        // in case of Hodir's Freeze dont hit targets with Toasty Fire
+        if (GetId() == 62469 && target->HasAura(m_currentBasePoints))
+            return;
+
         target->addUnitState(UNIT_STAT_ROOT);
         target->SetTargetGUID(0);
 
