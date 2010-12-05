@@ -58,6 +58,8 @@ LfgMgr::~LfgMgr()
             delete itr->second;
         }
     }
+    for(LfgDungeonMap::iterator itr = m_randomsList.begin(); itr != m_randomsList.end(); ++itr)
+        delete itr->second;
 }
 
 void LfgMgr::Update(uint32 diff)
@@ -965,6 +967,8 @@ void LfgMgr::SendLfgPlayerInfo(Player *plr)
         data << uint32((*itr)->dungeonInfo->Entry());              // Dungeon entry + type
         data << uint32((*itr)->lockType);                          // Lock status
     }
+    for (LfgLocksList::iterator itr = locks->begin(); itr != locks->end(); ++itr)
+        delete *itr;
     delete locks;
     plr->GetSession()->SendPacket(&data);
 }
