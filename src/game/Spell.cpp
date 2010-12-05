@@ -5642,6 +5642,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_NOPATH;
                 break;
             }
+            case SPELL_EFFECT_DESTROY_ALL_TOTEMS:
+            {
+                bool hasTotem = false;
+                for(uint8 slot = 0;  slot < MAX_TOTEM_SLOT && !hasTotem; ++slot)
+                    if(m_caster->GetTotem(TotemSlot(slot)))
+                        hasTotem = true;
+                if(!hasTotem)
+                    return SPELL_FAILED_TOTEMS;
+                break;
+            }
             default:break;
         }
     }
