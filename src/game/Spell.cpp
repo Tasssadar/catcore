@@ -5144,7 +5144,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 if (check)
                 {
-                    bool success = true;
+                    bool failed = true;
 
                     Unit::AuraMap const& auras = target->GetAuras();
                     for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
@@ -5158,16 +5158,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                                 bool positive = aura->IsPositive() ? !(aura->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) : false;
 
                                 // Can only dispel positive auras on enemies and negative on allies
-                                if (positive == target->IsFriendlyTo(m_caster))
+                                if (positive != target->IsFriendlyTo(m_caster))
                                 {
-                                    success = false;
+                                    failed = false;
                                     break;
                                 }
                             }
                         }
                     }
 
-                    if (!success)
+                    if (failed)
                         return SPELL_FAILED_NOTHING_TO_DISPEL;
                 }
             }
