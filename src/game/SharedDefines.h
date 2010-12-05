@@ -1145,6 +1145,7 @@ enum Targets
     TARGET_DIRECTLY_FORWARD            = 89,
     TARGET_NONCOMBAT_PET               = 90,
     TARGET_RANDOM_POINT_AROUND_CASTER  = 91,                // currently used only for Freya spell waves, should work simmilar like 73
+    TARGET_LINKED_ENEMY_TARGET         = 92,                // few spell have this, not sure about proper function, for now lets handle as TARGET_CHAIN_DAMAGE
     TARGET_BASE_VEHICLE                = 94,
     TARGET_NEXT_PASSENGER              = 97,
     TARGET_IN_FRONT_OF_CASTER_2        = 104,

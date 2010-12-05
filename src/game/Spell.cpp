@@ -1826,6 +1826,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_CHAIN_DAMAGE:
+        case TARGET_LINKED_ENEMY_TARGET:
         {
             if (EffectChainTarget <= 1)
             {
