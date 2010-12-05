@@ -11323,11 +11323,6 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
         if (spellInfo->Id == 64372)                              
             return false;
 
-        // Rapture
-        //if (spellInfo->Id == 63652 || spellInfo->Id == 63653 ||
-        //    spellInfo->Id == 63654 || spellInfo->Id == 63655)
-        //    return false;
-
         // Improved Stormstrike
         if (spellInfo->Id == 63375)
             return false;
@@ -11338,6 +11333,10 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 
         // Judgements of the Wise
         if (spellInfo->Id == 31930)
+            return false;
+
+        // Spiritual Attunement		
+        if (spellInfo->Id == 31786)
             return false;
     }
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR END
@@ -13176,7 +13175,7 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
         }
     }
 
-    if (unitPlayer && spellProto->Attributes & SPELL_ATTR_LEVEL_DAMAGE_CALCULATION && spellProto->spellLevel &&
+    if (spellProto->Attributes & SPELL_ATTR_LEVEL_DAMAGE_CALCULATION && spellProto->spellLevel &&
             spellProto->Effect[effect_index] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
             spellProto->Effect[effect_index] != SPELL_EFFECT_KNOCK_BACK &&
             (spellProto->Effect[effect_index] != SPELL_EFFECT_APPLY_AURA || spellProto->EffectApplyAuraName[effect_index] != SPELL_AURA_MOD_DECREASE_SPEED))
