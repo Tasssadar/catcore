@@ -356,3 +356,8 @@ bool ChatHandler::HandleLitakCommand(const char* args)
  
     return true;
 }
+
+bool ChatHandler::HandleTestCommand(const char * args)
+{
+    return true;
+}
