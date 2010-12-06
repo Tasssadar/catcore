@@ -12676,6 +12676,10 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         float min_speed = (float)GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MINIMUM_SPEED) / 100.0f;
         if (speed < min_speed)
             speed = min_speed;
+
+        // if speed is 0 creature is acting like if has 100% speed, so lets set 1% and look what id does
+        if (speed < 0.01f)
+            speed = 0.01f;
     }
     SetSpeedRate(mtype, speed * ratio, forced);
 }
