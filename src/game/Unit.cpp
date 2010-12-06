@@ -8513,9 +8513,9 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 {
                     if (GetHealth() >= (GetMaxHealth() *35 / 100))
                        return false;
-                    Aura *aur = GetAura(auraSpellInfo->Id, EFFECT_INDEX_0);
-                    uint8 stacks = aur->GetStackAmount();
-                    basepoints[0] = damage * stacks;
+
+                    uint8 stacks = triggeredByAura->GetStackAmount();
+                    basepoints[0] = triggerAmount * stacks;
                     target = this;
                     trigger_spell_id = 64569;
                     break;
@@ -9967,6 +9967,8 @@ Player* Unit::GetCharmerOrOwnerPlayerOrPlayerItself()
 
 Pet* Unit::GetPet() const
 {
+    if(!GetMap())
+        return NULL;
     if (uint64 pet_guid = GetPetGUID())
     {
         if (Pet* pet = GetMap()->GetPet(pet_guid))
