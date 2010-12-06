@@ -222,7 +222,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendRoleCheckFail(uint8 error);
         bool canMove(uint64 guid, uint8 level, LfgGroup *target) const
         {
-            if(premadePlayers.find(citr->guid) != premadePlayers.end() ||
+            if(premadePlayers.find(guid) != premadePlayers.end() ||
                !target->HasCorrectLevel(level))
                return false;
             return true;
