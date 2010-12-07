@@ -46,24 +46,28 @@ class BattleGroundDS : public BattleGround
         virtual void StartingEventOpenDoors();
 
         void RemovePlayer(Player *plr, uint64 guid);
+        bool ObjectInLOS(Unit* caster, Unit* target);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
         bool SetupBattleGround();
-        void DespawnEvent(uint8 event1, uint8 event2);
-        void DespawnBGObject(uint64 const& guid);
+
     private:
         virtual void Reset();
         virtual void FillInitialWorldStates(WorldPacket &d, uint32& count);
-        void WaterfallSpawn();
+        void HandleWatterfall();
         void KnockOutOfTubes();
         void HandleKillPlayer(Player* player, Player *killer);
+        void KnockbackFromWaterfall();
         bool HandlePlayerUnderMap(Player * plr);
-        bool Knocked;
-        bool KnockbackSpam;
-        bool DoorsDespawned;
-        bool WaterfallActivated;
-        uint32 m_uiKnock;
-        uint32 m_uiKnockSpam;
+        void SpawnColisionWaterfall();
+        Player* GetPlayer();
+
+
+        bool m_bKnocked;
+        bool m_bTubeIsEmpty;
+        uint8  m_uiWaterfallStage;
+        uint32 m_uiKnockTimer;
         uint32 m_uiWaterfall;
-        std::list<uint64> m_lPlrInTube;
+        GameObject* m_WaterfallEffect;
+        GameObject* m_WaterfallCollision;
 };
 #endif
