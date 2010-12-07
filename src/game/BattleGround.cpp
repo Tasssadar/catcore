@@ -2119,3 +2119,12 @@ void BattleGround::SetBracket( PvPDifficultyEntry const* bracketEntry )
     m_BracketId  = bracketEntry->GetBracketId();
     SetLevelRange(bracketEntry->minLevel,bracketEntry->maxLevel);
 }
+
+void BattleGround::AddSpectator(Player *player)
+{
+    if(!player || !player->IsInWorld() || player->IsSpectator() || player->GetBattleGround())
+        return;
+    player->SetSpectator(true);
+    uint8 team = player->GetTeam() == HORDE ? BG_TEAM_HORDE : BG_TEAM_ALLIANCE;
+    player->TeleportTo(GetMapId(), m_TeamStartLocX[team], m_TeamStartLocY[team], m_TeamStartLocZ[team], m_TeamStartLocO[team]); 
+}

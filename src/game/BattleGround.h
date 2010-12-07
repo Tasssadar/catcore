@@ -565,7 +565,7 @@ class BattleGround
         bool ArenaPlayersCount(); //End arena if some players were not ported
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
 
-
+        void AddSpectator(Player *player);
 
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround

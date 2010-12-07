@@ -334,6 +334,9 @@ bool Map::Add(Player *player)
         sLog.outError("Some unhandled case, player has Lfg boost at non-dungeon map");
         player->RemoveAurasDueToSpell(72221);
     }
+    if(!IsBattleGroundOrArena() && player->IsSpectator())
+        player->SetSpectator(false);
+
     player->GetMapRef().link(this, player);
     player->SetMap(this);
 

@@ -1570,6 +1570,7 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround()
     bg->SetRandom(false);
     bg->SetTypeID(bgTypeId);
     bg->SetRandomTypeID(bgTypeId);
+    bg->SetArenaorBGType(true);
 
     return bg;
 }
