@@ -189,7 +189,7 @@ bool BattleGroundRV::SetupBattleGround()
 bool BattleGroundRV::ObjectInLOS(Unit* caster, Unit* target)
 {
     // caster or target is on pillar
-    if (caster->GetPositionZ() > 32.0f || target->GetPositionZ() > 32.0f)
+    if (caster->GetPositionZ() > 30.0f || target->GetPositionZ() > 30.0f)
         return false;
 
     float angle = caster->GetAngle(target);
