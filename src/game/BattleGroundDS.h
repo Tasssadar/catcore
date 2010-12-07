@@ -58,8 +58,8 @@ class BattleGroundDS : public BattleGround
         void HandleKillPlayer(Player* player, Player *killer);
         void KnockbackFromWaterfall();
         bool HandlePlayerUnderMap(Player * plr);
-        void SpawnColisionWaterfall();
-        Player* GetPlayer();
+        void SpawnWaterfall(bool effect);
+        Player* GetRandomPlayer();
 
 
         bool m_bKnocked;

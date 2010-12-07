@@ -71,12 +71,12 @@ void BattleGroundDS::StartingEventOpenDoors()
 
 void BattleGroundDS::KnockOutOfTubes()
 {
-    DespawnEvent(DOORS_EVENT, 0);
+    //DespawnEvent(DOORS_EVENT, 0);
 
     bool m_bIsAnyPlayerInTube = false;
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
-        Player * plr = sObjectMgr.GetPlayer(*iter);
+        Player * plr = sObjectMgr.GetPlayer(itr->first);
         if (plr->GetTeam() == ALLIANCE && plr->GetDistance2d(1214, 765) <= 50 && plr->GetPositionZ() > 10)
         {
             plr->KnockWithAngle(6.05f, 35.0f, 7.0f);
@@ -94,33 +94,21 @@ void BattleGroundDS::KnockOutOfTubes()
                 obj->Delete();
     }
     if (!m_bIsAnyPlayerInTube)
-        m_bTubeIsEmpty = true
+        m_bTubeIsEmpty = true;
 }
 
 void BattleGroundDS::KnockbackFromWaterfall()
 {
-    BGObjects::const_iterator itr = m_EventObjects[MAKE_PAIR32(WATERFALL_EVENT, 0)].gameobjects.begin();
-    for(; itr != m_EventObjects[MAKE_PAIR32(WATERFALL_EVENT, 0)].gameobjects.end(); ++itr)
+    uint32 boundingRadius = m_WaterfallCollision->GetObjectBoundingRadius();
+    for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
     {
-        GameObject *obj = GetBgMap()->GetGameObject(*itr);
-        if (!obj)
+        Player * plr = sObjectMgr.GetPlayer(itr->first);
+        if (!plr)
             continue;
-
-        // save Waterfall for LoS check
-        if (!m_gWaterfall)
-            m_gWaterfall = obj;
-
-        uint32 boundingRadius = obj->GetObjectBoundingRadius();
-        for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-        {
-            Player * plr = sObjectMgr.GetPlayer(itr->first);
-            if (!plr)
-                continue;
-
-            float angle = plr->GetAngle(obj)+M_PI_F;
-            if (plr->GetDistance2d(obj) <= boundingRadius)
-                plr->KnockWithAngle(angle, 35.0f, 7.0f);
-        }
+        
+        float angle = plr->GetAngle(m_WaterfallCollision)+M_PI_F;
+        if (plr->GetDistance2d(m_WaterfallCollision) <= boundingRadius)
+            plr->KnockWithAngle(angle, 35.0f, 7.0f);
     }
 }
 
@@ -157,10 +145,10 @@ void BattleGroundDS::HandleWatterfall()
 
 }
 
-Player* BattleGroundDS::GetPlayer()
+Player* BattleGroundDS::GetRandomPlayer()
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-        if (Player * plr = sObjectMgr.GetPlayer(*iter))
+        if (Player * plr = sObjectMgr.GetPlayer(itr->first))
             return plr;
 
     return NULL;
@@ -168,7 +156,7 @@ Player* BattleGroundDS::GetPlayer()
 
 void BattleGroundDS::SpawnWaterfall(bool effect)
 {
-    Player* plr = GetPlayer();
+    Player* plr = GetRandomPlayer();
     if (!plr)
     {
         sLog.outError("BattleGroundDS: No player in map found!");
@@ -263,7 +251,7 @@ bool BattleGroundDS::SetupBattleGround()
 {
     return true;
 }
-bool BattleGroundRV::ObjectInLOS(Unit* caster, Unit* target)
+bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
 {
     // if colision is not spawned, there is no los
     if (m_uiWaterfallStage != 2)
