@@ -4754,6 +4754,9 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
 
             continue;
         }
+        Unit* caster = Aur->GetCaster();
+        if (caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isWorldBoss())
+            continue;
 
         // non single (per caster) per target spell specific (possible single spell per target at caster)
         if ( !is_spellSpecPerTargetPerCaster && !is_spellSpecPerTarget && sSpellMgr.IsNoStackSpellDueToSpell(spellId, i_spellId) )
