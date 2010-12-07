@@ -1507,10 +1507,10 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
 }
 
 // create a new battleground that will really be used to play
-BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, bool isRated)
+BattleGround * BattleGroundMgr::CreateNewBattleGround()
 {
     BattleGroundTypeId arenas[] = {BATTLEGROUND_NA, BATTLEGROUND_BE, BATTLEGROUND_RL, BATTLEGROUND_DS, BATTLEGROUND_RV};
-    uint8 bgTypeId = arenas[urand(0, 4)];
+    BattleGroundTypeId bgTypeId = arenas[urand(0, 4)];
 
     // get the template BG
     BattleGround *bg_template = GetBattleGroundTemplate(bgTypeId);
@@ -1549,7 +1549,7 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
     if (!bracketEntry)
     {
         sLog.outError("ArenaJoinCheck:: Bracket not found !");
-        return;
+        return NULL;
     }
 
     // set before Map creating for let use proper difficulty
