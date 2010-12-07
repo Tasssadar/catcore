@@ -470,6 +470,13 @@ class BattleGround
         uint32 GetArenaTeamIdForTeam(uint32 Team) const             { return m_ArenaTeamIds[GetTeamIndexByTeamId(Team)]; }
         void SetArenaTeamRatingChangeForTeam(uint32 Team, int32 RatingChange) { m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)] = RatingChange; }
         int32 GetArenaTeamRatingChangeForTeam(uint32 Team) const    { return m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)]; }
+        std::string GetArenaTeamName(uint32 teamId)
+        {
+            ArenaTeam *team = GetArenaTeamById(teamId);
+            if(team)
+                return team->GetName();
+            return std::string("");
+        }
         void CheckArenaWinConditions();
         void UpdateArenaWorldState();
 
@@ -557,6 +564,8 @@ class BattleGround
 
         bool ArenaPlayersCount(); //End arena if some players were not ported
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
+
+
 
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround

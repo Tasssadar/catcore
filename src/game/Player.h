@@ -2409,7 +2409,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool IsSpectator() const { return m_isSpectator; }
         bool SetSpectator(bool set) { m_isSpectator = set; }
-        ArenaList *
+        BattleGroundSet GetBattlegrounds() { return sBattlegroundMgr.GetBattlegrounds(); }
+
     protected:
 
         uint32 m_contestedPvPTimer;

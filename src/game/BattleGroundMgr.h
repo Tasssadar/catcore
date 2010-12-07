@@ -216,6 +216,13 @@ class BattleGroundMgr
             if (!m_ClientBattleGroundIds[bgTypeId][bracket_id].empty())
                 m_ClientBattleGroundIds[bgTypeId][bracket_id].erase(clientInstanceID);
         }
+        BattleGroundSet GetBattlegrounds() {
+        {
+            BattleGroundSet set;
+            for(uint8 i = 0; i < MAX_BATTLEGROUND_TYPE_ID; ++i)
+                set.insert(m_BattleGrounds[i].begin(), m_BattleGrounds[i].end());
+            return set;
+        }
 
         void CreateInitialBattleGrounds();
         void DeleteAllBattleGrounds();
