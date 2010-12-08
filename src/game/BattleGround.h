@@ -112,7 +112,7 @@ enum BattleGroundTimeIntervals
     BUFF_RESPAWN_TIME               = 180,                  // secs
     ARENA_SPAWN_BUFF_OBJECTS        = 90000,                // ms - 90sec after start
     ARENA_TIME_LIMIT                = 900000,//2820000,     // ms - 47 minutes after start
-	                                                        // 15 minutes, no one gives a crap about 47 minutes arenas
+                                                            // 15 minutes, no one gives a crap about 47 minutes arenas
 };
 
 enum BattleGroundStartTimeIntervals
@@ -564,8 +564,12 @@ class BattleGround
 
         bool ArenaPlayersCount(); //End arena if some players were not ported
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
+        uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(m_Winner, type) + GetScoreForTeam(GetOtherTeam(m_Winner), type));}
 
         void AddSpectator(Player *player);
+
+        // guid, endtimestamp, winner, loser, total dmg done, total heal done, map, arena length
+        void SaveArenaStats(uint32 guid, uint32 winnerid, uint32 loserid, uint32 dmgdone, uint32 healdone, uint32 mapid, uint32 length);
 
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround

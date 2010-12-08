@@ -329,6 +329,10 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     DEBUG_LOG("WORLD: got cast spell packet, spellId - %u, cast_count: %u, unk_flags %u, data length = %i",
         spellId, cast_count, unk_flags, (uint32)recvPacket.size());
 
+    // handle arena stats only in bg
+    if (_player->GetBattleGround())
+        _player->HandleSpellCast(spellId);
+
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId );
 
     if (!spellInfo)

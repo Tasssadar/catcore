@@ -6130,6 +6130,12 @@ void ObjectMgr::SetHighestGuids()
         m_InstanceGuids.Set((*result)[0].GetUInt32()+1);
         delete result;
     }
+    result = CharacterDatabase.Query( "SELECT MAX(guid) FROM arena_stats" );
+    if (result)
+    {
+        m_uiArenaStatGuid = (*result)[0].GetUInt32()+1;
+        delete result;
+    }
 }
 
 uint32 ObjectMgr::GenerateLowGuid(HighGuid guidhigh)

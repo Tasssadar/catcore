@@ -786,6 +786,8 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             {
                 // FIXME: kept by compatibility. don't know in BG if the restriction apply.
                 bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
+                if (bg->GetStatus() == STATUS_IN_PROGRESS)
+                    killer->HandleDamageDone((Player*)pVictim, damage);
             }
         }
 
@@ -10114,7 +10116,11 @@ int32 Unit::DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellPro
         unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, addhealth - gain, critical, absorb);
 
         if (BattleGround *bg = ((Player*)unit)->GetBattleGround())
+        {
             bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
+            if (pVictim->GetTypeId() == TYPEID_PLAYER && bg->GetStatus() == STATUS_IN_PROGRESS)
+                ((Player*)unit)->HandleHealDone((Player*)pVictim, gain);
+        }
 
         // use the actual gain, as the overheal shall not be counted, skip gain 0 (it ignored anyway in to criteria)
         if (gain)
@@ -16826,4 +16832,11 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, b
     }
     m_movementInfo.SetMovementFlags(MovementFlags(moveFlags));
     m_movementInfo.SetMovementFlags2(MovementFlags2(moveFlags2));
+}
+
+void Unit::addUnitState(uint32 f)
+{
+    m_state |= f;
+    if (GetTypeId() == TYPEID_PLAYER && (UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL & f))
+        ((Player*)this)->ControlUsed();
 }
