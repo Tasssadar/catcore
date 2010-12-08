@@ -23146,7 +23146,7 @@ uint32 Player::GetBGLoseExtraHonor()
 void Player::SaveArenaStatMember(uint32 arena_guid, bool isWinner)
 {
     std::ostringstream ss;
-    ss << "INSERT INTO characters VALUES ("
+    ss << "INSERT INTO arena_stats_member VALUES ("
         << arena_guid << ", "
         << GetGUIDLow( << ", "
         << int(isWinner) << ", "
