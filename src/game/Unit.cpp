@@ -643,7 +643,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
 {
     if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()) ||
         pVictim->GetTypeId() == TYPEID_PLAYER && ((Player*)pVictim)->IsSpectator())
-        return;
+        return 0;
 
     // remove affects from victim (including from 0 damage and DoTs)
     if (pVictim != this)

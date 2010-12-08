@@ -2774,7 +2774,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_uiDamageDone;
         uint32 m_uiDamageTaken;
         uint32 m_uiHealDone;
-        uint32 m_uiHealingTaken;
+        uint32 m_uiHealTaken;
 
         uint32 m_uiTimeInControl;
         uint32 m_uiControlUsed;

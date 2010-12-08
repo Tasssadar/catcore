@@ -543,9 +543,9 @@ void WorldSession::HandleCharDeleteOpcode( WorldPacket & recv_data )
 
     Player::DeleteFromDB(guid, GetAccountId());
 
-    WorldPacket data(SMSG_CHAR_DELETE, 1);
-    data << (uint8)CHAR_DELETE_SUCCESS;
-    SendPacket( &data );
+    WorldPacket data2(SMSG_CHAR_DELETE, 1);
+    data2 << (uint8)CHAR_DELETE_SUCCESS;
+    SendPacket( &data2 );
 }
 
 void WorldSession::HandlePlayerLoginOpcode( WorldPacket & recv_data )
