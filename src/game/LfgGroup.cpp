@@ -192,6 +192,9 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
         {
             WorldPacket data(SMSG_GROUP_UNINVITE, 0);
             player->GetSession()->SendPacket( &data );
+            player->SetGroup(NULL);
+            _removeRolls(guid);
+            _homebindIfInstance(player);
         }
         if(IsInDungeon() && IsMixed())
             player->m_lookingForGroup.SetMixedDungeon(0, false);
@@ -725,6 +728,12 @@ void LfgGroup::SendLfgPartyInfo(Player *plr)
         }
     }
     plr->GetSession()->SendPacket(&data);
+    for (LfgLocksMap::const_iterator itr = groupLocks->begin(); itr != groupLocks->end(); ++itr)
+    {
+        for (LfgLocksList::iterator it = itr->second->begin(); it != itr->second->end(); ++it)
+            delete *it;
+        delete itr->second;
+    }
     delete groupLocks;
 }
 
@@ -1089,15 +1098,22 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
         RemoveMember(m_voteToKick.victim, 1);
         if (victim && victim->GetSession())
         {
+            victim->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
+            victim->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
+            victim->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
+            victim->RemoveAurasDueToSpell(LFG_BOOST);
             WorldLocation teleLoc = victim->m_lookingForGroup.joinLoc;
             if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
-            {
-                victim->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
-                victim->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
-                victim->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
-                victim->RemoveAurasDueToSpell(LFG_BOOST);
                 victim->TeleportTo(teleLoc);
-            }
+            else
+                victim->TeleportToHomebind();
+        }
+        else
+        {
+            AreaTrigger const* trigger = sObjectMgr.GetGoBackTrigger(GetDungeonInfo()->map);
+            if(trigger)
+                Player::SavePositionInDB(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z, trigger->target_Orientation,
+                    sTerrainMgr.GetZoneId(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z), m_voteToKick.victim);
         }
         //Change leader
         if (m_voteToKick.victim == m_leaderGuid)
@@ -1113,7 +1129,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
                     break;
                 }
             }
-            if (m_leaderGuid == 0)
+            if (m_voteToKick.victim == m_leaderGuid)
                 ChangeLeader(GetFirstMember()->getSource()->GetGUID());            
         }
 

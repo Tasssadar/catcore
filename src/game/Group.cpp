@@ -1255,11 +1255,6 @@ void Group::_setLeader(const uint64 &guid)
         // remove all permanent binds from the group
         // in the DB also remove solo binds that will be replaced with permbinds
         // from the new leader
-        CharacterDatabase.PExecute(
-            "DELETE FROM group_instance WHERE leaderguid='%u' AND (permanent = 1 OR "
-            "instance IN (SELECT instance FROM character_instance WHERE guid = '%u')"
-            ")", GUID_LOPART(m_leaderGuid), GUID_LOPART(slot->guid)
-        );
 
         Player *player = sObjectMgr.GetPlayer(slot->guid);
         if (player)

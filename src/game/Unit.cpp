@@ -4706,6 +4706,9 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
 
         SpellSpecific i_spellId_spec = GetSpellSpecific(i_spellId);
 
+        if (IsChanneledSpell(spellProto))
+            continue;
+
         // single allowed spell specific from same caster or from any caster at target
         bool is_spellSpecPerTargetPerCaster = IsSingleFromSpellSpecificPerTargetPerCaster(spellId_spec,i_spellId_spec);
         bool is_spellSpecPerTarget = IsSingleFromSpellSpecificPerTarget(spellId_spec,i_spellId_spec);
@@ -4757,6 +4760,9 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
 
             continue;
         }
+        Unit* caster = Aur->GetCaster();
+        if (caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isWorldBoss())
+            continue;
 
         // non single (per caster) per target spell specific (possible single spell per target at caster)
         if ( !is_spellSpecPerTargetPerCaster && !is_spellSpecPerTarget && sSpellMgr.IsNoStackSpellDueToSpell(spellId, i_spellId) )
@@ -8514,6 +8520,18 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                     break;
                 }
+                // Blood Draining - heal proc
+                case 64568:
+                {
+                    if (GetHealth() >= (GetMaxHealth() *35 / 100))
+                       return false;
+
+                    uint8 stacks = triggeredByAura->GetStackAmount();
+                    basepoints[0] = triggerAmount * stacks;
+                    target = this;
+                    trigger_spell_id = 64569;
+                    break;
+                }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
                 {
                     float stat = 0.0f;
@@ -9754,9 +9772,9 @@ bool Unit::Attack(Unit *victim, bool meleeAttack)
         ((Creature*)this)->CallAssistance();
     }
 
-    // delay offhand weapon attack to next attack time
+    /*// delay offhand weapon attack to next attack time --> WTF? naka total mrte sracka fu
     if (haveOffhandWeapon())
-        resetAttackTimer(OFF_ATTACK);
+        resetAttackTimer(OFF_ATTACK);*/
 
     if (meleeAttack)
         SendMeleeAttackStart(victim);
@@ -9961,6 +9979,8 @@ Player* Unit::GetCharmerOrOwnerPlayerOrPlayerItself()
 
 Pet* Unit::GetPet() const
 {
+    if(!GetMap())
+        return NULL;
     if (uint64 pet_guid = GetPetGUID())
     {
         if (Pet* pet = GetMap()->GetPet(pet_guid))
@@ -11321,11 +11341,6 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
         if (spellInfo->Id == 64372)                              
             return false;
 
-        // Rapture
-        //if (spellInfo->Id == 63652 || spellInfo->Id == 63653 ||
-        //    spellInfo->Id == 63654 || spellInfo->Id == 63655)
-        //    return false;
-
         // Improved Stormstrike
         if (spellInfo->Id == 63375)
             return false;
@@ -11336,6 +11351,10 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 
         // Judgements of the Wise
         if (spellInfo->Id == 31930)
+            return false;
+
+        // Spiritual Attunement		
+        if (spellInfo->Id == 31786)
             return false;
     }
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR END
@@ -12677,6 +12696,10 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         float min_speed = (float)GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MINIMUM_SPEED) / 100.0f;
         if (speed < min_speed)
             speed = min_speed;
+
+        // if speed is 0 creature is acting like if has 100% speed, so lets set 1% and look what id does
+        if (speed < 0.01f)
+            speed = 0.01f;
     }
     SetSpeedRate(mtype, speed * ratio, forced);
 }
@@ -15893,7 +15916,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         fy += dis * vsin;
  
         bool outdoor = GetTerrain()->IsOutdoors(fx, fy, fz);
-        float tmpZ = fz+dis;
+        float tmpZ = fz+dis*2;
         // Wanna find ground, no care how far is it, visual effect apprears to be correct
         UpdateGroundPositionZ(fx, fy, tmpZ, MAX_FALL_DISTANCE); 
         if(tmpZ != fz+dis)
@@ -15961,6 +15984,12 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         StopMoving();
 
         float time = 12.0f*distance;
+        float velocity = verticalSpeed*10.0f;
+        if(distance != GetDistance(fx, fy, fz))
+        {
+            float height = float(velocity*pow(time/1000.0f, 2.0f)/8.0f)*10.0f;
+            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f));
+        }
         
         WorldPacket data(SMSG_MONSTER_MOVE);
         data << GetPackGUID();
@@ -15968,9 +15997,9 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << GetPositionX() << GetPositionY() << GetPositionZ();
         data << uint32(getMSTime());
         data << uint8(SPLINETYPE_NORMAL);  
-        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK | SPLINEFLAG_FALLING);
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK);
         data << uint32(time);
-        data << float(verticalSpeed*10.0f); // <<------ ?????
+        data << float(velocity);
         data << uint32(0);
         data << uint32(1);
         data << fx << fy << fz;

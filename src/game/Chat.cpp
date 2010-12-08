@@ -736,6 +736,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "spocitejspojenyrepky",SEC_ADMINISTRATOR,true,&ChatHandler::HandleSpojenyRepky,              "", NULL },
         { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats,            "", NULL },
         { "arenajoin",      SEC_MODERATOR,      false, &ChatHandler::HandleArenaJoinCommand,           "", NULL },
+        { "test",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleTestCommand,                "", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };

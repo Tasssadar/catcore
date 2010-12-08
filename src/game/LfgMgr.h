@@ -329,8 +329,8 @@ class MANGOS_DLL_SPEC LfgMgr
         void UpdateWaitTime(LfgGroup *group, uint32 dungeonId);
         void MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId = 0);
         QueuedDungeonsMap::iterator GetOrCreateQueueEntry(LFGDungeonEntry const *info, uint8 side);
-        void CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck *tmpRoles, PlayerGroupMap *map);
-        void DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, GroupsList *groups, bool randomToSpecific);
+        bool CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck *tmpRoles, PlayerGroupMap *map);
+        bool DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, GroupsList *groups, bool randomToSpecific);
 
         bool log;
 

@@ -1826,6 +1826,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_CHAIN_DAMAGE:
+        case TARGET_LINKED_ENEMY_TARGET:
         {
             if (EffectChainTarget <= 1)
             {
@@ -5143,7 +5144,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 if (check)
                 {
-                    bool success = true;
+                    bool failed = true;
 
                     Unit::AuraMap const& auras = target->GetAuras();
                     for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
@@ -5157,16 +5158,18 @@ SpellCastResult Spell::CheckCast(bool strict)
                                 bool positive = aura->IsPositive() ? !(aura->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) : false;
 
                                 // Can only dispel positive auras on enemies and negative on allies
-                                if (positive == target->IsFriendlyTo(m_caster))
+                                if (positive != target->IsFriendlyTo(m_caster))
                                 {
-                                    success = false;
+                                    failed = false;
                                     break;
                                 }
                             }
+                            else
+                                failed = false;
                         }
                     }
 
-                    if (!success)
+                    if (failed)
                         return SPELL_FAILED_NOTHING_TO_DISPEL;
                 }
             }
@@ -5640,6 +5643,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                 m_caster->UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
                 if(!m_caster->CanCharge(target, x, y, z, jump ? 0.0f : 1.5f, outdoor ? 10.0f : 3.0f))
                     return SPELL_FAILED_NOPATH;
+                break;
+            }
+            case SPELL_EFFECT_DESTROY_ALL_TOTEMS:
+            {
+                bool hasTotem = false;
+                for(uint8 slot = 0;  slot < MAX_TOTEM_SLOT && !hasTotem; ++slot)
+                    if(m_caster->GetTotem(TotemSlot(slot)))
+                        hasTotem = true;
+                if(!hasTotem)
+                    return SPELL_FAILED_TOTEMS;
                 break;
             }
             default:break;

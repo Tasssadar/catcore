@@ -126,6 +126,14 @@ struct RoleCheck
 
     bool TryRoles(LfgGroup *group);
 
+    uint8 GetSize() const 
+    {
+        uint8 size = 0;
+        if(tank) ++size;
+        if(heal) ++size;
+        size += dps.size();
+    }
+
     uint64 tank;
     uint64 heal;
     PlayerList dps;
@@ -212,6 +220,13 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         bool UpdateVoteToKick(uint32 diff = 0);
         bool IsFromRnd(uint64 guid) { return (randomPlayers.find(guid) != randomPlayers.end()); }
         void SendRoleCheckFail(uint8 error);
+        bool canMove(uint64 guid, uint8 level, LfgGroup *target) const
+        {
+            if(premadePlayers.find(guid) != premadePlayers.end() ||
+               !target->HasCorrectLevel(level))
+               return false;
+            return true;
+        };
 
     private:
         uint64 m_tank;

@@ -4879,6 +4879,10 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
         if (GetSpellSchoolMask(GetSpellProto()) & SPELL_SCHOOL_MASK_FROST)
             target->ModifyAuraState(AURA_STATE_FROZEN, apply);
 
+        // in case of Hodir's Freeze dont hit targets with Toasty Fire
+        if (GetId() == 62469 && target->HasAura(m_currentBasePoints))
+            return;
+
         target->addUnitState(UNIT_STAT_ROOT);
         target->SetTargetGUID(0);
 
@@ -9210,6 +9214,37 @@ void Aura::PeriodicDummyTick()
                         case 2: target->CastSpell(target, 55739, true); break;
                     }
                     return;
+                case 62038:                                 // Biting Cold
+                {
+                    if (target->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    Player* plr = (Player*)target;
+                    Aura* pBiting = plr->GetAura(62039, EFFECT_INDEX_0);
+                    // if is moving, drop charge
+                    if (plr->isMoving())
+                    {
+                        if (pBiting)
+                            if (pBiting->modStackAmount(-1))
+                                plr->RemoveAurasDueToSpell(62039);
+                    }
+                    // if not add charge
+                    else if (!target->HasAura(62821) && !target->HasAura(61990))
+                    {
+                        if (!pBiting)
+                            plr->CastSpell(plr, 62039, true);
+                        else
+                            pBiting->modStackAmount(1);
+                    }
+                    return;
+                }
+                case 62039:                                 // Biting Cold - dot damage
+                {
+                    float stack = GetStackAmount();
+                    int32 bp0 = 200 * pow(2.0f, stack);
+                    target->CastCustomSpell(target, 62188, &bp0, 0, 0, true);
+                    return;
+                }
                 case 63276:
                 {
                     Unit* caster = GetCaster();
