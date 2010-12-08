@@ -107,7 +107,7 @@ inline void MaNGOS::CreatureRelocationNotifier::Visit(CreatureMapType &m)
 
 inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
 {
-    if (!target->isAlive() || target->isInFlight() || i_check->IsSpectator() || target->IsSpectator())
+    if (!target->isAlive() || target->isInFlight() || (target->GetTypeId() == TYPEID_PLAYER && ((Player*)target)->IsSpectator()))
         return;
 
     if (target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->isTotem())
@@ -130,7 +130,7 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
 
     if (i_check->GetTypeId() == TYPEID_PLAYER )
     {
-        if (i_check->IsFriendlyTo( target ))
+        if (i_check->IsFriendlyTo( target ) || ((Player*)i_check)->IsSpectator())
             return;
     }
     else

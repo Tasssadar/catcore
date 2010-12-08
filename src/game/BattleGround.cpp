@@ -2128,3 +2128,11 @@ void BattleGround::AddSpectator(Player *player)
     uint8 team = player->GetTeam() == HORDE ? BG_TEAM_HORDE : BG_TEAM_ALLIANCE;
     player->TeleportTo(GetMapId(), m_TeamStartLocX[team], m_TeamStartLocY[team], m_TeamStartLocZ[team], m_TeamStartLocO[team]); 
 }
+
+std::string BattleGround::GetArenaTeamName(uint32 teamId)
+{
+    ArenaTeam *team = sObjectMgr.GetArenaTeamById(teamId);
+    if(team)
+        return team->GetName();
+    return std::string("");
+}

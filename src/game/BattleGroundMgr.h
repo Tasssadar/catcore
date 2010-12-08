@@ -69,7 +69,7 @@ enum BattleGroundQueueGroupTypes
 };
 #define BG_QUEUE_GROUP_TYPES_COUNT 4
 
-class BattleGround;
+
 class BattleGroundQueue
 {
     public:

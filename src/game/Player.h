@@ -39,7 +39,6 @@
 #include "DBCEnums.h"
 #include "LfgMgr.h"
 #include "LfgGroup.h"
-
 #include<string>
 #include<vector>
 
@@ -1052,6 +1051,7 @@ class MANGOS_DLL_SPEC Player : public Unit
     friend void Item::AddToUpdateQueueOf(Player *player);
     friend void Item::RemoveFromUpdateQueueOf(Player *player);
     public:
+        typedef std::map<uint32, BattleGround*> BattleGroundSet;
         explicit Player (WorldSession *session);
         ~Player ( );
 
@@ -2408,16 +2408,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 getOriginalTeam() { return TeamForRace(getRace()); };
 
         bool IsSpectator() const { return m_isSpectator; }
-        bool SetSpectator(bool set) {
-        {
-            m_isSpectator = set;
-            if(set)
-                setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
-            else
-                setFactionForRace(getRace());
-        }
-        BattleGroundSet GetBattlegrounds() { return sBattlegroundMgr.GetBattlegrounds(); }
-
+        bool SetSpectator(bool set);
+        BattleGroundSet GetBattlegrounds();
     protected:
 
         uint32 m_contestedPvPTimer;

@@ -23137,3 +23137,14 @@ uint32 Player::GetBGLoseExtraHonor()
 {
     return MaNGOS::Honor::hk_honor_at_level(getLevel(), 5);
 }
+
+void Player::SetSpectator(bool set)
+{
+    m_isSpectator = set;
+    if(set)
+         setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
+    else
+         setFactionForRace(getRace());
+}
+BattleGroundSet Player::GetBattlegrounds() { return sBattlegroundMgr.GetBattlegrounds(); }
+                                                                                             

@@ -39,6 +39,7 @@ class Group;
 class Player;
 class WorldPacket;
 class BattleGroundMap;
+//class ArenaTeam;
 
 struct PvPDifficultyEntry;
 struct WorldSafeLocsEntry;
@@ -470,13 +471,7 @@ class BattleGround
         uint32 GetArenaTeamIdForTeam(uint32 Team) const             { return m_ArenaTeamIds[GetTeamIndexByTeamId(Team)]; }
         void SetArenaTeamRatingChangeForTeam(uint32 Team, int32 RatingChange) { m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)] = RatingChange; }
         int32 GetArenaTeamRatingChangeForTeam(uint32 Team) const    { return m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)]; }
-        std::string GetArenaTeamName(uint32 teamId)
-        {
-            ArenaTeam *team = GetArenaTeamById(teamId);
-            if(team)
-                return team->GetName();
-            return std::string("");
-        }
+        std::string GetArenaTeamName(uint32 teamId);
         void CheckArenaWinConditions();
         void UpdateArenaWorldState();
 
