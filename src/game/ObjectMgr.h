@@ -1090,6 +1090,8 @@ class ObjectMgr
 
         ArenaJoinReadyCheck* FindProperArenaJoinReadyCheck(uint64 guid);
 
+        uint32 GetArenaStatGuid() { return m_uiArenaStatGuid++; }
+
     protected:
 
         // first free id for selected id type
@@ -1218,6 +1220,8 @@ class ObjectMgr
         CacheNpcTextIdMap m_mCacheNpcTextIdMap;
         CacheVendorItemMap m_mCacheVendorItemMap;
         CacheTrainerSpellMap m_mCacheTrainerSpellMap;
+
+        uint32 m_uiArenaStatGuid;
 };
 
 #define sObjectMgr MaNGOS::Singleton<ObjectMgr>::Instance()

@@ -2410,6 +2410,49 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsSpectator() const { return m_isSpectator; }
         bool SetSpectator(bool set);
         BattleGroundSet GetBattlegrounds();
+
+        // handle arena stats
+        void HandleDamageDone(Player* pVictim, uint32 damage)
+        {
+            m_uiDamageDone += damage;
+            pVictim->DamageTaken(damage);
+        }
+        void HandleHealDone(Player* pVictim, uint32 heal)
+        {
+            m_uiHealDone += heal;
+            pVictim->HealTaken(heal);
+        }
+        void DamageTaken(uint32 damage) { m_uiDamageTaken += damage; }
+        void HealTaken(uint32 heal) { m_uiHealTaken += heal; }
+
+        void ControlUsed() { ++m_uiControlUsed; }
+
+        void HandleInterrupt(Player* pVictim, bool successfull)
+        {
+            ++m_uiInterruptUsed;
+            if (successfull)
+                ++m_uiInterruptSuccessfull;
+            pVictim->Interrupted(successfull);
+        }
+        void Interrupted(bool success) { success ? ++m_uiInterrupted : ++m_uiInterruptFaked; }
+
+        void HandleSpellCast(uint32 spellId)
+        {
+            ++m_uiSpellCasted;
+         
+            bool found = false;
+            for(std::list<uint32>::iterator itr = m_lSpellList.begin(); itr != m_lSpellList.end(); ++itr)
+                if ((*itr) == spellId)
+                    if (found = true)
+                        break;
+
+            if (!found)
+                m_lSpellList.push_back(spellId);
+        }
+
+        void SaveArenaStatMember(uint32 arena_guid, bool isWinner);
+        void ResetArenaStats();
+
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2726,6 +2769,23 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_fakeTeam; // 0 nothing, 1 blue(ali), 2 red(horde)
 
         bool m_isSpectator;
+
+        // arena stats
+        uint32 m_uiDamageDone;
+        uint32 m_uiDamageTaken;
+        uint32 m_uiHealDone;
+        uint32 m_uiHealingTaken;
+
+        uint32 m_uiTimeInControl;
+        uint32 m_uiControlUsed;
+
+        uint32 m_uiInterruptUsed;
+        uint32 m_uiInterruptSuccessfull;
+        uint32 m_uiInterrupted;
+        uint32 m_uiInterruptFaked;
+
+        uint32 m_uiSpellCasted;
+        std::list<uint32> m_lSpellList;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

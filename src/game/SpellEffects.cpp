@@ -5948,6 +5948,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
     if (!unitTarget->isAlive())
         return;
 
+    bool isInterruptSuccesfull = false;
     // TODO: not all spells that used this effect apply cooldown at school spells
     // also exist case: apply cooldown to interrupted cast only and to all spells
     for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
@@ -5960,11 +5961,15 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
                  curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE &&
                  (IsChanneledSpell(curSpellInfo) || GetSpellCastTime(curSpellInfo)))
             {
+                isInterruptSuccesfull = true;
                 unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_spellInfo, eff_idx, unitTarget));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
             }
         }
     }
+
+    if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER && unitTarget->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)GetCaster())->HandleInterrupt((Player*)unitTarget, isInterruptSuccesfull);
 }
 
 void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)

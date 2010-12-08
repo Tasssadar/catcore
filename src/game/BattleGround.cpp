@@ -775,6 +775,7 @@ void BattleGround::EndBattleGround(uint32 winner)
     std::ostringstream loser_string;
     WorldPacket data;
     int32 winmsg_id = 0;
+    uint32 arena_guid = sObjectMgr.GetArenaStatGuid();
 
     if (winner == ALLIANCE)
     {
@@ -813,6 +814,11 @@ void BattleGround::EndBattleGround(uint32 winner)
 
             winner_string << "Winner: " << winner_arena_team->GetName().c_str() << " [" << winner_rating << "] "<< " (";
             loser_string << "Loser: " << loser_arena_team->GetName().c_str() << " [" << loser_rating << "] "<< " (";
+
+            // saving basic arena statistics
+            SaveArenaStats(arena_guid, GetArenaTeamIdForTeam(winner), GetArenaTeamIdForTeam(GetOtherTeam(winner)),
+                GetTotalArenaScore(SCORE_DAMAGE_DONE), GetTotalArenaScore(SCORE_HEALING_DONE),
+                (GetBgMap() ? GetBgMap()->GetId() : 0), uint32(m_ArenaDuration));
 
             if (winner)
             {
@@ -894,6 +900,9 @@ void BattleGround::EndBattleGround(uint32 winner)
 
         //this line is obsolete - team is set ALWAYS
         //if (!team) team = plr->GetTeam();
+
+        // arena stat system
+        plr->SaveArenaStatMember(arena_guid, team == winner);
 
         // per player calculation
         if (isArena() && isRated() && winner_arena_team && loser_arena_team)
@@ -1417,6 +1426,9 @@ void BattleGround::AddPlayer(Player *plr)
     // add arena/battleground specific auras
     plr->CastSpell(plr, SPELL_AURA_PVP_HEALING,true); 
 
+    // reset arena statistics
+    plr->ResetArenaStats();
+
     // add arena specific auras
     if (isArena())
     {
@@ -1661,6 +1673,7 @@ uint32 BattleGround::GetScoreForTeam(uint32 TeamID, uint32 type)
     }
     return value;
 }
+
 bool BattleGround::AddObject(uint32 type, uint32 entry, float x, float y, float z, float o, float rotation0, float rotation1, float rotation2, float rotation3, uint32 /*respawnTime*/)
 {
     // must be created this way, adding to godatamap would add it to the base map of the instance
@@ -2135,4 +2148,10 @@ std::string BattleGround::GetArenaTeamName(uint32 teamId)
     if(team)
         return team->GetName();
     return std::string("");
+}
+
+void BattleGround::SaveArenaStats(uint32 guid, uint32 winnerid, uint32 loserid, uint32 dmgdone, uint32 healdone, uint32 mapid, uint32 length)
+{
+    CharacterDatabase.PExecute("INSERT INTO arena_stats (guid, winnerid, loserid, dmgdone, healdone, mapid, duration)"
+        " VALUES(%u, %u, %u, %u, %u, %u, %u);", guid, winnerid, loserid, dmgdone, healdone, mapid, length);
 }

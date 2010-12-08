@@ -617,6 +617,8 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     m_fakeTeam = 0;
 
     m_isSpectator = false;
+
+    ResetArenaStats();
 }
 
 Player::~Player ()
@@ -1225,6 +1227,10 @@ void Player::Update( uint32 p_time )
     if (!IsInWorld())
         return;
 
+    if (Battleground* bg = GetBattleGround())
+        if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
+            m_uiTimeInControl += p_time;
+    
     // undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(NULL))
     {
@@ -23148,3 +23154,42 @@ void Player::SetSpectator(bool set)
 }
 BattleGroundSet Player::GetBattlegrounds() { return sBattlegroundMgr.GetBattlegrounds(); }
                                                                                              
+void Player::SaveArenaStatMember(uint32 arena_guid, bool isWinner)
+{
+    std::ostringstream ss;
+    ss << "INSERT INTO arena_stats_member VALUES ("
+        << arena_guid << ", "
+        << GetGUIDLow() << ", "
+        << int8(isWinner) << ", "
+        << m_uiDamageDone << ", "
+        << m_uiDamageTaken << ", "
+        << m_uiHealDone << ", "
+        << m_uiHealingTaken << ", "
+        << uint32(m_uiTimeInControl/1000) << ", "
+        << m_uiControlUsed << ", "
+        << m_uiInterruptUsed << ", "
+        << m_uiInterruptSuccesfull << ", "
+        << m_uiInterrupted << ", "
+        << m_uiInterruptFaked << ", "
+        << m_uiSpellCasted << ", "
+        << uint(m_lSpellList.size()) << ")";
+  
+    CharacterDatabase.Execute( ss.str().c_str() );
+    
+}
+
+void Player::ResetArenaStats()
+{
+    m_uiDamageDone = 0;
+    m_uiDamageTaken = 0;
+    m_uiHealDone = 0;
+    m_uiHealingTaken = 0;
+    m_uiTimeInControl = 0;
+    m_uiControlUsed = 0;
+    m_uiInterruptUsed = 0;
+    m_uiInterruptSuccesfull = 0;
+    m_uiInterrupted = 0;
+    m_uiInterruptFaked = 0;
+    m_uiSpellCasted = 0;
+    m_lSpellList.clear();
+}
