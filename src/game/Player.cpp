@@ -23148,20 +23148,20 @@ void Player::SaveArenaStatMember(uint32 arena_guid, bool isWinner)
     std::ostringstream ss;
     ss << "INSERT INTO arena_stats_member VALUES ("
         << arena_guid << ", "
-        << GetGUIDLow( << ", "
-        << int(isWinner) << ", "
+        << GetGUIDLow() << ", "
+        << int8(isWinner) << ", "
         << m_uiDamageDone << ", "
         << m_uiDamageTaken << ", "
         << m_uiHealDone << ", "
         << m_uiHealingTaken << ", "
-        << m_uiTimeInControl << ", "
+        << uint32(m_uiTimeInControl/1000) << ", "
         << m_uiControlUsed << ", "
         << m_uiInterruptUsed << ", "
         << m_uiInterruptSuccesfull << ", "
         << m_uiInterrupted << ", "
         << m_uiInterruptFaked << ", "
         << m_uiSpellCasted << ", "
-        << int(m_lSpellList.size() << ")";
+        << uint(m_lSpellList.size()) << ")";
   
     CharacterDatabase.Execute( ss.str().c_str() );
     
