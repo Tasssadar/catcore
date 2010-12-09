@@ -1360,6 +1360,9 @@ void BattleGround::AddPlayer(Player *plr)
     // remove afk from player
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
         plr->ToggleAFK();
+    
+    if(plr->IsSpectator())
+        return;
 
     // score struct must be created in inherited class
 
@@ -2138,8 +2141,10 @@ void BattleGround::AddSpectator(Player *player)
     if(!player || !player->IsInWorld() || player->IsSpectator() || player->GetBattleGround())
         return;
     player->SetSpectator(true);
-    uint8 team = player->GetTeam() == HORDE ? BG_TEAM_HORDE : BG_TEAM_ALLIANCE;
-    player->TeleportTo(GetMapId(), m_TeamStartLocX[team], m_TeamStartLocY[team], m_TeamStartLocZ[team], m_TeamStartLocO[team]); 
+    float x, y, z, O;
+    GetTeamStartLoc(player->GetTeam(), x, y, z, O);
+    player->SetBattleGroundId(GetInstanceID(), GetTypeID());
+    player->TeleportTo(GetMapId(), x, y,z, O); 
 }
 
 std::string BattleGround::GetArenaTeamName(uint32 teamId)

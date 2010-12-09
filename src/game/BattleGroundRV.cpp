@@ -101,7 +101,7 @@ void BattleGroundRV::ClickEvent(uint8 event1, uint8 event2 /*=0*/)
 {
     BGObjects::const_iterator itr = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
     for(; itr != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr)
-        DoorOpen(*itr);
+        ClickOnPillar(*itr);
 }
 
 void BattleGroundRV::AddPlayer(Player *plr)
@@ -207,4 +207,22 @@ bool BattleGroundRV::ObjectInLOS(Unit* caster, Unit* target)
                 return true;
     }
     return false;
+}
+
+void BattleGroundRV::ClickOnPillar(uint64 const& guid)
+{
+    GameObject *obj = GetBgMap()->GetGameObject(guid);
+    if (obj)
+    {
+        //change state to be sure they will be opened
+        obj->SetLootState(GO_READY);
+        obj->UseDoorOrButton(RESPAWN_ONE_DAY);
+        for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+            if (Player * plr = sObjectMgr.GetPlayer(itr->first))
+                obj->SendCreateUpdateToPlayer(plr);
+    }
+    else
+    {
+        sLog.outError("BattleGround: Pillar object not found! - doors will be closed.");
+    }
 }

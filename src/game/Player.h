@@ -2408,7 +2408,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 getOriginalTeam() { return TeamForRace(getRace()); };
 
         bool IsSpectator() const { return m_isSpectator; }
-        bool SetSpectator(bool set);
+        void SetSpectator(bool set);
         BattleGroundSet GetBattlegrounds();
 
         // handle arena stats

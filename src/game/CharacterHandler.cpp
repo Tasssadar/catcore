@@ -202,7 +202,12 @@ void WorldSession::HandleCharCreateOpcode( WorldPacket & recv_data )
     recv_data >> class_;
 
     WorldPacket data(SMSG_CHAR_CREATE, 1);                  // returned with diff.values in all cases
-
+    if (GetSecurity() == SEC_PLAYER)
+    {
+        data << (uint8)CHAR_CREATE_DISABLED;
+        SendPacket( &data );
+        return;
+    }
     if (GetSecurity() == SEC_PLAYER)
     {
         if (uint32 mask = sWorld.getConfig(CONFIG_UINT32_CHARACTERS_CREATING_DISABLED))

@@ -1227,7 +1227,7 @@ void Player::Update( uint32 p_time )
     if (!IsInWorld())
         return;
 
-    if (Battleground* bg = GetBattleGround())
+    if (BattleGround* bg = GetBattleGround())
         if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
             m_uiTimeInControl += p_time;
     
@@ -1775,7 +1775,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
     // don't let enter battlegrounds without assigned battleground id (for example through areatrigger)...
     // don't let gm level > 1 either
-    if (!InBattleGround() && mEntry->IsBattleGroundOrArena())
+    if (!InBattleGround() && mEntry->IsBattleGroundOrArena() && !IsSpectator())
         return false;
 
     // client without expansion support
@@ -23151,30 +23151,13 @@ void Player::SetSpectator(bool set)
     else
          setFactionForRace(getRace());
 }
-BattleGroundSet Player::GetBattlegrounds() { return sBattlegroundMgr.GetBattlegrounds(); }
+BattleGroundSet Player::GetBattlegrounds() { return sBattleGroundMgr.GetBattlegrounds(); }
                                                                                              
 void Player::SaveArenaStatMember(uint32 arena_guid, bool isWinner)
 {
-    std::ostringstream ss;
-    ss << "INSERT INTO arena_stats_member VALUES ("
-        << arena_guid << ", "
-        << GetGUIDLow() << ", "
-        << int8(isWinner) << ", "
-        << m_uiDamageDone << ", "
-        << m_uiDamageTaken << ", "
-        << m_uiHealDone << ", "
-        << m_uiHealingTaken << ", "
-        << uint32(m_uiTimeInControl/1000) << ", "
-        << m_uiControlUsed << ", "
-        << m_uiInterruptUsed << ", "
-        << m_uiInterruptSuccesfull << ", "
-        << m_uiInterrupted << ", "
-        << m_uiInterruptFaked << ", "
-        << m_uiSpellCasted << ", "
-        << uint(m_lSpellList.size()) << ")";
-  
-    CharacterDatabase.Execute( ss.str().c_str() );
-    
+    CharacterDatabase.PExecute("INSERT INTO arena_stats_member VALUES (%u, %u, %i, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u,%u, %i)",         
+    arena_guid, GetGUIDLow(), int8(isWinner), m_uiDamageDone, m_uiDamageTaken, m_uiHealDone, m_uiHealTaken, uint32(m_uiTimeInControl/1000),
+        m_uiControlUsed, m_uiInterruptUsed, m_uiInterruptSuccessfull, m_uiInterrupted, m_uiInterruptFaked, m_uiSpellCasted, uint(m_lSpellList.size()));
 }
 
 void Player::ResetArenaStats()
@@ -23182,11 +23165,11 @@ void Player::ResetArenaStats()
     m_uiDamageDone = 0;
     m_uiDamageTaken = 0;
     m_uiHealDone = 0;
-    m_uiHealingTaken = 0;
+    m_uiHealTaken = 0;
     m_uiTimeInControl = 0;
     m_uiControlUsed = 0;
     m_uiInterruptUsed = 0;
-    m_uiInterruptSuccesfull = 0;
+    m_uiInterruptSuccessfull = 0;
     m_uiInterrupted = 0;
     m_uiInterruptFaked = 0;
     m_uiSpellCasted = 0;

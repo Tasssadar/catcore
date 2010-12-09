@@ -129,7 +129,7 @@ void MessageDelivererExcept::Visit(CameraMapType &m)
     {
         Player* owner = iter->getSource()->GetOwner();
 
-        if (!owner->InSamePhase(i_phaseMask) || owner == i_skipped_receiver || (i_player.IsSpectator() && !owner->IsSpectator()))
+        if (!owner->InSamePhase(i_phaseMask) || owner == i_skipped_receiver)
             continue;
 
         if (WorldSession* session = owner->GetSession())
@@ -162,7 +162,7 @@ MessageDistDeliverer::Visit(CameraMapType &m)
             (!i_enemyTeamOnly || owner->GetTeam() != i_player.GetTeam()) &&
             (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_player,i_dist)))
         {
-            if (!i_player.InSamePhase(iter->getSource()->GetBody()) (i_player.IsSpectator() && !owner->IsSpectator()))
+            if (!i_player.InSamePhase(iter->getSource()->GetBody()) || (i_player.IsSpectator() && !owner->IsSpectator()))
                 continue;
 
             if (WorldSession* session = owner->GetSession())

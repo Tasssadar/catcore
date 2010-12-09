@@ -559,7 +559,7 @@ class BattleGround
 
         bool ArenaPlayersCount(); //End arena if some players were not ported
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
-        uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(m_Winner, type) + GetScoreForTeam(GetOtherTeam(m_Winner), type));}
+        uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(ALLIANCE, type) + GetScoreForTeam(HORDE, type)); }
 
         void AddSpectator(Player *player);
 

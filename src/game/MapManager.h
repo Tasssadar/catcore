@@ -28,7 +28,7 @@
 #include "GridStates.h"
 
 class Transport;
-class BattleGround;
+//class BattleGround;
 
 struct MANGOS_DLL_DECL MapID
 {

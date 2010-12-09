@@ -12182,7 +12182,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return true;
 
     // normal players or npcs cant see player in spectator mode
-    if(u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator() && (GetTypeId() != TYPEID_PLAYER || !((Player*)this)->IsSpectator()))
+    if(GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator() && (u->GetTypeId() != TYPEID_PLAYER || !((Player*)u)->IsSpectator()))
         return false;
 
     // player visible for other player if not logout and at same transport
