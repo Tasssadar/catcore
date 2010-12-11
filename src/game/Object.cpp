@@ -667,7 +667,8 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                 else if(index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE && GetTypeId() == TYPEID_PLAYER)
                 {
                     Player *player = (Player*)this;
-                    if(player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId())
+                    if((player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId()) ||
+                        player->IsSpectator())
                     {
                         if(index == UNIT_FIELD_BYTES_2)
                             *data << ( m_uint32Values[ index ] | (UNIT_BYTE2_FLAG_SANCTUARY << 8) );

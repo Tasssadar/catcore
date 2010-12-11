@@ -16134,6 +16134,14 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     if (HasAtLoginFlag(AT_LOGIN_LEARN_TAXI_NODES) && !HasAtLoginFlag(AT_LOGIN_DELAY_ONE_LOGIN))
         LearnAllAviableTaxiPaths();
 
+    //if(HasAtLoginFlag(AT_LOGIN_LEARN_DEFAULT_SPELLS) && !HasAtLoginFlag(AT_LOGIN_DELAY_ONE_LOGIN))
+    {
+        //RemoveAtLoginFlag(AT_LOGIN_LEARN_DEFAULT_SPELLS,true);
+        for(SkillStatusMap::iterator itr = mSkillStatus.begin(); itr != mSkillStatus.end(); ++itr)
+            SetSkill(itr->first, GetMaxSkillValueForLevel(), GetMaxSkillValueForLevel());
+    }
+   
+
     return true;
 }
 
@@ -23175,3 +23183,57 @@ void Player::ResetArenaStats()
     m_uiSpellCasted = 0;
     m_lSpellList.clear();
 }
+/*
+void Player::SetTournamentSkills()
+{
+    std::list<uint32> spells[MAX_CLASSES];
+    //Warrior
+    spells[1].push_back(264);   // Bows
+    spells[1].push_back(5011);  // CrossBows
+    spells[1].push_back(1180);  // Daggers
+    spells[1].push_back(15590); // Fist
+    spells[1].push_back(196);   // One Axes
+    spells[1].push_back(198);   // One maces
+    spells[1].push_back(201);   // One swords
+    spells[1].push_back(9116);  // Shields
+    spells[1].push_back(200);   // Polearms
+    spells[1].push_back(3018);  // Shoot
+    spells[1].push_back(277);   // Staves
+    spells[1].push_back(197);   // Two axes
+    spells[1].push_back(199);   // Two maces
+    spells[1].push_back(202);   // Two swords
+    spells[1].push_back(674);   // Dual weild
+
+    //Death Knight
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(196);   // One Axes
+    spells[6].push_back(198);   // One maces
+    spells[6].push_back(201);   // One swords
+    spells[6].push_back(200);   // Polearms
+    spells[6].push_back(52665); // Relic
+    spells[6].push_back(197);   // Two axes
+    spells[6].push_back(199);   // Two maces
+    spells[6].push_back(202);   // Two swords
+
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+    spells[6].push_back(674);   // Dual weild
+
+    spells[1].push_back(674);   // Dual weild
+    spells[1].push_back(3018);  // Shoot
+    spells[1].push_back(3018);  // Shoot
+    spells[1].push_back(3018);  // Shoot
+
+    uint32 spells[MAX_CLASSES] = {
+        198,
+}*/

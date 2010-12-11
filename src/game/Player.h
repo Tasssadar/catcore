@@ -609,7 +609,8 @@ enum AtLoginFlags
     AT_LOGIN_LEARN_CLASS_SPELLS     = 0x080,
     AT_LOGIN_LEARN_SKILL_RECIPES    = 0x100,
     AT_LOGIN_LEARN_TAXI_NODES       = 0x200,
-    AT_LOGIN_DELAY_ONE_LOGIN        = 0x400
+    AT_LOGIN_DELAY_ONE_LOGIN        = 0x400,
+    AT_LOGIN_LEARN_DEFAULT_SPELLS   = 0x800
 };
 
 typedef std::map<uint32, QuestStatusData> QuestStatusMap;
@@ -2452,6 +2453,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void SaveArenaStatMember(uint32 arena_guid, bool isWinner);
         void ResetArenaStats();
+
+//        void SetTournamentSkills();
 
     protected:
 

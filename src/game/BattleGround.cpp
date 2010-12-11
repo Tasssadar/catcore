@@ -2144,6 +2144,7 @@ void BattleGround::AddSpectator(Player *player)
     float x, y, z, O;
     GetTeamStartLoc(player->GetTeam(), x, y, z, O);
     player->SetBattleGroundId(GetInstanceID(), GetTypeID());
+    player->SetBattleGroundEntryPoint();
     player->TeleportTo(GetMapId(), x, y,z, O); 
 }
 

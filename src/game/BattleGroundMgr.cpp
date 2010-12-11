@@ -1336,10 +1336,16 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
         *data << uint8(bg->GetWinner());                    // ???
     }
 
+    size_t sizePos = data->wpos();
+    int32 size = 0;
     *data << (int32)(bg->GetPlayerScoresSize());
 
     for(BattleGround::BattleGroundScoreMap::const_iterator itr = bg->GetPlayerScoresBegin(); itr != bg->GetPlayerScoresEnd(); ++itr)
     {
+        Player *plr = sObjectMgr.GetPlayer(itr->first);
+        if(plr && plr->IsSpectator())
+            continue;
+        ++size;
         *data << (uint64)itr->first;
         *data << (int32)itr->second->KillingBlows;
         if (type == 0)
@@ -1350,7 +1356,6 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
         }
         else
         {
-            Player *plr = sObjectMgr.GetPlayer(itr->first);
             uint32 team = bg->GetPlayerTeam(itr->first);
             if (!team && plr)
                 team = plr->GetTeam();
@@ -1406,6 +1411,7 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
                 break;
         }
     }
+    data->put<int32>(sizePos, size);
 }
 
 void BattleGroundMgr::BuildGroupJoinedBattlegroundPacket(WorldPacket *data, GroupJoinBattlegroundResult result)
