@@ -334,8 +334,28 @@ bool Map::Add(Player *player)
         sLog.outError("Some unhandled case, player has Lfg boost at non-dungeon map");
         player->RemoveAurasDueToSpell(72221);
     }
-    if(!IsBattleGroundOrArena() && player->IsSpectator())
-        player->SetSpectator(false);
+    if(player->IsSpectator())
+    {
+        float modSpeed = 1.0f;
+        WorldPacket data(12);
+        if(!IsBattleGroundOrArena())
+        {
+            player->SetSpectator(false);
+            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+        }
+        else
+        {
+            data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+            modSpeed = 3.0f;
+        }
+        data << player->GetPackGUID();
+        data << uint32(0);                                      // unknown
+        player->SendMessageToSet(&data, true);
+        player->UpdateSpeed(MOVE_WALK,   true, modSpeed);
+        player->UpdateSpeed(MOVE_RUN,    true, modSpeed);
+        player->UpdateSpeed(MOVE_SWIM,   true, modSpeed);
+        player->UpdateSpeed(MOVE_FLIGHT, true, modSpeed);
+    }
 
     player->GetMapRef().link(this, player);
     player->SetMap(this);

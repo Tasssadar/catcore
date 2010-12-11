@@ -650,7 +650,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         pVictim->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
     //Get in CombatState
-    if (pVictim != this && damagetype != DOT)
+    if (pVictim != this && damagetype != DOT &&
+        (pVictim->GetTypeId() != TYPEID_PLAYER || !((Player*)pVictim)->IsSpectator()) &&
+        (GetTypeId() != TYPEID_PLAYER || !((Player*)this)->IsSpectator())
     {
         SetInCombatWith(pVictim);
         pVictim->SetInCombatWith(this);

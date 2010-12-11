@@ -987,6 +987,21 @@ void BattleGround::EndBattleGround(uint32 winner)
         plr->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND, 1);
     }
 
+    for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+    {
+        Player *plr = sObjectMgr.GetPlayer(itr->first);
+        if(!plr || !plr->IsSpectator() || !plr->IsInWorld())
+            continue;
+
+        BlockMovement(plr);
+        sBattleGroundMgr.BuildPvpLogDataPacket(&data, this);
+        plr->GetSession()->SendPacket(&data);
+
+        BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType());
+        sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, this, plr->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, TIME_TO_AUTOREMOVE, GetStartTime(), GetArenaType());
+        plr->GetSession()->SendPacket(&data);
+    }
+
     if (isArena() && isRated() && winner_arena_team && loser_arena_team)
     {
         // update arena points only after increasing the player's match count!
