@@ -172,11 +172,14 @@ void BattleGroundDS::SpawnWaterfall(bool effect)
 
 void BattleGroundDS::AddPlayer(Player *plr)
 {
-    BattleGround::AddPlayer(plr);
-    //create score and add it to map, default values are set in constructor
-    BattleGroundDSScore* sc = new BattleGroundDSScore;
+    if(!plr->IsSpectator())
+    {
+        BattleGround::AddPlayer(plr);
+        //create score and add it to map, default values are set in constructor
+        BattleGroundDSScore* sc = new BattleGroundDSScore;
 
-    m_PlayerScores[plr->GetGUID()] = sc;
+        m_PlayerScores[plr->GetGUID()] = sc;
+    }
 
     UpdateArenaWorldState();
 }

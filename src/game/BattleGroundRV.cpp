@@ -106,11 +106,14 @@ void BattleGroundRV::ClickEvent(uint8 event1, uint8 event2 /*=0*/)
 
 void BattleGroundRV::AddPlayer(Player *plr)
 {
-    BattleGround::AddPlayer(plr);
-    //create score and add it to map, default values are set in constructor
-    BattleGroundRVScore* sc = new BattleGroundRVScore;
+    if(!plr->IsSpectator())
+    {
+        BattleGround::AddPlayer(plr);
+        //create score and add it to map, default values are set in constructor
+        BattleGroundRVScore* sc = new BattleGroundRVScore;
 
-    m_PlayerScores[plr->GetGUID()] = sc;
+        m_PlayerScores[plr->GetGUID()] = sc;
+    }
     UpdateArenaWorldState();
 }
 

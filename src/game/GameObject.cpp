@@ -327,7 +327,7 @@ void GameObject::Update(uint32 p_time)
                         ok = p_ok;
                     }
 
-                    if (ok)
+                    if (ok && (ok->GetTypeId() != TYPEID_PLAYER || !((Player*)ok)->IsSpectator()))
                     {
                         Unit *caster =  owner ? owner : ok;
 

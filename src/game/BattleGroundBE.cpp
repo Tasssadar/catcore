@@ -63,11 +63,14 @@ void BattleGroundBE::StartingEventOpenDoors()
 
 void BattleGroundBE::AddPlayer(Player *plr)
 {
-    BattleGround::AddPlayer(plr);
-    //create score and add it to map, default values are set in constructor
-    BattleGroundBEScore* sc = new BattleGroundBEScore;
+    if(!plr->IsSpectator())
+    {
+        BattleGround::AddPlayer(plr);
+        //create score and add it to map, default values are set in constructor
+        BattleGroundBEScore* sc = new BattleGroundBEScore;
 
-    m_PlayerScores[plr->GetGUID()] = sc;
+        m_PlayerScores[plr->GetGUID()] = sc;
+    }
 
     UpdateArenaWorldState();
 }
@@ -87,7 +90,7 @@ void BattleGroundBE::HandleKillPlayer(Player *player, Player *killer)
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
-    if (!killer)
+    if (!killer || player->IsSpectator() || killer->IsSpectator())
     {
         sLog.outError("Killer player not found");
         return;
