@@ -16864,10 +16864,3 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, b
     m_movementInfo.SetMovementFlags(MovementFlags(moveFlags));
     m_movementInfo.SetMovementFlags2(MovementFlags2(moveFlags2));
 }
-
-void Unit::addUnitState(uint32 f)
-{
-    m_state |= f;
-    if (GetTypeId() == TYPEID_PLAYER && (UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL & f))
-        ((Player*)this)->ControlUsed();
-}
