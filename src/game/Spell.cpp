@@ -44,6 +44,7 @@
 #include "VMapFactory.h"
 #include "BattleGround.h"
 #include "BattleGroundRV.h"
+#include "BattleGroundDS.h"
 #include "Util.h"
 #include "Vehicle.h"
 
@@ -4722,7 +4723,8 @@ SpellCastResult Spell::CheckCast(bool strict)
             
             if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->InBattleGround())
                 if (BattleGround *bg = ((Player*)m_caster)->GetBattleGround())
-                    if (bg->GetTypeID() == BATTLEGROUND_RV && ((BattleGroundRV*)bg)->ObjectInLOS(m_caster, target))
+                    if ((bg->GetTypeID() == BATTLEGROUND_RV && ((BattleGroundRV*)bg)->ObjectInLOS(m_caster, target)) ||
+                        (bg->GetTypeID() == BATTLEGROUND_DS && ((BattleGroundDS*)bg)->ObjectInLOS(m_caster, target)))
                         return SPELL_FAILED_LINE_OF_SIGHT;
 
             // auto selection spell rank implemented in WorldSession::HandleCastSpellOpcode

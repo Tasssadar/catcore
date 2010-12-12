@@ -217,7 +217,7 @@ void BattleGroundRV::ClickOnPillar(uint64 const& guid)
     GameObject *obj = GetBgMap()->GetGameObject(guid);
     if (obj)
     {
-        //change state to be sure they will be opened
+       //change state to be sure they will be opened
         obj->SetLootState(GO_READY);
         obj->UseDoorOrButton(RESPAWN_ONE_DAY);
         for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)

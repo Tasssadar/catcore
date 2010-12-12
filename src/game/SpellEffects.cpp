@@ -3064,7 +3064,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     // Yep, this is it. Thank you so much silverIce!
     float maxHeight = m_spellInfo->EffectMiscValue[eff_idx];
     maxHeight = (maxHeight == 0) ? 0.5f : maxHeight/10.0f; 
-    velocity = float((maxHeight/10.0f)*8)/float(pow(traveltime/1000.0f, 2.0f));
+    velocity = (float((maxHeight/10.0f)*8)/float(pow(traveltime/1000.0f, 2.0f)))*10.0f;
  
     //Stop moving before jump!
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -3377,10 +3377,14 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem);
 
     // Now Reduce spell duration using data received at spell hit
+    // dont apply on boss casts ... is that correct ???
     int32 duration = Aur->GetAuraMaxDuration();
-    int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup,m_spellInfo);
-    unitTarget->ApplyDiminishingToDuration(m_diminishGroup, duration, m_caster, m_diminishLevel,limitduration);
-    Aur->setDiminishGroup(m_diminishGroup);
+    if (caster->GetTypeId() != TYPEID_UNIT || !((Creature*)caster)->isWorldBoss())
+    {
+        int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup,m_spellInfo);
+        unitTarget->ApplyDiminishingToDuration(m_diminishGroup, duration, m_caster, m_diminishLevel,limitduration);
+        Aur->setDiminishGroup(m_diminishGroup);
+    }
 
     // if Aura removed and deleted, do not continue.
     if (duration== 0 && !(Aur->IsPermanent()))

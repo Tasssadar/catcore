@@ -689,11 +689,15 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         removeDamageValue = uint32(float(damage+absorb)*0.33f);
     }else removeDamageValue = damage + absorb;
 
-    if (!spellProto || !IsSpellHaveAura(spellProto,SPELL_AURA_MOD_FEAR))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_FEAR, removeDamageValue);
-    // root type spells do not dispel the root effect
-    if (!spellProto || !(spellProto->Mechanic == MECHANIC_ROOT || IsSpellHaveAura(spellProto,SPELL_AURA_MOD_ROOT)))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_ROOT, removeDamageValue);
+    // should this be general ???
+    if (GetTypeId() != TYPEID_UNIT || !((Creature*)this)->isWorldBoss())
+    {
+        if (!spellProto || !IsSpellHaveAura(spellProto,SPELL_AURA_MOD_FEAR))
+            pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_FEAR, removeDamageValue);
+        // root type spells do not dispel the root effect
+        if (!spellProto || !(spellProto->Mechanic == MECHANIC_ROOT || IsSpellHaveAura(spellProto,SPELL_AURA_MOD_ROOT)))
+            pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_ROOT, removeDamageValue);
+    }
 
     WeaponAttackType attType = GetWeaponAttackType(spellProto);
     
@@ -8528,8 +8532,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     if (GetHealth() >= (GetMaxHealth() *35 / 100))
                        return false;
 
-                    uint8 stacks = triggeredByAura->GetStackAmount();
-                    basepoints[0] = triggerAmount * stacks;
+                    basepoints[0] = triggerAmount;
                     target = this;
                     trigger_spell_id = 64569;
                     break;
@@ -15990,7 +15993,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         if(distance != GetDistance(fx, fy, fz))
         {
             float height = float(velocity*pow(time/1000.0f, 2.0f)/8.0f)*10.0f;
-            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f));
+             velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f))*10.0f;
         }
         
         WorldPacket data(SMSG_MONSTER_MOVE);

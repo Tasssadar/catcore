@@ -2493,6 +2493,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     }
 
     // more generic checks
+    // FUJ CTJE ZA SRAÈKU ZAKOMENTUJTE TO NÌKDO KUAAAAAAA
     if (spellInfo_1->SpellIconID == spellInfo_2->SpellIconID &&
         spellInfo_1->SpellIconID != 0 && spellInfo_2->SpellIconID != 0)
     {
