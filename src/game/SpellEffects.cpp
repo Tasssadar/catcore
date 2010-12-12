@@ -3377,10 +3377,14 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem);
 
     // Now Reduce spell duration using data received at spell hit
+    // dont apply on boss casts ... is that correct ???
     int32 duration = Aur->GetAuraMaxDuration();
-    int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup,m_spellInfo);
-    unitTarget->ApplyDiminishingToDuration(m_diminishGroup, duration, m_caster, m_diminishLevel,limitduration);
-    Aur->setDiminishGroup(m_diminishGroup);
+    if (caster->GetTypeId() != TYPEID_UNIT || !((Creature*)caster)->isWorldBoss())
+    {
+        int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup,m_spellInfo);
+        unitTarget->ApplyDiminishingToDuration(m_diminishGroup, duration, m_caster, m_diminishLevel,limitduration);
+        Aur->setDiminishGroup(m_diminishGroup);
+    }
 
     // if Aura removed and deleted, do not continue.
     if (duration== 0 && !(Aur->IsPermanent()))
