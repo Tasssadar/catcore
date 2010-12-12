@@ -8521,7 +8521,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 // Blood Draining - heal proc
                 case 64568:
                 {
-                    if (GetHealth() >= (GetMaxHealth() *35 / 100))
+                    if ((GetHealth() < (GetMaxHealth() *35 / 100)) || (GetHealth() - damage) > (GetMaxHealth() *35 / 100))
                        return false;
 
                     basepoints[0] = triggerAmount;
