@@ -555,7 +555,7 @@ void WorldSession::HandleCharDeleteOpcode( WorldPacket & recv_data )
 
 void WorldSession::HandlePlayerLoginOpcode( WorldPacket & recv_data )
 {
-    if (PlayerLoading() || GetPlayer() != NULL)
+    if (PlayerLoading() || GetPlayer() != NULL || (sWorld.getConfig(CONFIG_BOOL_GM_ONLY) && GetSecurity() == SEC_PLAYER))
     {
         sLog.outError("Player tryes to login again, AccountId = %d", GetAccountId());
         return;

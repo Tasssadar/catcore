@@ -917,7 +917,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
             || (bg_template->isArena() && CheckSkirmishForSameFaction(bracket_id, MinPlayersPerTeam)) )
         {
             // we successfully created a pool
-            BattleGround * bg2 = NULL;//sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketEntry, arenaType, false);
+            BattleGround * bg2 = sBattleGroundMgr.CreateNewBattleGround();//sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketEntry, arenaType, false);
             if (!bg2)
             {
                 sLog.outError("BattleGroundQueue::Update - Cannot create battleground: %u", bgTypeId);
