@@ -4136,6 +4136,9 @@ void Aura::HandleModPossess(bool apply, bool Real)
     {
         target->addUnitState(UNIT_STAT_CONTROLLED);
 
+        if (p_caster->GetBattleGround())
+            p_caster->ControlUsed();
+
         target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
 
         target->SetCharmerGUID(p_caster->GetGUID());
@@ -4346,7 +4349,12 @@ void Aura::HandleModCharm(bool apply, bool Real)
         }
 
         if (caster->GetTypeId() == TYPEID_PLAYER)
-            ((Player*)caster)->CharmSpellInitialize();
+        {
+            Player* plr = (Player*)caster;
+            plr->CharmSpellInitialize();
+            if (plr->GetBattleGround())
+                plr->ControlUsed();
+        }
     }
     else
     {
@@ -4414,6 +4422,9 @@ void Aura::HandleModConfuse(bool apply, bool Real)
     if (!Real)
         return;
 
+    if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER && ((Player*)GetCaster())->GetBattleGround())
+        ((Player*)GetCaster())->ControlUsed();
+
     GetTarget()->SetConfused(apply, GetCasterGUID(), GetId());
 }
 
@@ -4421,6 +4432,9 @@ void Aura::HandleModFear(bool apply, bool Real)
 {
     if (!Real)
         return;
+
+    if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER && ((Player*)GetCaster())->GetBattleGround())
+        ((Player*)GetCaster())->ControlUsed();
 
     GetTarget()->SetFeared(apply, GetCasterGUID(), GetId());
 }
@@ -4564,6 +4578,9 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
         // Frost stun aura -> freeze/unfreeze target
         if (GetSpellSchoolMask(GetSpellProto()) & SPELL_SCHOOL_MASK_FROST)
             target->ModifyAuraState(AURA_STATE_FROZEN, apply);
+
+        if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER && ((Player*)GetCaster())->GetBattleGround())
+            ((Player*)GetCaster())->ControlUsed();
 
         target->addUnitState(UNIT_STAT_STUNNED);
         target->SetTargetGUID(0);
