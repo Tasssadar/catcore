@@ -64,6 +64,7 @@ class BattleGroundRV : public BattleGround
         virtual void FillInitialWorldStates(WorldPacket &d, uint32& count);
         void HandleKillPlayer(Player* player, Player *killer);
         bool HandlePlayerUnderMap(Player * plr);
+        void ClickOnPillar(uint64 const& guid);
     private:
         void ChangeActivePillars();
         void ClickEvent(uint8 event1, uint8 event2 /*=0*/);
