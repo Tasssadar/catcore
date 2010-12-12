@@ -8524,8 +8524,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     if (GetHealth() >= (GetMaxHealth() *35 / 100))
                        return false;
 
-                    uint8 stacks = triggeredByAura->GetStackAmount();
-                    basepoints[0] = triggerAmount * stacks;
+                    basepoints[0] = triggerAmount;
                     target = this;
                     trigger_spell_id = 64569;
                     break;
@@ -15978,7 +15977,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         if(distance != GetDistance(fx, fy, fz))
         {
             float height = float(velocity*pow(time/1000.0f, 2.0f)/8.0f)*10.0f;
-            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f));
+             velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f))*10.0f;
         }
         
         WorldPacket data(SMSG_MONSTER_MOVE);

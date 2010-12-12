@@ -1110,7 +1110,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
         }
         else
         {
-            AreaTrigger const* trigger = sObjectMgr.GetGoBackTrigger(GetDungeonInfo()->map);
+            AreaTrigger const *trigger = sObjectMgr.GetGoBackTrigger(GetDungeonInfo()->map);
             if(trigger)
                 Player::SavePositionInDB(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z, trigger->target_Orientation,
                     sTerrainMgr.GetZoneId(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z), m_voteToKick.victim);

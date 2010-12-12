@@ -64,7 +64,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
             nz -= distanceZ;
         if(fabs(nz-Z) > wander_distance)
             nz = Z;
-        float tz = map->GetHeight(nx, ny, nz-2.0f, false);  // Map check only, vmap needed here but need to alter vmaps checks for height.
+        float tz = map->GetHeight(nx, ny, nz, true);  // Map check only, vmap needed here but need to alter vmaps checks for height.
         float wz = map->GetWaterLevel(nx, ny, nz);
 
         // Problem here, we must fly above the ground and water, not under. Let's try on next tick

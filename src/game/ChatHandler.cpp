@@ -117,7 +117,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
         else
         {
             // send in universal language in two side iteration allowed mode
-            if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_CHAT) || _player->isInTeamBG() || _player->m_lookingForGroup.mixed)
+            if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_CHAT) || _player->isInTeamBG() || _player->m_lookingForGroup.mixed_map == _player->GetMapId())
                 lang = LANG_UNIVERSAL;
             else
             {
