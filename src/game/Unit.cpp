@@ -8527,6 +8527,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     basepoints[0] = triggerAmount;
                     target = this;
                     trigger_spell_id = 64569;
+                    RemoveAurasDueToSpell(triggeredByAura->GetId());
                     break;
                 }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
