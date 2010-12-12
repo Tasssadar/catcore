@@ -99,6 +99,9 @@ void BattleGroundDS::KnockOutOfTubes()
 
 void BattleGroundDS::KnockbackFromWaterfall()
 {
+    if (!m_WaterfallCollision)
+        return;
+
     uint32 boundingRadius = m_WaterfallCollision->GetObjectBoundingRadius();
     for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
     {
@@ -140,7 +143,7 @@ void BattleGroundDS::HandleWatterfall()
     }
 
     ++m_uiWaterfallStage;
-    if (m_uiWaterfallStage <= 3)
+    if (m_uiWaterfallStage >= 3)
         m_uiWaterfallStage -= 3;
 
 }
@@ -245,6 +248,7 @@ void BattleGroundDS::Reset()
     m_bTubeIsEmpty = false;
     m_WaterfallEffect = NULL;
     m_WaterfallCollision = NULL;
+    m_uiWaterfall = 25000;
 }
 
 bool BattleGroundDS::SetupBattleGround()
@@ -254,7 +258,7 @@ bool BattleGroundDS::SetupBattleGround()
 bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
 {
     // if colision is not spawned, there is no los
-    if (m_uiWaterfallStage != 2)
+    if (!m_WaterfallCollision)
         return false;
 
     float angle = caster->GetAngle(target);
@@ -267,7 +271,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     {
         x += x_per_i;
         y += y_per_i;
-        if (m_WaterfallCollision && m_WaterfallCollision->IsWithinBoundingRadius(x,y))
+        if (m_WaterfallCollision->IsWithinBoundingRadius(x,y))
             return true;
     }
     return false;
