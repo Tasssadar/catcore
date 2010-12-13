@@ -363,6 +363,13 @@ void ThreatContainer::addReference(HostileReference* pHostileReference)
         iPlayerThreatList.push_back(pHostileReference);
 }
 
+void ThreatContainer::remove(HostileReference* pRef)
+{
+    iThreatList.remove(pRef);
+    if (pRef->getUnitGuid().IsPlayer())
+        iPlayerThreatList.remove(pRef);
+}
+
 //============================================================
 //=================== ThreatManager ==========================
 //============================================================

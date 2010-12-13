@@ -143,7 +143,7 @@ class MANGOS_DLL_SPEC ThreatContainer
     protected:
         friend class ThreatManager;
 
-        void remove(HostileReference* pRef) { iThreatList.remove(pRef); }
+        void remove(HostileReference* pRef);
         void addReference(HostileReference* pHostileReference);
         void clearReferences();
         // Sort the list if necessary

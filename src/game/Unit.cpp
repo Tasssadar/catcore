@@ -683,11 +683,15 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         removeDamageValue = uint32(float(damage+absorb)*0.33f);
     }else removeDamageValue = damage + absorb;
 
-    if (!spellProto || !IsSpellHaveAura(spellProto,SPELL_AURA_MOD_FEAR))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_FEAR, removeDamageValue);
-    // root type spells do not dispel the root effect
-    if (!spellProto || !(spellProto->Mechanic == MECHANIC_ROOT || IsSpellHaveAura(spellProto,SPELL_AURA_MOD_ROOT)))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_ROOT, removeDamageValue);
+    // should this be general ???
+    if (GetTypeId() != TYPEID_UNIT || !((Creature*)this)->isWorldBoss())
+    {
+        if (!spellProto || !IsSpellHaveAura(spellProto,SPELL_AURA_MOD_FEAR))
+            pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_FEAR, removeDamageValue);
+        // root type spells do not dispel the root effect
+        if (!spellProto || !(spellProto->Mechanic == MECHANIC_ROOT || IsSpellHaveAura(spellProto,SPELL_AURA_MOD_ROOT)))
+            pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_ROOT, removeDamageValue);
+    }
 
     WeaponAttackType attType = GetWeaponAttackType(spellProto);
     
@@ -4698,10 +4702,10 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
         if (is_triggered_by_spell)
             continue;
 
-        if (IsChanneledSpell(spellProto))
-           continue;
-
         SpellSpecific i_spellId_spec = GetSpellSpecific(i_spellId);
+
+        if (IsChanneledSpell(spellProto))
+            continue;
 
         // single allowed spell specific from same caster or from any caster at target
         bool is_spellSpecPerTargetPerCaster = IsSingleFromSpellSpecificPerTargetPerCaster(spellId_spec,i_spellId_spec);
@@ -4730,10 +4734,6 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
             continue;
         }
 
-        Unit* caster = Aur->GetCaster();
-        if (caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isWorldBoss())
-            continue;
-
         // spell with spell specific that allow single ranks for spell from diff caster
         // same caster case processed or early or later
         bool is_spellPerTarget = IsSingleFromSpellSpecificSpellRanksPerTarget(spellId_spec,i_spellId_spec);
@@ -4758,6 +4758,9 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
 
             continue;
         }
+        Unit* caster = Aur->GetCaster();
+        if (caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isWorldBoss())
+            continue;
 
         // non single (per caster) per target spell specific (possible single spell per target at caster)
         if ( !is_spellSpecPerTargetPerCaster && !is_spellSpecPerTarget && sSpellMgr.IsNoStackSpellDueToSpell(spellId, i_spellId) )
@@ -8518,13 +8521,13 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 // Blood Draining - heal proc
                 case 64568:
                 {
-                    if (GetHealth() >= (GetMaxHealth() *35 / 100))
+                    if ((GetHealth() < (GetMaxHealth() *35 / 100)) || (GetHealth() - damage) > (GetMaxHealth() *35 / 100))
                        return false;
-                    Aura *aur = GetAura(auraSpellInfo->Id, EFFECT_INDEX_0);
-                    uint8 stacks = aur->GetStackAmount();
-                    basepoints[0] = damage * stacks;
+
+                    basepoints[0] = triggerAmount;
                     target = this;
                     trigger_spell_id = 64569;
+                    RemoveAurasDueToSpell(triggeredByAura->GetId());
                     break;
                 }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
@@ -11181,7 +11184,21 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
-    TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
+    // Healing taken percent
+    float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+    if (damagetype == DOT)
+    {
+        // overwrite max SPELL_AURA_MOD_HEALING_PCT if greater negative effect
+        float minDotVal = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_PERIODIC_HEAL));
+        minval = (minDotVal < minval) ? minDotVal : minval;
+    }
+    if (minval)
+        TakenTotalMod *= (100.0f + minval) / 100.0f;
+
+    float maxval = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+    // no SPELL_AURA_MOD_PERIODIC_HEAL positive cases
+    if (maxval)
+        TakenTotalMod *= (100.0f + maxval) / 100.0f;
 
     // No heal amount for this class spells
     if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)

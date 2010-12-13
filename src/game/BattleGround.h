@@ -555,7 +555,8 @@ class BattleGround
         std::map<uint8, uint8> m_ActiveEvents;
 
         bool ArenaPlayersCount(); //End arena if some players were not ported
-        uint32 GetDamageDoneForTeam(uint32 TeamID);
+        uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
+        uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(ALLIANCE, type) + GetScoreForTeam(HORDE, type)); }
 
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround

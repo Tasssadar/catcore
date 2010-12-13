@@ -567,7 +567,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         (*grpitr1)->RemoveMember((*grpitr1)->GetTank(), 0);   
                         (*grpitr2)->RemoveMember(tmpRoles.tank, 0);
                         sObjectMgr.GetPlayerNameByGUID(tmpRoles.tank, name);
-                        (*grpitr1)->AddMember(tmpRoles.tank, name); 
+                        (*grpitr1)->AddMember(tmpRoles.tank, name.c_str()); 
                         (*grpitr1)->SetTank(tmpRoles.tank);
                     }
                     if(tmpRoles.heal != (*grpitr1)->GetHeal())
@@ -576,7 +576,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         (*grpitr1)->RemoveMember((*grpitr1)->GetHeal(), 0); 
                         (*grpitr2)->RemoveMember(tmpRoles.heal, 0);
                         sObjectMgr.GetPlayerNameByGUID(tmpRoles.heal, name);
-                        (*grpitr1)->AddMember(tmpRoles.heal, name); 
+                        (*grpitr1)->AddMember(tmpRoles.heal, name.c_str()); 
                         (*grpitr1)->SetHeal(tmpRoles.heal);
                     }
                     PlayerList::iterator dpsitr, dps_next;
@@ -603,7 +603,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         (*grpitr1)->RemoveMember(dpsGuid, 0);
                         (*grpitr2)->RemoveMember(*dpsitr, 0);
                         sObjectMgr.GetPlayerNameByGUID(*dpsitr, name);
-                        (*grpitr1)->AddMember(*dpsitr, name); 
+                        (*grpitr1)->AddMember(*dpsitr, name.c_str()); 
                         (*grpitr1)->GetDps()->insert(*dpsitr);
                     }
                 }

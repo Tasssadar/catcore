@@ -222,7 +222,5 @@ void BattleGroundRV::ClickOnPillar(uint64 const& guid)
                 obj->SendCreateUpdateToPlayer(plr);
     }
     else
-    {
-        sLog.outError("BattleGround: Pillar object not found! - doors will be closed.");
-    }
+        sLog.outError("BattleGround: Pillar object not found!");
 }
