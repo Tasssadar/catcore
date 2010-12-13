@@ -1724,6 +1724,9 @@ bool Player::ToggleAFK()
     // afk player not allowed in battleground
     if (state && InBattleGround() && !InArena())
         LeaveBattleground();
+        
+    if(GetGroup())
+        GetGroup()->SendUpdate();
 
     return state;
 }
@@ -1731,6 +1734,8 @@ bool Player::ToggleAFK()
 bool Player::ToggleDND()
 {
     ToggleFlag(PLAYER_FLAGS, PLAYER_FLAGS_DND);
+    if(GetGroup())
+        GetGroup()->SendUpdate();
 
     return HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_DND);
 }

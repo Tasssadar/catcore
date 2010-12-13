@@ -668,6 +668,13 @@ void LfgGroup::SendUpdate()
             Player* member = sObjectMgr.GetPlayer(citr2->guid);
             uint8 onlineState = (member) ? MEMBER_STATUS_ONLINE : MEMBER_STATUS_OFFLINE;
             onlineState = onlineState | ((isBGGroup()) ? MEMBER_STATUS_PVP : 0);
+            if(member && member->IsInWorld())
+            {
+                if(member->isAFK())
+                    onlineState |= MEMBER_STATUS_AFK;
+                if(member->isDND())
+                    onlineState |= MEMBER_STATUS_DND;
+            }
 
             data << citr2->name;
             data << uint64(citr2->guid);
@@ -1110,7 +1117,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
         }
         else
         {
-            AreaTrigger *trigger = sObjectMgr.GetGoBackTrigger(GetDungeonInfo()->map);
+            AreaTrigger const *trigger = sObjectMgr.GetGoBackTrigger(GetDungeonInfo()->map);
             if(trigger)
                 Player::SavePositionInDB(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z, trigger->target_Orientation,
                     sTerrainMgr.GetZoneId(trigger->target_mapId, trigger->target_X, trigger->target_Y, trigger->target_Z), m_voteToKick.victim);

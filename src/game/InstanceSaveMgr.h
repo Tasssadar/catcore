@@ -98,7 +98,7 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
             if(itr == m_saves.end())
                 return;
             itr->second->RemoveAndDelete();
-            delete itr->second;
+    //        delete itr->second;
             m_saves.erase(itr);
         }
         InstanceSave* GetInstanceSave(uint32 id)

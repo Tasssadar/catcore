@@ -524,7 +524,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                 continue;
 
             // Try to move premades
-            if(tmpRoles.GetSize() < LFG_GROUP && (*grpitr2)->GetPremadePlayers()->size() + tmpRoles.GetSize() >= LFG_GROUP)
+            /*if(tmpRoles.GetSize() < LFG_GROUP && (*grpitr2)->GetPremadePlayers()->size() + tmpRoles.GetSize() >= LFG_GROUP)
             {
                 PlayerGroup.clear();
                 premadeNot.clear();
@@ -607,7 +607,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
                         (*grpitr1)->GetDps()->insert(*dpsitr);
                     }
                 }
-            } 
+            } */
         }
         //Now lets check if theres dmg which can be tank or healer...
         Group::member_citerator citr, citr_next;
@@ -753,7 +753,7 @@ bool LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck
     return false;
 }
 
-void LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, GroupsList *groups, bool randomToSpecific)
+bool LfgMgr::DoMerge(LfgGroup *to, RoleCheck *tmpRoles, PlayerGroupMap *map, GroupsList *groups, bool randomToSpecific)
 {
     PlayerGroupMap::iterator PlrGrpItr;
     to->SetTank(tmpRoles->tank);
@@ -1457,7 +1457,7 @@ void LfgMgr::DeleteGroups()
 
             formedGroups[i].erase(*group);
         }
-        if(sObjectMgr.GetLfgGroupById(*group->GetId()))
+        if(sObjectMgr.GetLfgGroupById((*group)->GetId()))
         {
             (*group)->Disband(true);
             sObjectMgr.RemoveGroup(*group);

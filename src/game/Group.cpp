@@ -1012,6 +1012,17 @@ void Group::SendUpdate()
             Player* member = sObjectMgr.GetPlayer(citr2->guid);
             uint8 onlineState = (member) ? MEMBER_STATUS_ONLINE : MEMBER_STATUS_OFFLINE;
             onlineState = onlineState | ((isBGGroup()) ? MEMBER_STATUS_PVP : 0);
+/*            if(member && member->isAFK())
+                onlineState |= MEMBER_STATUS_AFK;
+            if(member && member->isDND())
+                onlineState |= MEMBER_STATUS_DND;*/
+            if(member && member->IsInWorld())
+            {
+                if(member->isAFK())
+                    onlineState |= MEMBER_STATUS_AFK;
+                if(member->isDND())
+                    onlineState |= MEMBER_STATUS_DND;
+            }
 
             data << citr2->name;
             data << uint64(citr2->guid);

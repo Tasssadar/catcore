@@ -4698,6 +4698,9 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
         if (is_triggered_by_spell)
             continue;
 
+        if (IsChanneledSpell(spellProto))
+           continue;
+
         SpellSpecific i_spellId_spec = GetSpellSpecific(i_spellId);
 
         // single allowed spell specific from same caster or from any caster at target
@@ -4726,6 +4729,10 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
 
             continue;
         }
+
+        Unit* caster = Aur->GetCaster();
+        if (caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isWorldBoss())
+            continue;
 
         // spell with spell specific that allow single ranks for spell from diff caster
         // same caster case processed or early or later
@@ -12676,6 +12683,10 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         float min_speed = (float)GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MINIMUM_SPEED) / 100.0f;
         if (speed < min_speed)
             speed = min_speed;
+
+        // if speed is 0 creature is acting like if has 100% speed, so lets set 1% and look what id does
+        if (speed < 0.01f)
+            speed = 0.01f;
     }
     SetSpeedRate(mtype, speed * ratio, forced);
 }
@@ -15964,7 +15975,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         if(distance != GetDistance(fx, fy, fz))
         {
             float height = float(velocity*pow(time/1000.0f, 2.0f)/8.0f)*10.0f;
-            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f));
+            velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f))*10.0f;
         }
         
         WorldPacket data(SMSG_MONSTER_MOVE);
