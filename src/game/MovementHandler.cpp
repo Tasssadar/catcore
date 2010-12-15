@@ -678,7 +678,8 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
         plMover->SetPosition(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z, movementInfo.GetPos()->o);
         plMover->m_movementInfo = movementInfo;
 
-        if(movementInfo.GetPos()->z < -500.0f)
+        float minz = plMover->GetBattleGround() ? plMover->GetBattleGround()->GetMinZ() : -500.0f;
+        if(movementInfo.GetPos()->z < minz)
         {
             if(plMover->InBattleGround()
                 && plMover->GetBattleGround()

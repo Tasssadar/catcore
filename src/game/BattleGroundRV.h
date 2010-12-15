@@ -68,9 +68,11 @@ class BattleGroundRV : public BattleGround
     private:
         void ChangeActivePillars();
         void ClickEvent(uint8 event1, uint8 event2 /*=0*/);
-        uint32 m_uiTeleport;
+        //uint32 m_uiTeleport;
         uint32 m_uiPillarChanging;
-        uint32 m_uiTexturesCheck;
+        //uint32 m_uiTexturesCheck;
+        uint32 m_bElevatingTimer;
+        bool m_bElevatorsUp;
 
         std::list<GameObject*> m_lPillars;
 };

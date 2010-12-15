@@ -558,6 +558,8 @@ class BattleGround
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
         uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(ALLIANCE, type) + GetScoreForTeam(HORDE, type)); }
 
+        uint32 GetMinZ() { return m_fMinZ; }
+
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();
@@ -579,6 +581,8 @@ class BattleGround
         BattleGroundStartTimeIntervals  m_StartDelayTimes[BG_STARTING_EVENT_COUNT];
         //this must be filled in constructors!
         uint32 m_StartMessageIds[BG_STARTING_EVENT_COUNT];
+
+        float m_fMinZ;
 
         bool   m_BuffChange;
         bool   m_IsRandom;

@@ -283,6 +283,9 @@ BattleGround::BattleGround()
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_WS_START_HALF_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_WS_HAS_BEGUN;
 
+    // default value
+    m_fMinZ = -500.0f;
+
     m_uiPlayersJoined  = 0;
 }
 

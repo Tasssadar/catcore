@@ -36,6 +36,10 @@ BattleGroundDS::BattleGroundDS()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
+
+    // 2,5 z out platform
+    // on platform 5, radius from 1291 791 is 21
+    m_fMinZ = 2.5f;
 }
 
 BattleGroundDS::~BattleGroundDS()
@@ -260,9 +264,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
 {
     // if colision is not spawned, there is no los
     if (!m_WaterfallCollision || !m_WaterfallCollision->IsInWorld())
-    {
         return false;
-    }
 
     float angle = caster->GetAngle(target);
     float x_per_i = cos(angle);
