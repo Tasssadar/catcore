@@ -4721,11 +4721,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             if (!m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target))
                 return SPELL_FAILED_LINE_OF_SIGHT;
             
-            if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->InBattleGround())
-                if (BattleGround *bg = ((Player*)m_caster)->GetBattleGround())
-                    if ((bg->GetTypeID() == BATTLEGROUND_RV && ((BattleGroundRV*)bg)->ObjectInLOS(m_caster, target)) ||
-                        (bg->GetTypeID() == BATTLEGROUND_DS && ((BattleGroundDS*)bg)->ObjectInLOS(m_caster, target)))
-                        return SPELL_FAILED_LINE_OF_SIGHT;
+            if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->GetBattleGround() &&
+                ((Player*)m_caster)->GetBattleGround()->ObjectInLOS(m_caster, target))
+                return SPELL_FAILED_LINE_OF_SIGHT;
 
             // auto selection spell rank implemented in WorldSession::HandleCastSpellOpcode
             // this case can be triggered if rank not found (too low-level target for first rank)
