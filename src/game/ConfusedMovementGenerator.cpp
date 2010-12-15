@@ -55,7 +55,8 @@ ConfusedMovementGenerator<T>::Initialize(T &unit)
 
         // if generated wrong path just ignore
         if ((is_water && !is_water_ok) || (!is_water && !is_land_ok) ||
-            !unit.GetMap()->IsNextZcoordOK(i_waypoints[idx][0], i_waypoints[idx][1], z))  // check if not under map
+            !unit.GetMap()->IsNextZcoordOK(i_waypoints[idx][0], i_waypoints[idx][1], z) ||
+            unit.GetMap()->IsPositionForbidden(i_waypoints[idx][0], i_waypoints[idx][1], z))  // check if not under map
         {
             i_waypoints[idx][0] = idx > 0 ? i_waypoints[idx-1][0] : x;
             i_waypoints[idx][1] = idx > 0 ? i_waypoints[idx-1][1] : y;

@@ -274,3 +274,21 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     }
     return false;
 }
+
+bool BattleGroundDS::IsXYZPositionOK(float x, float y, float z)
+{
+    // watterfall coords are not ok
+    if (m_WaterfallCollision && !m_WaterfallCollision->GetDistance2d(x,y))
+        return false;
+    
+    // creates
+    if ((IsCoordInRange(x, 1270, 1280) && IsCoordInRange(y, 803, 813)) ||
+        (IsCoordInRange(x, 1303, 1314) && IsCoordInRange(y, 769, 779)))
+        return false;
+
+    // under platform
+    if (IsCoordInRange(x, 1270, 1314) && IsCoordInRange(y, 717, 813) && z < 6.5f)
+        return false;
+
+    return true;
+}

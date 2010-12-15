@@ -530,6 +530,7 @@ class BattleGround
         void DoorClose(uint64 const& guid);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
+        virtual bool IsXYZPositionOK(float x, float y, float z) { return true; }
         virtual bool ObjectInLOS(Unit* caster, Unit* target) { return false ; }
 
         // since arenas can be AvA or Hvh, we have to get the "temporary" team of a player
@@ -561,6 +562,7 @@ class BattleGround
 
         uint32 GetMinZ() { return m_fMinZ; }
 
+        bool IsCoordInRange(float coord, float compare_min, float compare_max) const { return compare_min < coord && coord < compare_max; }
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();

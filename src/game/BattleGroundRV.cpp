@@ -227,7 +227,7 @@ bool BattleGroundRV::ObjectInLOS(Unit* caster, Unit* target)
         x += x_per_i;
         y += y_per_i;
         for(std::list<GameObject*>::iterator itr = m_lPillars.begin(); itr != m_lPillars.end();++itr)
-            if ((*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
+            if ((*itr) && (*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
                 return true;
     }
     return false;
@@ -247,4 +247,14 @@ void BattleGroundRV::ClickOnPillar(uint64 const& guid)
     }
     else
         sLog.outError("BattleGround: Pillar object not found!");
+}
+
+bool BattleGroundRV::IsXYZPositionOK(float x, float y, float z)
+{
+    // is xyz near active pillar
+    for(std::list<GameObject*>::iterator itr = m_lPillars.begin(); itr != m_lPillars.end();++itr)
+        if ((*itr) && (*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
+            return false;
+
+    return true;
 }

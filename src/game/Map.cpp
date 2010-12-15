@@ -2666,3 +2666,16 @@ Creature* Map::SummonCreature(uint32 id, float x, float y, float z, float ang,Te
     // return the creature therewith the summoner has access to it
     return pCreature;
 }
+
+bool Map::IsPositionForbidden(float x, float y, float z) const
+{
+    //check in battleground for forbidden loc
+    if (IsBattleGroundOrArena())
+    {
+        BattleGround* bg = ((BattleGroundMap*)this)->GetBG();
+        if (bg && !bg->IsXYZPositionOK(x,y,z))
+            return true;
+    }
+
+    return false;
+}

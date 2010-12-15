@@ -65,6 +65,8 @@ class BattleGroundRV : public BattleGround
         void HandleKillPlayer(Player* player, Player *killer);
         bool HandlePlayerUnderMap(Player * plr);
         void ClickOnPillar(uint64 const& guid);
+        bool IsXYZPositionOK(float x, float y, float z);
+
     private:
         void ChangeActivePillars();
         void ClickEvent(uint8 event1, uint8 event2 /*=0*/);

@@ -49,6 +49,7 @@ class BattleGroundDS : public BattleGround
         bool ObjectInLOS(Unit* caster, Unit* target);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
         bool SetupBattleGround();
+        bool IsXYZPositionOK(float x, float y, float z);
 
     private:
         virtual void Reset();
