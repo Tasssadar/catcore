@@ -77,20 +77,12 @@ void BattleGroundDS::KnockOutOfTubes()
 {
     //DespawnEvent(DOORS_EVENT, 0);
 
-    bool m_bIsAnyPlayerInTube = false;
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
         Player * plr = sObjectMgr.GetPlayer(itr->first);
-        if (plr->GetTeam() == ALLIANCE && plr->GetDistance2d(1214, 765) <= 50 && plr->GetPositionZ() > 10)
-        {
-            plr->KnockWithAngle(6.05f, 35.0f, 7.0f);
-            m_bIsAnyPlayerInTube = true;
-        }
-        if (plr->GetTeam() == HORDE && plr->GetDistance2d(1369, 817) <= 50 && plr->GetPositionZ() > 10)
-        {
-            plr->KnockWithAngle(3.03f, 35.0f, 7.0f);
-            m_bIsAnyPlayerInTube = true;
-        }
+        float angle = itr->second.Team == ALLIANCE ? 6.05f : 3.03f; 
+        if ((plr->GetDistance2d(1214, 765) <= 50 || plr->GetDistance2d(1369, 817) <= 50) && plr->GetPositionZ() > 10)
+            plr->KnockWithAngle(angle, 32.85f, 5.8f);
 
         // Remove Demonic Circle
         if (plr->getClass() == CLASS_WARLOCK)
