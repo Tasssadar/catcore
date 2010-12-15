@@ -550,7 +550,7 @@ void BattleGround::Update(uint32 diff)
     }
 
     // Arena duration
-    if (isArena() && isRated())
+    if (isArena() && isRated() && GetStatus() == STATUS_IN_PROGRESS)
         m_ArenaDuration += float(diff)/1000;
     
     //update start time
