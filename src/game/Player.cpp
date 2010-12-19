@@ -23139,3 +23139,69 @@ uint32 Player::GetBGLoseExtraHonor()
 {
     return MaNGOS::Honor::hk_honor_at_level(getLevel(), 5);
 }
+
+ItemLevelList Player::GetItemLevelList()
+{
+    ItemLevelList list;
+    for(uint16 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
+    {
+        Item *item = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
+        if (!item)
+            continue;
+
+        if (uint32 itemlevel = item->GetProto()->ItemLevel)
+            list.push_back(itemlevel);
+    }
+    return list;
+}
+
+uint32 Player::GetAverageItemLevel()
+{
+    ItemLevelList list = GetItemLevelList();
+    uint32 totalvalue = 0;
+    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+        totalvalue += *itr;
+
+    return totalvalue/list.size();
+}
+uint32 Player::GetMaxItemLevel()
+{
+    ItemLevelList list = GetItemLevelList();
+    uint32 maxvalue = 0;
+    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+        if (*itr > maxvalue)
+            maxvalue = *itr;
+
+    return maxvalue;
+}
+
+uint32 Player::GetMinItemLevel()
+{
+    ItemLevelList list = GetItemLevelList();
+    uint32 minvalue = 0;
+    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+        if (*itr < minvalue)
+            minvalue = *itr;
+
+    return minvalue;
+}
+
+uint32 Player::GetGroupAverageItemLevel()
+{
+    Group* group = GetGroup();
+    if (!group)
+        return GetAverageItemLevel();
+
+    uint32 total = 0;
+    for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+    {
+        Player *pl = itr->getSource();
+
+        if (!pl || !pl->GetSession() )
+            continue;
+
+        total += pl->GetAverageItemLevel();
+    }
+
+    return total/group->GetMembersCount();
+}

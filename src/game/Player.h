@@ -1046,6 +1046,7 @@ class TradeData
         ObjectGuid m_items[TRADE_SLOT_COUNT];               // traded itmes from m_player side including non-traded slot
 };
 
+typedef std::list<uint32> ItemLevelList;
 class MANGOS_DLL_SPEC Player : public Unit
 {
     friend class WorldSession;
@@ -1219,6 +1220,20 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             return _CanStoreItem(bag, slot, dest, item, count, NULL, false, no_space_count );
         }
+        bool IsValidItemLevelSlot(uint16 slot)
+        {
+            if (slot == EQUIPMENT_SLOT_BODY || slot == EQUIPMENT_SLOT_TABARD)
+                return false;
+
+            return true;
+        }
+
+        ItemLevelList GetItemLevelList();
+        uint32 GetAverageItemLevel();
+        uint32 GetMaxItemLevel();
+        uint32 GetMinItemLevel();
+        uint32 GetGroupAverageItemLevel();
+
         uint8 CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec& dest, Item *pItem, bool swap = false ) const
         {
             if (!pItem)
