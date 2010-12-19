@@ -6669,7 +6669,7 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
     uint32 totalMaps = 0;
     uint64 dataSize = 0;
     uint32 tileCount = 0;
-    for(int i = 0; i < sMapStore.GetNumRows(); ++i)
+    for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
     {
         mapEntry = sMapStore.LookupEntry(i);
         if(!mapEntry)
@@ -6680,7 +6680,7 @@ bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
         if(navmesh = terrain->GetNavMesh())
         {
             ++totalMaps;
-            for (uint32 i = 0; i < navmesh->getMaxTiles(); ++i)
+            for (uint32 i = 0; i < uint32(navmesh->getMaxTiles()); ++i)
             {
                 const dtMeshTile* tile = navmesh->getTile(i);
                 if (!tile || !tile->header)
