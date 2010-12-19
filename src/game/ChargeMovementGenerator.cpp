@@ -102,9 +102,3 @@ bool ChargeMovementGenerator<Creature>::Update(Creature &creature, const uint32 
     }
     return true;
 }
-
-template void ChargeMovementGenerator<Creature>::Initialize(Creature&);
-template void ChargeMovementGenerator<Creature>::Finalize(Creature&);
-template void ChargeMovementGenerator<Creature>::Interrupt(Creature&);
-template void ChargeMovementGenerator<Creature>::Reset(Creature&);
-template bool ChargeMovementGenerator<Creature>::Update(Creature&, const uint32 &diff);
