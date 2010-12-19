@@ -14757,7 +14757,8 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
                 // if spell procs on damage and for victim, do not drop charge on full absorb (f.e. Inner Fire)
                 if ((damage + absorb) && isVictim)
                 {
-                    if (damage)
+                    // seems to be somehow bugged with Prayer of Mending specific proc
+                    if (damage || auraModifier->m_auraname == SPELL_AURA_PRAYER_OF_MENDING)
                         if (triggeredByAura->DropAuraCharge())
                             removedSpells.push_back(triggeredByAura->GetId());
                 }
@@ -15575,8 +15576,12 @@ bool Unit::HandleMendingAuraProc( Aura* triggeredByAura )
 
             if (target)
             {
+                uint8 max_charges = m_spellProto->procCharges;
+
+                caster->ApplySpellMod(spellProto->Id, SPELLMOD_CHARGES, max_charges);
+
                 // aura will applied from caster, but spell casted from current aura holder
-                SpellModifier *mod = new SpellModifier(SPELLMOD_CHARGES,SPELLMOD_FLAT,jumps-5,spellProto->Id,spellProto->SpellFamilyFlags,spellProto->SpellFamilyFlags2);
+                SpellModifier *mod = new SpellModifier(SPELLMOD_CHARGES,SPELLMOD_FLAT,jumps-max_charges,spellProto->Id,spellProto->SpellFamilyFlags,spellProto->SpellFamilyFlags2);
 
                 // remove before apply next (locked against deleted)
                 triggeredByAura->SetInUse(true);
