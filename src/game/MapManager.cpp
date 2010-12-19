@@ -376,8 +376,8 @@ Map* MapManager::CreateInstance(uint32 id, Player * player)
         // find existing bg map for player
         NewInstanceId = player->GetBattleGroundId();
         ASSERT(NewInstanceId);
-        map = FindMap(id, NewInstanceId);
-        ASSERT(map);
+        if (map = FindMap(id, NewInstanceId))
+            ASSERT(map);
     }
     else if (InstanceSave* pSave = player->GetBoundInstanceSaveForSelfOrGroup(id))
     {
