@@ -719,8 +719,15 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     }
 
     // huge typo
-    if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT)
-        damage *= 1.2f;
+    if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player * plr = (Player*)pVictim;
+        uint32 itemlevel = plr->GetGroupAverageItemLevel();
+        uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
+        uint8  coef = diff ? 226 : 213;
+        float multiple = float(itemlevel)/coef;
+        damage *= multiple > 1.0f ? multiple : 1;
+    }
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
 
