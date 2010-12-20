@@ -9037,6 +9037,8 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
         case 14157: // Ruthlessness
         case 70802: // Mayhem (Shadowblade sets)
         {
+            if (trigger_spell_id == 14157 && (!procSpell || !NeedsComboPoints(procSpell)))
+                return false;
             // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
             break;
         }
