@@ -8535,6 +8535,9 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                     basepoints[0] = triggerAmount;
                     target = this;
                     trigger_spell_id = 64569;
+                    RemoveAurasDueToSpell(triggeredByAura->GetId());
+                    RemoveAurasDueToSpell(64568);
+
                     break;
                 }
                 case 67702:                                 // Death's Choice, Item - Coliseum 25 Normal Melee Trinket
@@ -11195,7 +11198,21 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
-    TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_PCT);
+    // Healing taken percent
+    float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+    if (damagetype == DOT)
+    {
+        // overwrite max SPELL_AURA_MOD_HEALING_PCT if greater negative effect
+        float minDotVal = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_PERIODIC_HEAL));
+        minval = (minDotVal < minval) ? minDotVal : minval;
+    }
+    if (minval)
+        TakenTotalMod *= (100.0f + minval) / 100.0f;
+
+    float maxval = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+    // no SPELL_AURA_MOD_PERIODIC_HEAL positive cases
+    if (maxval)
+        TakenTotalMod *= (100.0f + maxval) / 100.0f;
 
     // No heal amount for this class spells
     if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)
@@ -12187,7 +12204,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return true;
 
     // normal players or npcs cant see player in spectator mode
-    if(GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator() && (u->GetTypeId() != TYPEID_PLAYER || !((Player*)u)->IsSpectator()))
+    if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()))// || (u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator()))
         return false;
 
     // player visible for other player if not logout and at same transport

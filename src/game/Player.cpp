@@ -6265,8 +6265,11 @@ void Player::SaveRecallPosition()
 
 void Player::SendMessageToSet(WorldPacket *data, bool self)
 {
+if(!IsSpectator())
+{
     if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
         _map->MessageBroadcast(this, data, false);
+        }
 
     //if player is not in world and map in not created/already destroyed
     //no need to create one, just send packet for itself!
@@ -6276,8 +6279,11 @@ void Player::SendMessageToSet(WorldPacket *data, bool self)
 
 void Player::SendMessageToSetInRange(WorldPacket *data, float dist, bool self)
 {
+if(!IsSpectator())
+{
     if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
         _map->MessageDistBroadcast(this, data, dist, false);
+        }
 
     if (self)
         GetSession()->SendPacket(data);
@@ -6285,11 +6291,14 @@ void Player::SendMessageToSetInRange(WorldPacket *data, float dist, bool self)
 
 void Player::SendMessageToSetInRange(WorldPacket *data, float dist, bool self, bool own_team_only, bool enemy_team_only)
 {
+    if(!IsSpectator())
+    {
     Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId());
     if (_map)
     {
         _map->MessageDistBroadcast(this, data, dist, self, own_team_only, enemy_team_only);
         return;
+    }
     }
 
     if (self)

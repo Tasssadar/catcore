@@ -143,6 +143,8 @@ void PetAI::UpdateAI(const uint32 diff)
         if (Unit *creator = m_creature->GetCreator())
             owner = creator;
 
+    if(owner && owner->GetTypeId() == TYPEID_PLAYER && ((Player*)owner)->IsSpectator())
+        return;
     if (m_updateAlliesTimer <= diff)
         // UpdateAllies self set update timer
         UpdateAllies();

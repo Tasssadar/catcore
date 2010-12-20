@@ -334,6 +334,10 @@ bool Map::Add(Player *player)
         sLog.outError("Some unhandled case, player has Lfg boost at non-dungeon map");
         player->RemoveAurasDueToSpell(72221);
     }
+/*    if(!player->GetBattleGround() || player->GetBattleGround()->GetPlayers().find(player->GetGUID()) == player->GetBattleGround()->GetPlayers().end())
+    {
+        player->SetSpectator(true);
+    }*/
     if(player->IsSpectator())
     {
         float modSpeed = 1.0f;

@@ -93,7 +93,7 @@ void BattleGroundDS::KnockOutOfTubes()
             if (GameObject* obj = plr->GetGameObject(48018))
                 obj->Delete();
     }
-    if (!m_bIsAnyPlayerInTube)
+    if (GetStartTime() > 90)
         m_bTubeIsEmpty = true;
 }
 
@@ -109,9 +109,9 @@ void BattleGroundDS::KnockbackFromWaterfall()
         if (!plr)
             continue;
         
-        float angle = plr->GetAngle(m_WaterfallCollision)+M_PI_F;
-        if (plr->GetDistance2d(m_WaterfallCollision) <= boundingRadius)
-            plr->KnockWithAngle(angle, 35.0f, 7.0f);
+        float angle = m_WaterfallCollision->GetAngle(plr);
+        if (!m_WaterfallCollision->GetDistance2d(plr))
+            plr->KnockWithAngle(angle, 10.0f, 7.0f);
     }
 }
 
@@ -258,10 +258,11 @@ bool BattleGroundDS::SetupBattleGround()
 {
     return true;
 }
+
 bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
 {
     // if colision is not spawned, there is no los
-    if (!m_WaterfallCollision)
+    if (!m_WaterfallCollision || !m_WaterfallCollision->IsInWorld())
         return false;
 
     float angle = caster->GetAngle(target);
@@ -274,7 +275,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     {
         x += x_per_i;
         y += y_per_i;
-        if (m_WaterfallCollision->IsWithinBoundingRadius(x,y))
+        if (!m_WaterfallCollision->GetDistance2d(x,y))
             return true;
     }
     return false;

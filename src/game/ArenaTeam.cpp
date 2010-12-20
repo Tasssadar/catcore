@@ -871,6 +871,13 @@ bool ArenaTeam::MembersOnline(Player* reportTo)
             foundNotPrepared = true;
             continue;
         }
+        else if (plr->InArena())
+        {
+            if (reportTo)
+                ChatHandler(reportTo).PSendSysMessage("Player %s is already in arena pyco!", plr->GetName());
+            foundNotPrepared = true;
+            continue;
+        }            
     }
 
     return !foundNotPrepared;

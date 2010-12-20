@@ -643,7 +643,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
 
     recv_data >> guid >> arenaslot >> asGroup >> isRated;
 
-    if (isRated)
+    if (isRated || arenaslot != 1)
         return;
 
     // ignore if we already in BG or BG queue

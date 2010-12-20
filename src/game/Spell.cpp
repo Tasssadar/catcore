@@ -4721,7 +4721,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             if (!m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target))
                 return SPELL_FAILED_LINE_OF_SIGHT;
             
-            if (m_caster->GetTypeId() == TYPEID_PLAYER && ((Player*)m_caster)->InBattleGround())
+            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->GetGUID() != target->GetGUID())
                 if (BattleGround *bg = ((Player*)m_caster)->GetBattleGround())
                     if ((bg->GetTypeID() == BATTLEGROUND_RV && ((BattleGroundRV*)bg)->ObjectInLOS(m_caster, target)) ||
                         (bg->GetTypeID() == BATTLEGROUND_DS && ((BattleGroundDS*)bg)->ObjectInLOS(m_caster, target)))

@@ -775,7 +775,10 @@ void BattleGround::EndBattleGround(uint32 winner)
     std::ostringstream loser_string;
     WorldPacket data;
     int32 winmsg_id = 0;
-    uint32 arena_guid = sObjectMgr.GetArenaStatGuid();
+    uint32 arena_guid = 0;
+
+    if (!winner)
+        winner = GetScoreForTeam(ALLIANCE, SCORE_DAMAGE_DONE) > GetScoreForTeam(HORDE, SCORE_DAMAGE_DONE) ? ALLIANCE : HORDE;
 
     if (winner == ALLIANCE)
     {
@@ -816,6 +819,7 @@ void BattleGround::EndBattleGround(uint32 winner)
             loser_string << "Loser: " << loser_arena_team->GetName().c_str() << " [" << loser_rating << "] "<< " (";
 
             // saving basic arena statistics
+            arena_guid = sObjectMgr.GetArenaStatGuid();
             SaveArenaStats(arena_guid, GetArenaTeamIdForTeam(winner), GetArenaTeamIdForTeam(GetOtherTeam(winner)),
                 GetTotalArenaScore(SCORE_DAMAGE_DONE), GetTotalArenaScore(SCORE_HEALING_DONE),
                 (GetBgMap() ? GetBgMap()->GetId() : 0), uint32(m_ArenaDuration));
@@ -902,7 +906,8 @@ void BattleGround::EndBattleGround(uint32 winner)
         //if (!team) team = plr->GetTeam();
 
         // arena stat system
-        plr->SaveArenaStatMember(arena_guid, team == winner);
+        if (arena_guid)                                          // arena_guid seting is checked so ...
+            plr->SaveArenaStatMember(arena_guid, team == winner);
 
         // per player calculation
         if (isArena() && isRated() && winner_arena_team && loser_arena_team)

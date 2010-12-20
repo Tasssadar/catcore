@@ -32,6 +32,9 @@
 
 void WorldSession::HandlePetAction( WorldPacket & recv_data )
 {
+    if(_player->IsSpectator())
+            return;
+            
     uint64 guid1;
     uint32 data;
     uint64 guid2;
@@ -186,6 +189,9 @@ void WorldSession::SendPetNameQuery( ObjectGuid petguid, uint32 petnumber)
 
 void WorldSession::HandlePetSetAction( WorldPacket & recv_data )
 {
+    if(_player->IsSpectator())
+        return;
+        
     DETAIL_LOG( "HandlePetSetAction. CMSG_PET_SET_ACTION" );
 
     uint64 petguid;
@@ -435,6 +441,9 @@ void WorldSession::HandlePetUnlearnOpcode(WorldPacket& recvPacket)
 
 void WorldSession::HandlePetSpellAutocastOpcode( WorldPacket& recvPacket )
 {
+    if(_player->IsSpectator())
+            return;
+            
     DETAIL_LOG("CMSG_PET_SPELL_AUTOCAST");
     uint64 guid;
     uint32 spellid;
@@ -477,6 +486,9 @@ void WorldSession::HandlePetSpellAutocastOpcode( WorldPacket& recvPacket )
 
 void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
 {
+   if(_player->IsSpectator())
+           return;
+           
     DETAIL_LOG("WORLD: CMSG_PET_CAST_SPELL");
     recvPacket.hexlike();
     recvPacket.print_storage();
