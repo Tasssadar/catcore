@@ -16760,7 +16760,7 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, b
     if (GetVehicleGUID() && !m_movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
         m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
 
-    if (GetTypeId() == TYPEID_UNIT)
+    if (GetTypeId() == TYPEID_UNIT && !((Creature*)this)->isVehicle())
     {
         Creature *creature = (Creature*)this;
         float cx, cy, cz;
@@ -16861,7 +16861,7 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, b
         }
     }
     // Player
-    else
+    else if(GetTypeId() == TYPEID_PLAYER)
     {
         Player *player = (Player*)this;
         if(player->GetTransport())
