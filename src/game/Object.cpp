@@ -658,14 +658,32 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                         *data << (m_uint32Values[ index ] & ~UNIT_DYNFLAG_TAPPED);
                 }
                 // Mixed Dungeon Finder
-                else if(index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE && GetTypeId() == TYPEID_PLAYER)
+                else if((index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE)
+                    && (GetTypeId() == TYPEID_PLAYER || GetTypeId() == TYPEID_UNIT))
                 {
-                    Player *player = (Player*)this;
-                    if(player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId())
+                    bool allow = false;
+                    Group *group = NULL;
+                    if(GetTypeId() == TYPEID_PLAYER)
+                    {
+                        Player *player = (Player*)this;
+                        group = player->GetGroup();
+                        allow = (player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId());
+                    }
+                    else
+                    {
+                        Creature* creature = (Creature*)this;
+                        if((creature->isPet() || creature->isTotem()) && creature->GetOwner() && creature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+                        {
+                            allow = true;
+                            group = ((Player*)creature->GetOwner())->GetGroup();
+                        }
+                    }
+                    
+                    if(allow)
                     {
                         if(index == UNIT_FIELD_BYTES_2)
                             *data << ( m_uint32Values[ index ] | (UNIT_BYTE2_FLAG_SANCTUARY << 8) );
-                        else if(player->GetGroup() == target->GetGroup())
+                        else if(group == target->GetGroup()))
                             *data << uint32(target->getFaction());
                         else
                             *data << m_uint32Values[ index ];
