@@ -17042,7 +17042,7 @@ void Player::_LoadGroup(QueryResult *result)
             if(group->isLfgGroup())
             {
                 LfgGroup *lfgGroup = (LfgGroup*)group;
-                if (lfgGroup->GetInstanceStatus() == INSTANCE_COMPLETED && group->GetMembersCount() == 1)
+                if (/*lfgGroup->GetInstanceStatus() == INSTANCE_COMPLETED && */group->GetMembersCount() <= 1)
                     group->RemoveMember(GetGUID(), 0);
                 else if(lfgGroup->IsMixed())
                 {
