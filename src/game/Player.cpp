@@ -16131,6 +16131,17 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     if (HasAtLoginFlag(AT_LOGIN_LEARN_TAXI_NODES) && !HasAtLoginFlag(AT_LOGIN_DELAY_ONE_LOGIN))
         LearnAllAviableTaxiPaths();
 
+    if(HasAtLoginFlag(AT_LOGIN_ADD_PET) && !HasAtLoginFlag(AT_LOGIN_DELAY_ONE_LOGIN))
+    {
+        std::string subject = GetSession()->GetMangosString(LANG_NOT_EQUIPPED_ITEM);
+        // fill mail
+        MailDraft draft("Arena Tournament Reward", "Jako podekovani za ucast v Arena Tournamentu Vam zasilame maleho murlocka, doufame ze potesi :) \r\n Valhalla GM team");
+        Item *item = Item::CreateItem(45180, 1, this);
+        draft.AddItem(item);
+        draft.SendMailTo(this, MailSender(this, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_COPIED);
+        RemoveAtLoginFlag(AT_LOGIN_ADD_PET, true);
+    }
+
     return true;
 }
 

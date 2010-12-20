@@ -1,6 +1,6 @@
 #ifndef __REVISION_NR_H__
 #define __REVISION_NR_H__
  #define REVISION_NR "10707"
- #define REVISION_VP "pr1025"
+ #define REVISION_VP "pr1026"
  #define REVISION_VP_DATE "20.12.2010"
 #endif // __REVISION_NR_H__
