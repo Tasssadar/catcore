@@ -844,7 +844,11 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex)
     target.processed  = false;                              // Effects not apply on target
 
     // Calculate hit result
-    target.missCondition = m_caster->SpellHitResult(pVictim, m_spellInfo, m_canReflect);
+    Unit* real_caster = GetAffectiveCaster();
+    if (real_caster)
+        target.missCondition = real_caster->SpellHitResult(pVictim, m_spellInfo, m_canReflect);
+    else
+        target.missCondition = m_caster->SpellHitResult(pVictim, m_spellInfo, m_canReflect);
 
     // spell fly from visual cast object
     WorldObject* affectiveObject = GetAffectiveCasterObject();
