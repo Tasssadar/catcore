@@ -672,7 +672,8 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                     else
                     {
                         Creature* creature = (Creature*)this;
-                        if((creature->isPet() || creature->isTotem()) && creature->GetOwner() && creature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+                        if((creature->isPet() || creature->isTotem()) && creature->GetOwner() && creature->GetOwner()->GetTypeId() == TYPEID_PLAYER &&
+                            ((Player*)creature->GetOwner())->m_lookingForGroup.mixed && ((Player*)creature->GetOwner())->m_lookingForGroup.mixed_map == creature->GetMapId())
                         {
                             allow = true;
                             group = ((Player*)creature->GetOwner())->GetGroup();
@@ -683,7 +684,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                     {
                         if(index == UNIT_FIELD_BYTES_2)
                             *data << ( m_uint32Values[ index ] | (UNIT_BYTE2_FLAG_SANCTUARY << 8) );
-                        else if(group == target->GetGroup()))
+                        else if(group == target->GetGroup())
                             *data << uint32(target->getFaction());
                         else
                             *data << m_uint32Values[ index ];

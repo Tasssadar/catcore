@@ -1283,6 +1283,8 @@ void Unit::CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castIte
 
 void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
 {
+    if(!Victim)
+        return;
     if (!spellInfo)
     {
         if (triggeredByAura)
@@ -1324,6 +1326,8 @@ void Unit::CastCustomSpell(Unit* Victim,uint32 spellId, int32 const* bp0, int32 
 
 void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
 {
+    if(!Victim)
+        return;
     if (!spellInfo)
     {
         if (triggeredByAura)
@@ -9037,6 +9041,8 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
         case 14157: // Ruthlessness
         case 70802: // Mayhem (Shadowblade sets)
         {
+            if (trigger_spell_id == 14157 && (!procSpell || !NeedsComboPoints(procSpell)))
+                return false;
             // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
             break;
         }
@@ -15576,7 +15582,7 @@ bool Unit::HandleMendingAuraProc( Aura* triggeredByAura )
 
             if (target)
             {
-                uint8 max_charges = m_spellProto->procCharges;
+                uint8 max_charges = spellProto->procCharges;
 
                 caster->ApplySpellMod(spellProto->Id, SPELLMOD_CHARGES, max_charges);
 

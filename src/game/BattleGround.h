@@ -560,7 +560,7 @@ class BattleGround
         uint32 GetScoreForTeam(uint32 TeamID, uint32 type);
         uint32 GetTotalArenaScore(uint32 type) { return (GetScoreForTeam(ALLIANCE, type) + GetScoreForTeam(HORDE, type)); }
 
-        uint32 GetMinZ() { return m_fMinZ; }
+        float GetMinZ() { return m_fMinZ; }
 
         bool IsCoordInRange(float coord, float compare_min, float compare_max) const { return compare_min < coord && coord < compare_max; }
     protected:
