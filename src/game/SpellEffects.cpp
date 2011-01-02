@@ -3068,7 +3068,10 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
  
     //Stop moving before jump!
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
+    {
         m_caster->StopMoving();
+        m_caster->InterruptNonMeleeSpells(true);
+    }
 
     float cx, cy, cz;
     m_caster->GetPosition(cx, cy, cz);
