@@ -186,6 +186,7 @@ class ChatHandler
         bool HandleGameObjectPhaseCommand(const char* args);
         bool HandleGameObjectTargetCommand(const char* args);
         bool HandleGameObjectTurnCommand(const char* args);
+        bool HandleGameObjectClickCommand(const char* args);
 
         bool HandleGMCommand(const char* args);
         bool HandleGMChatCommand(const char* args);

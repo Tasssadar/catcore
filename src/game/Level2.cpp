@@ -645,6 +645,54 @@ bool ChatHandler::HandleGameObjectTurnCommand(const char* args)
     return true;
 }
 
+// clicking on object by guid
+bool ChatHandler::HandleGameObjectClickCommand(const char* args)
+{
+    // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+    char* cId = extractKeyFromLink((char*)args,"Hgameobject");
+    if (!cId)
+        return false;
+
+    uint32 lowguid = atoi(cId);
+    if (!lowguid)
+        return false;
+
+    GameObject* obj = NULL;
+
+    // by DB guid
+    if (GameObjectData const* go_data = sObjectMgr.GetGOData(lowguid))
+        obj = GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid,go_data->id);
+
+    if (!obj)
+    {
+        PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, lowguid);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    char* po = strtok(NULL, " ");
+    int iopen = (int)atof(po);
+
+    if (iopen && iopen != 1)
+        return false;
+
+    bool open = iopen;
+    
+    obj->SetLootState(GO_READY);
+    
+    const char* status;
+    if (obj->GetGoState() == GO_STATE_READY)
+        status = "from ready state to active state";
+    else
+        status = "from active state to ready state";
+
+    obj->UseDoorOrButton();
+
+    PSendSysMessage("Object %s (entry: %u) change its GoState %s", obj->GetName(), obj->GetEntry(), status);
+
+    return true;
+}
+
 //move selected object
 bool ChatHandler::HandleGameObjectMoveCommand(const char* args)
 {
