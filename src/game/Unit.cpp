@@ -16067,12 +16067,20 @@ void Unit::SendThreatUpdate()
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_THREAT_UPDATE Message");
         WorldPacket data(SMSG_THREAT_UPDATE, 8 + count * 8);
         data << GetPackGUID();
+        size_t countPos = data.wpos();
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
+            if((*itr)->getUnitGuid().GetRawValue() == 0 || ((*itr)->getUnitGuid().IsPlayer() && (!sObjectMgr.GetPlayer((*itr)->getUnitGuid()) || !sObjectMgr.GetPlayer((*itr)->getUnitGuid())->IsInWorld())) ||
+                (((*itr)->getUnitGuid().IsCreatureOrPet() || (*itr)->getUnitGuid().IsVehicle()) && (!GetMap()->GetCreatureOrPetOrVehicle((*itr)->getUnitGuid()) || !GetMap()->GetCreatureOrPetOrVehicle((*itr)->getUnitGuid())->isAlive())))
+            {
+                --count; 
+                continue;
+            }
             data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat()*100);
         }
+        data.put<uint32>(countPos, count);
         SendMessageToSet(&data, false);
     }
 }
@@ -16086,12 +16094,23 @@ void Unit::SendHighestThreatUpdate(HostileReference* pHostilReference)
         WorldPacket data(SMSG_HIGHEST_THREAT_UPDATE, 8 + 8 + count * 8);
         data << GetPackGUID();
         data.appendPackGUID(pHostilReference->getUnitGuid().GetRawValue());
+        size_t countPos = data.wpos();
         data << uint32(count);
         for (ThreatList::const_iterator itr = tlist.begin(); itr != tlist.end(); ++itr)
         {
+             if((*itr)->getUnitGuid().GetRawValue() == 0 || ((*itr)->getUnitGuid().IsPlayer() && (!sObjectMgr.GetPlayer((*itr)->getUnitGuid()) || !sObjectMgr.GetPlayer((*itr)->getUnitGuid())->IsInWorld())) ||
+                 (((*itr)->getUnitGuid().IsCreatureOrPet() || (*itr)->getUnitGuid().IsVehicle()) && (!GetMap()->GetCreatureOrPetOrVehicle((*itr)->getUnitGuid()) || !GetMap()->GetCreatureOrPetOrVehicle((*itr)->getUnitGuid())->isAlive())))
+                 
+             {
+                 --count;
+                continue;
+             }
+                                                                                     
             data.appendPackGUID((*itr)->getUnitGuid().GetRawValue());
             data << uint32((*itr)->getThreat());
         }
+         data.put<uint32>(countPos, count);
+         
         SendMessageToSet(&data, false);
     }
 }

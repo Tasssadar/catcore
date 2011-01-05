@@ -2223,6 +2223,9 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Inner Fire and Consecration
                 if (spellInfo_1->SpellIconID == 51 && spellInfo_2->SpellIconID == 51 && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
                     return false;
+                // Mind flay and Mind flay
+                if (spellInfo_1->SpellIconID == 548 && spellInfo_2->SpellIconID == 548)
+                    return false;
                 // Glyph of Prayer of Healing and Renew
                 if((spellInfo_1->Id == 56161 && spellInfo_2->SpellIconID == 321) ||
                    (spellInfo_2->Id == 56161 && spellInfo_1->SpellIconID == 321))

@@ -23169,6 +23169,9 @@ ItemLevelList Player::GetItemLevelList()
 uint32 Player::GetAverageItemLevel()
 {
     ItemLevelList list = GetItemLevelList();
+    if (list.empty())
+        return 0;
+            
     uint32 totalvalue = 0;
     for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
         totalvalue += *itr;
