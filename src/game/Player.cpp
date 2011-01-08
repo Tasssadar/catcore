@@ -19049,7 +19049,8 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     GetSession()->SendPacket(&data);
 
     DEBUG_LOG("WORLD: Sent SMSG_ACTIVATETAXIREPLY");
-
+    if(!spellid)
+        SendLockActionButtons();
     GetSession()->SendDoFlight(mount_display_id, sourcepath);
 
     return true;
