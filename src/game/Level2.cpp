@@ -670,7 +670,7 @@ bool ChatHandler::HandleGameObjectClickCommand(const char* args)
         return false;
     }
 
-    if (pGo->GetGoType() != GAMEOBJECT_TYPE_DOOR)
+    if (obj->GetGoType() != GAMEOBJECT_TYPE_DOOR)
     {
         PSendSysMessage("This command can be used only on doors");
         return false;
