@@ -15932,7 +15932,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
     }
-    else
+    // World Bosses shouldn'be knockable
+    else if (!((Creature*)this)->isWorldBoss())
     {
         // All this is guessed, but looks cool
         float dis = horizontalSpeed;
