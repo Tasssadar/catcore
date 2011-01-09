@@ -693,7 +693,7 @@ void LfgMgr::MergeGroups(GroupsList *groups, LFGDungeonEntry const *info, uint8 
 
 bool LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck *tmpRoles, PlayerGroupMap *map)
 {
-    uint8 plrRole = to->GetPlayerRole(guid, false, true);
+    uint8 plrRole = from->GetPlayerRole(guid, false, true);
     uint64 mergeGuid;
     uint8 mergeRole;
     PlayerGroupMap::iterator PlrGrpItr;
