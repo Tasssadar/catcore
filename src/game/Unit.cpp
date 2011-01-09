@@ -13098,7 +13098,15 @@ bool Unit::SelectHostileTarget()
     {
         if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED))
         {
-            SetInFront(target);
+            if (IsNonMeleeSpellCasted(false))
+            {
+                for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+                    if (Spell* spell = GetCurrentSpell(CurrentSpellTypes(i)))
+                        if (spell->m_targets.getUnitTarget())
+                            SetInFront(spell->m_targets.getUnitTarget());
+            }
+            else SetInFront(target);
+
             ((Creature*)this)->AI()->AttackStart(target);
             
             // check if currently selected target is reachable
