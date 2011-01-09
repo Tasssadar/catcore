@@ -1946,6 +1946,7 @@ void Aura::TriggerSpell()
 
                     default:
                         break;
+
                 }
                 break;
             }
@@ -2232,7 +2233,13 @@ void Aura::TriggerSpell()
                     if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                         pCaster->CastSpell(target, 51872, true, NULL, this);
                 }
-             }
+            }
+            case 63414:                                     // Spinning Up   
+            {
+                //triggerTarget->CastSpell(triggerTarget, triggeredSpellInfo, false, NULL, this, casterGUID);
+                // hopefuly handled in boss script
+                return;
+            }
         }
     }
 
