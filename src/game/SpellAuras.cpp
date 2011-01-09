@@ -9226,8 +9226,15 @@ void Aura::PeriodicDummyTick()
                     if (target->GetTypeId() != TYPEID_PLAYER)
                         return;
 
+                    if (target->HasAura(62821) && !target->HasAura(61990))
+                    {
+                        target->RemoveAurasDueToSpell(62039);
+                        return;
+                    }
+
                     Player* plr = (Player*)target;
                     Aura* pBiting = plr->GetAura(62039, EFFECT_INDEX_0);
+
                     // if is moving, drop charge
                     if (plr->isMoving())
                     {
@@ -9236,7 +9243,7 @@ void Aura::PeriodicDummyTick()
                                 plr->RemoveAurasDueToSpell(62039);
                     }
                     // if not add charge
-                    else if (!target->HasAura(62821) && !target->HasAura(61990))
+                    else
                     {
                         if (!pBiting)
                             plr->CastSpell(plr, 62039, true);
