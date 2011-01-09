@@ -352,8 +352,7 @@ bool ChatHandler::HandleLitakCommand(const char* args)
     
     player->RemoveFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_TAXI_FLIGHT);
     player->StopMoving();
-    
- 
+    player->SendInitialActionButtons();
     return true;
 }
 

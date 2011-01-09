@@ -1736,8 +1736,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         static bool IsActionButtonDataValid(uint8 button, uint32 action, uint8 type, Player* player, bool msg = true);
         ActionButton* addActionButton(uint8 spec, uint8 button, uint32 action, uint8 type);
         void removeActionButton(uint8 spec, uint8 button);
-        void SendActionButtons(uint32 state) const;
-        void SendInitialActionButtons() const { SendActionButtons(1); }
+
+        void SendInitialActionButtons() const;
+        void SendLockActionButtons() const;
+
         ActionButton const* GetActionButton(uint8 button);
 
         PvPInfo pvpInfo;

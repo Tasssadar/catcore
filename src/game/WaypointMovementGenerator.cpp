@@ -361,12 +361,14 @@ void FlightPathMovementGenerator::Finalize(Player & player)
         player.StopMoving();
     }
     player.UpdateMovementFlags(true);
+    player.SendInitialActionButtons();
 }
 
 void FlightPathMovementGenerator::Interrupt(Player & player)
 {
     player.clearUnitState(UNIT_STAT_IN_FLIGHT);
     player.UpdateMovementFlags(true);
+    player.SendInitialActionButtons();
 }
 
 void FlightPathMovementGenerator::Reset(Player & player)
