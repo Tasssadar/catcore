@@ -9259,7 +9259,22 @@ void Aura::PeriodicDummyTick()
                     target->CastCustomSpell(target, 62188, &bp0, 0, 0, true);
                     return;
                 }
-                case 63276:
+                case 63382:                                 // Rapid Burst
+                {
+                    if (GetEffIndex() == EFFECT_INDEX_0)
+                        return;
+
+                    uint32 spellId = 0;
+                    bool isLeft = float(m_duration)/1000 == m_duration/1000;
+                    if(target->GetMap() && !target->GetMap()->IsRegularDifficulty())
+                        spellId = isLeft ? 64531 : 64532;
+                    else
+                        spellId = isLeft ? 63387 : 64019;
+
+                    target->CastSpell(target, spellId, true);
+                    return;
+                }
+                case 63276:                                 // Mark of Faceless
                 {
                     Unit* caster = GetCaster();
                     if (!caster)
