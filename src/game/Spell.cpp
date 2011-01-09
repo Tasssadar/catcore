@@ -3176,6 +3176,9 @@ void Spell::cast(bool skipCheck)
     } 
 
     SetExecutedCurrently(false);
+
+    if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
+        ((Creature*)m_caster)->AI()->CastFinished(m_spellInfo);
 }
 
 void Spell::handle_immediate()

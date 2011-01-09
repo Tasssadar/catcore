@@ -113,6 +113,9 @@ class MANGOS_DLL_SPEC CreatureAI
         // Called when spell hits creature's target
         virtual void SpellHitTarget(Unit*, const SpellEntry*) {}
 
+        // Called when spell cast is finished
+        virtual void CastFinished(const SpellEntry*) {}
+
         // Called when the creature is target of hostile action: swing, hostile spell landed, fear/etc)
         virtual void AttackedBy(Unit* attacker);
 
@@ -147,8 +150,8 @@ class MANGOS_DLL_SPEC CreatureAI
 
         // Called when victim entered water and creature can not enter water
         virtual bool canReachByRangeAttack(Unit*) { return false; }
-		
-		virtual void DoAction(uint32 action) { }
+        
+        virtual void DoAction(uint32 action) { }
 
         ///== Fields =======================================
 
