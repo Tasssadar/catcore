@@ -2350,3 +2350,15 @@ void Creature::SendAreaSpiritHealerQueryOpcode(Player *pl)
     data << GetGUID() << next_resurrect;
     pl->SendDirectMessage(&data);
 }
+
+uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float angle, bool relocate)
+{
+    Traveller<Creature> traveller(*(Creature*)this);
+    uint32 transitTime = traveller.GetTotalTrevelTimeTo(x, y, z);
+
+    SendMonsterMove(x, y, z, SPLINETYPE_FACINGANGLE, GetSplineFlags(), transitTime, NULL, angle);
+    if (relocate)
+        Relocate(x,y,z);
+
+    return transitTime;
+}
