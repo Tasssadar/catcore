@@ -16758,12 +16758,23 @@ void Unit::InitializeMovementFlags()
     // Vehicle - FIXME!
     if(creature->isVehicle())
     {
-        m_movementInfo.AddMovementFlag2(MOVEFLAG2_ALLOW_PITCHING);
-        if(!creature->canFly() && (creature->GetCreatureTypeMask() & CREATURE_TYPE_MECHANICAL))
-        {
+        VehicleEntry const *entry = sVehicleStore.LookupEntry(((Vehicle*)creature)->GetVehicleId());
+        if(!entry)
+            return;
+        if(entry->m_flags & VEHICLE_FLAG_NO_STRAFE)
             m_movementInfo.AddMovementFlag2(MOVEFLAG2_NO_STRAFE);
+
+        if(entry->m_flags & VEHICLE_FLAG_NO_JUMPING)
             m_movementInfo.AddMovementFlag2(MOVEFLAG2_NO_JUMPING);
-        }
+
+        if(entry->m_flags & VEHICLE_FLAG_FULLSPEEDTURNING)
+            m_movementInfo.AddMovementFlag2(MOVEFLAG2_FULLSPEEDTURNING);
+
+        if(entry->m_flags & VEHICLE_FLAG_ALLOW_PITCHING)
+            m_movementInfo.AddMovementFlag2(MOVEFLAG2_ALLOW_PITCHING);
+
+        if(entry->m_flags & VEHICLE_FLAG_FULLSPEEDPITCHING)
+            m_movementInfo.AddMovementFlag2(MOVEFLAG2_FULLSPEEDPITCHING);
     }
 
     // Flying or swimming
