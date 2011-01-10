@@ -892,7 +892,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     {
         Player *player = sObjectMgr.GetPlayer(citr->guid);
         if (m_roleCheck.m_rolesProposal.find(citr->guid) != m_roleCheck.m_rolesProposal.end() || !player || !player->GetSession() ||
-            player->m_lookingForGroup.roles == 255)
+            player->m_lookingForGroup.roles == 0)
             continue;
         m_roleCheck.m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
@@ -1021,7 +1021,7 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
         if (!plr || !plr->GetSession())
             continue;
         if(state == LFG_ROLECHECK_INITIALITING)
-            plr->m_lookingForGroup.roles = 255;
+            plr->m_lookingForGroup.roles = 0;
         plr->GetSession()->SendPacket(&data);
     }
 }
