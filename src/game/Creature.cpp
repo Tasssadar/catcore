@@ -2362,3 +2362,40 @@ uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, flo
 
     return transitTime;
 }
+
+void Creature::LogKill(Player* killer)
+{
+    if (!killer)
+        return;
+
+    std::ostringstream killers;
+    if (Group* group = killer->GetGroup())
+    {
+        for(GroupReference *itr = group->GetFirstMember(); itr != NULL;)
+        {
+            Player* member = itr->getSource();
+            if (!member)
+            {
+                itr = itr->next();
+                continue;
+            }
+            killers << member->GetName();
+            sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", member->GetName(), member->GetGUIDLow(), 
+                GetName(), GetEntry(), GetGUIDLow());
+            itr = itr->next();
+            if (itr != NULL)
+                killers << " ";
+        }
+    }
+    else
+    {
+        killers << killer;
+        
+        sLog.outBossLog("Player %s (GUID: %u) soloed a boss %s (entry: %u, guid %u)", killer->GetName(), killer->GetGUIDLow(), 
+            GetName(), GetEntry(), GetGUIDLow());
+    }
+
+    CharacterDatabase.PExecute("INSERT INTO boss_kill_log ('guid', 'entry', 'name', 'killers') VALUES (%u, %u, %s, %s,)",
+        GetGUIDLow(), GetEntry(), GetName(), killers.str().c_str());
+
+}
