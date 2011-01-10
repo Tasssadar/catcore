@@ -2956,6 +2956,28 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->m_AuraFlags |= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
                     return;
+                case 64436:                                 // Magnetic Core
+                {
+                    float x = target->GetPositionX();
+                    float y = target->GetPositionY();
+                    float z = target->GetMap()->GetTerrain()->GetHeight(x, y);
+                    float value = 0;
+                    if (!apply)
+                    {
+                        z+= 10.0f;
+                        value = 50331648;
+                    }
+
+                    target->AddAndLinkAura(64438, apply);
+                    
+                    target->SetUInt32Value(UNIT_FIELD_BYTES_0, value);
+                    target->SetUInt32Value(UNIT_FIELD_BYTES_1, value);
+
+                    if (target->GetTypeId() == TYPEID_UNIT)
+                        ((Creature*)target)->SendMonsterMoveWithSpeedAndAngle(x, y, z, M_PI_F, true);					
+                    
+                    return;
+                }
             }
             break;
         }
