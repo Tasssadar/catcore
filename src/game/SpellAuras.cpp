@@ -2956,13 +2956,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->m_AuraFlags |= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
                     return;
-                //Glyph of Thorns
-                case 57862:
-                    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
-                        return;
-                    m_spellmod = new SpellModifier(SPELLMOD_DURATION, SPELLMOD_FLAT, GetMiscValue()*MINUTE*IN_MILLISECONDS, GetId(), UI64LIT(0x0000000000100));
-                    ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
-                    return;
             }
             break;
         }
@@ -3136,6 +3129,15 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     else
                         target->RemoveAurasDueToSpell(50322);
+                    return;
+                }
+                case 57862:                                 // Glyph of Thorns
+                {
+                    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_spellmod = new SpellModifier(SPELLMOD_DURATION, SPELLMOD_FLAT, GetMiscValue()*MINUTE*IN_MILLISECONDS, GetId(), UI64LIT(0x0000000000100));
+                    ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
                     return;
                 }
             }
