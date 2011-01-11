@@ -2967,23 +2967,32 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     return;
                 case 64436:                                 // Magnetic Core
                 {
-                    float x = target->GetPositionX();
-                    float y = target->GetPositionY();
-                    float z = target->GetMap()->GetTerrain()->GetHeight(x, y);
-                    float value = 0;
-                    if (!apply)
+                    if (target->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    Creature* creature = (Creature*)target;
+                    float x = creature->GetPositionX();
+                    float y = creature->GetPositionY();
+                    //float z = target->GetMap()->GetTerrain()->GetHeight(x, y, target->GetPositionZ(), true, 20);
+                    float z = 364.312f;
+                    if (apply)
                     {
-                        z+= 10.0f;
-                        value = 50331648;
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+                        creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+                    }
+                    else
+                    {
+                        z+= 7;
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+                        creature->AddSplineFlag(SPLINEFLAG_FLYING);
                     }
 
                     target->AddAndLinkAura(64438, apply);
                     
-                    target->SetUInt32Value(UNIT_FIELD_BYTES_0, value);
-                    target->SetUInt32Value(UNIT_FIELD_BYTES_1, value);
-
-                    if (target->GetTypeId() == TYPEID_UNIT)
-                        ((Creature*)target)->SendMonsterMoveWithSpeedAndAngle(x, y, z, M_PI_F, true);					
+                    target->GetMap()->CreatureRelocation((Creature*)target, x, y, z, M_PI_F);
+                    target->SendMonsterMove(x,y,z, SPLINETYPE_NORMAL, ((Creature*)target)->GetSplineFlags(), 1);
                     
                     return;
                 }
@@ -9298,11 +9307,12 @@ void Aura::PeriodicDummyTick()
                         return;
 
                     uint32 spellId = 0;
-                    bool isLeft = float(m_duration)/1000 == m_duration/1000;
+                    // switch left and right
+                    bool leftOrRight = m_modifier.m_miscvalue++ % 2;
                     if(target->GetMap() && !target->GetMap()->IsRegularDifficulty())
-                        spellId = isLeft ? 64531 : 64532;
+                        spellId = leftOrRight ? 64531 : 64532;
                     else
-                        spellId = isLeft ? 63387 : 64019;
+                        spellId = leftOrRight ? 63387 : 64019;
 
                     target->CastSpell(target, spellId, true);
                     return;
