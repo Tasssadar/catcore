@@ -826,8 +826,8 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             if (Player* recipient = ((Creature*)pVictim)->GetOriginalLootRecipient())
                 player_tap = recipient;
             
-            if (((Creature*)pVictim)->isWorldBoss())
-                ((Creature*)pVictim)->LogKill(player_tap ? player_tap : GetTypeId() == TYPEID_PLAYER ? (Player*)this : 0);
+            if (((Creature*)pVictim)->isWorldBoss() && GetTypeId() == TYPEID_PLAYER)
+                ((Creature*)pVictim)->LogKill((Player*)this);
         }
         // in player kill case group tap selected by player_tap (killer-player itself, or charmer, or owner, etc)
         else
