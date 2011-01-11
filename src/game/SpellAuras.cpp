@@ -2748,8 +2748,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 target->CastSpell(target, 45472, true);
                 return;
             }
-            // Summon Gargoyle - cast dismiss pet
-            case 61777:
+            case 61777:                                     // Summon Gargoyle - cast dismiss pet
             {
                 target->CastSpell(target, GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0), true);
                 return;
@@ -2758,6 +2757,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 if (m_target->GetTypeId() == TYPEID_UNIT)
                     ((Creature*)m_target)->AddObjectToRemoveList();
+                return;
+            }
+            case 64398:                                     // Mimiron - at effect drop spawn Junk Bot
+            {
+                target->CastSpell(target, 63819, false);
+                return;
+            }
+            case 64426:                                     // Mimiron - at effect drop spawn Assault Bot
+            {
+                target->CastSpell(target, 64427, false);
                 return;
             }
         }
