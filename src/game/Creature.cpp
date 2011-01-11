@@ -2368,34 +2368,50 @@ void Creature::LogKill(Player* killer)
     if (!killer)
         return;
 
+    // fill killers string
     std::ostringstream killers;
     if (Group* group = killer->GetGroup())
     {
-        for(GroupReference *itr = group->GetFirstMember(); itr != NULL;)
+        for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
         {
             Player* member = itr->getSource();
             if (!member)
-            {
-                itr = itr->next();
                 continue;
-            }
+            
             killers << member->GetName();
+            if (itr->next() != NULL)
+                killers << " ";
+
             sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", member->GetName(), member->GetGUIDLow(), 
                 GetName(), GetEntry(), GetGUIDLow());
-            itr = itr->next();
-            if (itr != NULL)
-                killers << " ";
         }
     }
     else
     {
-        killers << killer;
+        killers << killer->GetName();
         
         sLog.outBossLog("Player %s (GUID: %u) soloed a boss %s (entry: %u, guid %u)", killer->GetName(), killer->GetGUIDLow(), 
             GetName(), GetEntry(), GetGUIDLow());
     }
 
-    CharacterDatabase.PExecute("INSERT INTO boss_kill_log ('guid', 'entry', 'name', 'killers') VALUES (%u, %u, %s, %s,)",
-        GetGUIDLow(), GetEntry(), GetName(), killers.str().c_str());
+    // we must ' -> \' in name of unit
+    std::string name = GetName();
+    for (unsigned int i = 0; i < name.size(); ++i)
+    {
+        if (name.at(i) == '\'')
+        {
+            name.replace(i, 1, "\\'");
+            ++i;
+        }
+    }
 
+    // generate sql
+    std::ostringstream sql;
+    sql << "INSERT INTO boss_kill_log ('guid', 'entry', 'name', 'killers') VALUES ("
+        << GetGUIDLow() << ", "
+        << GetEntry() << ", '"
+        << name.c_str() << "', "
+        << killers.str().c_str() << ")";
+
+    CharacterDatabase.Execute(sql.str().c_str());
 }
