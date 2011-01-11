@@ -2759,14 +2759,19 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     ((Creature*)m_target)->AddObjectToRemoveList();
                 return;
             }
-            case 64398:                                     // Mimiron - at effect drop spawn Junk Bot
+            case 64398:                                     // Mimiron - at green effect drop spawn Junk Bot
             {
                 target->CastSpell(target, 63819, false);
                 return;
             }
-            case 64426:                                     // Mimiron - at effect drop spawn Assault Bot
+            case 64426:                                     // Mimiron - at orange effect drop spawn Assault Bot
             {
                 target->CastSpell(target, 64427, false);
+                return;
+            }
+            case 64621:                                     // Mimiron - at blue effect drop spawn Emergency Fire Bot
+            {
+                target->CastSpell(target, 64622, false);
                 return;
             }
         }
