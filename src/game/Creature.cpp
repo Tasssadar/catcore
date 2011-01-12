@@ -2400,8 +2400,8 @@ void Creature::LogKill(Player* killer)
     sql << "INSERT INTO boss_kill_log (guid, entry, name, killers) VALUES ("
         << GetGUIDLow() << ", "
         << GetEntry() << ", '"
-        << name.c_str() << "', "
-        << killers.str().c_str() << ")";
+        << name.c_str() << "', '"
+        << killers.str().c_str() << "')";
 
     CharacterDatabase.Execute(sql.str().c_str());
 }
