@@ -1458,24 +1458,14 @@ void Creature::EnterCombat(Unit* pEnemy)
 
 void Creature::InsertIntoInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->InsertIntoCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->InsertIntoCombatList(this);
 }
 
 void Creature::RemoveFromInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->RemoveFromCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->RemoveFromCombatList(this);
 }
 
 bool Creature::IsImmunedToSpell(SpellEntry const* spellInfo)

@@ -2988,7 +2988,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     else
                     {
-                        z+= 7;
+                        z+= 9;
                         creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
                         creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
                         creature->AddSplineFlag(SPLINEFLAG_FLYING);
