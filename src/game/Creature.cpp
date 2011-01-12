@@ -2397,7 +2397,7 @@ void Creature::LogKill(Player* killer)
 
     // generate sql
     std::ostringstream sql;
-    sql << "INSERT INTO boss_kill_log ('guid', 'entry', 'name', 'killers') VALUES ("
+    sql << "INSERT INTO boss_kill_log (guid, entry, name, killers) VALUES ("
         << GetGUIDLow() << ", "
         << GetEntry() << ", '"
         << name.c_str() << "', "
