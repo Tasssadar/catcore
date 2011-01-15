@@ -670,7 +670,7 @@ bool ChatHandler::HandleGameObjectClickCommand(const char* args)
         return false;
     }
 
-    if (pGo->GetGoType() != GAMEOBJECT_TYPE_DOOR)
+    if (obj->GetGoType() != GAMEOBJECT_TYPE_DOOR)
     {
         PSendSysMessage("This command can be used only on doors");
         return false;
@@ -3966,6 +3966,13 @@ bool ChatHandler::HandleEventStartCommand(const char* args)
     if (event_id < 1 || event_id >=(int32)events.size())
     {
         SendSysMessage(LANG_EVENT_NOT_EXIST);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (m_session->GetPlayer()->GetMapId() == 609)
+    {
+        SendSysMessage("You cannot use this command in this location!");
         SetSentErrorMessage(true);
         return false;
     }

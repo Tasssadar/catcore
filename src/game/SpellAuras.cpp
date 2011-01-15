@@ -2748,8 +2748,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 target->CastSpell(target, 45472, true);
                 return;
             }
-            // Summon Gargoyle - cast dismiss pet
-            case 61777:
+            case 61777:                                     // Summon Gargoyle - cast dismiss pet
             {
                 target->CastSpell(target, GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0), true);
                 return;
@@ -2758,6 +2757,21 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 if (m_target->GetTypeId() == TYPEID_UNIT)
                     ((Creature*)m_target)->AddObjectToRemoveList();
+                return;
+            }
+            case 64398:                                     // Mimiron - at green effect drop spawn Junk Bot
+            {
+                target->CastSpell(target, 63819, false);
+                return;
+            }
+            case 64426:                                     // Mimiron - at orange effect drop spawn Assault Bot
+            {
+                target->CastSpell(target, 64427, false);
+                return;
+            }
+            case 64621:                                     // Mimiron - at blue effect drop spawn Emergency Fire Bot
+            {
+                target->CastSpell(target, 64622, false);
                 return;
             }
         }
@@ -2956,13 +2970,37 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->m_AuraFlags |= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
                     return;
-                //Glyph of Thorns
-                case 57862:
-                    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                case 64436:                                 // Magnetic Core
+                {
+                    if (target->GetTypeId() != TYPEID_UNIT)
                         return;
-                    m_spellmod = new SpellModifier(SPELLMOD_DURATION, SPELLMOD_FLAT, GetMiscValue()*MINUTE*IN_MILLISECONDS, GetId(), UI64LIT(0x0000000000100));
-                    ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
+
+                    Creature* creature = (Creature*)target;
+                    float x = creature->GetPositionX();
+                    float y = creature->GetPositionY();
+                    //float z = target->GetMap()->GetTerrain()->GetHeight(x, y, target->GetPositionZ(), true, 20);
+                    float z = 364.312f;
+                    if (apply)
+                    {
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
+                        creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+                    }
+                    else
+                    {
+                        z+= 9;
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
+                        creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+                        creature->AddSplineFlag(SPLINEFLAG_FLYING);
+                    }
+
+                    target->AddAndLinkAura(64438, apply);
+                    
+                    target->GetMap()->CreatureRelocation((Creature*)target, x, y, z, M_PI_F);
+                    target->SendMonsterMove(x,y,z, SPLINETYPE_NORMAL, ((Creature*)target)->GetSplineFlags(), 1);
+                    
                     return;
+                }
             }
             break;
         }
@@ -3136,6 +3174,15 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     else
                         target->RemoveAurasDueToSpell(50322);
+                    return;
+                }
+                case 57862:                                 // Glyph of Thorns
+                {
+                    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_spellmod = new SpellModifier(SPELLMOD_DURATION, SPELLMOD_FLAT, GetMiscValue()*MINUTE*IN_MILLISECONDS, GetId(), UI64LIT(0x0000000000100));
+                    ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
                     return;
                 }
             }
@@ -9226,8 +9273,15 @@ void Aura::PeriodicDummyTick()
                     if (target->GetTypeId() != TYPEID_PLAYER)
                         return;
 
+                    if (target->HasAura(62821) && !target->HasAura(61990))
+                    {
+                        target->RemoveAurasDueToSpell(62039);
+                        return;
+                    }
+
                     Player* plr = (Player*)target;
                     Aura* pBiting = plr->GetAura(62039, EFFECT_INDEX_0);
+
                     // if is moving, drop charge
                     if (plr->isMoving())
                     {
@@ -9236,7 +9290,7 @@ void Aura::PeriodicDummyTick()
                                 plr->RemoveAurasDueToSpell(62039);
                     }
                     // if not add charge
-                    else if (!target->HasAura(62821) && !target->HasAura(61990))
+                    else
                     {
                         if (!pBiting)
                             plr->CastSpell(plr, 62039, true);
@@ -9252,7 +9306,23 @@ void Aura::PeriodicDummyTick()
                     target->CastCustomSpell(target, 62188, &bp0, 0, 0, true);
                     return;
                 }
-                case 63276:
+                case 63382:                                 // Rapid Burst
+                {
+                    if (GetEffIndex() == EFFECT_INDEX_0)
+                        return;
+
+                    uint32 spellId = 0;
+                    // switch left and right
+                    bool leftOrRight = m_modifier.m_miscvalue++ % 2;
+                    if(target->GetMap() && !target->GetMap()->IsRegularDifficulty())
+                        spellId = leftOrRight ? 64531 : 64532;
+                    else
+                        spellId = leftOrRight ? 63387 : 64019;
+
+                    target->CastSpell(target, spellId, true);
+                    return;
+                }
+                case 63276:                                 // Mark of Faceless
                 {
                     Unit* caster = GetCaster();
                     if (!caster)

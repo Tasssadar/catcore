@@ -1458,24 +1458,14 @@ void Creature::EnterCombat(Unit* pEnemy)
 
 void Creature::InsertIntoInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->InsertIntoCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->InsertIntoCombatList(this);
 }
 
 void Creature::RemoveFromInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->RemoveFromCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->RemoveFromCombatList(this);
 }
 
 bool Creature::IsImmunedToSpell(SpellEntry const* spellInfo)
@@ -2349,4 +2339,69 @@ void Creature::SendAreaSpiritHealerQueryOpcode(Player *pl)
     WorldPacket data(SMSG_AREA_SPIRIT_HEALER_TIME, 8 + 4);
     data << GetGUID() << next_resurrect;
     pl->SendDirectMessage(&data);
+}
+
+uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float angle, bool relocate)
+{
+    Traveller<Creature> traveller(*(Creature*)this);
+    uint32 transitTime = traveller.GetTotalTrevelTimeTo(x, y, z);
+
+    SendMonsterMove(x, y, z, SPLINETYPE_FACINGANGLE, GetSplineFlags(), transitTime, NULL, angle);
+    if (relocate)
+        Relocate(x,y,z);
+
+    return transitTime;
+}
+
+void Creature::LogKill(Player* killer)
+{
+    if (!killer)
+        return;
+
+    // fill killers string
+    std::ostringstream killers;
+    if (Group* group = killer->GetGroup())
+    {
+        for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            Player* member = itr->getSource();
+            if (!member)
+                continue;
+            
+            killers << member->GetName();
+            if (itr->next() != NULL)
+                killers << " ";
+
+            sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", member->GetName(), member->GetGUIDLow(), 
+                GetName(), GetEntry(), GetGUIDLow());
+        }
+    }
+    else
+    {
+        killers << killer->GetName();
+        
+        sLog.outBossLog("Player %s (GUID: %u) soloed a boss %s (entry: %u, guid %u)", killer->GetName(), killer->GetGUIDLow(), 
+            GetName(), GetEntry(), GetGUIDLow());
+    }
+
+    // we must ' -> \' in name of unit
+    std::string name = GetName();
+    for (unsigned int i = 0; i < name.size(); ++i)
+    {
+        if (name.at(i) == '\'')
+        {
+            name.replace(i, 1, "\\'");
+            ++i;
+        }
+    }
+
+    // generate sql
+    std::ostringstream sql;
+    sql << "INSERT INTO boss_kill_log (guid, entry, name, killers) VALUES ("
+        << GetGUIDLow() << ", "
+        << GetEntry() << ", '"
+        << name.c_str() << "', '"
+        << killers.str().c_str() << "')";
+
+    CharacterDatabase.Execute(sql.str().c_str());
 }

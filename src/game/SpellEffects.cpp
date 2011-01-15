@@ -3717,7 +3717,7 @@ void Spell::EffectHealPct(SpellEffectIndex /*eff_idx*/)
         unitTarget->CalculateHealAbsorb(addhealth, &absorb);
 
         int32 gain = caster->DealHeal(unitTarget, addhealth - absorb, m_spellInfo, false, absorb);
-        unitTarget->getHostileRefManager().threatAssist(m_caster, float(gain) * 0.5f, m_spellInfo);
+        unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f, m_spellInfo);
     }
 }
 
@@ -5248,7 +5248,7 @@ void Spell::EffectEnchantItemTmp(SpellEffectIndex eff_idx)
     else if (m_spellInfo->SpellVisual[0] == 215)
         duration = 1800;                                    // 30 mins
     // some fishing pole bonuses
-    else if (m_spellInfo->SpellVisual[0] == 563)
+    else if (m_spellInfo->SpellVisual[0] == 563 && m_spellInfo->Id != 64401)
         duration = 600;                                     // 10 mins
     // shaman rockbiter enchantments
     else if (m_spellInfo->SpellVisual[0] == 0)

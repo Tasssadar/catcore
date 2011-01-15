@@ -825,6 +825,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
 
             if (Player* recipient = ((Creature*)pVictim)->GetOriginalLootRecipient())
                 player_tap = recipient;
+            
+            if (((Creature*)pVictim)->isWorldBoss() && GetTypeId() == TYPEID_PLAYER)
+                ((Creature*)pVictim)->LogKill((Player*)this);
         }
         // in player kill case group tap selected by player_tap (killer-player itself, or charmer, or owner, etc)
         else
@@ -13098,7 +13101,15 @@ bool Unit::SelectHostileTarget()
     {
         if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED))
         {
-            SetInFront(target);
+            if (IsNonMeleeSpellCasted(false))
+            {
+                for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+                    if (Spell* spell = GetCurrentSpell(CurrentSpellTypes(i)))
+                        if (spell->m_targets.getUnitTarget())
+                            SetInFront(spell->m_targets.getUnitTarget());
+            }
+            else SetInFront(target);
+
             ((Creature*)this)->AI()->AttackStart(target);
             
             // check if currently selected target is reachable
@@ -14759,9 +14770,14 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         if (useCharges && !triggeredByAura->IsDeleted())
         {
             // Item - Mage T8 4P Bonus
-            if(!procSpell || procSpell->SpellFamilyName != SPELLFAMILY_MAGE || !HasAura(64869) ||
-                (triggeredByAura->GetId() != 44401 && triggeredByAura->GetId() != 48108 && triggeredByAura->GetId() != 57761)
-                || !roll_chance_f(25.0f))
+            if (HasAura(64869))
+            {
+                if (triggeredByAura->GetId() == 44401 || triggeredByAura->GetId() == 48108 || triggeredByAura->GetId() == 57761)
+                    if (!roll_chance_f(10.0f))
+                        if (triggeredByAura->DropAuraCharge())
+                            removedSpells.push_back(triggeredByAura->GetId());
+            }
+            else
             {
                 // If last charge dropped add spell to remove list
                 // if spell procs on damage and for victim, do not drop charge on full absorb (f.e. Inner Fire)
@@ -15931,7 +15947,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         data << float(-verticalSpeed);                      // Z Movement speed (vertical)
         ((Player*)this)->GetSession()->SendPacket(&data);
     }
-    else
+    // World Bosses shouldn'be knockable
+    else if (!((Creature*)this)->isWorldBoss())
     {
         // All this is guessed, but looks cool
         float dis = horizontalSpeed;
