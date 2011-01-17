@@ -3970,6 +3970,13 @@ bool ChatHandler::HandleEventStartCommand(const char* args)
         return false;
     }
 
+    if (m_session->GetPlayer()->GetMapId() == 609)
+    {
+        SendSysMessage("You cannot use this command in this location!");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
     GameEventData const& eventData = events[event_id];
     if (!eventData.isValid())
     {

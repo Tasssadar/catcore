@@ -645,7 +645,7 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
 {
     SpellEntry const *spellproto = sSpellStore.LookupEntry(spellId);
     if (!spellproto) return false;
-    if (spellproto->Id == 56266)
+    if (spellproto->Id == 56266 || spellproto->Id == 63355)
         return false;
 
     switch(spellproto->Effect[effIndex])

@@ -668,7 +668,7 @@ void LfgGroup::SendUpdate()
             Player* member = sObjectMgr.GetPlayer(citr2->guid);
             uint8 onlineState = (member) ? MEMBER_STATUS_ONLINE : MEMBER_STATUS_OFFLINE;
             onlineState = onlineState | ((isBGGroup()) ? MEMBER_STATUS_PVP : 0);
-            if(member && member->IsInWorld())
+            if(member)
             {
                 if(member->isAFK())
                     onlineState |= MEMBER_STATUS_AFK;
