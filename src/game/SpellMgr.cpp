@@ -1937,6 +1937,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     break;
                 }
                 case SPELLFAMILY_MAGE:
+                {
+                    // Intell(svitek) and Arcane Brilliance
+                    if(spellInfo_2->SpellIconID == 1694 && spellInfo_1->SpellIconID == 125 )
+                        return true;
+
+                    // Intell(svitek) anf Dalaran Brilliance
+                    if(spellInfo_2->SpellIconID == 3236 && spellInfo_1->SpellIconID == 125 )
+                        return true;
+
                     // Arcane Intellect and Insight
                     if ( spellInfo_2->SpellIconID == 125 && spellInfo_1->Id == 18820 )
                         return false;
@@ -1945,6 +1954,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if ( spellInfo_2->SpellIconID == 188 && spellInfo_1->Id == 59638 )
                         return false;
                     break;
+                }
                 case SPELLFAMILY_WARRIOR:
                 {
                     // Scroll of Protection and Defensive Stance (multi-family check)
@@ -1962,6 +1972,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 }
                 case SPELLFAMILY_DRUID:
                 {
+                    // Gift of the Wild  and Drums of the Wild
+                    if(spellInfo_2->SpellIconID == 2435 && spellInfo_1->SpellIconID == 123 )
+                        return true;
+
                     // Scroll of Stamina and Leader of the Pack (multi-family check)
                     if ( spellInfo_1->SpellIconID == 312 && spellInfo_1->SpellVisual[0] == 216 && spellInfo_2->Id == 24932 )
                         return false;
@@ -2097,6 +2111,16 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->SpellIconID == 2947 && spellInfo_1->SpellIconID == 2947)
                     return false;
             }
+            // Dalaran Brilliance  and Intel(svitek)
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+                if(spellInfo_1->SpellIconID == 3236 && spellInfo_2->SpellIconID == 125 )
+                    return true;
+
+            // Arcane Brilliance  and Intel(svitek)
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+                if(spellInfo_1->SpellIconID == 1694 && spellInfo_2->SpellIconID == 125 )
+                    return true;
+
             //Focus magic(30 min buff) and Praxis (T8 set bonus) (generic family)
             if (spellInfo_1->Id == 54646 && spellInfo_2->Id == 64868)
                 return false;
@@ -2204,6 +2228,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PRIEST:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST )
             {
+                // Mind Flay  and Mind Flay
+                if(spellInfo_2->SpellIconID == 548 && spellInfo_1->SpellIconID == 548)
+                    return false;
+
                 //Devouring Plague and Shadow Vulnerability
                 if ((spellInfo_1->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x800000000)) ||
                     (spellInfo_2->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x800000000)))
@@ -2299,6 +2327,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->SpellFamilyFlags == UI64LIT(0x200000) && spellInfo_2->SpellFamilyFlags == UI64LIT(0x200000))
                     return false;
             }
+            // Gift of the Wild  and Drums of the Wild
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+                if(spellInfo_1->SpellIconID == 2435 && spellInfo_2->SpellIconID == 123 )
+                    return true;
 
             // Leader of the Pack and Scroll of Stamina (multi-family check)
             if ( spellInfo_1->Id == 24932 && spellInfo_2->SpellIconID == 312 && spellInfo_2->SpellVisual[0] == 216 )
@@ -2350,6 +2382,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_HUNTER:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_HUNTER )
             {
+                // Explosive Shot  and Explosive Shot
+                if(spellInfo_2->SpellIconID == 3407 && spellInfo_1->SpellIconID == 3407 )
+                    return false;
+
                 // Rapid Fire & Quick Shots
                 if ( (spellInfo_1->SpellFamilyFlags & UI64LIT(0x20)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x20000000000)) ||
                     (spellInfo_2->SpellFamilyFlags & UI64LIT(0x20)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x20000000000)) )
@@ -2383,6 +2419,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PALADIN:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN )
             {
+                // Judgement of Light  and Judgement of Light     
+                if(spellInfo_2->SpellIconID == 205 && spellInfo_1->SpellIconID == 205 )
+                    return true;
+
+                // Judgement of Wisdom  and Judgement of Wisdom
+                if(spellInfo_2->SpellIconID == 3014 && spellInfo_1->SpellIconID == 3014 )
+                    return true;
+
                 // Paladin Seals
                 if (IsSealSpell(spellInfo_1) && IsSealSpell(spellInfo_2))
                     return true;
@@ -2424,6 +2468,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->Id == 20066 && spellInfo_2->Id == 61840)
                     return true;
             }
+            // Blessing of Sanctuary  and Lightning shield
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_SHAMAN)
+                if(spellInfo_2->SpellIconID == 19 && spellInfo_1->SpellIconID == 19 )
+                    return false;
 
             // Blessing of Sanctuary (multi-family check, some from 16 spell icon spells)
             if (spellInfo_2->Id == 67480 && spellInfo_1->Id == 20911)
@@ -2456,6 +2504,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_SHAMAN:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_SHAMAN )
             {
+                // Stormstrike  and Stormstrike
+                if(spellInfo_2->SpellIconID == 2562 && spellInfo_1->SpellIconID == 2562 )
+                    return false;
+
                 // Windfury weapon
                 if ( spellInfo_1->SpellIconID==220 && spellInfo_2->SpellIconID==220 &&
                     spellInfo_1->SpellFamilyFlags != spellInfo_2->SpellFamilyFlags )
@@ -2469,6 +2521,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->SpellIconID == 2019 && spellInfo_2->SpellIconID == 2019)
                     return false;
             }
+            // Blessing of Sanctuary  and Lightning shield
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+                if(spellInfo_1->SpellIconID == 19 && spellInfo_2->SpellIconID == 19 )
+                    return false;
+
             // Bloodlust and Bloodthirst (multi-family check)
             if ( spellInfo_1->Id == 2825 && spellInfo_2->SpellIconID == 38 && spellInfo_2->SpellVisual[0] == 0 )
                 return false;
