@@ -4295,7 +4295,8 @@ void Player::DeleteFromDB(uint64 playerguid, uint32 accountId, bool updateRealmC
                 {
                     Field *fields3 = resultPets->Fetch();
                     uint32 petguidlow = fields3[0].GetUInt32();
-                    Pet::DeleteFromDB(petguidlow);
+                    //do not create separate transaction for pet delete otherwise we will get fatal error!
+                    Pet::DeleteFromDB(petguidlow, false);
                 } while (resultPets->NextRow());
                 delete resultPets;
             }

@@ -6026,10 +6026,6 @@ void ObjectMgr::PackGroupIds()
             // remap group id
             CharacterDatabase.PExecute("UPDATE groups SET groupId = '%u' WHERE groupId = '%u'", groupId, *i);
             CharacterDatabase.PExecute("UPDATE group_member SET groupId = '%u' WHERE groupId = '%u'", groupId, *i);
-<<<<<<< HEAD
-=======
-            CharacterDatabase.CommitTransaction();
->>>>>>> 8048e00... [11054] Do not allow async transaction execution while server is loading. Call Database::InitDelayThread() function explicitly to create async DB worker thread after server initialization is complete.
         }
 
         ++groupId;
@@ -6070,10 +6066,6 @@ void ObjectMgr::SetHighestGuids()
     CharacterDatabase.PExecute("DELETE FROM mail_items WHERE item_guid >= '%u'", m_ItemGuids.GetNextAfterMaxUsed());
     CharacterDatabase.PExecute("DELETE FROM auctionhouse WHERE itemguid >= '%u'", m_ItemGuids.GetNextAfterMaxUsed());
     CharacterDatabase.PExecute("DELETE FROM guild_bank_item WHERE item_guid >= '%u'", m_ItemGuids.GetNextAfterMaxUsed());
-<<<<<<< HEAD
-=======
-    CharacterDatabase.CommitTransaction();
->>>>>>> 8048e00... [11054] Do not allow async transaction execution while server is loading. Call Database::InitDelayThread() function explicitly to create async DB worker thread after server initialization is complete.
 
     result = WorldDatabase.Query("SELECT MAX(guid) FROM gameobject" );
     if ( result )
