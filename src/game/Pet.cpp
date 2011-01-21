@@ -390,9 +390,12 @@ void Pet::SavePetToDB(PetSaveMode mode)
         if (mode != PET_SAVE_AS_CURRENT)
             RemoveAllAuras();
 
+        //save pet's spell data as one single transaction
+        CharacterDatabase.BeginTransaction();
         _SaveSpells();
         _SaveSpellCooldowns();
         _SaveAuras();
+        CharacterDatabase.CommitTransaction;
 
         uint32 owner = GUID_LOPART(GetOwnerGUID());
         std::string name = m_name;
