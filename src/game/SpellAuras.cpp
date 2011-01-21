@@ -587,7 +587,7 @@ Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *curr
 
 Unit* Aura::GetCaster() const
 {
-    if (m_caster_guid == m_target->GetGUID())
+    if (m_target && m_caster_guid == m_target->GetGUID())
         return m_target;
 
     //return ObjectAccessor::GetUnit(*m_target,m_caster_guid);

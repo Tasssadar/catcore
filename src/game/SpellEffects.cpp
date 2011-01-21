@@ -4445,6 +4445,8 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
     int32 amount = damage;
+    if(m_spellInfo->Id == 1122)
+        amount = 1;
     Unit *summoner = m_caster;
 
     if (m_caster->GetTypeId()==TYPEID_PLAYER && spawnCreature->LoadPetFromDB((Player*)m_caster,pet_entry))
