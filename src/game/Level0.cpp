@@ -78,6 +78,13 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
         SetSentErrorMessage(true);
         return false;
     }
+    
+    if (m_session->GetPlayer()->GetMapId() == 609)
+    {
+        SendSysMessage("You cannot use this command in this location!");
+        SetSentErrorMessage(true);
+        return false;
+    }
 
     // cast spell Stuck
     chr->CastSpell(chr,7355,false);

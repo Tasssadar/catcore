@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,15 @@ class MANGOS_DLL_SPEC Database
         QueryResult* PQuery(const char *format,...) ATTR_PRINTF(2,3);
         QueryNamedResult* PQueryNamed(const char *format,...) ATTR_PRINTF(2,3);
 
-        bool DirectExecute(const char* sql);
+        inline bool DirectExecute(const char* sql)
+        {
+            if(!m_pAsyncConn)
+                return false;
+
+            SqlConnection::Lock guard(m_pAsyncConn);
+            return guard->Execute(sql);
+        }
+
         bool DirectPExecute(const char *format,...) ATTR_PRINTF(2,3);
 
         /// Async queries and query holders, implemented in DatabaseImpl.h
@@ -162,9 +170,9 @@ class MANGOS_DLL_SPEC Database
         //escape string generation
         void escape_string(std::string& str);
 
-        // must be called before first query in thread (one time for thread using one from existed Database objects)
+        // must be called before first query in thread (one time for thread using one from existing Database objects)
         virtual void ThreadStart();
-        // must be called before finish thread run (one time for thread using one from existed Database objects)
+        // must be called before finish thread run (one time for thread using one from existing Database objects)
         virtual void ThreadEnd();
 
         // set database-wide result queue. also we should use object-bases and not thread-based result queues

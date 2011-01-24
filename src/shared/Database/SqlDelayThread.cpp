@@ -1,5 +1,6 @@
+
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +46,8 @@ void SqlDelayThread::run()
     {
         // if the running state gets turned off while sleeping
         // empty the queue before exiting
+        ACE_Based::Thread::Sleep(loopSleepms);
+
         ProcessRequests();
 
         if((loopCounter++) >= pingEveryLoop)
@@ -69,7 +72,6 @@ void SqlDelayThread::ProcessRequests()
     SqlOperation* s = NULL;
     while (m_sqlQueue.next(s))
     {
-        if(!s) continue;
         s->Execute(m_dbConnection);
         delete s;
     }

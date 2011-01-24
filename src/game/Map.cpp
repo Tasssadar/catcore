@@ -1422,6 +1422,9 @@ void InstanceMap::Update(const uint32& t_diff)
 
     if (i_data)
         i_data->Update(t_diff);
+    uint32 mapid = GetId();
+    if (mapid ==800)
+        return;
 }
 
 void BattleGroundMap::Update(const uint32& diff)

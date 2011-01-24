@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +41,7 @@ void DatabaseMysql::ThreadEnd()
 DatabaseMysql::DatabaseMysql()
 {
     // before first connection
-    if ( db_count++ == 0 )
+    if( db_count++ == 0 )
     {
         // Mysql Library Init
         mysql_library_init(-1, NULL, NULL);
@@ -59,10 +60,9 @@ DatabaseMysql::~DatabaseMysql()
     StopServer();
 
     //Free Mysql library pointers for last ~DB
-    if (--db_count == 0)
+    if(--db_count == 0)
         mysql_library_end();
 }
-
 
 SqlConnection * DatabaseMysql::CreateConnection()
 { 
@@ -93,15 +93,15 @@ bool MySQLConnection::Initialize(const char *infoString)
 
     iter = tokens.begin();
 
-    if (iter != tokens.end())
+    if(iter != tokens.end())
         host = *iter++;
-    if (iter != tokens.end())
+    if(iter != tokens.end())
         port_or_socket = *iter++;
-    if (iter != tokens.end())
+    if(iter != tokens.end())
         user = *iter++;
-    if (iter != tokens.end())
+    if(iter != tokens.end())
         password = *iter++;
-    if (iter != tokens.end())
+    if(iter != tokens.end())
         database = *iter++;
 
     mysql_options(mysqlInit,MYSQL_SET_CHARSET_NAME,"utf8");
@@ -181,27 +181,24 @@ bool MySQLConnection::_Query(const char *sql, MYSQL_RES **pResult, MYSQL_FIELD *
 {
     if (!mMysql)
         return 0;
+
+    uint32 _s = getMSTime();
+
+    if(mysql_query(mMysql, sql))
     {
-        // guarded block for thread-safe mySQL request
-        ACE_Guard<ACE_Thread_Mutex> query_connection_guard(mMutex);
+        sLog.outErrorDb( "SQL: %s", sql );
+        sLog.outErrorDb("query ERROR: %s", mysql_error(mMysql));
+        return false;
+    }
+    else
+    {
+        DEBUG_FILTER_LOG(LOG_FILTER_SQL_TEXT, "[%u ms] SQL: %s", getMSTimeDiff(_s,getMSTime()), sql );
+    }
 
-        uint32 _s = WorldTimer::getMSTime();
+    *pResult = mysql_store_result(mMysql);
+    *pRowCount = mysql_affected_rows(mMysql);
+    *pFieldCount = mysql_field_count(mMysql);
 
-        if (mysql_query(mMysql, sql))
-        {
-            sLog.outErrorDb( "SQL: %s", sql );
-            sLog.outErrorDb("query ERROR: %s", mysql_error(mMysql));
-            return false;
-        }
-        else
-        {
-            DEBUG_FILTER_LOG(LOG_FILTER_SQL_TEXT, "[%u ms] SQL: %s", getMSTimeDiff(_s,getMSTime()), sql );
-        }
-
-        *pResult = mysql_store_result(mMysql);
-        *pRowCount = mysql_affected_rows(mMysql);
-        *pFieldCount = mysql_field_count(mMysql);
-    } 
     if (!*pResult )
         return false;
 
@@ -222,7 +219,7 @@ QueryResult* MySQLConnection::Query(const char *sql)
     uint64 rowCount = 0;
     uint32 fieldCount = 0;
 
-    if (!_Query(sql,&result,&fields,&rowCount,&fieldCount))
+    if(!_Query(sql,&result,&fields,&rowCount,&fieldCount))
         return NULL;
 
     QueryResultMysql *queryResult = new QueryResultMysql(result, fields, rowCount, fieldCount);
@@ -238,7 +235,7 @@ QueryNamedResult* MySQLConnection::QueryNamed(const char *sql)
     uint64 rowCount = 0;
     uint32 fieldCount = 0;
 
-    if (!_Query(sql,&result,&fields,&rowCount,&fieldCount))
+    if(!_Query(sql,&result,&fields,&rowCount,&fieldCount))
         return NULL;
 
     QueryFieldNames names(fieldCount);
@@ -257,12 +254,9 @@ bool MySQLConnection::Execute(const char* sql)
         return false;
 
     {
-        // guarded block for thread-safe mySQL request
-        ACE_Guard<ACE_Thread_Mutex> query_connection_guard(mMutex);
+        uint32 _s = getMSTime();
 
-        uint32 _s = WorldTimer::getMSTime();
-
-        if (mysql_query(mMysql, sql))
+        if(mysql_query(mMysql, sql))
         {
             sLog.outErrorDb("SQL: %s", sql);
             sLog.outErrorDb("SQL ERROR: %s", mysql_error(mMysql));

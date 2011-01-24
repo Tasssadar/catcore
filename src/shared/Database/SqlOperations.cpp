@@ -1,5 +1,6 @@
+
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +70,7 @@ void SqlTransaction::Execute(SqlConnection *conn)
 
 void SqlQuery::Execute(SqlConnection *conn)
 {
-    if (!m_callback || !m_queue)
+    if(!m_callback || !m_queue)
         return;
 
     LOCK_DB_CONN(conn);
@@ -82,7 +83,7 @@ void SqlQuery::Execute(SqlConnection *conn)
 void SqlResultQueue::Update()
 {
     /// execute the callbacks waiting in the synchronization queue
-    MaNGOS::IQueryCallback* callback;
+    MaNGOS::IQueryCallback* callback = NULL;
     while (next(callback))
     {
         callback->Execute();
@@ -92,7 +93,7 @@ void SqlResultQueue::Update()
 
 bool SqlQueryHolder::Execute(MaNGOS::IQueryCallback * callback, SqlDelayThread *thread, SqlResultQueue *queue)
 {
-    if (!callback || !thread || !queue)
+    if(!callback || !thread || !queue)
         return false;
 
     /// delay the execution of the queries, sync them with the delay thread
@@ -104,13 +105,13 @@ bool SqlQueryHolder::Execute(MaNGOS::IQueryCallback * callback, SqlDelayThread *
 
 bool SqlQueryHolder::SetQuery(size_t index, const char *sql)
 {
-    if (m_queries.size() <= index)
+    if(m_queries.size() <= index)
     {
         sLog.outError("Query index (" SIZEFMTD ") out of range (size: " SIZEFMTD ") for query: %s", index, m_queries.size(), sql);
         return false;
     }
 
-    if (m_queries[index].first != NULL)
+    if(m_queries[index].first != NULL)
     {
         sLog.outError("Attempt assign query to holder index (" SIZEFMTD ") where other query stored (Old: [%s] New: [%s])",
             index,m_queries[index].first,sql);
@@ -124,7 +125,7 @@ bool SqlQueryHolder::SetQuery(size_t index, const char *sql)
 
 bool SqlQueryHolder::SetPQuery(size_t index, const char *format, ...)
 {
-    if (!format)
+    if(!format)
     {
         sLog.outError("Query (index: " SIZEFMTD ") is empty.",index);
         return false;
@@ -136,7 +137,7 @@ bool SqlQueryHolder::SetPQuery(size_t index, const char *format, ...)
     int res = vsnprintf( szQuery, MAX_QUERY_LEN, format, ap );
     va_end(ap);
 
-    if (res==-1)
+    if(res==-1)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s",format);
         return false;
@@ -147,10 +148,10 @@ bool SqlQueryHolder::SetPQuery(size_t index, const char *format, ...)
 
 QueryResult* SqlQueryHolder::GetResult(size_t index)
 {
-    if (index < m_queries.size())
+    if(index < m_queries.size())
     {
         /// the query strings are freed on the first GetResult or in the destructor
-        if (m_queries[index].first != NULL)
+        if(m_queries[index].first != NULL)
         {
             delete [] (const_cast<char*>(m_queries[index].first));
             m_queries[index].first = NULL;
@@ -165,7 +166,7 @@ QueryResult* SqlQueryHolder::GetResult(size_t index)
 void SqlQueryHolder::SetResult(size_t index, QueryResult *result)
 {
     /// store the result in the holder
-    if (index < m_queries.size())
+    if(index < m_queries.size())
         m_queries[index].second = result;
 }
 
@@ -175,10 +176,10 @@ SqlQueryHolder::~SqlQueryHolder()
     {
         /// if the result was never used, free the resources
         /// results used already (getresult called) are expected to be deleted
-        if (m_queries[i].first != NULL)
+        if(m_queries[i].first != NULL)
         {
             delete [] (const_cast<char*>(m_queries[i].first));
-            if (m_queries[i].second)
+            if(m_queries[i].second)
                 delete m_queries[i].second;
         }
     }
@@ -192,7 +193,7 @@ void SqlQueryHolder::SetSize(size_t size)
 
 void SqlQueryHolderEx::Execute(SqlConnection *conn)
 {
-    if (!m_holder || !m_callback || !m_queue)
+    if(!m_holder || !m_callback || !m_queue)
         return;
 
     LOCK_DB_CONN(conn);
