@@ -1266,7 +1266,7 @@ void Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask)
             if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NOT_BREAK_STEALTH) || m_spellInfo->SpellFamilyFlags & SPELLFAMILYFLAG_ROGUE_SAP || isCausingAura(SPELL_AURA_DETECT_STEALTH))
             {
                 if (!(m_spellInfo->Id == 39897 || m_spellInfo->Id == 32592 || m_spellInfo->Id == 32375|| m_spellInfo->Id == 1725 ||
-                    m_spellInfo->Id == 1038 || (m_spellInfo->SpellFamilyFlags2 & UI64LIT(0x00000100)) || m_spellInfo->Id == 3600 ||
+                    m_spellInfo->Id == 1038 || (m_spellInfo->SpellFamilyFlags2 & UI64LIT(0x00000100)) || m_spellInfo->Id == 3600 || m_spellInfo->Id == 55342 ||
                     IsSpellHaveEffect(m_spellInfo, SPELL_EFFECT_THREAT) || IsSpellHaveEffect(m_spellInfo, SPELL_EFFECT_MODIFY_THREAT_PERCENT) ||
                     IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_TOTAL_THREAT)))
                     unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
