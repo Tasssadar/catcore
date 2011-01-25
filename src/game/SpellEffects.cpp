@@ -2944,10 +2944,10 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
     switch (triggered_spell_id)
     {
         // Freezing Arrow - removing cooldown for triggered spell
-        case 60192:
+        case 60202:
         {
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                ((Player*)m_caster)->RemoveSpellCooldown(60202, true);
+                ((Player*)m_caster)->RemoveSpellCooldown(triggered_spell_id, true);
 
             break;
 
