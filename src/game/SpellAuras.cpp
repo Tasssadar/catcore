@@ -9355,6 +9355,18 @@ void Aura::PeriodicDummyTick()
                     }
                     return;
                 }
+                case 66823:                                 // Paralytic Toxin
+                {
+                    // each proc slow target
+                    if (Aura* aur = target->GetAura(GetId(), EFFECT_INDEX_0))
+                        aur->GetModifier()->m_amount -=  5;
+
+                    m_target->UpdateSpeed(MOVE_WALK, true);
+                    m_target->UpdateSpeed(MOVE_RUN, true);
+                    m_target->UpdateSpeed(MOVE_RUN_BACK, true);
+                    m_target->UpdateSpeed(MOVE_SWIM, true);
+                    m_target->UpdateSpeed(MOVE_FLIGHT, true);
+                }
 // Exist more after, need add later
                 default:
                     break;
