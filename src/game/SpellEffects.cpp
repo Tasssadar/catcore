@@ -6916,6 +6916,27 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 66747, true);
                     return;
                 }
+                case 66870:                                 // Burning Bile (10n)
+                case 67621:                                 // Burning Bile (25n)
+                case 67622:                                 // Burning Bile (10h)
+                case 67623:                                 // Burning Bile (25h)
+                {
+                    if (!unitTarget)
+                        return;
+
+                    uint32 removeId = 0;
+                    switch (m_spellInfo->Id)
+                    {
+                        case 66870: removeId = 66823; break;
+                        case 67621: removeId = 67618; break;
+                        case 67622: removeId = 67619; break;
+                        case 67623: removeId = 67620; break;
+                    }
+
+                    if (removeId)
+                        unitTarget->RemoveAurasDueToSpell(removeId);
+                    return;
+                }
                 case 69377:                                 // Fortitude
                 {
                     if (!unitTarget)
