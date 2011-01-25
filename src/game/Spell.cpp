@@ -328,7 +328,6 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
 
     m_destroyed = false;
     m_caster = caster;
-    m_spellInfo = info;
     m_selfContainer = NULL;
     m_triggeringContainer = triggeringContainer;
     m_referencedFromCurrentSpell = false;
