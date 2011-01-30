@@ -7481,6 +7481,13 @@ void Spell::AddPrecastAndTriggeredSpells()
                 AddPrecastSpell(41425);                     // Hypothermia
             break;
         }
+        case SPELLFAMILY_WARLOCK:
+        {
+            // Consume Shadows
+            if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000002000000))
+                AddPrecastSpell(54501);                     // Consume Shadows - Stealth detection part
+            break;
+        }
         case SPELLFAMILY_PRIEST:
         {
             // Power Word: Shield
