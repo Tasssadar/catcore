@@ -1863,6 +1863,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         spellInfo_1->SpellIconID == 329 && spellInfo_1->SpellVisual[0] == 7625)
         return false;
 
+    // gift of the naaru(have diff spell families) and Renew
+    if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST &&
+        spellInfo_2->SpellIconID == 321)
+        return false;
+
     // Specific spell family spells
     switch(spellInfo_1->SpellFamilyName)
     {
@@ -2247,10 +2252,6 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PRIEST:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST )
             {
-                // Mind Flay  and Mind Flay
-                if(spellInfo_2->SpellIconID == 548 && spellInfo_1->SpellIconID == 548)
-                    return false;
-
                 //Devouring Plague and Shadow Vulnerability
                 if ((spellInfo_1->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x800000000)) ||
                     (spellInfo_2->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x800000000)))
@@ -2270,18 +2271,19 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 // Inner Fire and Consecration
                 if (spellInfo_1->SpellIconID == 51 && spellInfo_2->SpellIconID == 51 && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
                     return false;
-                // Mind flay and Mind flay
-                if (spellInfo_1->SpellIconID == 548 && spellInfo_2->SpellIconID == 548)
-                    return false;
+
                 // Glyph of Prayer of Healing and Renew
                 if((spellInfo_1->Id == 56161 && spellInfo_2->SpellIconID == 321) ||
                    (spellInfo_2->Id == 56161 && spellInfo_1->SpellIconID == 321))
                     return false;
             }
-            //Renewed hope and gift of the naaru(have diff spell families)
-            else if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellVisual[0] == 7625)
+            // gift of the naaru(have diff spell families) and Renew
+            if (spellInfo_2->SpellIconID == 329 && spellInfo_1->SpellIconID == 321)
                 return false;
-            else if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
+            //Renewed hope and gift of the naaru(have diff spell families)
+            if (spellInfo_1->SpellIconID == 329 && spellInfo_2->SpellIconID == 329 && spellInfo_2->SpellVisual[0] == 7625)
+                return false;
+            if (spellInfo_2->SpellFamilyName == SPELLFAMILY_GENERIC)
             {
                 // Fortitude(Svitek) and Power Word: Fortitude
                 if (spellInfo_2->SpellIconID == 312 && spellInfo_1->SpellIconID == 685)
