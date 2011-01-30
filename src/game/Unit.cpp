@@ -14774,12 +14774,11 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         if (useCharges && !triggeredByAura->IsDeleted())
         {
             // Item - Mage T8 4P Bonus
-            if (HasAura(64869))
+            if (HasAura(64869) && (triggeredByAura->GetId() == 44401 || triggeredByAura->GetId() == 48108 || triggeredByAura->GetId() == 57761))
             {
-                if (triggeredByAura->GetId() == 44401 || triggeredByAura->GetId() == 48108 || triggeredByAura->GetId() == 57761)
-                    if (!roll_chance_f(10.0f))
-                        if (triggeredByAura->DropAuraCharge())
-                            removedSpells.push_back(triggeredByAura->GetId());
+                if (!roll_chance_f(10.0f))
+                    if (triggeredByAura->DropAuraCharge())
+                        removedSpells.push_back(triggeredByAura->GetId());
             }
             else
             {
