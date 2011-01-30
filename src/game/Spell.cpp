@@ -3562,7 +3562,7 @@ void Spell::finish(bool ok)
             {
                 if (ihit->deleted == true)
                     continue;
-                if (ihit->missCondition != SPELL_MISS_NONE && ihit->targetGUID != m_caster->GetObjectGuid())
+                if (ihit->missCondition != SPELL_MISS_NONE && ihit->missCondition != SPELL_MISS_IMMUNE && ihit->missCondition != SPELL_MISS_IMMUNE2 && ihit->targetGUID != m_caster->GetObjectGuid())
                 {
                     needDrop = false;
                     break;
