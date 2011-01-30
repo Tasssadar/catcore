@@ -4724,6 +4724,7 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
         // single allowed spell specific from same caster or from any caster at target
         bool is_spellSpecPerTargetPerCaster = IsSingleFromSpellSpecificPerTargetPerCaster(spellId_spec,i_spellId_spec);
         bool is_spellSpecPerTarget = IsSingleFromSpellSpecificPerTarget(spellId_spec,i_spellId_spec);
+        bool is_spellSpecPerTargetPerCasterNotStack = IsSingleFromSpellSpecificPerCasterNoStack (spellId_spec,i_spellId_spec);
 
         if ( is_spellSpecPerTarget || is_spellSpecPerTargetPerCaster && Aur->GetCasterGUID() == (*i).second->GetCasterGUID() )
         {
@@ -4777,7 +4778,7 @@ bool Unit::RemoveNoStackAurasDueToAura(Aura *Aur)
             continue;
 
         // non single (per caster) per target spell specific (possible single spell per target at caster)
-        if ( !is_spellSpecPerTargetPerCaster && !is_spellSpecPerTarget && sSpellMgr.IsNoStackSpellDueToSpell(spellId, i_spellId) )
+        if ( ((!is_spellSpecPerTargetPerCaster && !is_spellSpecPerTarget) || is_spellSpecPerTargetPerCasterNotStack) && sSpellMgr.IsNoStackSpellDueToSpell(spellId, i_spellId) )
         {
             // Its a parent aura (create this aura in ApplyModifier)
             if ((*i).second->IsInUse())

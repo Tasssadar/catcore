@@ -469,8 +469,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000002190))
                 return SPELL_HAND;
 
-            // skip Heart of the Crusader that have also same spell family mask
-            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000821180400)) && (spellInfo->AttributesEx3 & 0x200) && (spellInfo->SpellIconID != 237))
+            if (spellInfo->SpellIconID == 3013 || spellInfo->SpellIconID == 205 || spellInfo->SpellIconID == 3014)
                 return SPELL_JUDGEMENT;
 
             // only paladin auras have this (for palaldin class family)
@@ -506,8 +505,17 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
 
     return SPELL_NORMAL;
 }
-
-
+// target is not allowed to have more that one spell specific from the same caster and that spell does not stack with the same spell from other casters (f.e. Judgements of Justice/Wisdom/Light)
+bool IsSingleFromSpellSpecificPerCasterNoStack(SpellSpecific spellSpec1,SpellSpecific spellSpec2)
+{
+    switch(spellSpec1)
+    {
+        case SPELL_JUDGEMENT:
+            return spellSpec1==spellSpec2;
+        default:
+            return false;
+    }
+}
 // target not allow have more one spell specific from same caster
 bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1,SpellSpecific spellSpec2)
 {
@@ -1813,7 +1821,18 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
     if (!spellInfo_1 || !spellInfo_2)
         return false;
-
+    if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+    {
+        // Judgement of Light and Judgement of Light     
+        if(spellInfo_2->SpellIconID == 205 && spellInfo_1->SpellIconID == 205 )
+            return true;
+        // Judgement of Wisdom and Judgement of Wisdom
+        if(spellInfo_2->SpellIconID == 3014 && spellInfo_1->SpellIconID == 3014 )
+            return true;
+        // Judgement of Justice
+        if(spellInfo_2->SpellIconID == 3013 && spellInfo_1->SpellIconID == 3013 )
+            return true;
+    }
     if (spellId_1 == spellId_2)
         return false;
 
@@ -2419,14 +2438,6 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PALADIN:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN )
             {
-                // Judgement of Light  and Judgement of Light     
-                if(spellInfo_2->SpellIconID == 205 && spellInfo_1->SpellIconID == 205 )
-                    return true;
-
-                // Judgement of Wisdom  and Judgement of Wisdom
-                if(spellInfo_2->SpellIconID == 3014 && spellInfo_1->SpellIconID == 3014 )
-                    return true;
-
                 // Paladin Seals
                 if (IsSealSpell(spellInfo_1) && IsSealSpell(spellInfo_2))
                     return true;
