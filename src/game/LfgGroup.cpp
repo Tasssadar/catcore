@@ -534,19 +534,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
 
     if (IsInDungeon())
     {
-        for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
-        {
-            Player *player = itr->getSource();
-            if (!player)
-                continue;
-            if (player->GetMapId() == GetDungeonInfo()->map)
-            {
-                WorldLocation loc;
-                player->GetPosition(loc);
-                plr->TeleportTo(loc);
-                return;
-            }
-        }
+        plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x, dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
+        return;
     }
 
     //Must re-add player to reset id...
