@@ -14773,27 +14773,17 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         // Remove charge (aura can be removed by triggers)
         if (useCharges && !triggeredByAura->IsDeleted())
         {
-            // Item - Mage T8 4P Bonus
-            if (HasAura(64869) && (triggeredByAura->GetId() == 44401 || triggeredByAura->GetId() == 48108 || triggeredByAura->GetId() == 57761))
+            // If last charge dropped add spell to remove list
+            // if spell procs on damage and for victim, do not drop charge on full absorb (f.e. Inner Fire)
+            if ((damage + absorb) && isVictim)
             {
-                if (!roll_chance_f(10.0f))
+                // seems to be somehow bugged with Prayer of Mending specific proc
+                if (damage || auraModifier->m_auraname == SPELL_AURA_PRAYER_OF_MENDING)
                     if (triggeredByAura->DropAuraCharge())
                         removedSpells.push_back(triggeredByAura->GetId());
             }
-            else
-            {
-                // If last charge dropped add spell to remove list
-                // if spell procs on damage and for victim, do not drop charge on full absorb (f.e. Inner Fire)
-                if ((damage + absorb) && isVictim)
-                {
-                    // seems to be somehow bugged with Prayer of Mending specific proc
-                    if (damage || auraModifier->m_auraname == SPELL_AURA_PRAYER_OF_MENDING)
-                        if (triggeredByAura->DropAuraCharge())
-                            removedSpells.push_back(triggeredByAura->GetId());
-                }
-                else if (triggeredByAura->DropAuraCharge())
-                    removedSpells.push_back(triggeredByAura->GetId());
-            }
+            else if (triggeredByAura->DropAuraCharge())
+                removedSpells.push_back(triggeredByAura->GetId());
         }
         // If reflecting with Imp. Spell Reflection - we must also remove auras from the remaining aura's targets
         if (triggeredByAura->GetId() == 59725)

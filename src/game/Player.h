@@ -2773,7 +2773,15 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
 
         if (mod->charges > 0 )
         {
-            --mod->charges;
+            // Item - Mage T8 4P Bonus
+            if (HasAura(64869) && (spellInfo->GetId() == 44401 || spellInfo->GetId() == 48108 || spellInfo->GetId() == 57761))
+            {
+                if (!roll_chance_f(10.0f))
+                    --mod->charges;
+            }
+            else
+                --mod->charges;
+
             if (mod->charges == 0)
             {
                 mod->charges = -1;
