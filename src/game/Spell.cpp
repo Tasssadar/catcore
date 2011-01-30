@@ -4672,6 +4672,16 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (m_spellInfo->Id == 49576 && m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
         return SPELL_FAILED_MOVING;
 
+    // Master's call - do not cast if pet is dead
+    if (m_spellInfo->Id == 53271)
+    {
+        Pet* pet = m_caster->GetPet();
+        if (!pet)
+            return SPELL_FAILED_NO_PET;
+        if (!pet->isAlive())
+            return SPELL_FAILED_CASTER_DEAD;
+    }
+
     if (Unit *target = m_targets.getUnitTarget())
     {
         // target state requirements (not allowed state), apply to self also
