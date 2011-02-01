@@ -4254,8 +4254,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Curses/etc
             if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
                 return DIMINISHING_LIMITONLY;
-            // Seduction
-            else if (spellproto->SpellFamilyFlags & UI64LIT(0x1000000040000000))
+            // Seduction (has the same flag as Lesser Invisibility)
+            else if (spellproto->SpellFamilyFlags & UI64LIT(0x1000000040000000) && spellproto->SpellIconID != 331 )
                 return DIMINISHING_FEAR_BLIND;
             break;
         }
