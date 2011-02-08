@@ -11113,8 +11113,54 @@ bool Player::CanUseItem( ItemPrototype const *pProto )
 
     if ( pProto )
     {
-        if ( (pProto->AllowableClass & getClassMask()) == 0 || (pProto->AllowableRace & getRaceMask()) == 0 )
+        if ((pProto->AllowableClass & getClassMask()) == 0 || (pProto->AllowableRace & getRaceMask()) == 0)
             return false;
+
+        if (uint32 item_use_skill = pProto->GetSkill())
+        {
+            if (GetSkillValue(item_use_skill) == 0)
+            {
+                // armor items with scaling stats can downgrade armor skill reqs if related class can learn armor use at some level
+                if (pProto->Class != ITEM_CLASS_ARMOR)
+                    return false;
+
+                ScalingStatDistributionEntry const *ssd = pProto->ScalingStatDistribution ? sScalingStatDistributionStore.LookupEntry(pProto->ScalingStatDistribution) : NULL;
+                if (!ssd)
+                    return false;
+
+                bool allowScaleSkill = false;
+                for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
+                {
+                    SkillLineAbilityEntry const *skillInfo = sSkillLineAbilityStore.LookupEntry(i);
+                    if (!skillInfo)
+                        continue;
+
+                    if (skillInfo->skillId != item_use_skill)
+                        continue;
+
+                    // can't learn
+                    if (skillInfo->classmask && (skillInfo->classmask & getClassMask()) == 0)
+                        continue;
+
+                    if (skillInfo->racemask && (skillInfo->racemask & getRaceMask()) == 0)
+                        continue;
+
+                    allowScaleSkill = true;
+                    break;
+                }
+
+                if (!allowScaleSkill)
+                    return false;
+            }
+        }
+
+        // reputation for BOA items checked only at buy/quest rewarding (quest accepting in fact by quest rep requirements)
+        if (!(pProto->Flags & ITEM_FLAGS_BOA) && pProto->RequiredReputationFaction &&
+            uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
+            return false;
+
+        if (getLevel() < pProto->RequiredLevel)
+            return false;   
         if ( pProto->RequiredSkill != 0  )
         {
             if ( GetSkillValue( pProto->RequiredSkill ) == 0 )
@@ -11123,8 +11169,6 @@ bool Player::CanUseItem( ItemPrototype const *pProto )
                 return false;
         }
         if ( pProto->RequiredSpell != 0 && !HasSpell( pProto->RequiredSpell ) )
-            return false;
-        if ( getLevel() < pProto->RequiredLevel )
             return false;
         return true;
     }
