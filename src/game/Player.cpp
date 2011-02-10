@@ -11158,9 +11158,7 @@ bool Player::CanUseItem( ItemPrototype const *pProto )
         if (!(pProto->Flags & ITEM_FLAGS_BOA) && pProto->RequiredReputationFaction &&
             uint32(GetReputationRank(pProto->RequiredReputationFaction)) < pProto->RequiredReputationRank)
             return false;
-
-        if (getLevel() < pProto->RequiredLevel)
-            return false;   
+ 
         if ( pProto->RequiredSkill != 0  )
         {
             if ( GetSkillValue( pProto->RequiredSkill ) == 0 )
