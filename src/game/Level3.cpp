@@ -348,6 +348,9 @@ bool ChatHandler::HandleReloadQuestLfgRelationCommand(const char*)
     sLog.outString( "Re-Loading Quest Lfg Relations..." );
     sLfgMgr.LoadDungeonRewards();
     SendGlobalSysMessage("DB table `quest_lfg_relation` (Quest Lfg Relations) reloaded.");
+    SendGlobalSysMessage("Reseting LFG cache for all players...");
+    sObjectAccessor.ResetLFGCache();
+    SendGlobalSysMessage("LFG cache has been resetted.");
     return true;
 }
 
@@ -360,6 +363,10 @@ bool ChatHandler::HandleReloadLfgDungeonInfoCommand(const char*)
     sLog.outString( "Re-assembling random dungeons options..." );
     sLfgMgr.AssembleRandomInfo();
     SendGlobalSysMessage( "Random Dungeon options reassembled");
+    
+    SendGlobalSysMessage("Reseting LFG cache for all players...");
+    sObjectAccessor.ResetLFGCache();
+    SendGlobalSysMessage("LFG cache has been resetted.");
 
     return true;
 }

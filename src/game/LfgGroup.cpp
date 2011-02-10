@@ -314,7 +314,7 @@ void LfgGroup::KilledCreature(Creature *creature)
             data << uint32(m_dungeonInfo->Entry());
 
             uint32 ID = GetDungeonInfo((IsRandom() || IsFromRnd(plr->GetGUID())))->ID;
-            sLfgMgr.BuildRewardBlock(data, ID, plr);
+            sLfgMgr.BuildRewardBlock(&data, ID, plr);
             plr->GetSession()->SendPacket(&data);
             LfgReward *reward = sLfgMgr.GetDungeonReward(ID, plr->m_lookingForGroup.DoneDungeon(ID, plr), plr->getLevel());
             if (!reward)

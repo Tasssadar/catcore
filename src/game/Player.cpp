@@ -2635,6 +2635,7 @@ void Player::GiveLevel(uint32 level)
         MailDraft(mailReward->mailTemplateId).SendMailTo(this,MailSender(MAIL_CREATURE,mailReward->senderEntry));
 
     GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
+    m_lookingForGroup.lockInfoOutdated = true;
 }
 
 void Player::UpdateFreeTalentPoints(bool resetIfNeed)
@@ -11288,6 +11289,7 @@ Item* Player::StoreItem( ItemPosCountVec const& dest, Item* pItem, bool update )
         lastItem = _StoreItem(pos,pItem,count,true,update);
     }
     GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_OWN_ITEM, entry);
+    m_lookingForGroup.lockInfoOutdated = true;
     return lastItem;
 }
 
@@ -14069,6 +14071,7 @@ void Player::CompleteQuest( uint32 quest_id )
             else
                 SendQuestComplete( quest_id );
         }
+        m_lookingForGroup.lockInfoOutdated = true;
     }
 }
 
@@ -17174,6 +17177,7 @@ void Player::UnbindInstance(uint32 mapid, Difficulty difficulty)
     
     itr->second->RemovePlayer(GetGUID());
     m_boundInstances[difficulty].erase(mapid);    
+    m_lookingForGroup.lockInfoOutdated = true;
 }
 
 void Player::BindToInstance(InstanceSave* save, bool permanent, bool sendNotice)
@@ -17203,7 +17207,7 @@ void Player::BindToInstance(InstanceSave* save, bool permanent, bool sendNotice)
         data << uint64(save->GetObjectGuid().GetRawValue());
         GetSession()->SendPacket(&data);
     }
-    
+    m_lookingForGroup.lockInfoOutdated = true;
 }
 
 InstanceSave* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
@@ -20272,6 +20276,7 @@ void Player::SetGroup(Group *group, int8 subgroup)
         ASSERT(subgroup >= 0);
         m_group.link(group, this);
         m_group.setSubGroup((uint8)subgroup);
+        m_lookingForGroup.lockInfoOutdated = true;
     }
 }
 

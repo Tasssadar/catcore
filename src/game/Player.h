@@ -410,6 +410,8 @@ struct LookingForGroup
         mixed_map = 0;
         sendAtMapAdd[0] = 0;
         sendAtMapAdd[1] = 0;
+        lockInfo = null;
+        lockInfoOutdated = true;
     }
     
     std::string comment;
@@ -432,6 +434,8 @@ struct LookingForGroup
         mixed = activate;
         mixed_map = map;
     }
+    WorldPacket *lockInfo;
+    bool lockInfoOutdated;
 };
 
 enum RaidGroupError

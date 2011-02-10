@@ -947,30 +947,41 @@ void LfgMgr::MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId)
 }
 
 void LfgMgr::SendLfgPlayerInfo(Player *plr)
-{
+
+    if(!plr->m_lookingForGroup.lockInfoOutdated && plr->m_lookingForGroup.lockInfo)
+    {
+        plr->GetSession()->SendPacket(plr->m_lookingForGroup.lockInfo);
+        return;
+    }
+
+    if(!plr->m_lookingForGroup.lockInfo)
+        plr->m_lookingForGroup.lockInfo = new WorldPacket(SMSG_LFG_PLAYER_INFO);
+    else
+        plr->m_lookingForGroup.lockInfo->Initialize(SMSG_LFG_PLAYER_INFO);
+
     LfgDungeonList *random = GetRandomDungeons(plr);
     LfgLocksList *locks = GetDungeonsLock(plr);
 
-    WorldPacket data(SMSG_LFG_PLAYER_INFO);
-    data << uint8(random->size());                                          // Random Dungeon count
+    *plr->m_lookingForGroup.lockInfo << uint8(random->size()); // Random Dungeon count
     for (LfgDungeonList::iterator itr = random->begin(); itr != random->end(); ++itr)
     {
-        data << uint32((*itr)->Entry());                       // Entry(ID and type) of random dungeon
-        BuildRewardBlock(data, (*itr)->ID, plr);
+        *plr->m_lookingForGroup.lockInfo << uint32((*itr)->Entry()); // Entry(ID and type) of random dungeon
+        BuildRewardBlock(plr->m_lookingForGroup.lockInfo, (*itr)->ID, plr);
     }
     random->clear();
     delete random;
 
-    data << uint32(locks->size());
+    *plr->m_lookingForGroup.lockInfo << uint32(locks->size());
     for (LfgLocksList::iterator itr = locks->begin(); itr != locks->end(); ++itr)
     {
-        data << uint32((*itr)->dungeonInfo->Entry());              // Dungeon entry + type
-        data << uint32((*itr)->lockType);                          // Lock status
+        *plr->m_lookingForGroup.lockInfo << uint32((*itr)->dungeonInfo->Entry()); // Dungeon entry + type
+        *plr->m_lookingForGroup.lockInfo << uint32((*itr)->lockType);             // Lock status
     }
     for (LfgLocksList::iterator itr = locks->begin(); itr != locks->end(); ++itr)
         delete *itr;
     delete locks;
-    plr->GetSession()->SendPacket(&data);
+    plr->GetSession()->SendPacket(plr->m_lookingForGroup.lockInfo);
+    plr->m_lookingForGroup.lockInfoOutdated = false;
 }
 
 void LfgMgr::SendLfgUpdatePlayer(Player *plr, uint8 updateType)
@@ -1013,6 +1024,7 @@ void LfgMgr::SendLfgUpdatePlayer(Player *plr, uint8 updateType)
 
     if(plr->IsBeingTeleported() && (updateType == LFG_UPDATETYPE_ADDED_TO_QUEUE || updateType == LFG_UPDATETYPE_REMOVED_FROM_QUEUE))
         plr->m_lookingForGroup.sendAtMapAdd[0] = updateType;
+    plr->m_lookingForGroup.lockInfoOutdated = true;
 }
 
 void LfgMgr::SendLfgUpdateParty(Player *plr, uint8 updateType)
@@ -1064,40 +1076,41 @@ void LfgMgr::SendLfgUpdateParty(Player *plr, uint8 updateType)
     plr->GetSession()->SendPacket(&data);
     if(plr->IsBeingTeleported() && (updateType == LFG_UPDATETYPE_ADDED_TO_QUEUE || updateType == LFG_UPDATETYPE_REMOVED_FROM_QUEUE))
         plr->m_lookingForGroup.sendAtMapAdd[1] = updateType;
+    plr->m_lookingForGroup.lockInfoOutdated = true;
 }
 
-void LfgMgr::BuildRewardBlock(WorldPacket &data, uint32 dungeon, Player *plr)
+void LfgMgr::BuildRewardBlock(WorldPacket *data, uint32 dungeon, Player *plr)
 {
     LfgReward *reward = GetDungeonReward(dungeon, plr->m_lookingForGroup.DoneDungeon(dungeon, plr), plr->getLevel());
 
-    data << uint8(plr->m_lookingForGroup.DoneDungeon(dungeon, plr));  // false = its first run this day, true = it isnt
-    if (data.GetOpcode() == SMSG_LFG_PLAYER_REWARD)
-        data << uint32(plr->GetGroup()->GetMembersCount()-1);         // strangers
+    *data << uint8(plr->m_lookingForGroup.DoneDungeon(dungeon, plr));  // false = its first run this day, true = it isnt
+    if (data->GetOpcode() == SMSG_LFG_PLAYER_REWARD)
+        *data << uint32(plr->GetGroup()->GetMembersCount()-1);         // strangers
 
     if (!reward)
     {
-        data << uint32(0);  // money
-        data << uint32(0);  // xp 
-        data << uint32(0);  // money something
-        data << uint32(0);  // xp something
-        data << uint8(0);   // no item 
+        *data << uint32(0);  // money
+        *data << uint32(0);  // xp 
+        *data << uint32(0);  // money something
+        *data << uint32(0);  // xp something
+        *data << uint8(0);   // no item 
         return;
     }
 
-    data << uint32(reward->questInfo->GetRewOrReqMoney());
-    data << uint32((plr->getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)) ? 0 : reward->questInfo->XPValue( plr ));
-    data << uint32(0);                                      // some "variable" money?
-    data << uint32(0);                                      // some "variable" xp?
+    *data << uint32(reward->questInfo->GetRewOrReqMoney());
+    *data << uint32((plr->getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)) ? 0 : reward->questInfo->XPValue( plr ));
+    *data << uint32(0);                                      // some "variable" money?
+    *data << uint32(0);                                      // some "variable" xp?
     
     ItemPrototype const *rewItem = sObjectMgr.GetItemPrototype(reward->questInfo->RewItemId[0]);   // Only first item is for dungeon finder
     if (!rewItem)
-        data << uint8(0);   // have not reward item
+        *data << uint8(0);   // have not reward item
     else
     {
-        data << uint8(1);   // have reward item
-        data << uint32(rewItem->ItemId);
-        data << uint32(rewItem->DisplayInfoID);
-        data << uint32(reward->questInfo->RewItemCount[0]);
+        *data << uint8(1);   // have reward item
+        *data << uint32(rewItem->ItemId);
+        *data << uint32(rewItem->DisplayInfoID);
+        *data << uint32(reward->questInfo->RewItemCount[0]);
     }
 }
 

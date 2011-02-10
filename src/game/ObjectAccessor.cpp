@@ -126,6 +126,15 @@ ObjectAccessor::SaveAllPlayers()
         itr->second->SaveToDB();
 }
 
+void
+ObjectAccessor::ResetLFGCache()
+{
+    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
+    for(HashMapHolder<Player>::MapType::iterator itr = m.begin(); itr != m.end(); ++itr)
+        itr->second->m_lookingForGroup.lockInfoOutdated = true;
+}
+
 void ObjectAccessor::KickPlayer(uint64 guid)
 {
     if (Player* p = HashMapHolder<Player>::Find(guid))
