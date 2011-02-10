@@ -174,6 +174,8 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
+    if(!GetDungeonInfo(true))
+         SetOriginalDungeonInfo(GetDungeonInfo());
     player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(GetDungeonInfo(true)->ID,GetId()));
     return true;
 }

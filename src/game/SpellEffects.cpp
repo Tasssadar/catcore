@@ -2950,7 +2950,6 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
                 ((Player*)m_caster)->RemoveSpellCooldown(triggered_spell_id, true);
 
             break;
-
         }
         // Fire Bomb - first effect
         case 66317:                       
@@ -3208,7 +3207,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
     {
         if (Group *group = ((Player*)unitTarget)->GetGroup())
         {
-            if (group->isLfgGroup() && ((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED)
+            if (group->isLfgGroup() && (((LfgGroup*)group)->GetInstanceStatus() == INSTANCE_COMPLETED || group->GetMembersCount() < 2))
             {
                 unitTarget->RemoveAurasDueToSpell(LFG_BOOST);
                 group->RemoveMember(unitTarget->GetGUID(), 0);
