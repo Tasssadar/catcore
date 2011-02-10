@@ -188,7 +188,6 @@ bool MySQLConnection::_Query(const char *sql, MYSQL_RES **pResult, MYSQL_FIELD *
     {
         sLog.outErrorDb( "SQL: %s", sql );
         sLog.outErrorDb("query ERROR: %s", mysql_error(mMysql));
-        ASSERT(false);
         return false;
     }
     else
@@ -261,7 +260,6 @@ bool MySQLConnection::Execute(const char* sql)
         {
             sLog.outErrorDb("SQL: %s", sql);
             sLog.outErrorDb("SQL ERROR: %s", mysql_error(mMysql));
-            ASSERT(false);
             return false;
         }
         else
@@ -280,7 +278,6 @@ bool MySQLConnection::_TransactionCmd(const char *sql)
     {
         sLog.outError("SQL: %s", sql);
         sLog.outError("SQL ERROR: %s", mysql_error(mMysql));
-        ASSERT(false);
         return false;
     }
     else
