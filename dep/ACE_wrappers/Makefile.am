@@ -9,7 +9,27 @@
 ## /acebuilds/ACE_wrappers-repository/bin/mwc.pl -include /acebuilds/MPC/config -include /acebuilds/MPC/templates -feature_file /acebuilds/ACE_wrappers-repository/local.features -noreldefs -type automake -exclude build,Kokyu
 
 SUBDIRS = \
-	ace 
+	ace \
+	@ACEXML@ \
+	@ASNMP@ \
+        apps \
+        bin \
+        netsvcs
+
+if BUILD_EXAMPLES
+SUBDIRS += examples
+endif
+
+if BUILD_TESTS
+SUBDIRS += performance-tests
+SUBDIRS += tests
+endif
+
+SUBDIRS += \
+        @protocols@ \
+        websvcs \
+	@KOKYU@ \
+	@TAO@
 
 ACLOCAL = @ACLOCAL@
 ACLOCAL_AMFLAGS = -I m4
