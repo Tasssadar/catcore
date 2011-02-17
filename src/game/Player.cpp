@@ -11117,7 +11117,7 @@ bool Player::CanUseItem( ItemPrototype const *pProto )
         if ((pProto->AllowableClass & getClassMask()) == 0 || (pProto->AllowableRace & getRaceMask()) == 0)
             return false;
 
-        if (uint32 item_use_skill = pProto->GetSkill())
+        if (uint32 item_use_skill = const_cast<ItemPrototype*>(pProto)->GetSkill())
         {
             if (GetSkillValue(item_use_skill) == 0)
             {

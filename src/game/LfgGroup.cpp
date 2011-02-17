@@ -393,7 +393,7 @@ void LfgGroup::TeleportToDungeon()
         m_leaderGuid = m_memberSlots.begin()->guid;
         m_leaderName = m_memberSlots.begin()->name;
     }
-    m_lootMethod = NEED_BEFORE_GREED;
+    m_lootMethod = GROUP_LOOT;
     m_lootThreshold = ITEM_QUALITY_UNCOMMON;
     m_looterGuid = m_leaderGuid;
     m_dungeonDifficulty = m_dungeonInfo->isHeroic() ? DUNGEON_DIFFICULTY_HEROIC : DUNGEON_DIFFICULTY_NORMAL;

@@ -3017,7 +3017,7 @@ void Spell::cancel()
         {
             for(tbb::concurrent_vector<TargetInfo>::const_iterator ihit= m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
             {
-                if (!ihit || ihit->deleted == true)
+                if (ihit->deleted == true)
                     continue;
                 if ( ihit->missCondition == SPELL_MISS_NONE )
                 {

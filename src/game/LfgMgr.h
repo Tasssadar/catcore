@@ -262,7 +262,7 @@ class MANGOS_DLL_SPEC LfgMgr
         void SendLfgPlayerInfo(Player *plr);
         void SendLfgUpdatePlayer(Player *plr, uint8 updateType);
         void SendLfgUpdateParty(Player *plr, uint8 updateType);
-        void BuildRewardBlock(WorldPacket &data, uint32 dungeon, Player *plr);
+        void BuildRewardBlock(WorldPacket *data, uint32 dungeon, Player *plr);
 
         void LoadDungeonRewards();
         void LoadDungeonsInfo();

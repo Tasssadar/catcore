@@ -410,7 +410,7 @@ struct LookingForGroup
         mixed_map = 0;
         sendAtMapAdd[0] = 0;
         sendAtMapAdd[1] = 0;
-        lockInfo = null;
+        lockInfo = NULL;
         lockInfoOutdated = true;
     }
     

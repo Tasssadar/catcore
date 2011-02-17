@@ -947,7 +947,7 @@ void LfgMgr::MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId)
 }
 
 void LfgMgr::SendLfgPlayerInfo(Player *plr)
-
+{
     if(!plr->m_lookingForGroup.lockInfoOutdated && plr->m_lookingForGroup.lockInfo)
     {
         plr->GetSession()->SendPacket(plr->m_lookingForGroup.lockInfo);
