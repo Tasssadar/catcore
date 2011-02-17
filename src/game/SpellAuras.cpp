@@ -3176,15 +3176,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         target->RemoveAurasDueToSpell(50322);
                     return;
                 }
-                case 57862:                                 // Glyph of Thorns
-                {
-                    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    m_spellmod = new SpellModifier(SPELLMOD_DURATION, SPELLMOD_FLAT, GetMiscValue()*MINUTE*IN_MILLISECONDS, GetId(), UI64LIT(0x0000000000100));
-                    ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
-                    return;
-                }
             }
 
             // Lifebloom
