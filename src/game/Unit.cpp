@@ -12168,6 +12168,35 @@ int32 Unit::ModifyHealth(int32 dVal)
         SetHealth(maxHealth);
         gain = maxHealth - curHealth;
     }
+    // Blood Gorged - remove/add aura at 75% of HP
+    if (GetTypeId() == TYPEID_PLAYER && (Player*)this->getClass() == CLASS_DEATH_KNIGHT)
+    {
+        SpellEntry const* bloodGorgedInfo = NULL;
+        if ((Player*)this->HasSpell(61154))
+            bloodGorgedInfo = sSpellStore.LookupEntry(61154);
+        else if ((Player*)this->HasSpell(61155))
+            bloodGorgedInfo = sSpellStore.LookupEntry(61155);
+        else if ((Player*)this->HasSpell(61156))
+            bloodGorgedInfo = sSpellStore.LookupEntry(61156);
+        else if ((Player*)this->HasSpell(61157))
+            bloodGorgedInfo = sSpellStore.LookupEntry(61157);
+        else if ((Player*)this->HasSpell(61158))
+            bloodGorgedInfo = sSpellStore.LookupEntry(61158);
+
+        if (bloodGorgedInfo)
+        {
+            if (GetHealthPercent() >= 75.0f)
+            {
+                if (!HasAura(bloodGorgedInfo->EffectTriggerSpell[EFFECT_INDEX_0]))
+                    CastSpell(this,bloodGorgedInfo->EffectTriggerSpell[EFFECT_INDEX_0],true);
+            }
+            else
+            {
+                if (HasAura(bloodGorgedInfo->EffectTriggerSpell[EFFECT_INDEX_0]))
+                    RemoveAurasDueToSpell(bloodGorgedInfo->EffectTriggerSpell[EFFECT_INDEX_0]);
+            }
+        }
+    }
 
     return gain;
 }
