@@ -40,7 +40,7 @@ char const* petTypeSuffix[MAX_PET_TYPE] =
 Pet::Pet(PetType type) :
 Creature(CREATURE_SUBTYPE_PET), m_removed(false), m_petType(type), m_happinessTimer(7500), m_duration(0), m_resetTalentsCost(0),
 m_bonusdamage(0), m_resetTalentsTime(0), m_usedTalentCount(0), m_loading(false),
-m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT), m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true), m_speedBoost(false)
+m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT), m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true)
 {
     m_name = "Pet";
     m_regenTimer = 2000;
@@ -545,14 +545,6 @@ void Pet::Update(uint32 diff)
                     Remove(getPetType() != SUMMON_PET ? PET_SAVE_AS_DELETED:PET_SAVE_NOT_IN_SLOT);
                     return;
                 }
-            }
-
-            // pet should get boost
-            if((m_speedBoost && isInCombat()) || (m_speedBoost && IsWithinDistInMap(owner, 10.0f)) || (!m_speedBoost && !IsWithinDistInMap(owner, 10.0f) && !isInCombat()))
-            {
-                m_speedBoost = !m_speedBoost;
-                float speed = owner->GetSpeedRate(MOVE_RUN);
-                SetSpeedRate(MOVE_RUN, m_speedBoost ? speed*2 : speed, true);
             }
 
             //regenerate focus for hunter pets or energy for deathknight's ghoul

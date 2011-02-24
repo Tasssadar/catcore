@@ -101,7 +101,6 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
     i_path->getNextPosition(x, y, z);
     i_destinationHolder.SetDestination(traveller, x, y, z, false);
     owner.UpdateMovementFlags(true, x, y, z);
-
     // send the path if:
     //    we have brand new path
     //    we have visited almost all of the previously sent points
@@ -124,8 +123,11 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
         SplineFlags flags = (owner.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&owner)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         owner.SendMonsterMoveByPath(pointPath, 1, endIndex, flags, traveltime);
     }
-    
+
     D::_addUnitStateMove(owner);
+    if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
+        !(((Creature*)&owner)->canWalk() && ((Creature*)&owner)->IsAtGroundLevel(x,y,z)))
+        ((Creature&)owner).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 }
 
 template<>
@@ -187,6 +189,8 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
     if (!i_destinationHolder.HasDestination())
         _setTargetLocation(owner);
 
+    Traveller<T> traveller(owner);
+
     if (owner.IsStopped() && !i_destinationHolder.HasArrived())
     {
         D::_addUnitStateMove(owner);
@@ -194,25 +198,9 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         i_destinationHolder.GetLocationNowNoMicroMovement(x,y,z);
         owner.UpdateMovementFlags(true, x,y,z);
     }
-            
-    if(pathLost)
-    {
-        i_findPathTimer.Update(time_diff);
-        if(i_findPathTimer.Passed())
-        {
-            _setTargetLocation(owner);
-            pathLost = false;
-        }else return true;
-    }
 
-    if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
-    {
-        pathLost = true;
-        i_findPathTimer.Reset(1000);
+    if(i_path && (i_path->getPathType() & PATHFIND_NOPATH))
         return true;
-    }
-
-    Traveller<T> traveller(owner);
 
     if (i_destinationHolder.UpdateTraveller(traveller, time_diff, i_recalculateTravel || owner.IsStopped()))
     {

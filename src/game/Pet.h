@@ -256,7 +256,6 @@ class Pet : public Creature
         bool    m_loading;
         bool    m_needSave;                                 // is pet needed to be saved in DB (for chained - only originally first in chain)
         float   m_petFollowAngle;                           // follow angle for the pet
-        bool    m_speedBoost;
 
         DeclinedName *m_declinedname;
 
