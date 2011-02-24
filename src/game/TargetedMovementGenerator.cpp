@@ -186,10 +186,13 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         return true;
     }
 
-    if (!i_destinationHolder.HasDestination())
-        _setTargetLocation(owner);
+    if(i_path && (i_path->getPathType() & PATHFIND_NOPATH))
+        return true;
 
     Traveller<T> traveller(owner);
+
+    if (!i_destinationHolder.HasDestination())
+        _setTargetLocation(owner);
 
     if (owner.IsStopped() && !i_destinationHolder.HasArrived())
     {
@@ -198,9 +201,6 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         i_destinationHolder.GetLocationNowNoMicroMovement(x,y,z);
         owner.UpdateMovementFlags(true, x,y,z);
     }
-
-    if(i_path && (i_path->getPathType() & PATHFIND_NOPATH))
-        return true;
 
     if (i_destinationHolder.UpdateTraveller(traveller, time_diff, i_recalculateTravel || owner.IsStopped()))
     {
@@ -228,7 +228,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
 
             // GetClosePoint() will always return a point on the ground, so we need to
             // handle the difference in elevation when the creature is flying
-            if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly())
+            if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->CanFly())
                 targetMoved = i_target->GetDistanceSqr(end_point.x, end_point.y, end_point.z) >= dist*dist;
             else
                 targetMoved = i_target->GetDistance2d(end_point.x, end_point.y) >= dist;

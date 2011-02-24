@@ -78,6 +78,7 @@ void WaypointMovementGenerator<Creature>::LoadPath(Creature &creature)
     CreatureTraveller traveller(creature);
 
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
+    CreatureTraveller traveller(creature);
     MoveToNextNode(traveller);
 }
 

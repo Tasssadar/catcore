@@ -358,7 +358,6 @@ enum eConfigBoolValues
     CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE,
     CONFIG_BOOL_LFG_LOG,
     CONFIG_BOOL_LFG_ALLOW_MIXED,
-    CONFIG_BOOL_ENABLE_MMAPS,
     CONFIG_BOOL_SKILL_FAIL_LOOT_FISHING,
     CONFIG_BOOL_SKILL_FAIL_GAIN_FISHING,
     CONFIG_BOOL_SKILL_FAIL_POSSIBLE_FISHINGPOOL,
@@ -641,8 +640,6 @@ class World
         static float GetVisibleUnitGreyDistance()           { return m_VisibleUnitGreyDistance;       }
         static float GetVisibleObjectGreyDistance()         { return m_VisibleObjectGreyDistance;     }
 
-        static float MMapsEnabled()                         { return m_MMapsEnabled;                  }
-
         void ProcessCliCommands();
         void QueueCliCommand(CliCommandHolder* commandHolder) { cliCmdQueue.add(commandHolder); }
 
@@ -661,7 +658,7 @@ class World
         //used Script version
         void SetScriptsVersion(char const* version) { m_ScriptsVersion = version ? version : "unknown scripting library"; }
         char const* GetScriptsVersion() { return m_ScriptsVersion.c_str(); }
-        
+
         ACE_Thread_Mutex m_spellUpdateLock;
 
         void LoadBroadCastMessages();
@@ -746,8 +743,6 @@ class World
         static float m_MaxVisibleDistanceInFlight;
         static float m_VisibleUnitGreyDistance;
         static float m_VisibleObjectGreyDistance;
-
-        static bool m_MMapsEnabled;
 
         // CLI command holder to be thread safe
         ACE_Based::LockedQueue<CliCommandHolder*,ACE_Thread_Mutex> cliCmdQueue;

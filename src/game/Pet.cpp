@@ -510,7 +510,7 @@ void Pet::Update(uint32 diff)
         {
             if ( m_deathTimer <= diff )
             {
-                //ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
+                ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
                 Remove(PET_SAVE_NOT_IN_SLOT);               //hunters' pets never get removed because of death, NEVER!
                 return;
             }

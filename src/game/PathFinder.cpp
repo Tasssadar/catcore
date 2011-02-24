@@ -20,7 +20,6 @@
 #include "PathFinder.h"
 #include "Map.h"
 #include "../recastnavigation/Detour/Include/DetourCommon.h"
-#include "World.h"
 
 ////////////////// PathInfo //////////////////
 PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY, const float destZ, bool useStraightPath) :
@@ -37,6 +36,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -58,6 +58,9 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 =======
     if((m_navMesh = m_sourceObject->GetMap()->GetNavMesh()) && sWorld.MMapsEnabled())
 >>>>>>> parent of d5e16d7... Some changes
+=======
+    if(m_navMesh = m_sourceObject->GetMap()->GetNavMesh())
+>>>>>>> parent of 20d1b1c... Add option to disable movemaps, use old system when no path is found
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
 >>>>>>> parent of c82de25... + delete/free missmatch.
@@ -100,7 +103,11 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     PATH_DEBUG("++ PathInfo::Update() for %u \n", m_sourceObject->GetGUID());
 
     // make sure navMesh works - we can run on map w/o mmap
+<<<<<<< HEAD
     if(!m_navMesh || !sWorld.MMapsEnabled() || useStraightPath)
+=======
+    if(!m_navMesh)
+>>>>>>> parent of 20d1b1c... Add option to disable movemaps, use old system when no path is found
     {
         BuildShortcut();
         m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
@@ -369,8 +376,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             sLog.outError("%u's Path Build failed: invalid polyRef in path", m_sourceObject->GetGUID());
 
             BuildShortcut();
-           // m_type = PATHFIND_NOPATH;
-            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+            m_type = PATHFIND_NOPATH;
             return;
         }
 
@@ -437,8 +443,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             // only happens if we passed bad data to findPath(), or navmesh is messed up
             sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
             BuildShortcut();
-            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-           // m_type = PATHFIND_NOPATH;
+            m_type = PATHFIND_NOPATH;
             return;
         }
 
@@ -499,8 +504,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
-        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-        //m_type = PATHFIND_NOPATH;
+        m_type = PATHFIND_NOPATH;
         return;
     }
 
@@ -548,18 +552,22 @@ dtQueryFilter PathInfo::createFilter()
     filter.excludeFlags = 0;
 >>>>>>> parent of 6c22936... + Changes to fit new Recast API.
 
-    if(creature->canWalk())
+    if(creature->CanWalk())
         filter.includeFlags |= NAV_GROUND;          // walk
 
-    if(creature->canSwim())
+    if(creature->CanSwim())
         filter.includeFlags |= NAV_WATER;           // swim
 
     // creatures don't take environmental damage
+<<<<<<< HEAD
 <<<<<<< HEAD
     if (creature->canSwim() || creature->isPet())
         filter.includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
 =======
     if(creature->canSwim())
+=======
+    if(creature->CanSwim())
+>>>>>>> parent of 20d1b1c... Add option to disable movemaps, use old system when no path is found
         filter.includeFlags |= NAV_MAGMA | NAV_SLIME;
 >>>>>>> parent of 6c22936... + Changes to fit new Recast API.
 
@@ -577,7 +585,7 @@ bool PathInfo::canFly()
         return false;
 
     Creature* creature = (Creature*)m_sourceObject;
-    return creature->canFly();
+    return creature->CanFly();
 }
 
 bool PathInfo::canSwim()
@@ -586,7 +594,7 @@ bool PathInfo::canSwim()
         return false;
 
     Creature* creature = (Creature*)m_sourceObject;
-    return creature->canSwim();
+    return creature->CanSwim();
 }
 
 NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
