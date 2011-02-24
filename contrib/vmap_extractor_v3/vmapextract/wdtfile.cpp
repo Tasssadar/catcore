@@ -1,4 +1,3 @@
-
 #include "vmapexport.h"
 #include "wdtfile.h"
 #include "adtfile.h"

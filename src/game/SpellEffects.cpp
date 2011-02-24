@@ -8133,7 +8133,16 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         ((Creature *)unitTarget)->StopMoving();
 
-    m_caster->MonsterMoveByPath(x, y, z, 25, false);
+    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
+    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+    {
+        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
+        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
+        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F;
+        m_caster->GetMotionMaster()->PauseMoveGens(1000);
+        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
+    }
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))

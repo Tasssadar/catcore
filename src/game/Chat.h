@@ -155,7 +155,6 @@ class ChatHandler
         bool HandleDebugSpellCheckCommand(const char* args);
         bool HandleDebugUpdateCommand(const char* args);
         bool HandleDebugUpdateWorldStateCommand(const char* args);
-        bool HandleDebugMoveMapCommand(char* args);
 
         bool HandleDebugPlayCinematicCommand(const char* args);
         bool HandleDebugPlayMovieCommand(const char* args);

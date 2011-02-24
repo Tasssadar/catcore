@@ -38,9 +38,6 @@
 #include <bitset>
 #include <list>
 
-#include "../recastnavigation/Detour/Include/DetourNavMesh.h"
-
-class Creature;
 class Unit;
 class WorldPacket;
 class InstanceData;

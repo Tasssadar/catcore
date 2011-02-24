@@ -39,8 +39,6 @@
 #include "BattleGroundMgr.h"
 #include "TemporarySummon.h"
 
-#include "../recastnavigation/Detour/Include/DetourNavMesh.h"
-
 struct ScriptAction
 {
     uint64 sourceGUID;
@@ -88,7 +86,6 @@ void Map::LoadMapAndVMap(int gx,int gy)
 {
     if(m_bLoadedGrids[gx][gx])
         return;
-
     GridMap * pInfo = m_TerrainData->Load(gx, gy);
     if(pInfo)
         m_bLoadedGrids[gx][gy] = true;
