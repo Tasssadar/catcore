@@ -8133,55 +8133,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         ((Creature *)unitTarget)->StopMoving();
 
-    //m_caster->MonsterMoveByPath(x, y, z, 25, false);
-    PathInfo path(m_caster, x, y, z, false);
-    PointPath pointPath = path.getFullPath();
-
-    uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
-    uint32 pathSize = end - start;
-
-    float cx,cy,cz;
-    m_caster->GetPosition(cx,cy,cz);
-    if (pathSize < 1)
-        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
-    else if (pathSize == 1)
-    {
-        x = pointPath[start].x;
-        y = pointPath[start].y;
-        z = pointPath[start].z;
-        SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
-    }
-    else
-    {
-        x = pointPath[end-1].x;
-        y = pointPath[end-1].y;
-        z = pointPath[end-1].z;
-
-        uint32 packSize = 4*3 + (pathSize-1)*4;
-        WorldPacket data( SMSG_MONSTER_MOVE, (m_caster->GetPackGUID().size()+30+packSize) );
-        data << m_caster->GetPackGUID();
-        data << uint8(0);
-        data << cx << cy << cz;
-        data << uint32(getMSTime());
-        data << uint8(SPLINETYPE_FACINGTARGET);
-        data << uint64(unitTarget->GetGUID());
-        data << uint32(SPLINEFLAG_WALKMODE);
-        data << uint32(traveltime);
-        data << uint32(pathSize);
-        // destination
-        data << x << y << z;
-        // all other points are relative to the center of the path
-        float mid_X = (cx + pointPath[end-1].x) * 0.5f;
-        float mid_Y = (cy + pointPath[end-1].y) * 0.5f;
-        float mid_Z = (cz + pointPath[end-1].z) * 0.5f;
-        for (uint32 i = start; i < end - 1; ++i)
-            data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
-
-        m_caster->SendMessageToSet(&data, true);
-    }
-
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
+    m_caster->MonsterMoveByPath(x, y, z, 25, false);
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
