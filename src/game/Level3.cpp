@@ -119,7 +119,7 @@ bool ChatHandler::HandleReloadAllNpcCommand(const char* args)
 
 bool ChatHandler::HandleReloadAllQuestCommand(const char* /*args*/)
 {
-    HandleReloadQuestAreaTriggersCommand("a");  
+    HandleReloadQuestAreaTriggersCommand("a");
     HandleReloadQuestPOICommand("a");
     HandleReloadQuestTemplateCommand("a");
     HandleReloadQuestLfgRelationCommand("a");
@@ -168,7 +168,7 @@ bool ChatHandler::HandleReloadAllSpellCommand(const char*)
     HandleReloadSpellElixirCommand("a");
     HandleReloadSpellLearnSpellCommand("a");
     HandleReloadSpellProcEventCommand("a");
-    HandleReloadSpellStackCommand("a"); 
+    HandleReloadSpellStackCommand("a");
     HandleReloadSpellBonusesCommand("a");
     HandleReloadSpellProcItemEnchantCommand("a");
     HandleReloadSpellScriptTargetCommand("a");
@@ -359,11 +359,11 @@ bool ChatHandler::HandleReloadLfgDungeonInfoCommand(const char*)
     sLog.outString( "Re-Loading Lfg Dungeons info..." );
     sLfgMgr.LoadDungeonsInfo();
     SendGlobalSysMessage("DB table `lfg_dungeon_info` (Lfg Dungeons info) reloaded.");
-    
+
     sLog.outString( "Re-assembling random dungeons options..." );
     sLfgMgr.AssembleRandomInfo();
     SendGlobalSysMessage( "Random Dungeon options reassembled");
-    
+
     SendGlobalSysMessage("Reseting LFG cache for all players...");
     sObjectAccessor.ResetLFGCache();
     SendGlobalSysMessage("LFG cache has been resetted.");
@@ -645,15 +645,15 @@ bool ChatHandler::HandleReloadSpellProcEventCommand(const char*)
     SendGlobalSysMessage("DB table `spell_proc_event` (spell proc trigger requirements) reloaded.");
     return true;
 }
-bool ChatHandler::HandleReloadSpellStackCommand(const char*) 
-{ 
-    sLog.outString( "Re-Loading Spell stacking conditions..." ); 
-    sSpellMgr.LoadSpellStack(); 
-    sSpellMgr.LoadSpellStackGroup(); 
-    SendGlobalSysMessage("DB table `spell_stack_data` and `spell_stack_group_data` reloaded."); 
-    return true; 
-} 
- 
+bool ChatHandler::HandleReloadSpellStackCommand(const char*)
+{
+    sLog.outString( "Re-Loading Spell stacking conditions..." );
+    sSpellMgr.LoadSpellStack();
+    sSpellMgr.LoadSpellStackGroup();
+    SendGlobalSysMessage("DB table `spell_stack_data` and `spell_stack_group_data` reloaded.");
+    return true;
+}
+
 bool ChatHandler::HandleReloadSpellBonusesCommand(const char*)
 {
     sLog.outString( "Re-Loading Spell Bonus Data..." );
@@ -6619,7 +6619,7 @@ bool ChatHandler::HandleBroadCastListCommand(const char* args)
     }
     SendSysMessage("Found these broadcast messages: ");
     for(BroadCastSet::iterator itr = sWorld.GetBroadCastMessages()->begin(); itr != sWorld.GetBroadCastMessages()->end(); ++itr)
-        PSendSysMessage("ID %u: %s (interval: %u min, %u left)", (*itr)->Id, (*itr)->text, (*itr)->RepeatMins, (*itr)->timeLeft); 
+        PSendSysMessage("ID %u: %s (interval: %u min, %u left)", (*itr)->Id, (*itr)->text, (*itr)->RepeatMins, (*itr)->timeLeft);
     SendSysMessage("You can use \".broadcast send *ID*\" to send message");
     return true;
 }
@@ -6652,56 +6652,11 @@ bool ChatHandler::HandleBroadCastResetTimerCommand(const char* args)
     {
         if((*itr)->Id != id)
             continue;
-        
+
         PSendSysMessage("Timer for message \"%s\" has been reset from %u to %u minutes.", (*itr)->text, (*itr)->timeLeft, (*itr)->RepeatMins);
         (*itr)->timeLeft = (*itr)->RepeatMins;
         return true;
     }
     PSendSysMessage("Message %u not found.", id);
-    return true;
-}
-
-bool ChatHandler::HandleMMapGlobalStats(const char* /*args*/)
-{
-    if(!sWorld.MMapsEnabled())
-    {
-        PSendSysMessage("Pathfinding is disabled!");
-        return true;
-    }
-//FIXME
-/*
-    PSendSysMessage("Calculating..");
-    MapEntry const *mapEntry = NULL;
-    Map const *map = NULL;
-    const dtNavMesh* navmesh = NULL;
-    uint32 totalMaps = 0;
-    uint64 dataSize = 0;
-    uint32 tileCount = 0;
-    for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
-    {
-        mapEntry = sMapStore.LookupEntry(i);
-        if(!mapEntry)
-            continue;
-        map = sMapMgr.CreateBaseMap(mapEntry->MapID);
-        if(!map)
-            continue;
-        if(navmesh = map->GetNavMesh())
-        {
-            ++totalMaps;
-            for (uint32 i = 0; i < uint32(navmesh->getMaxTiles()); ++i)
-            {
-                const dtMeshTile* tile = navmesh->getTile(i);
-                if (!tile || !tile->header)
-                    continue;
-
-                ++tileCount;
-                dataSize += tile->dataSize;
-            }
-        }
-    }
-    PSendSysMessage("Navmesh loaded on %u maps.", totalMaps);
-    PSendSysMessage("Total of %u tiles loaded", tileCount);
-    PSendSysMessage("Memory usage: %.2f MB", ((float)dataSize / sizeof(unsigned char)) / 1048576);
-*/
     return true;
 }

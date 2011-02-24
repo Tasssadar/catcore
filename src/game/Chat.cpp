@@ -506,7 +506,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "spell_loot_template",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadLootTemplatesSpellCommand,      "", NULL },
         { "spell_pet_auras",             SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellPetAurasCommand,           "", NULL },
         { "spell_proc_event",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellProcEventCommand,          "", NULL },
-        { "spell_stack_data",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellStackCommand,              "", NULL }, 
+        { "spell_stack_data",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellStackCommand,              "", NULL },
         { "spell_proc_item_enchant",     SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellProcItemEnchantCommand,    "", NULL },
         { "spell_script_target",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellScriptTargetCommand,       "", NULL },
         { "spell_scripts",               SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellScriptsCommand,            "", NULL },
@@ -735,7 +735,6 @@ ChatCommand * ChatHandler::getCommandTable()
         { "litak",          SEC_PLAYER,         true,  &ChatHandler::HandleLitakCommand,               "", NULL },
         { "assemblerandoms",SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReassembleRandomDungeonOptionsCommand,"", NULL },
         { "spocitejspojenyrepky",SEC_ADMINISTRATOR,true,&ChatHandler::HandleSpojenyRepky,              "", NULL },
-        { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats,            "", NULL },
         { "test",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleTestCommand,                "", NULL },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
