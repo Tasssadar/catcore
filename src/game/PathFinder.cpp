@@ -38,6 +38,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const TerrainInfo* terrain = m_sourceObject->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
         m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
@@ -51,6 +52,11 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         ASSERT(m_navMeshQuery);
+=======
+    if(sWorld.MMapsEnabled() && (m_navMesh = m_sourceObject->GetMap()->GetNavMesh()))
+    {
+        m_navMeshQuery = dtAllocNavMeshQuery();
+>>>>>>> parent of c82de25... + delete/free missmatch.
         m_navMeshQuery->init(m_navMesh, MESH_MAX_NODES);
 
         BuildPolyPath(startPoint, endPoint);
@@ -69,7 +75,6 @@ PathInfo::~PathInfo()
     if (m_pathPolyRefs)
         delete [] m_pathPolyRefs;
 
-    // m_navMesh is not ours to delete
     if(m_navMesh && m_navMeshQuery)
         dtFreeNavMeshQuery(m_navMeshQuery);
 }

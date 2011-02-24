@@ -29,18 +29,20 @@ void Map::LoadNavMesh(int gx, int gy)
     if(!sWorld.MMapsEnabled())
         return;
 
+<<<<<<< HEAD
+=======
+    char fileName[512];
+    FILE* file;
+>>>>>>> parent of c82de25... + delete/free missmatch.
 
     if(!m_navMesh)
     {
-        uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i.mmap")+1;
-        char *fileName = new char[pathLen];
-        snprintf(fileName, pathLen, (char*)(sWorld.GetDataPath()+"mmaps/%03i.mmap").c_str(), i_id);
+        sprintf(fileName, "%smmaps/%03i.mmap", sWorld.GetDataPath().c_str(), i_id);
+        file = fopen(fileName, "rb");
 
-        FILE* file = fopen(fileName, "rb");
         if(!file)
         {
             sLog.outDebug("Error: Could not open mmap file '%s'", fileName);
-            delete [] fileName;
             return;
         }
 
@@ -49,16 +51,20 @@ void Map::LoadNavMesh(int gx, int gy)
         fread(&params, sizeof(dtNavMeshParams), 1, file);
         fread(&offset, sizeof(uint32), 1, file);
         fclose(file);
-        delete [] fileName;
 
         m_navMesh = dtAllocNavMesh();
         if(!m_navMesh->init(&params))
         {
+<<<<<<< HEAD
             dtFreeNavMesh(m_navMesh);
             m_navMesh = NULL;
 <<<<<<< HEAD
             sLog.outError("Error: Failed to initialize mmap %03u from file %s", m_mapId, fileName);
 =======
+=======
+            delete m_navMesh;
+            m_navMesh = 0;
+>>>>>>> parent of c82de25... + delete/free missmatch.
             sLog.outError("Error: Failed to initialize mmap %03u from file %s", i_id, fileName);
 >>>>>>> parent of 6c22936... + Changes to fit new Recast API.
             return;
@@ -70,15 +76,12 @@ void Map::LoadNavMesh(int gx, int gy)
         return;
 
     // mmaps/0000000.mmtile
-    uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i%02i%02i.mmtile")+1;
-    char *fileName = new char[pathLen];
-    snprintf(fileName, pathLen, (char*)(sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), i_id, gx, gy);
+    sprintf(fileName, "%smmaps/%03i%02i%02i.mmtile", sWorld.GetDataPath().c_str(), i_id, gx, gy);
+    file = fopen(fileName, "rb");
 
-    FILE *file = fopen(fileName, "rb");
     if(!file)
     {
         sLog.outDebug("Error: Could not open mmtile file '%s'", fileName);
-        delete [] fileName;
         return;
     }
 
@@ -87,11 +90,13 @@ void Map::LoadNavMesh(int gx, int gy)
     fseek(file, 0, SEEK_SET);
 
     unsigned char* data =  (unsigned char*)dtAlloc(length, DT_ALLOC_PERM);
+<<<<<<< HEAD
     ASSERT(data);
 
+=======
+>>>>>>> parent of c82de25... + delete/free missmatch.
     fread(data, length, 1, file);
     fclose(file);
-    delete [] fileName;
 
     dtMeshHeader* header = (dtMeshHeader*)data;
     if (header->magic != DT_NAVMESH_MAGIC)
@@ -112,6 +117,7 @@ void Map::LoadNavMesh(int gx, int gy)
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",m_mapId, gx, gy, header->version, DT_NAVMESH_VERSION);
 =======
         sLog.outError("%03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
@@ -119,6 +125,10 @@ void Map::LoadNavMesh(int gx, int gy)
 =======
         sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
 >>>>>>> parent of 6c22936... + Changes to fit new Recast API.
+=======
+        sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",
+                              i_id, gx, gy,                 header->version, DT_NAVMESH_VERSION);
+>>>>>>> parent of c82de25... + delete/free missmatch.
         dtFree(data);
         return;
     }
