@@ -3130,9 +3130,9 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     WorldPacket data;
     if (pathSize == 1 || pathSize > 10)
     {
-        x = pointPath[(end > 1) ? end-1 : 1].x;
-        y = pointPath[(end > 1) ? end-1 : 1].y;
-        z = pointPath[(end > 1) ? end-1 : 1].z;
+        x = pointPath[start].x;
+        y = pointPath[start].y;
+        z = pointPath[start].z;
         data.Initialize(SMSG_MONSTER_MOVE);
         data << m_caster->GetPackGUID();
         data << uint8(0);
@@ -8194,7 +8194,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
 
-    uint32 traveltime = 1000/pointPath.GetTotalLength();
+    uint32 traveltime = pointPath.GetTotalLength();
     uint32 start = 1;
     uint32 end = pointPath.size();
     uint32 pathSize = end - start;
@@ -8203,11 +8203,11 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     m_caster->GetPosition(cx,cy,cz);
     if (pathSize < 1)
         m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
-    else if (pathSize == 1 || pathSize > 10)
+    else if (pathSize == 1)
     {
-        x = pointPath[(end > 1) ? end-1 : 1].x;
-        y = pointPath[(end > 1) ? end-1 : 1].y;
-        z = pointPath[(end > 1) ? end-1 : 1].z;
+        x = pointPath[start].x;
+        y = pointPath[start].y;
+        z = pointPath[start].z;
         m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
     }
     else
@@ -8240,7 +8240,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     }
 
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime, start, (end > 1) ? end-1 : end);
+        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
@@ -8281,7 +8281,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     //m_caster->MonsterMoveByPath(x, y, z, 25, false);
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
-    uint32 traveltime = 1000/pointPath.GetTotalLength();
+    uint32 traveltime = pointPath.GetTotalLength();
     uint32 start = 1;
     uint32 end = pointPath.size();
     uint32 pathSize = end - start;
@@ -8289,11 +8289,11 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     m_caster->GetPosition(cx,cy,cz);
     if (pathSize < 1)
         m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
-    else if (pathSize == 1 || pathSize > 10)
+    else if (pathSize == 1)
     {
-        x = pointPath[(end > 1) ? end-1 : 1].x;
-        y = pointPath[(end > 1) ? end-1 : 1].y;
-        z = pointPath[(end > 1) ? end-1 : 1].z;
+        x = pointPath[start].x;
+        y = pointPath[start].y;
+        z = pointPath[start].z;
         m_caster->SendMonsterMove(x, y, z, unitTarget ? SPLINETYPE_FACINGTARGET : SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget ? unitTarget->GetGUID() : 0);
     }
     else
@@ -8327,7 +8327,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     }
 
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime, start, (end > 1) ? end-1 : end);
+        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
