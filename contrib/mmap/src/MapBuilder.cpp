@@ -394,7 +394,7 @@ namespace MMAP
 
     bool MapBuilder::loadVMap(uint32 mapID, uint32 tileX, uint32 tileY, MeshData &meshData)
     {
-        int result = m_vmapManager->loadMap("vmaps", mapID, tileX, tileY);
+        VMAPLoadResult result = m_vmapManager->loadMap("vmaps", mapID, tileX, tileY);
 
         if (result == VMAP_LOAD_RESULT_ERROR)
             return false;
