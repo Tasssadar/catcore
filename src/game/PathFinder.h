@@ -148,10 +148,14 @@ class PathInfo
 /*        bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist,
                             const dtPolyRef* path, const uint32 pathSize, float* steerPos,
                             unsigned char& steerPosFlag, dtPolyRef& steerPosRef,
+<<<<<<< HEAD
                             float* outPoints = 0, uint32* outPountcount = 0);*/
         bool getSteerTarget(const float* startPos, const float* endPos,
                             const float minTargetDist, const dtPolyRef* path, const uint32 pathSize,
                             float* steerPos, unsigned char& steerPosFlag, dtPolyRef& steerPosRef);
+=======
+                            float* outPoints = 0, uint32* outPountcount = 0);
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
         uint32 findSmoothPath(const float* startPos, const float* endPos,
                               const dtPolyRef* polyPath, const uint32 polyPathSize,
                               float* smoothPath, const uint32 smoothPathMaxSize);

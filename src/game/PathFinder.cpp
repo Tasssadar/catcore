@@ -533,10 +533,15 @@ dtQueryFilter PathInfo::createFilter()
 
     Creature* creature = (Creature*)m_sourceObject;
 <<<<<<< HEAD
+<<<<<<< HEAD
     filter.includeFlags = 0;
     filter.excludeFlags = 0;
 =======
 >>>>>>> parent of f4d8ee5... + Support underwater movement.
+=======
+    filter.includeFlags = 0;
+    filter.excludeFlags = 0;
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
 
     if(creature->canWalk())
         filter.includeFlags |= NAV_GROUND;          // walk
@@ -545,8 +550,13 @@ dtQueryFilter PathInfo::createFilter()
         filter.includeFlags |= NAV_WATER;           // swim
 
     // creatures don't take environmental damage
+<<<<<<< HEAD
     if (creature->canSwim() || creature->isPet())
         filter.includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
+=======
+    if(creature->canSwim())
+        filter.includeFlags |= NAV_MAGMA | NAV_SLIME;
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
 
     // allow creatures to cheat and use different movement types if they are moved
     // forcefully into terrain they can't normally move in

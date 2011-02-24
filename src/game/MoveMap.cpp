@@ -56,7 +56,11 @@ void Map::LoadNavMesh(int gx, int gy)
         {
             dtFreeNavMesh(m_navMesh);
             m_navMesh = NULL;
+<<<<<<< HEAD
             sLog.outError("Error: Failed to initialize mmap %03u from file %s", m_mapId, fileName);
+=======
+            sLog.outError("Error: Failed to initialize mmap %03u from file %s", i_id, fileName);
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
             return;
         }
     }
@@ -93,24 +97,33 @@ void Map::LoadNavMesh(int gx, int gy)
     if (header->magic != DT_NAVMESH_MAGIC)
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         sLog.outError("Error: %03u%02i%02i.mmtile has an invalid header", m_mapId, gx, gy);
 =======
         sLog.outError("%03u%02i%02i.mmtile has an invalid header", i_id, gx, gy);
 >>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
+=======
+        sLog.outError("Error: %03u%02i%02i.mmtile has an invalid header", i_id, gx, gy);
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
         dtFree(data);
         return;
     }
     if (header->version != DT_NAVMESH_VERSION)
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",m_mapId, gx, gy, header->version, DT_NAVMESH_VERSION);
 =======
         sLog.outError("%03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
 >>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
+=======
+        sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
         dtFree(data);
         return;
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     if (!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
     {
@@ -120,6 +133,11 @@ void Map::LoadNavMesh(int gx, int gy)
     {
         sLog.outError("Could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
 >>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
+=======
+    if (!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
+    {
+        sLog.outError("Error: could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
         dtFree(data);
         return;
     }
@@ -155,6 +173,7 @@ void Map::UnloadNavMesh(int gx, int gy)
 
     // unload, and mark as non loaded
 <<<<<<< HEAD
+<<<<<<< HEAD
     if(m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0))
 =======
     if(DT_SUCCESS != m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), NULL, NULL))
@@ -172,6 +191,12 @@ void Map::UnloadNavMesh(int gx, int gy)
         sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i(%u)", i_id, gx, gy, i_id, GetInstanceId());
     }
 >>>>>>> parent of 5029e5d... + Memory leak in NavMesh loading code.
+=======
+    if(m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0))
+        m_mmapTileMap.erase(packedGridPos);
+
+    sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i(%u)", i_id, gx, gy, i_id, GetInstanceId());
+>>>>>>> parent of 6c22936... + Changes to fit new Recast API.
 }
 
 dtNavMesh* Map::GetNavMesh()
