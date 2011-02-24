@@ -37,17 +37,11 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
-<<<<<<< HEAD
     const TerrainInfo* terrain = m_sourceObject->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
         m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
 
     if (m_navMesh)
-=======
-    Map const *map = m_sourceObject->GetBaseMap();
-    m_navMesh = const_cast<dtNavMesh*>(map->GetNavMesh());
-    if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
->>>>>>> parent of f4d8ee5... + Support underwater movement.
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         ASSERT(m_navMeshQuery);
@@ -206,7 +200,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         PATH_DEBUG("++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
-        m_type = (canFly()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+        m_type = (canFly() || canSwim()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
         //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
         return;
     }
@@ -218,6 +212,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         // TODO: swimming case
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
+<<<<<<< HEAD
 <<<<<<< HEAD
         if(canFly() || canSwim())
         {
@@ -241,6 +236,9 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
 =======
         if(canFly())
 >>>>>>> parent of f4d8ee5... + Support underwater movement.
+=======
+        if(canFly() || canSwim())
+>>>>>>> parent of 0e6bf22... [pr927] Revert some changes to move map code and fix pet movement
         {
             BuildShortcut();
             m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
@@ -350,8 +348,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             sLog.outError("%u's Path Build failed: invalid polyRef in path", m_sourceObject->GetGUID());
 
             BuildShortcut();
-            m_type = PATHFIND_NOPATH;
-            //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+           // m_type = PATHFIND_NOPATH;
+            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
             return;
         }
 
@@ -418,8 +416,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             // only happens if we passed bad data to findPath(), or navmesh is messed up
             sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
             BuildShortcut();
-            //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-            m_type = PATHFIND_NOPATH;
+            m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+           // m_type = PATHFIND_NOPATH;
             return;
         }
 
@@ -438,8 +436,8 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         // only happens if we passed bad data to findPath(), or navmesh is messed up
         sLog.outError("%u's Path Build failed: %u length path", m_sourceObject->GetGUID(), m_polyLength);
         BuildShortcut();
-        //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-        m_type = PATHFIND_NOPATH;
+        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+       // m_type = PATHFIND_NOPATH;
         return;
     }
 
@@ -486,12 +484,12 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
     if(pointCount < 2 || pointCount == MAX_POINT_PATH_LENGTH)
     {
         // only happens if pass bad data to findStraightPath or navmesh is broken
-        // single point paths can be generated here 
+        // single point paths can be generated here
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
-        //m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-        m_type = PATHFIND_NOPATH;
+        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
+        //m_type = PATHFIND_NOPATH;
         return;
     }
 
