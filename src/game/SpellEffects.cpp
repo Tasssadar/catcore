@@ -8137,11 +8137,13 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
-        float angle = unitTarget->GetAngle(x,y) + M_PI_F;
-        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
-        angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F;
-        m_caster->GetMotionMaster()->PauseMoveGens(1000);
-        m_caster->GetMap()->CreatureRelocation((Creature*)m_caster, x, y, z, angle);
+        PointPath path;
+        path.resize(2);
+        float cx, cy, cz;
+        m_caster->GetPosition(cx, cy, cz);
+        path.set(0, PathNode(cx, cy, cz));
+        path.set(1, PathNode(x, y, z));
+        m_caster->GetMotionMaster()->MoveCharge(path, 1000.0f, 1, 1);
     }
 
     // not all charge effects used in negative spells
