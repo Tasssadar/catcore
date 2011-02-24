@@ -2702,3 +2702,4 @@ bool Map::IsPositionForbidden(float x, float y, float z) const
 
     return false;
 }
+

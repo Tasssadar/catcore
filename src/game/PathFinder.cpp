@@ -37,11 +37,17 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
     PATH_DEBUG("++ PathInfo::PathInfo for %u \n", m_sourceObject->GetGUID());
 
+<<<<<<< HEAD
     const TerrainInfo* terrain = m_sourceObject->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
         m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
 
     if (m_navMesh)
+=======
+    Map* map = m_sourceObject->GetMap();
+    m_navMesh = map->GetNavMesh();
+    if(sWorld.MMapsEnabled() && m_navMesh && !useStraightPath)
+>>>>>>> parent of 5029e5d... + Memory leak in NavMesh loading code.
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
         ASSERT(m_navMeshQuery);
@@ -572,11 +578,15 @@ NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_sourceObject->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 
 =======
     m_sourceObject->GetBaseMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
 >>>>>>> parent of f4d8ee5... + Support underwater movement.
+=======
+    m_sourceObject->GetMap()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+>>>>>>> parent of 5029e5d... + Memory leak in NavMesh loading code.
 
     switch (data.type)
     {

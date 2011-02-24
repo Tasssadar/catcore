@@ -129,10 +129,14 @@ void Map::LoadNavMesh(int gx, int gy)
     uint32 packedTilePos = packTileID(uint32(header->x), uint32(header->y));
     m_mmapLoadedTiles.insert(std::pair<uint32, uint32>(packedGridPos, packedTilePos));
 <<<<<<< HEAD
+<<<<<<< HEAD
     sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i[%02i,%02i]", m_mapId, gx, gy, m_mapId, header->x, header->y);
 =======
     sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i[%02i,%02i]", i_id, gx, gy, i_id, header->x, header->y);
 >>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
+=======
+    sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i(%u)[%02i,%02i]", i_id, gx, gy, i_id, GetInstanceId(), header->x, header->y);
+>>>>>>> parent of 5029e5d... + Memory leak in NavMesh loading code.
 }
 
 void Map::UnloadNavMesh(int gx, int gy)
@@ -161,11 +165,16 @@ void Map::UnloadNavMesh(int gx, int gy)
     {
 >>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
         m_mmapLoadedTiles.erase(packedGridPos);
+<<<<<<< HEAD
 
     sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i", m_mapId, gx, gy, m_mapId);
+=======
+        sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i(%u)", i_id, gx, gy, i_id, GetInstanceId());
+    }
+>>>>>>> parent of 5029e5d... + Memory leak in NavMesh loading code.
 }
 
-dtNavMesh const* Map::GetNavMesh() const
+dtNavMesh* Map::GetNavMesh()
 {
     return m_navMesh;
 }
