@@ -38,6 +38,8 @@
 #include <bitset>
 #include <list>
 
+#include "../recastnavigation/Detour/Include/DetourNavMesh.h"
+
 class Creature;
 class Unit;
 class WorldPacket;
@@ -146,6 +148,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         // some calls like isInWater should not use vmaps due to processor power
         // can return INVALID_HEIGHT if under z+2 z coord not found height
+        int8 GetVmapLoadResult() const { return m_vmapLoadResult; }
 
         virtual void RemoveAllObjectsInRemoveList();
 
@@ -332,7 +335,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         template<class T>
             void DeleteFromWorld(T*);
-        // end movemap-related
+
+        int8 m_vmapLoadResult;
 };
 
 enum InstanceResetMethod

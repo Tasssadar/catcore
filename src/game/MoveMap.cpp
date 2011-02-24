@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "GridMap.h"
+#include "Map.h"
 #include "Log.h"
 #include "Utilities/UnorderedMap.h"
 #include "World.h"
@@ -24,16 +24,17 @@
 uint32 packTileID(uint32 tileX, uint32 tileY) { return tileX<<16 | tileY; }
 void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>16; tileY = ID&0xFF; }
 
-void TerrainInfo::LoadNavMesh(int gx, int gy)
+void Map::LoadNavMesh(int gx, int gy)
 {
     if(!sWorld.MMapsEnabled())
         return;
+
 
     if(!m_navMesh)
     {
         uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i.mmap")+1;
         char *fileName = new char[pathLen];
-        snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i.mmap").c_str(), m_mapId);
+        snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i.mmap").c_str(), i_id);
 
         FILE* file = fopen(fileName, "rb");
         if (!file)
@@ -63,14 +64,14 @@ void TerrainInfo::LoadNavMesh(int gx, int gy)
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
     if (m_mmapLoadedTiles.find(packedGridPos) != m_mmapLoadedTiles.end())
     {
-        sLog.outError("Asked to load already loaded navmesh tile. %03u%02i%02i.mmtile", m_mapId, gx, gy);
+        sLog.outError("Asked to load already loaded navmesh tile. %03u%02i%02i.mmtile", i_id, gx, gy);
         return;
     }
 
     // mmaps/0000000.mmtile
     uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i%02i%02i.mmtile")+1;
     char *fileName = new char[pathLen];
-    snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), m_mapId, gx, gy);
+    snprintf(fileName, pathLen, (sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), i_id, gx, gy);
 
     FILE *file = fopen(fileName, "rb");
     if (!file)
@@ -119,12 +120,12 @@ void TerrainInfo::LoadNavMesh(int gx, int gy)
     sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i[%02i,%02i]", m_mapId, gx, gy, m_mapId, header->x, header->y);
 }
 
-void TerrainInfo::UnloadNavMesh(int gx, int gy)
+void Map::UnloadNavMesh(int gx, int gy)
 {
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
     if (m_mmapLoadedTiles.find(packedGridPos) == m_mmapLoadedTiles.end())
     {
-        sLog.outError("Asked to unload not loaded navmesh tile. %03u%02i%02i.mmtile", m_mapId, gx, gy);
+        sLog.outError("Asked to unload not loaded navmesh tile. %03u%02i%02i.mmtile", i_id, gx, gy);
         return;
     }
     uint32 packedTilePos = m_mmapLoadedTiles[packedGridPos];
@@ -138,7 +139,8 @@ void TerrainInfo::UnloadNavMesh(int gx, int gy)
     sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i", m_mapId, gx, gy, m_mapId);
 }
 
-dtNavMesh const* TerrainInfo::GetNavMesh() const
+dtNavMesh const* Map::GetNavMesh() const
 {
     return m_navMesh;
 }
+

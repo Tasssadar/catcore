@@ -476,7 +476,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
     if(pointCount < 2 || pointCount == MAX_POINT_PATH_LENGTH)
     {
         // only happens if pass bad data to findStraightPath or navmesh is broken
-        // single point paths can be generated here 
+        // single point paths can be generated here
         // TODO : check the exact cases
         PATH_DEBUG("++ PathInfo::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
@@ -561,6 +561,7 @@ NavTerrain PathInfo::getNavTerrain(float x, float y, float z)
 {
     GridMapLiquidData data;
     m_sourceObject->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data);
+
 
     switch (data.type)
     {
