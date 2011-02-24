@@ -1439,6 +1439,7 @@ void World::SetInitialWorldSettings()
         std::stringstream str;
         for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
         {
+            e
             mapEntry = sMapStore.LookupEntry(i);
             if(!mapEntry)
                 continue;

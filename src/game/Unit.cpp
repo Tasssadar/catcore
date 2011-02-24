@@ -16998,4 +16998,3 @@ void Unit::UpdateMovementFlags(bool updateMovement, float x, float y, float z, b
     m_movementInfo.SetMovementFlags(MovementFlags(moveFlags));
     m_movementInfo.SetMovementFlags2(MovementFlags2(moveFlags2));
 }
-

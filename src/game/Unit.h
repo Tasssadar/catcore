@@ -1373,7 +1373,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // values below increased from 1.0 to 2.0 to match 3.3.3 resillience
         uint32 GetMeleeDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
         uint32 GetRangedDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
-        uint32 GetSpellDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); } 
+        uint32 GetSpellDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
 
         float  MeleeSpellMissChance(Unit *pVictim, WeaponAttackType attType, int32 skillDiff, SpellEntry const *spell);
         SpellMissInfo MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell);
@@ -1597,11 +1597,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void RemoveAura(uint32 spellId, SpellEffectIndex effindex, Aura* except = NULL, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
 
-        // DEVELOPER CODE START 
-        // deactivating auras effect 
-        void DeactivateAurasDueToSpell(uint32 spellId); 
-        void ActivateAurasDueToSpell(uint32 spellId); 
-        // DEVELOPER CODE END 
+        // DEVELOPER CODE START
+        // deactivating auras effect
+        void DeactivateAurasDueToSpell(uint32 spellId);
+        void ActivateAurasDueToSpell(uint32 spellId);
+        // DEVELOPER CODE END
 
         // removing specific aura stacks by diff reasons and selections
         void RemoveAurasDueToSpell(uint32 spellId, Aura* except = NULL, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
@@ -1965,7 +1965,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SheduleAINotify(uint32 delay);
 
         bool m_notify_sheduled;
-        struct 
+        struct
         {
             float x, y, z;
         } m_last_notified_position;
