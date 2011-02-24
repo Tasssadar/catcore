@@ -63,10 +63,7 @@ void Map::LoadNavMesh(int gx, int gy)
 
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
     if (m_mmapLoadedTiles.find(packedGridPos) != m_mmapLoadedTiles.end())
-    {
-        sLog.outError("Asked to load already loaded navmesh tile. %03u%02i%02i.mmtile", i_id, gx, gy);
         return;
-    }
 
     // mmaps/0000000.mmtile
     uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i%02i%02i.mmtile")+1;
@@ -95,20 +92,34 @@ void Map::LoadNavMesh(int gx, int gy)
     dtMeshHeader* header = (dtMeshHeader*)data;
     if (header->magic != DT_NAVMESH_MAGIC)
     {
+<<<<<<< HEAD
         sLog.outError("Error: %03u%02i%02i.mmtile has an invalid header", m_mapId, gx, gy);
+=======
+        sLog.outError("%03u%02i%02i.mmtile has an invalid header", i_id, gx, gy);
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
         dtFree(data);
         return;
     }
     if (header->version != DT_NAVMESH_VERSION)
     {
+<<<<<<< HEAD
         sLog.outError("Error: %03u%02i%02i.mmtile was built with Detour v%i, expected v%i",m_mapId, gx, gy, header->version, DT_NAVMESH_VERSION);
+=======
+        sLog.outError("%03u%02i%02i.mmtile was built with Detour v%i, expected v%i",i_id, gx, gy, header->version, DT_NAVMESH_VERSION);
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
         dtFree(data);
         return;
     }
 
+<<<<<<< HEAD
     if (!m_navMesh->addTile(data, length, DT_TILE_FREE_DATA))
     {
         sLog.outError("Error: could not load %03u%02i%02i.mmtile into navmesh", m_mapId, gx, gy);
+=======
+    if (DT_SUCCESS != m_navMesh->addTile(data, length, DT_TILE_FREE_DATA, 0, NULL))
+    {
+        sLog.outError("Could not load %03u%02i%02i.mmtile into navmesh", i_id, gx, gy);
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
         dtFree(data);
         return;
     }
@@ -117,23 +128,38 @@ void Map::LoadNavMesh(int gx, int gy)
 
     uint32 packedTilePos = packTileID(uint32(header->x), uint32(header->y));
     m_mmapLoadedTiles.insert(std::pair<uint32, uint32>(packedGridPos, packedTilePos));
+<<<<<<< HEAD
     sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i[%02i,%02i]", m_mapId, gx, gy, m_mapId, header->x, header->y);
+=======
+    sLog.outDetail("Loaded mmtile %03i[%02i,%02i] into %03i[%02i,%02i]", i_id, gx, gy, i_id, header->x, header->y);
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
 }
 
 void Map::UnloadNavMesh(int gx, int gy)
 {
     uint32 packedGridPos = packTileID(uint32(gx), uint32(gy));
     if (m_mmapLoadedTiles.find(packedGridPos) == m_mmapLoadedTiles.end())
-    {
-        sLog.outError("Asked to unload not loaded navmesh tile. %03u%02i%02i.mmtile", i_id, gx, gy);
         return;
+<<<<<<< HEAD
     }
+=======
+
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
     uint32 packedTilePos = m_mmapLoadedTiles[packedGridPos];
     uint32 tileX, tileY;
     unpackTileID(packedTilePos, tileX, tileY);
 
     // unload, and mark as non loaded
+<<<<<<< HEAD
     if(m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), 0, 0))
+=======
+    if(DT_SUCCESS != m_navMesh->removeTile(m_navMesh->getTileRefAt(int(tileX), int(tileY)), NULL, NULL))
+    {
+        sLog.outError("Could not unload %03u%02i%02i.mmtile from navmesh", i_id, gx, gy);
+    }
+    else
+    {
+>>>>>>> parent of 303c8a7... + Store actualt dtTileRef inside m_mmapLoadedTiles.
         m_mmapLoadedTiles.erase(packedGridPos);
 
     sLog.outDetail("Unloaded mmtile %03i[%02i,%02i] from %03i", m_mapId, gx, gy, m_mapId);
