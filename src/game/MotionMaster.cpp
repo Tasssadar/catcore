@@ -29,7 +29,6 @@
 #include "TargetedMovementGenerator.h"
 #include "WaypointMovementGenerator.h"
 #include "RandomMovementGenerator.h"
-#include "ChargeMovementGenerator.h"
 
 #include <cassert>
 
@@ -80,13 +79,13 @@ MotionMaster::UpdateMotion(uint32 diff)
         }
         else
             m_pauseTimer -= diff;
-        return;      
+        return;
     }
-    
+
     //ASSERT( !empty() );
     if (empty())
         return;
-    
+
     m_cleanFlag |= MMCF_UPDATE;
     if (!top()->Update(*i_owner, diff))
     {
@@ -435,7 +434,7 @@ MotionMaster::MoveDistract(uint32 timer)
     Mutate(mgen);
 }
 
-void MotionMaster::MoveCharge(PointPath const& path, uint32 pointTime, uint32 start, uint32 end)
+void MotionMaster::MoveCharge(Path<PathElem,PathNode> const& path, uint32 pointTime, uint32 start, uint32 end)
 {
     if (i_owner->GetTypeId()==TYPEID_PLAYER)
         return;

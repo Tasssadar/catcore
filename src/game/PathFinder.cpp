@@ -210,7 +210,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         PATH_DEBUG("++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
-        m_type = (canFly() || canSwim()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+        m_type = canFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
 
         return;
     }
@@ -228,7 +228,11 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         PATH_DEBUG("++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if(canFly() || canSwim())
+=======
+        if(canFly())
+>>>>>>> parent of 390aaca... [pr911] Make swimming creatures handled same as flying in pathfinding, restore build
         {
             Creature* owner = (Creature*)m_sourceObject;
 

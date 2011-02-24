@@ -31,7 +31,7 @@ class MANGOS_DLL_SPEC InstanceData
 {
     public:
 
-        explicit InstanceData(Map *map) : instance(map) {}
+        explicit InstanceData(Map *map) : instance(map), isLocked(false) {}
         virtual ~InstanceData() {}
 
         Map *instance;
