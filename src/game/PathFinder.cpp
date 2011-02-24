@@ -39,6 +39,7 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const TerrainInfo* terrain = m_sourceObject->GetTerrain();
     if(sWorld.MMapsEnabled() && !useStraightPath)
         m_navMesh = (dtNavMesh*)terrain->GetNavMesh();
@@ -54,6 +55,9 @@ PathInfo::PathInfo(const WorldObject* from, const float destX, const float destY
         ASSERT(m_navMeshQuery);
 =======
     if(sWorld.MMapsEnabled() && (m_navMesh = m_sourceObject->GetMap()->GetNavMesh()))
+=======
+    if((m_navMesh = m_sourceObject->GetMap()->GetNavMesh()) && sWorld.MMapsEnabled())
+>>>>>>> parent of d5e16d7... Some changes
     {
         m_navMeshQuery = dtAllocNavMeshQuery();
 >>>>>>> parent of c82de25... + delete/free missmatch.
@@ -428,7 +432,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
                 pathPolys,          // [out] path
                 MAX_PATH_LENGTH);   // max number of polygons in output path
 
-        if(m_polyLength == 0 || m_polyLength == MAX_PATH_LENGTH)
+        if(m_polyLength == 0)
         {
             // only happens if we passed bad data to findPath(), or navmesh is messed up
             sLog.outError("%u's Path Build failed: 0 length path", m_sourceObject->GetGUID());
@@ -447,16 +451,6 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         m_type = PATHFIND_NORMAL;
     else
         m_type = PATHFIND_INCOMPLETE;
-
-    if(m_polyLength == 0 || m_polyLength == MAX_PATH_LENGTH)
-    {
-        // only happens if we passed bad data to findPath(), or navmesh is messed up
-        sLog.outError("%u's Path Build failed: %u length path", m_sourceObject->GetGUID(), m_polyLength);
-        BuildShortcut();
-        m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
-       // m_type = PATHFIND_NOPATH;
-        return;
-    }
 
     // generate the point-path out of our up-to-date poly-path
     BuildPointPath(startPoint, endPoint);

@@ -26,11 +26,14 @@ inline void unpackTileID(uint32 ID, uint32 &tileX, uint32 &tileY) { tileX = ID>>
 
 void Map::LoadNavMesh(int gx, int gy)
 {
+<<<<<<< HEAD
     if(!sWorld.MMapsEnabled())
         return;
 
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of d5e16d7... Some changes
     char fileName[512];
     FILE* file;
 >>>>>>> parent of c82de25... + delete/free missmatch.
