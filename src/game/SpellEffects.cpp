@@ -8127,7 +8127,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         z += 5.0f;
         unitTarget->UpdateGroundPositionZ(x, y, z, range+10.0f);
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetTerrain()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -8184,7 +8184,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
         z += 5.0f;
         m_caster->UpdateGroundPositionZ(x, y, z, range+10.0f);
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetMap()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetTerrain()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
     z+= 0.5f;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags

@@ -20,6 +20,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Map.h"
 #include "Log.h"
+#include "Creature.h"
 
 void InstanceData::SaveToDB()
 {
@@ -56,7 +57,7 @@ void InstanceData::RemoveFromCombatList(Creature* pCreature)
         {
             lCombatList.erase(itr);
             break;
-        }		
+        }
     }*/
     lCombatList.remove(pCreature->GetGUID());
 }

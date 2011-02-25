@@ -22,6 +22,13 @@
 #include "Common.h"
 #include <vector>
 
+struct PathNode
+{
+    PathNode(): x(0.0f), y(0.0f), z(0.0f) { }
+    PathNode(float _x, float _y, float _z): x(_x), y(_y), z(_z) { }
+    float x, y, z;
+};
+
 struct SimplePathNode
 {
     float x,y,z;
@@ -80,5 +87,6 @@ class Path
 };
 
 typedef Path<SimplePathNode> SimplePath;
+typedef Path<PathNode> PointPath;
 
 #endif

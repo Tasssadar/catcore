@@ -63,25 +63,6 @@ Map::~Map()
         m_instanceSave->SetUsedByMapState(false);
 }
 
-void Map::LoadVMap(int gx,int gy)
-{
-                                                            // x and y are swapped !!
-    int vmapLoadResult = VMAP::VMapFactory::createOrGetVMapManager()->loadMap((sWorld.GetDataPath()+ "vmaps").c_str(),  GetId(), gx,gy);
-    switch(vmapLoadResult)
-    {
-        case VMAP::VMAP_LOAD_RESULT_OK:
-            DETAIL_LOG("VMAP loaded name:%s, id:%d, x:%d, y:%d (vmap rep.: x:%d, y:%d)", GetMapName(), GetId(), gx,gy,gx,gy);
-            break;
-        case VMAP::VMAP_LOAD_RESULT_ERROR:
-            DETAIL_LOG("Could not load VMAP name:%s, id:%d, x:%d, y:%d (vmap rep.: x:%d, y:%d)", GetMapName(), GetId(), gx,gy,gx,gy);
-            break;
-        case VMAP::VMAP_LOAD_RESULT_IGNORED:
-            DEBUG_LOG("Ignored VMAP name:%s, id:%d, x:%d, y:%d (vmap rep.: x:%d, y:%d)", GetMapName(), GetId(), gx,gy,gx,gy);
-            break;
-    }
-    m_vmapLoadResult = vmapLoadResult;
-}
-
 void Map::LoadMapAndVMap(int gx,int gy)
 {
     if(m_bLoadedGrids[gx][gx])
@@ -96,8 +77,8 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
   i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
   m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_instanceSave(NULL),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
-  i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id))
-  m_parentMap(_parent ? _parent : this), m_vmapLoadResult(-1)
+  i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id)),
+  m_vmapLoadResult(-1)
 {
     for(unsigned int j=0; j < MAX_NUMBER_OF_GRIDS; ++j)
     {

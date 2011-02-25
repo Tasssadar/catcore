@@ -413,13 +413,13 @@ struct LookingForGroup
         lockInfo = NULL;
         lockInfoOutdated = true;
     }
-    
+
     std::string comment;
     uint8 roles;
     LfgDungeonList queuedDungeons;
     GroupMap groups;
     std::map<uint32, GroupReference*> m_LfgGroup; // dung ID
-    uint32 joinTime; 
+    uint32 joinTime;
 
     bool DoneDungeon(uint32 ID, Player *player);
     WorldLocation joinLoc;
@@ -614,7 +614,7 @@ enum AtLoginFlags
     AT_LOGIN_LEARN_CLASS_SPELLS     = 0x080,
     AT_LOGIN_LEARN_SKILL_RECIPES    = 0x100,
     AT_LOGIN_LEARN_TAXI_NODES       = 0x200,
-    AT_LOGIN_DELAY_ONE_LOGIN        = 0x400, 
+    AT_LOGIN_DELAY_ONE_LOGIN        = 0x400,
     AT_LOGIN_ADD_PET                = 0x800
 };
 
@@ -2347,7 +2347,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             BindToInstance(map->GetInstanceSave(), permanent, sendNotice);
         }
-        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false));
+        void BindToInstance(InstanceSave* save, bool permanent, bool sendNotice = false);
         void SendRaidInfo();
         void SendSavedInstances();
         InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);

@@ -88,6 +88,8 @@ libmangosgame_a_SOURCES = \
 	CharacterDatabaseCleaner.cpp \
 	CharacterDatabaseCleaner.h \
 	CharacterHandler.cpp \
+	ChargeMovementGenerator.cpp\
+	ChargeMovementGenerator.h \
 	Chat.cpp \
 	Chat.h \
 	ChatHandler.cpp \

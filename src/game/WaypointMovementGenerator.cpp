@@ -77,9 +77,12 @@ void WaypointMovementGenerator<Creature>::LoadPath(Creature &creature)
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
     CreatureTraveller traveller(creature);
 
-    // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
-    CreatureTraveller traveller(creature);
-    MoveToNextNode(traveller);
+    if (creature.canFly())
+        creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
+    const WaypointNode &node = i_path->at(i_currentNode);
+    i_destinationHolder.SetDestination(traveller, node.x, node.y, node.z);
+    i_nextMoveTime.Reset(i_destinationHolder.GetTotalTravelTime());
 }
 
 void WaypointMovementGenerator<Creature>::Initialize(Creature &creature)
@@ -297,24 +300,6 @@ void WaypointMovementGenerator<Creature>::MovementInform(Creature &creature)
 bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, float& y, float& z)
 {
     return PathMovementBase<Creature, WaypointPath const*>::GetPosition(x,y,z);
-}
-
-void WaypointMovementGenerator<Creature>::MoveToNextNode(CreatureTraveller &traveller)
-{
-    Creature* owner = &(traveller.i_traveller);
-    const WaypointNode &node = i_path->at(i_currentNode);
-    i_destinationHolder.SetDestination(traveller, node.x, node.y, node.z, false);
-
-    PathInfo sub_path(owner, node.x, node.y, node.z);
-    PointPath pointPath = sub_path.getFullPath();
-
-    owner->UpdateMovementFlags(true, node.x, node.y, node.z, true);
-
-    float speed = traveller.Speed()*0.001f; // in ms
-    uint32 traveltime = uint32(pointPath.GetTotalLength()/speed);
-    owner->SendMonsterMoveByPath(pointPath, 1, pointPath.size(), owner->GetSplineFlags(), traveltime);
-
-    i_nextMoveTime.Reset(traveltime);
 }
 
 //----------------------------------------------------//
