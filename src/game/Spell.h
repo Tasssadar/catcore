@@ -592,7 +592,7 @@ class Spell
         uint8  m_negativeEffectMask;                        // Use for avoid sent negative spell procs for additional positive effects only targets
         uint32 m_procAttacker;                              // Attacker trigger flags
         uint32 m_procVictim;                                // Victim   trigger flags
-        void   prepareDataForTriggerSystem();m_tradeSpell
+        void   prepareDataForTriggerSystem();
 
         bool   m_tradeSpell;
 
