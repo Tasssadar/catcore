@@ -515,6 +515,9 @@ class Spell
 
         static void SelectMountByAreaAndSkill(Unit* target, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
         bool isCausingAura(AuraType aura);
+
+        void SetTradeSpell(bool isTrade) { m_tradeSpell = isTrade; }
+
     protected:
         bool HasGlobalCooldown();
         void TriggerGlobalCooldown();
@@ -589,7 +592,9 @@ class Spell
         uint8  m_negativeEffectMask;                        // Use for avoid sent negative spell procs for additional positive effects only targets
         uint32 m_procAttacker;                              // Attacker trigger flags
         uint32 m_procVictim;                                // Victim   trigger flags
-        void   prepareDataForTriggerSystem();
+        void   prepareDataForTriggerSystem();m_tradeSpell
+
+        bool   m_tradeSpell;
 
         //*****************************************
         // Spell target subsystem
