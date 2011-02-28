@@ -1399,6 +1399,7 @@ bool Aura::modStackAmount(int32 num)
     else if (stackAmount <=0) // Last aura from stack removed
     {
         m_stackAmount = 0;
+        SendAuraUpdate(false);
         return true; // need remove aura
     }
     SendAuraUpdate(false);
