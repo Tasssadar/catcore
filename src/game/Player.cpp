@@ -981,28 +981,26 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     data << uint32(resist);
     SendMessageToSet(&data, true);
 
-    Player* DmgSource = this;
-    if (isInCombat() && GetHealth() <= damage )
+    uint32 final_damage = 0;
+    if (GetHealth() <= damage && isInCombat() && !getAttackers().empty())
     {
-        AttackerSet const& attackers = getAttackers();
-        for(AttackerSet::const_iterator itr = attackers.begin(); itr != attackers.end(); ++itr)
+        Unit* u = 0;
+        AttackerSet::iterator itr = getAttackers().begin();
+        while (!u && itr != getAttackers().end())
         {
-            if (!LastDmgDealer)
-                continue;
-
-            if ((*itr)->GetGUID() == LastDmgDealer->GetGUID())
-            {
-                DmgSource = LastDmgDealer;
-                continue;
-            }
+            if ((*itr)->GetTypeId() == TYPEID_PLAYER)
+                u = *itr;
+            else
+                ++itr;
         }
+        final_damage = u->DealDamage(this, damage, NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
     }
-
-    uint32 final_damage = DmgSource->DealDamage(this, damage, NULL, SELF_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
+    else
+        final_damage = DmgSource->DealDamage(this, damage, NULL, SELF_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
 
     if (!isAlive())
     {
-        if (type==DAMAGE_FALL && DmgSource == this)          // DealDamage not apply item durability loss at self damage
+        if (type==DAMAGE_FALL && GetMap()->IsBattleGroundOrArena())          // DealDamage not apply item durability loss at self damage
         {
             DEBUG_LOG("We are fall to death, loosing 10 percents durability");
             DurabilityLossAll(0.10f,false);

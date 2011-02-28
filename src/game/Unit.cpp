@@ -730,9 +730,6 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
 
-    if (pVictim->GetTypeId() == TYPEID_PLAYER && GetTypeId() == TYPEID_PLAYER)
-        ((Player*)pVictim)->LastDmgDealer = (Player*)this;
-
     uint32 health = pVictim->GetHealth();
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"deal dmg:%d to health:%d ",damage,health);
 
@@ -12122,10 +12119,7 @@ void Unit::ClearInCombat()
             creature->RemoveFromInstanceCombatList();
     }
     else
-    {
         ((Player*)this)->UpdatePotionCooldown();
-        ((Player*)this)->LastDmgDealer = NULL;
-    }
 }
 
 bool Unit::isTargetableForAttack(bool inverseAlive /*=false*/) const
