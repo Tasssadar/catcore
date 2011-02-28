@@ -2095,6 +2095,9 @@ void Unit::CallForAllControlledUnits(Func const& func, bool withTotems, bool wit
 template<typename Func>
 bool Unit::CheckAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms) const
 {
+    if (!this->IsInWorld())
+        return false;
+
     if (Pet const* pet = GetPet())
         if (func(pet))
             return true;
