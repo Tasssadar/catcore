@@ -1228,11 +1228,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool Attack(Unit *victim, bool meleeAttack);
         void CastStop(uint32 except_spellid = 0);
         bool AttackStop(bool targetSwitch = false);
-        void RemoveAllAttackers();
+        void RemoveAllAttackers(bool forced);
         AttackerSet const& getAttackers() const { return m_attackers; }
         bool isAttackingPlayer() const;
         Unit* getVictim() const { return m_attacking; }
-        void CombatStop(bool includingCast = false);
+        void CombatStop(bool includingCast = false, bool forced = true);
         void CombatStopWithPets(bool includingCast = false);
         void StopAttackFaction(uint32 faction_id);
         Unit* SelectRandomUnfriendlyTarget(Unit* except = NULL, float radius = ATTACK_DISTANCE) const;

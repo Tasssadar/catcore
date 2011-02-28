@@ -2782,7 +2782,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         case 18461:
         {
             // Stop combat and remove attackers
-            unitTarget->CombatStop();
+            unitTarget->CombatStop(false, false);
             unitTarget->getHostileRefManager().deleteReferences();
 
             unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOD_ROOT);
@@ -7371,7 +7371,7 @@ void Spell::EffectSanctuary(SpellEffectIndex /*eff_idx*/)
         return;
     //unitTarget->CombatStop();
 
-    unitTarget->CombatStop();
+    unitTarget->CombatStop(false, false);
     unitTarget->getHostileRefManager().deleteReferences();  // stop all fighting
     // Vanish allows to remove all threat and cast regular stealth so other spells can be used
     if (m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & SPELLFAMILYFLAG_ROGUE_VANISH))

@@ -9838,13 +9838,13 @@ bool Unit::AttackStop(bool targetSwitch /*=false*/)
     return true;
 }
 
-void Unit::CombatStop(bool includingCast)
+void Unit::CombatStop(bool includingCast, bool forced)
 {
     if (includingCast && IsNonMeleeSpellCasted(false))
         InterruptNonMeleeSpells(false);
 
     AttackStop();
-    RemoveAllAttackers();
+    RemoveAllAttackers(forced);
     if ( GetTypeId()==TYPEID_PLAYER )
         ((Player*)this)->SendAttackSwingCancelAttack();     // melee and ranged forced attack cancel
     ClearInCombat();
@@ -9877,16 +9877,22 @@ bool Unit::isAttackingPlayer() const
     return CheckAllControlledUnits(IsAttackingPlayerHelper(),true,true,true);
 }
 
-void Unit::RemoveAllAttackers()
+void Unit::RemoveAllAttackers(bool forced)
 {
-    while (!m_attackers.empty())
+    for (AttackerSet::iterator iter = m_attackers.begin(); iter != m_attackers.end();)
     {
-        AttackerSet::iterator iter = m_attackers.begin();
+        if (!forced && (*iter)->GetTypeId() == TYPEID_UNIT && ((Creature*)*iter)->isWorldBoss())
+        {
+            ++iter;
+            continue;
+        }
+
         if (!(*iter)->AttackStop())
         {
             sLog.outError("WORLD: Unit has an attacker that isn't attacking it!");
             m_attackers.erase(iter);
         }
+        iter = m_attackers.begin();
     }
 }
 
@@ -15052,7 +15058,7 @@ void Unit::SetFeignDeath(bool apply, uint64 const& casterGUID, uint32 /*spellID*
         SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
 
         addUnitState(UNIT_STAT_DIED);
-        CombatStop();
+        CombatStop(false, false);
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
 
         // prevent interrupt message
