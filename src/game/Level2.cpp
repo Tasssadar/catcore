@@ -4751,7 +4751,7 @@ bool ChatHandler::HandleTitlesCurrentCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleMmapPathCommand(char* args)
+bool ChatHandler::HandleMmapPathCommand(const char* args)
 {
     if (!MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(m_session->GetPlayer()->GetMapId()))
     {
@@ -4770,7 +4770,7 @@ bool ChatHandler::HandleMmapPathCommand(char* args)
         return true;
     }
 
-    char* para = strtok(args, " ");
+    char* para = strtok((char*)args, " ");
 
     bool useStraightPath = false;
     if (para && strcmp(para, "true") == 0)
@@ -4812,7 +4812,7 @@ bool ChatHandler::HandleMmapPathCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleMmapLocCommand(char* /*args*/)
+bool ChatHandler::HandleMmapLocCommand(const char* /*args*/)
 {
     PSendSysMessage("mmap tileloc:");
 
@@ -4867,7 +4867,7 @@ bool ChatHandler::HandleMmapLocCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleMmapLoadedTilesCommand(char* /*args*/)
+bool ChatHandler::HandleMmapLoadedTilesCommand(const char* /*args*/)
 {
     uint32 mapid = m_session->GetPlayer()->GetMapId();
 
@@ -4893,7 +4893,7 @@ bool ChatHandler::HandleMmapLoadedTilesCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleMmapStatsCommand(char* /*args*/)
+bool ChatHandler::HandleMmapStatsCommand(const char* /*args*/)
 {
     PSendSysMessage("mmap stats:");
     PSendSysMessage("  global mmap pathfinding is %sabled", sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");

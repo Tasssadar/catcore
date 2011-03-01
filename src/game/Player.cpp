@@ -996,7 +996,7 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
         final_damage = u->DealDamage(this, damage, NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
     }
     else
-        final_damage = DmgSource->DealDamage(this, damage, NULL, SELF_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
+        final_damage = DealDamage(this, damage, NULL, SELF_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false, absorb);
 
     if (!isAlive())
     {

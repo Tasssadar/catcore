@@ -19,7 +19,7 @@
 #ifndef _MOVE_MAP_H
 #define _MOVE_MAP_H
 
-#include "Utilities/UnorderedMapSet.h"
+#include "Utilities/UnorderedMap.h"
 
 #include "../../dep/recastnavigation/Detour/Include/DetourAlloc.h"
 #include "../../dep/recastnavigation/Detour/Include/DetourNavMesh.h"

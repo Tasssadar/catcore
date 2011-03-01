@@ -114,7 +114,7 @@ namespace MMAP
         fclose(file);
 
         dtNavMesh* mesh = dtAllocNavMesh();
-        MANGOS_ASSERT(mesh);
+        ASSERT(mesh);
         if (DT_SUCCESS != mesh->init(&params))
         {
             dtFreeNavMesh(mesh);
@@ -148,7 +148,7 @@ namespace MMAP
 
         // get this mmap data
         MMapData* mmap = loadedMMaps[mapId];
-        MANGOS_ASSERT(mmap->navMesh);
+        ASSERT(mmap->navMesh);
 
         // check if we already have this tile loaded
         uint32 packedGridPos = packTileID(x, y);
@@ -190,7 +190,7 @@ namespace MMAP
         }
 
         unsigned char* data = (unsigned char*)dtAlloc(fileHeader.size, DT_ALLOC_PERM);
-        MANGOS_ASSERT(data);
+        ASSERT(data);
 
         size_t result = fread(data, fileHeader.size, 1, file);
         if(!result)
@@ -253,7 +253,7 @@ namespace MMAP
             // if the grid is later reloaded, dtNavMesh::addTile will return error but no extra memory is used
             // we cannot recover from this error - assert out
             sLog.outError("MMAP:unloadMap: Could not unload %03u%02i%02i.mmtile from navmesh", mapId, x, y);
-            MANGOS_ASSERT(false);
+            ASSERT(false);
         }
         else
         {
@@ -341,7 +341,7 @@ namespace MMAP
         {
              // allocate mesh query
             dtNavMeshQuery* query = dtAllocNavMeshQuery();
-            MANGOS_ASSERT(query);
+            ASSERT(query);
             if(DT_SUCCESS != query->init(mmap->navMesh, 1024))
             {
                 dtFreeNavMeshQuery(query);

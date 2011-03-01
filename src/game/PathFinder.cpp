@@ -124,7 +124,7 @@ dtPolyRef PathInfo::getPathPolyByPosition(dtPolyRef *polyPath, uint32 polyPathSi
 
     for (uint32 i = 0; i < polyPathSize; ++i)
     {
-        MANGOS_ASSERT(polyPath[i] != INVALID_POLYREF);
+        ASSERT(polyPath[i] != INVALID_POLYREF);
 
         float closestPoint[VERTEX_SIZE];
         if (DT_SUCCESS != m_navMeshQuery->closestPointOnPoly(polyPath[i], point, closestPoint))
@@ -200,7 +200,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
     {
         DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
-        m_type = (m_sourceUnit->GetTypeId() == TYPEID_UNIT && ((Creature*)m_sourceUnit)->CanFly())
+        m_type = (m_sourceUnit->GetTypeId() == TYPEID_UNIT && ((Creature*)m_sourceUnit)->canFly())
                     ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
         return;
     }
@@ -220,13 +220,13 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             if (m_sourceUnit->GetTerrain()->IsUnderWater(p.x, p.y, p.z))
             {
                 DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: underWater case\n");
-                if (owner->CanSwim() || owner->IsPet())
+                if (owner->canSwim() || owner->isPet())
                     buildShotrcut = true;
             }
             else
             {
                 DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: flying case\n");
-                if (owner->CanFly())
+                if (owner->canFly())
                     buildShotrcut = true;
             }
         }
@@ -280,7 +280,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         for (pathStartIndex = 0; pathStartIndex < m_polyLength; ++pathStartIndex)
         {
             // here to carch few bugs
-            MANGOS_ASSERT(m_pathPolyRefs[pathStartIndex] != INVALID_POLYREF);
+            ASSERT(m_pathPolyRefs[pathStartIndex] != INVALID_POLYREF);
             
             if (m_pathPolyRefs[pathStartIndex] == startPoly)
             {
@@ -491,11 +491,11 @@ void PathInfo::createFilter()
     if (m_sourceUnit->GetTypeId() == TYPEID_UNIT)
     {
         Creature* creature = (Creature*)m_sourceUnit;
-        if (creature->CanWalk())
+        if (creature->canWalk())
             includeFlags |= NAV_GROUND;          // walk
 
         // creatures don't take environmental damage
-        if (creature->CanSwim() || creature->IsPet())
+        if (creature->canSwim() || creature->isPet())
             includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
     }
     else if (m_sourceUnit->GetTypeId() == TYPEID_PLAYER)
@@ -633,7 +633,7 @@ dtStatus PathInfo::findSmoothPath(const float* startPos, const float* endPos,
                                      const dtPolyRef* polyPath, const uint32 polyPathSize,
                                      float* smoothPath, int* smoothPathSize, bool &usedOffmesh, const uint32 maxSmoothPathSize)
 {
-    MANGOS_ASSERT(polyPathSize <= MAX_PATH_LENGTH);
+    ASSERT(polyPathSize <= MAX_PATH_LENGTH);
     *smoothPathSize = 0;
     uint32 nsmoothPath = 0;
     usedOffmesh = false;

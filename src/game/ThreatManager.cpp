@@ -242,6 +242,15 @@ HostileReference* ThreatContainer::addThreat(Unit* pVictim, float pThreat)
 {
     HostileReference* ref = getReferenceByTarget(pVictim);
     if (ref)
+        ref->addThreat(pThreat);
+    return ref;
+}
+
+//============================================================
+
+void ThreatContainer::modifyThreatPercent(Unit *pVictim, int32 pPercent)
+{
+    if (HostileReference* ref = getReferenceByTarget(pVictim))
     {
         if(pPercent < -100)
         {
@@ -251,15 +260,6 @@ HostileReference* ThreatContainer::addThreat(Unit* pVictim, float pThreat)
         else
             ref->addThreatPercent(pPercent);
     }
-    return ref;
-}
-
-//============================================================
-
-void ThreatContainer::modifyThreatPercent(Unit *pVictim, int32 pPercent)
-{
-    if (HostileReference* ref = getReferenceByTarget(pVictim))
-        ref->addThreatPercent(pPercent);
 }
 
 //============================================================

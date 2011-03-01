@@ -6661,11 +6661,13 @@ bool ChatHandler::HandleBroadCastResetTimerCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleMmap(char* args)
+bool ChatHandler::HandleMmap(const char* args)
 {
     bool on;
-    if (ExtractOnOff(&args, on))
+    if (*args)
     {
+        std::string argstr = (char*)args;
+        on = argstr == "on";
         if (on)
         {
             sWorld.setConfig(CONFIG_BOOL_MMAP_ENABLED, true);
@@ -6685,10 +6687,11 @@ bool ChatHandler::HandleMmap(char* args)
     return true;
 }
 
-bool ChatHandler::HandleMmapTestArea(char* args)
+bool ChatHandler::HandleMmapTestArea(const char* args)
 {
-    float radius = 40.0f;
-    ExtractFloat(&args, radius);
+/*    float radius = 40.0f;
+    if(*args)
+        radius = float(atoi(args)); 
 
     CellPair pair(MaNGOS::ComputeCellPair( m_session->GetPlayer()->GetPositionX(), m_session->GetPlayer()->GetPositionY()) );
     Cell cell(pair);
@@ -6725,6 +6728,6 @@ bool ChatHandler::HandleMmapTestArea(char* args)
     {
         PSendSysMessage("No creatures in %f yard range.", radius);
     }
-
+                */
     return true;
 }
