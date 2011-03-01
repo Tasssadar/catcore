@@ -8134,7 +8134,8 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         ((Creature *)unitTarget)->StopMoving();
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    //m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    m_caster->MonsterMoveByPath(x, y, z, 25, false);
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
         PointPath path;
@@ -8188,7 +8189,8 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     z+= 0.5f;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    //m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, 1, NULL, unitTarget->GetGUID());
+    m_caster->MonsterMoveByPath(x, y, z, 25, false);
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
         PointPath path;
