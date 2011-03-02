@@ -15816,7 +15816,7 @@ void Unit::MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, 
 {
     SplineFlags flags = GetTypeId() == TYPEID_PLAYER ? SPLINEFLAG_WALKMODE : ((Creature*)this)->GetSplineFlags();
     SendMonsterMoveByPath(path, start, end, flags, transitTime);
-
+    
     if (GetTypeId() != TYPEID_PLAYER)
     {
         Creature* c = (Creature*)this;

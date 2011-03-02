@@ -190,6 +190,22 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
     if (i_path && (i_path->getPathType() & PATHFIND_NOPATH))
         return true;
 
+    if(pathLost)
+    {
+        i_findPathTimer.Update(time_diff);
+        if(i_findPathTimer.Passed())
+        {
+            _setTargetLocation(owner);
+            pathLost = false;
+        }else return true;
+    }
+
+  if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
+    {
+        pathLost = true;
+        i_findPathTimer.Reset(1000);
+    }
+
     Traveller<T> traveller(owner);
 
     if (!i_destinationHolder.HasDestination())
