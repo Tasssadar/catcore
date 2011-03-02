@@ -13951,6 +13951,7 @@ uint32 Unit::GetCreatePowers( Powers power ) const
 void Unit::AddToWorld()
 {
     Object::AddToWorld();
+    SheduleAINotify(0);
 }
 
 void Unit::RemoveFromWorld()
