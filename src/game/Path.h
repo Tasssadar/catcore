@@ -20,18 +20,13 @@
 #define MANGOSSERVER_PATH_H
 
 #include "Common.h"
-#include <vector>
+#include <deque>
 
 struct PathNode
 {
     PathNode(): x(0.0f), y(0.0f), z(0.0f) { }
     PathNode(float _x, float _y, float _z): x(_x), y(_y), z(_z) { }
     float x, y, z;
-};
-
-struct SimplePathNode
-{
-    float x,y,z;
 };
 
 template<typename PathElem, typename PathNode = PathElem>
@@ -42,7 +37,20 @@ class Path
         bool empty() const { return i_nodes.empty(); }
         void resize(unsigned int sz) { i_nodes.resize(sz); }
         void clear() { i_nodes.clear(); }
-        void erase(uint32 idx) { i_nodes.erase(i_nodes.begin()+idx); }
+        void crop(unsigned int start, unsigned int end)
+        {
+            while(start && !i_nodes.empty())
+            {
+                i_nodes.pop_front();
+                --start;
+            }
+
+            while(end && !i_nodes.empty())
+            {
+                i_nodes.pop_back();
+                --end;
+            }
+        }
 
         float GetTotalLength(uint32 start, uint32 end) const
         {
@@ -83,10 +91,10 @@ class Path
         void set(size_t idx, PathElem elem) { i_nodes[idx] = elem; }
 
     protected:
-        std::vector<PathElem> i_nodes;
+        std::deque<PathElem> i_nodes;
 };
 
-typedef Path<SimplePathNode> SimplePath;
 typedef Path<PathNode> PointPath;
+
 
 #endif

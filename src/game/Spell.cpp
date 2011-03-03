@@ -843,6 +843,7 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex)
     target.targetGUID = targetGUID;                         // Store target GUID
     target.effectMask = immuned ? 0 : (1 << effIndex);      // Store index of effect if not immuned
     target.processed  = false;                              // Effects not apply on target
+    target.deleted = false;
 
     // Calculate hit result
     Unit* real_caster = GetAffectiveCaster();
@@ -921,6 +922,7 @@ void Spell::AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex)
     target.targetGUID = targetGUID;
     target.effectMask = (1 << effIndex);
     target.processed  = false;                              // Effects not apply on target
+    target.deleted = false;
 
     // spell fly from visual cast object
     WorldObject* affectiveObject = GetAffectiveCasterObject();
@@ -968,6 +970,7 @@ void Spell::AddItemTarget(Item* pitem, SpellEffectIndex effIndex)
     ItemTargetInfo target;
     target.item       = pitem;
     target.effectMask = (1 << effIndex);
+    target.deleted = false;
     m_UniqueItemInfo.push_back(target);
 }
 

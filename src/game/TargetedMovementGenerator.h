@@ -23,6 +23,8 @@
 #include "DestinationHolder.h"
 #include "Traveller.h"
 #include "FollowerReference.h"
+#include "PathFinder.h"
+#include "Timer.h"
 
 class MANGOS_DLL_SPEC TargetedMovementGeneratorBase
 {
@@ -39,12 +41,15 @@ class MANGOS_DLL_SPEC TargetedMovementGeneratorMedium
 {
     protected:
         TargetedMovementGeneratorMedium()
-            : TargetedMovementGeneratorBase(), i_offset(0), i_angle(0), i_recalculateTravel(false) {}
+            : TargetedMovementGeneratorBase(), i_offset(0), i_angle(0), i_recalculateTravel(false),
+                i_path(NULL), m_pathPointsSent(0), pathLost(false), i_findPathTimer(0) {}
         TargetedMovementGeneratorMedium(Unit &target)
-            : TargetedMovementGeneratorBase(target), i_offset(0), i_angle(0), i_recalculateTravel(false) {}
+            : TargetedMovementGeneratorBase(target), i_offset(0), i_angle(0), i_recalculateTravel(false),
+                i_path(NULL), m_pathPointsSent(0), pathLost(false), i_findPathTimer(0) {}
         TargetedMovementGeneratorMedium(Unit &target, float offset, float angle)
-            : TargetedMovementGeneratorBase(target), i_offset(offset), i_angle(angle), i_recalculateTravel(false) {}
-        ~TargetedMovementGeneratorMedium() {}
+            : TargetedMovementGeneratorBase(target), i_offset(offset), i_angle(angle), i_recalculateTravel(false),
+                i_path(NULL), m_pathPointsSent(0), pathLost(false), i_findPathTimer(0) {}
+        ~TargetedMovementGeneratorMedium() { delete i_path; }
 
     public:
         bool Update(T &, const uint32 &);
@@ -58,6 +63,11 @@ class MANGOS_DLL_SPEC TargetedMovementGeneratorMedium
             return true;
         }
 
+        bool IsReachable() const
+        {
+            return (i_path) ? (i_path->getPathType() & PATHFIND_NORMAL) : true;
+        }
+
         void unitSpeedChanged() { i_recalculateTravel=true; }
         void UpdateFinalDistance(float fDistance);
 
@@ -68,6 +78,10 @@ class MANGOS_DLL_SPEC TargetedMovementGeneratorMedium
         float i_angle;
         DestinationHolder< Traveller<T> > i_destinationHolder;
         bool i_recalculateTravel;
+        PathInfo* i_path;
+        uint32 m_pathPointsSent;
+        bool pathLost;
+        TimeTrackerSmall i_findPathTimer;
 };
 
 template<class T>
