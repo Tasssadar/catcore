@@ -43,6 +43,7 @@ endif()
 
 find_package(Platform REQUIRED)
 find_package(Git)
+FIND_PACKAGE( OpenMP )
 
 # VS100 uses MSBuild.exe instead of devenv.com, so force it to use devenv.com
 if(WIN32 AND MSVC_VERSION MATCHES 1600)
@@ -277,6 +278,9 @@ if(UNIX)
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Set warning levels for different builds
 if(UNIX)
