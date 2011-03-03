@@ -9844,10 +9844,10 @@ void Unit::CombatStop(bool includingCast, bool forced)
         InterruptNonMeleeSpells(false);
 
     AttackStop();
-    RemoveAllAttackers(forced);
     if ( GetTypeId()==TYPEID_PLAYER )
         ((Player*)this)->SendAttackSwingCancelAttack();     // melee and ranged forced attack cancel
-    ClearInCombat();
+    if (RemoveAllAttackers(forced))
+        ClearInCombat();
 }
 
 struct CombatStopWithPetsHelper
@@ -9877,13 +9877,15 @@ bool Unit::isAttackingPlayer() const
     return CheckAllControlledUnits(IsAttackingPlayerHelper(),true,true,true);
 }
 
-void Unit::RemoveAllAttackers(bool forced)
+bool Unit::RemoveAllAttackers(bool forced)
 {
+    bool removed_all = true;
     for (AttackerSet::iterator iter = m_attackers.begin(); iter != m_attackers.end();)
     {
         if (!forced && (*iter)->GetTypeId() == TYPEID_UNIT && ((Creature*)*iter)->isWorldBoss())
         {
             ++iter;
+            removed_all = false;
             continue;
         }
 
@@ -9894,6 +9896,7 @@ void Unit::RemoveAllAttackers(bool forced)
         }
         iter = m_attackers.begin();
     }
+    return removed_all;
 }
 
 bool Unit::HasAuraStateForCaster(AuraState flag, uint64 caster) const

@@ -1228,7 +1228,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool Attack(Unit *victim, bool meleeAttack);
         void CastStop(uint32 except_spellid = 0);
         bool AttackStop(bool targetSwitch = false);
-        void RemoveAllAttackers(bool forced);
+        bool RemoveAllAttackers(bool forced);
         AttackerSet const& getAttackers() const { return m_attackers; }
         bool isAttackingPlayer() const;
         Unit* getVictim() const { return m_attacking; }
