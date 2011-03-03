@@ -7503,7 +7503,7 @@ void Spell::AddPrecastAndTriggeredSpells()
         case SPELLFAMILY_WARLOCK:
         {
             // Consume Shadows
-            if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000002000000))
+            if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000002000000) && m_spellInfo->SpellIconID == 207)
                 AddPrecastSpell(54501);                     // Consume Shadows - Stealth detection part
             break;
         }
