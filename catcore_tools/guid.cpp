@@ -34,7 +34,9 @@ struct tables
 int main()
 {
     // Leave or change guid in other tables, if false then skip creatures which have record in other tables
-    bool changeGUID = false;
+    bool changeGUID = true;
+    // if changeGUID = true, creatures which has guid lower or same as minGuid will be processed as if changeGUID = false
+    ulong minGuid = 151032;
 
     static tables tabulky[]=
     {
@@ -46,22 +48,21 @@ int main()
         {"npc_gossip", "npc_guid"},
         {"pool_creature", "guid"}
     };
-                            
     MYSQL *conn;
     MYSQL_RES *res;
     MYSQL_ROW row;
-    
+
     std::stringstream file;
     file << "guidlog_" << time(NULL);
     FILE *log = fopen(file.str().c_str(), "a");
 
     char *server = "localhost";
     char *user = "user";
-    char *password = "pass"; /* set me first */
-    char *database = "database";
-    
+    char *password = "password"; /* set me first */
+    char *database = "mangos";
+
     conn = mysql_init(NULL);
-               
+
     /* Connect to database */
     if (!mysql_real_connect(conn, server,
      user, password, database, 0, NULL, 0)) {
@@ -72,7 +73,7 @@ int main()
         fprintf(log, "%s\n", mysql_error(conn));
         return 1;
     }
-    
+
     res = mysql_use_result(conn);
     std::list<long> guids;
 
@@ -80,7 +81,7 @@ int main()
     printf("============================ \n");
     fprintf(log, "\nLOADING GUIDS FROM DB \n ");
     fprintf(log, "============================ \n");
-        
+
     while ((row = mysql_fetch_row(res)) != NULL)
     {
         int a = atoi(row[0]);
@@ -91,7 +92,7 @@ int main()
     printf("\nASSEMBLING FREE GUIDS \n ");
     printf("============================ \n");
     fprintf(log, "\nASSEMBLING FREE GUIDS \n ");
-    fprintf(log, "============================ \n");        
+    fprintf(log, "============================ \n");
     std::list<long> free;
 
     long lastGuid = *(guids.begin())-1;
@@ -107,14 +108,14 @@ int main()
         else
             ++lastGuid;
     }
-    
+
     printf("\nCLEANING UP 0 GUID \n ");
     printf("============================ \n");
     fprintf(log, "\nCLENING UP 0 GUID \n ");
     fprintf(log, "============================ \n");
     //Cleanup...
     mysql_query(conn, "SELECT guid FROM creature WHERE guid=0");
-    
+
     res = mysql_use_result(conn);
     row = mysql_fetch_row(res);
     if(row != NULL)
@@ -132,13 +133,13 @@ int main()
     guids.reverse();
     bool can = true;
     int counta = 0;
-    
+
     printf("\nCHANGING GUIDS \n ");
     printf("============================ \n");
     fprintf(log, "\nCHANGING GUIDS \n ");
     fprintf(log, "============================ \n");    
     fprintf(log, "\n begin: %u, %u \n", *(guids.begin()), *(free.begin()));
-    
+
     for(std::list<long>::iterator itr = guids.begin(); itr != guids.end(); ++itr)
     {
         can = true;
@@ -158,7 +159,7 @@ int main()
              }
              if(row = mysql_fetch_row(res))
              {
-                 if(changeGUID)
+                 if(changeGUID && *itr > minGuid)
                  {
                     fprintf(log, "\n edit %s for creature %u", (tabulky[y].name).c_str(), *itr);
                     mysql_free_result(res);
@@ -181,7 +182,7 @@ int main()
         std::stringstream ss;
         ss << "UPDATE creature SET guid = " << *(free.begin()) << " WHERE guid =  " << *itr;
         fprintf(log, "\n \n %s", ss.str().c_str());
-        
+
         mysql_query(conn, ss.str().c_str()); 
 
         fprintf(log, "\n    presunul %u -> %u", *itr, *(free.begin()));
@@ -191,9 +192,9 @@ int main()
         ++counta;
     } 
     long maxguid = 0;
- 
+
     mysql_query(conn, "SELECT MAX(guid) FROM creature");
-    
+
     res = mysql_use_result(conn);
     row = mysql_fetch_row(res);
     if(row != NULL)
@@ -203,5 +204,5 @@ int main()
     mysql_free_result(res);
     mysql_close(conn);
     fclose(log);
-    return 0;
 }
+
