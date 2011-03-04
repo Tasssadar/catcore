@@ -45,7 +45,6 @@ FleeingMovementGenerator<T>::_setTargetLocation(T &owner)
         return;
 
     owner.addUnitState(UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true, x, y, z);
     Traveller<T> traveller(owner);
     i_destinationHolder.SetDestination(traveller, x, y, z);
 }
@@ -333,14 +332,13 @@ template<>
 void FleeingMovementGenerator<Player>::Finalize(Player &owner)
 {
     owner.clearUnitState(UNIT_STAT_FLEEING|UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<>
 void FleeingMovementGenerator<Creature>::Finalize(Creature &owner)
 {
+    owner.AddSplineFlag(SPLINEFLAG_WALKMODE);
     owner.clearUnitState(UNIT_STAT_FLEEING|UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -348,7 +346,6 @@ void FleeingMovementGenerator<T>::Interrupt(T &owner)
 {
     // flee state still applied while movegen disabled
     owner.clearUnitState(UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>

@@ -776,10 +776,6 @@ class MovementInfo
         bool HasMovementFlag(MovementFlags f) const { return moveFlags & f; }
         MovementFlags GetMovementFlags() const { return MovementFlags(moveFlags); }
         void SetMovementFlags(MovementFlags f) { moveFlags = f; }
-
-        void AddMovementFlag2(MovementFlags2 f) { moveFlags2 |= f; }
-        void RemoveMovementFlag2(MovementFlags2 f) { moveFlags2 &= ~f; }
-        bool HasMovementFlag2(MovementFlags2 f) const { return moveFlags2 & f; }
         MovementFlags2 GetMovementFlags2() const { return MovementFlags2(moveFlags2); }
         void SetMovementFlags2(MovementFlags2 f) { moveFlags2 = f; }
 
@@ -1974,9 +1970,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff);
 
         void AddAndLinkAura(uint32 auraId, bool apply);
-
-        void InitializeMovementFlags();
-        void UpdateMovementFlags(bool updateMovement, float x = 0, float y = 0, float z = 0, bool walkmode = false);
 
     protected:
         explicit Unit ();

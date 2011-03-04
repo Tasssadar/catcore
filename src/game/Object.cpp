@@ -254,7 +254,83 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
     {
         Unit *unit = ((Unit*)this);
 
-        unit->UpdateMovementFlags(false);
+        switch(GetTypeId())
+        {
+            case TYPEID_UNIT:
+            {
+                unit->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
+
+                // disabled, makes them run-in-same-place before movement generator updated once.
+                /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
+
+                if (((Creature*)unit)->canFly() && !(((Creature*)unit)->canWalk()
+                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
+                {
+                    // (ok) most seem to have this
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+
+                    // Add flying effect. This should be in db, but...
+                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
+                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
+                    if (!((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    {
+                        // (ok) possibly some "hover" mode
+                        //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT); //problems sometimes...
+                    }
+                }
+
+                // swimming creature
+                float x,y,z;
+                unit->GetPosition(x,y,z);
+                if(((Creature*)unit)->canSwim() && unit->GetMap()->IsInWater(x,y,z))
+                {
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+
+                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
+                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+                }
+
+                if (unit->GetVehicleGUID())
+                   unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                if (unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == RANDOM_CIRCLE_MOTION_TYPE)
+                {
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
+                }
+
+            }
+            break;
+            case TYPEID_PLAYER:
+            {
+                Player *player = ((Player*)unit);
+
+                if (player->GetTransport())
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+                else
+                    player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                // remove unknown, unused etc flags for now
+                player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+
+                if (((Unit*)this)->GetVehicleGUID())
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                if (((Player*)this)->isInFlight())
+                {
+                    ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+                }
+            }
+            break;
+        }
 
         // Update movement info time
         unit->m_movementInfo.UpdateTime(getMSTime());

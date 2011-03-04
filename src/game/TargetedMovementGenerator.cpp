@@ -78,7 +78,8 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
     // and then has the wrong z to use when creature try follow unit in the air.
     if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly())
         z = i_target->GetPositionZ();
-  //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
+
+  //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
     //ACE_hrtime_t elapsed;
     //timer.start();
 
@@ -102,9 +103,13 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
         --m_pathPointsSent;
 
     Traveller<T> traveller(owner);
-    owner.UpdateMovementFlags(true, x, y, z);
     i_path->getNextPosition(x, y, z);
     i_destinationHolder.SetDestination(traveller, x, y, z, false);
+
+    if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
+        !(((Creature*)&owner)->canWalk() && ((Creature*)&owner)->IsAtGroundLevel(x,y,z)))
+        ((Creature&)owner).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
 
     // send the path if:
     //    we have brand new path
@@ -200,7 +205,8 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         }else return true;
     }
 
-  if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
+
+  if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
     {
         pathLost = true;
         i_findPathTimer.Reset(1000);
@@ -219,7 +225,8 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         // put targeted movement generators on a higher priority
         if (owner.GetObjectBoundingRadius())
             i_destinationHolder.ResetUpdate(100);
-      //More distance let have better performance, less distance let have more sensitive reaction at target move.
+
+      //More distance let have better performance, less distance let have more sensitive reaction at target move.
         float dist = i_target->GetObjectBoundingRadius() + owner.GetObjectBoundingRadius() + sWorld.getConfig(CONFIG_FLOAT_RATE_TARGET_POS_RECALCULATION_RANGE);
 
         float x,y,z;
@@ -303,14 +310,12 @@ template<class T>
 void ChaseMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
 void ChaseMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -380,7 +385,6 @@ template<class T>
 void FollowMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
-    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }
@@ -389,7 +393,6 @@ template<class T>
 void FollowMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
-    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }

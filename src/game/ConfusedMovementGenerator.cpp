@@ -92,7 +92,6 @@ void ConfusedMovementGenerator<T>::Interrupt(T &unit)
 {
     // confused state still applied while movegen disabled
     unit.clearUnitState(UNIT_STAT_CONFUSED_MOVE);
-    unit.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -147,7 +146,6 @@ bool ConfusedMovementGenerator<T>::Update(T &unit, const uint32 &diff)
             const float x = i_waypoints[i_nextMove][0];
             const float y = i_waypoints[i_nextMove][1];
             const float z = i_waypoints[i_nextMove][2];
-            unit.UpdateMovementFlags(true, x, y, z);
             Traveller<T> traveller(unit);
             i_destinationHolder.SetDestination(traveller, x, y, z);
         }
@@ -165,7 +163,7 @@ template<>
 void ConfusedMovementGenerator<Creature>::Finalize(Creature &unit)
 {
     unit.clearUnitState(UNIT_STAT_CONFUSED|UNIT_STAT_CONFUSED_MOVE);
-    unit.UpdateMovementFlags(true);
+    unit.AddSplineFlag(SPLINEFLAG_WALKMODE);
 }
 
 template void ConfusedMovementGenerator<Player>::Initialize(Player &player);
