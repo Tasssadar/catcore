@@ -40,9 +40,9 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
         float x, y, z;
         creature.GetPosition(x, y, z);
         float itr = 1;
-        if(m_pointTime > 200)
+        if(m_pointTime > 1000)
         {
-            while(float(m_pointTime)/float(dist+itr/itr) <= 200 && itr < dist)
+            while(float(m_pointTime)/(float(dist+itr)/itr) <= 1000 && itr < dist)
                 itr+=0.3f;
         }
         else itr = dist;
@@ -52,8 +52,8 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
             m_path.resize(m_path.size()+1);
             m_path.set(m_end+1, m_path[m_end]);
 
-            x += cos(angle);
-            y += sin(angle);
+            x += cos(angle)*itr;
+            y += sin(angle)*itr;
             creature.UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
              m_path.set(m_end, PathNode(x,y,z));
             ++m_end;
