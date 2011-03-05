@@ -803,6 +803,20 @@ float TerrainInfo::GetHeight(float x, float y, float z, bool pUseVmaps, float ma
     return mapHeight;
 }
 
+void TerrainInfo::FindGroundLevels(std::vector<float> *list, float x, float y)
+{
+    if(list == NULL)
+        return;
+    float curZ = MAX_HEIGHT;
+    for(; true; curZ -= 0.5f)
+    {
+        curZ = GetHeight(x, y, curZ, true, MAX_FALL_DISTANCE);
+        
+        if(curZ > INVALID_HEIGHT) list->push_back(curZ);
+        else break;
+    }
+}
+
 inline bool IsOutdoorWMO(uint32 mogpFlags, int32 adtId, int32 rootId, int32 groupId,
                               WMOAreaTableEntry const* wmoEntry, AreaTableEntry const* atEntry)
 {

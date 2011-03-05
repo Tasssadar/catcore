@@ -225,6 +225,7 @@ public:
     float GetWaterOrGroundLevel(float x, float y, float z, float* pGround = NULL, bool swim = false) const;
     bool IsInWater(float x, float y, float z, GridMapLiquidData *data = 0) const;
     bool IsUnderWater(float x, float y, float z) const;
+    void FindGroundLevels(std::vector<float> *list, float x, float y);
 
     GridMapLiquidStatus getLiquidStatus(float x, float y, float z, uint8 ReqLiquidType, GridMapLiquidData *data = 0) const;
 

@@ -16025,7 +16025,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         float tmpZ = fz+dis*2;
         // Wanna find ground, no care how far is it, visual effect apprears to be correct
         UpdateGroundPositionZ(fx, fy, tmpZ, MAX_FALL_DISTANCE);
-        if(tmpZ != fz+dis)
+        if(tmpZ != fz+dis && (tmpZ < fz || fabs(tmpZ - fz) <=10.0f))
            fz = tmpZ;
 
         // Try to find ground bellow

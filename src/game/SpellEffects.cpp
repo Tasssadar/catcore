@@ -3071,21 +3071,29 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
     y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
 
-    bool outdoor = target->GetTerrain()->IsOutdoors(x, y, z);
+    std::vector<float> list;
+    target->GetTerrain()->FindGroundLevels(&list, x, y);
+    float targetZ = INVALID_HEIGHT;
     float range = m_caster->GetDistance(x, y, z);
-    float tmpZ = z;
-    target->UpdateGroundPositionZ(x, y, z, range+5.0f);
-    // try to find higher
-    if(z == tmpZ)
-
+    float lastDiff = INVALID_HEIGHT;
+    for(uint8 i = 0; i < list.size(); ++i)
     {
-        z += 5.0f;
-        target->UpdateGroundPositionZ(x, y, z, range+10.0f);
+        float thisDiff = fabs(list[i] - z);
+        if(lastDiff != INVALID_HEIGHT && thisDiff >= lastDiff)
+            continue;
+
+        if((list[i] > z  && thisDiff <= range) || (list[i] <= z  && thisDiff <= 1.0f))
+        {
+            targetZ = list[i];
+            lastDiff = thisDiff;
+        }
     }
+    if(targetZ == INVALID_HEIGHT) // if no fitting ground found, jump to the position of the target
+        target->GetPosition(x,y,z);
+    else
+        z = targetZ;
+    list.clear();
 
-    z+=0.5f;
-
-    z+=0.5f;
     float distance = m_caster->GetDistance2d(x,y);
     float speed = 84.0f;
     if(m_spellInfo->Id == 49575) // death grip
