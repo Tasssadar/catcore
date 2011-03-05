@@ -6047,6 +6047,9 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     Player* plr = ((Player*)m_caster);
                     if(plr && plr->GetLastPetNumber())
                     {
+                        if (plr->getClass() != CLASS_HUNTER && plr->getClass() != CLASS_WARLOCK)
+                            return;
+
                         PetType NewPetType = (plr->getClass()==CLASS_HUNTER) ? HUNTER_PET : SUMMON_PET;
                         if (Pet* NewPet = new Pet(NewPetType))
                         {
