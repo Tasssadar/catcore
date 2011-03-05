@@ -16039,7 +16039,9 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         if(distance > 0)
         {
             float dist = 1;
-            float elevation = (GetPositionZ() - fz) / distance;
+            float elevation = fabs(GetPositionZ() - fz) / distance;
+            if(GetPositionZ() > fz)
+                elevation = -elevation;
             float lastX, lastY, lastZ;
             GetPosition(lastX, lastY, lastZ);
             do
