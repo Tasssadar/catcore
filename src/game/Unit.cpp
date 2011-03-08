@@ -4408,7 +4408,10 @@ bool Unit::AddAura(Aura *Aur)
                     case SPELL_AURA_PERIODIC_LEECH:
                     case SPELL_AURA_PERIODIC_HEAL:
                     case SPELL_AURA_OBS_MOD_HEALTH:
+                    case SPELL_AURA_MOD_DECREASE_SPEED:
+                    case SPELL_AURA_PROC_TRIGGER_SPELL:
                     case SPELL_AURA_PERIODIC_MANA_LEECH:
+                    case SPELL_AURA_CHANNEL_DEATH_ITEM:
                     case SPELL_AURA_OBS_MOD_MANA:
                     case SPELL_AURA_POWER_BURN_MANA:
                     case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
