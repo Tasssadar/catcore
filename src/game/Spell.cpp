@@ -6182,6 +6182,10 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     if (castItem)
         return 0;
 
+    // For Conjure Mana Gem triggered spells
+    if (m_IsTriggeredSpell && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_RESTORE_ITEM_CHARGES && !spellInfo->Effect[EFFECT_INDEX_1])
+        return 0;
+
     // Spell drain all exist power on cast (Only paladin lay of Hands)
     if (spellInfo->AttributesEx & SPELL_ATTR_EX_DRAIN_ALL_POWER)
     {
