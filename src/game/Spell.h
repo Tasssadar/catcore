@@ -371,7 +371,7 @@ class Spell
         void EffectRedirectThreat(SpellEffectIndex eff_idx);
 
 
-        Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );
+        Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL, SpellEntry const* triggeredBy = NULL);
         ~Spell();
 
         void prepare(SpellCastTargets const* targets, Aura* triggeredByAura = NULL);
@@ -451,6 +451,7 @@ class Spell
         //void HandleAddAura(Unit* Target);
 
         SpellEntry const* m_spellInfo;
+        SpellEntry const* m_triggeredBySpellInfo;
         int32 m_currentBasePoints[MAX_EFFECT_INDEX];        // cache SpellEntry::CalculateSimpleValue and use for set custom base points
         Item* m_CastItem;
         uint8 m_cast_count;
