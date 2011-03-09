@@ -3358,7 +3358,7 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
-    Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem);
+    Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem, this);
 
     // Now Reduce spell duration using data received at spell hit
     // dont apply on boss casts ... is that correct ???
