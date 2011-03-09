@@ -10632,6 +10632,11 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     // Done fixed damage bonus auras
     int32 DoneAdvertisedBenefit = SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto));
 
+    // Item - Druid T8 Balance Relic
+    if (Aura *relicAura = GetAura(64950, EFFECT_INDEX_0))
+        if (spellProto->SpellFamilyFlags & UI64LIT(0x200000))    // Insect Swarm
+            DoneAdvertisedBenefit += relicAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
+
     // Pets just add their bonus damage to their spell damage
     // note that their spell damage is just gain of their own auras
     if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isPet())
