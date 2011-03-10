@@ -127,6 +127,10 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         if ( bossLogFile != NULL)
             fclose(bossLogFile);
         bossLogFile = NULL;
+
+        if ( catLogFile != NULL)
+            fclose(catLogFile);
+        catLogFile = NULL;
     }
     public:
         void Initialize();
@@ -158,6 +162,8 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         void outLfgLog(const char * str, ...)        ATTR_PRINTF(2,3);
                                                             // any log level
         void outBossLog(const char * str, ...)       ATTR_PRINTF(2,3);
+                                                            // any log level
+        void outCatLog(const char * str, ...)       ATTR_PRINTF(2,3);
 
         void outWorldPacketDump( uint32 socket, uint32 opcode, char const* opcodeName, ByteBuffer const* packet, bool incoming );
         // any log level
@@ -191,6 +197,7 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         FILE* arenaLogfile;
         FILE* lfgLogFile;
         FILE* bossLogFile;
+        File* catLogFile;
 
         // log/console control
         LogLevel m_logLevel;
