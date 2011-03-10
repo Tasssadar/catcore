@@ -726,7 +726,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
         uint8  coef = diff ? 226 : 213;
         float multiple = float(itemlevel)/coef;
-        damage *= multiple > 1.0f ? multiple : 1;
+        sLog.outCatLog("Average  itemlevel for player %s (GUID: %u) is %u, due to some calculation multiplier is %f", GetName(), GetGUIDLow(), itemlevel, multiple);
+        if (multiple > 1)
+            damage *= multiple;
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
