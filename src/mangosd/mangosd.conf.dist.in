@@ -397,6 +397,7 @@ ArenaRatedLogFile = "Arena.log"
 LfgLogFile = "LfgLog.log"
 LfgLogTimestamp = 0
 BossLogFile = "BossKill.log"
+CatLogFile = "CatLog.log"
 LogColors = ""
 
 ###################################################################################################################
