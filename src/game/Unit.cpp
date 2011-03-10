@@ -9865,6 +9865,7 @@ void Unit::CombatStop(bool includingCast, bool forced)
     AttackStop();
     if ( GetTypeId()==TYPEID_PLAYER )
         ((Player*)this)->SendAttackSwingCancelAttack();     // melee and ranged forced attack cancel
+
     if (RemoveAllAttackers(forced))
         ClearInCombat();
 }
@@ -9898,24 +9899,36 @@ bool Unit::isAttackingPlayer() const
 
 bool Unit::RemoveAllAttackers(bool forced)
 {
-    bool removed_all = true;
-    for (AttackerSet::iterator iter = m_attackers.begin(); iter != m_attackers.end();)
+    // check if attackers should be removed
+    if (!forced && GetTypeId() == TYPEID_PLAYER && (GetMap()->IsDungeon() || GetMap()->IsBattleGroundOrArena()))
     {
-        if (!forced && (*iter)->GetTypeId() == TYPEID_UNIT && ((Creature*)*iter)->isWorldBoss())
+        Player* plr = (Player*)this;
+        if (Group* grp = plr->GetGroup())
         {
-            ++iter;
-            removed_all = false;
-            continue;
+            for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+            {
+                Player* member = itr->getSource();
+                if (member && member->GetObjectGuid() != GetObjectGuid() &&
+                    member->IsAtGroupRewardDistance(pRewardSource) && member->isInCombat())
+                {
+                    sLog.outCatLog("Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
+                    return false;
+                }
+                else if (member)
+                    sLog.outCatLog("Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
+            }
         }
+    }
 
+    while(!m_attackers.empty())
+    {
         if (!(*iter)->AttackStop())
         {
             sLog.outError("WORLD: Unit has an attacker that isn't attacking it!");
             m_attackers.erase(iter);
         }
-        iter = m_attackers.begin();
     }
-    return removed_all;
+    return true;
 }
 
 bool Unit::HasAuraStateForCaster(AuraState flag, uint64 caster) const
