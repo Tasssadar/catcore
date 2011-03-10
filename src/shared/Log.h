@@ -197,7 +197,7 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         FILE* arenaLogfile;
         FILE* lfgLogFile;
         FILE* bossLogFile;
-        File* catLogFile;
+        FILE* catLogFile;
 
         // log/console control
         LogLevel m_logLevel;
