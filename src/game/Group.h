@@ -357,6 +357,9 @@ class MANGOS_DLL_SPEC Group
         InstanceSave* GetBoundInstance(Map* aMap, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
 
+        void UpdateAverageItemLevel();
+        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
+
     protected:
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant=false);
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant, uint8 group);
@@ -450,5 +453,6 @@ class MANGOS_DLL_SPEC Group
         Rolls               RollId;
         BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
+        uint32              m_aitemlevel;
 };
 #endif

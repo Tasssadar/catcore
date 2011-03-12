@@ -174,8 +174,11 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
-    if(!GetDungeonInfo(true))
+    UpdateAverageItemLevel();
+
+    if (!GetDungeonInfo(true))
          SetOriginalDungeonInfo(GetDungeonInfo());
+
     player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(GetDungeonInfo(true)->ID,GetId()));
     return true;
 }
@@ -184,7 +187,10 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
 {
     member_witerator slot = _getMemberWSlot(guid);
     if (slot != m_memberSlots.end())
+    {
         m_memberSlots.erase(slot);
+        UpdateAverageItemLevel();
+    }
 
     sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
     if (Player *player = sObjectMgr.GetPlayer(guid))

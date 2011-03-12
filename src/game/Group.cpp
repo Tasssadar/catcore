@@ -171,6 +171,7 @@ bool Group::LoadMemberFromDB(uint32 guidLow, uint8 subgroup, bool assistant)
     member.group     = subgroup;
     member.assistant = assistant;
     m_memberSlots.push_back(member);
+    UpdateAverageItemLevel();
 
     SubGroupCounterIncrease(subgroup);
     //set role in lfg group
@@ -1143,6 +1144,7 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
     member.group     = group;
     member.assistant = isAssistant;
     m_memberSlots.push_back(member);
+    UpdateAverageItemLevel();
 
     if(!isLfgGroup())
         SubGroupCounterIncrease(group);
@@ -1231,10 +1233,11 @@ bool Group::_removeMember(const uint64 &guid)
     member_witerator slot = _getMemberWSlot(guid);
     if (slot != m_memberSlots.end())
     {
-        if(!isLfgGroup())
+        if (!isLfgGroup())
             SubGroupCounterDecrease(slot->group);
 
         m_memberSlots.erase(slot);
+        UpdateAverageItemLevel();
     }
 
     if (!isBGGroup())
@@ -1893,4 +1896,19 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
                 RewardGroupAtKill_helper(player_tap, pVictim, count, PvP, group_rate, sum_level, is_dungeon, not_gray_member_with_max_level, member_with_max_level, xp);
         }
     }
+}
+
+void Group::UpdateAverageItemLevel()
+{
+    uint32 total_value = 0;
+    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+    {
+        if (Player* player = sObjectMgr.GetPlayer(citr->guid))
+        {
+            sLog.outCatLog("Player's %s average item list is %u", player->GetName(), player->GetAverageItemLevel());
+            total_value += player->GetAverageItemLevel();
+        }
+    }
+
+    m_aitemlevel = total_value/GetMembersCount();
 }

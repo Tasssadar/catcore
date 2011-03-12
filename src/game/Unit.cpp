@@ -722,11 +722,11 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         Player * plr = (Player*)pVictim;
-        uint32 itemlevel = plr->GetGroupAverageItemLevel();
+        uint32 itemlevel = plr->GetGroupOrPlayerAverageItemLevel();
         uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
         uint8  coef = diff ? 226 : 213;
         float multiple = float(itemlevel)/coef;
-        sLog.outCatLog("Average  itemlevel for player %s (GUID: %u) is %u, due to some calculation multiplier is %f", GetName(), GetGUIDLow(), itemlevel, multiple);
+        sLog.outCatLog("Average  itemlevel for player %s (GUID: %u) is %u, due to some calculation multiplier is %f", plr->GetName(), plr->GetGUIDLow(), itemlevel, multiple);
         if (multiple > 1)
             damage *= multiple;
     }

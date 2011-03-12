@@ -11321,7 +11321,7 @@ Item* Player::_StoreItem( uint16 pos, Item *pItem, uint32 count, bool clone, boo
 
         if (bag == INVENTORY_SLOT_BAG_0)
         {
-            m_items[slot] = pItem;
+            SetItem(pItem,slot);
             SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
             pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
             pItem->SetUInt64Value( ITEM_FIELD_OWNER, GetGUID() );
@@ -11569,7 +11569,7 @@ void Player::VisualizeItem( uint8 slot, Item *pItem)
 
     DEBUG_LOG( "STORAGE: EquipItem slot = %u, item = %u", slot, pItem->GetEntry());
 
-    m_items[slot] = pItem;
+    SetItem(pItem,slot)
     SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_OWNER, GetGUID() );
@@ -11670,7 +11670,7 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            m_items[slot] = NULL;
+            SetItem(NULL,slot)
             SetUInt64Value(PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), 0);
 
             if ( slot < EQUIPMENT_SLOT_END )
@@ -11804,7 +11804,7 @@ void Player::DestroyItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            m_items[slot] = NULL;
+            SetItem(NULL,slot)
         }
         else if (Bag *pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag ))
             pBag->RemoveItem(slot, update);
@@ -12471,7 +12471,7 @@ void Player::AddItemToBuyBackSlot( Item *pItem )
         RemoveItemFromBuyBackSlot( slot, true );
         DEBUG_LOG( "STORAGE: AddItemToBuyBackSlot item = %u, slot = %u", pItem->GetEntry(), slot);
 
-        m_items[slot] = pItem;
+        SetItem(pItem,slot)
         time_t base = time(NULL);
         uint32 etime = uint32(base - m_logintime + (30 * 3600));
         uint32 eslot = slot - BUYBACK_SLOT_START;
@@ -12509,7 +12509,7 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
             if (del) pItem->SetState(ITEM_REMOVED, this);
         }
 
-        m_items[slot] = NULL;
+        SetItem(NULL,slot)
 
         uint32 eslot = slot - BUYBACK_SLOT_START;
         SetUInt64Value( PLAYER_FIELD_VENDORBUYBACK_SLOT_1 + (eslot * 2), 0 );
@@ -15654,7 +15654,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
-            m_items[slot] = NULL;
+            SetItem(NULL,slot)
         }
     }
 
@@ -23201,37 +23201,51 @@ uint32 Player::GetBGLoseExtraHonor()
     return MaNGOS::Honor::hk_honor_at_level(getLevel(), 5);
 }
 
-ItemLevelList Player::GetItemLevelList()
+ItemLevelList Player::GetItemLevelList(bool entire_equip, bool count_2h_twice)
 {
     ItemLevelList list;
     for(uint16 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
     {
+        if (!entire_equip && (i == EQUIPMENT_SLOT_BODY || i == EQUIPMENT_SLOT_TABARD))
+            continue;
+
+        uint32 itemlevel = 0;
         Item *item = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
         if (!item)
             continue;
 
-        if (uint32 itemlevel = item->GetProto()->ItemLevel)
-            list.push_back(itemlevel);
+        itemlevel = item->GetProto()->ItemLevel;
+        if (count_2h_twice && !itemlevel && i == EQUIPMENT_SLOT_OFFHAND)
+            if (Item* mainHand = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+                if (mainHand->GetProto()->InventoryType == INVTYPE_2HWEAPON)
+                    itemlevel = mainHand->GetProto()->ItemLevel();
+
+        list.push_back(itemlevel);
     }
     return list;
 }
 
-uint32 Player::GetAverageItemLevel()
+void Player::BuildAverageItemLevel()
 {
-    ItemLevelList list = GetItemLevelList();
-    if (list.empty())
-        return 0;
-            
     uint32 totalvalue = 0;
-    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
-        totalvalue += *itr;
 
-    return totalvalue/list.size();
+    ItemLevelList list = GetItemLevelList();
+    if (!list.empty())
+        for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            totalvalue += *itr;
+
+    m_aitemlevel = totalvalue ? totalvalue/list.size() : totalsize;
+
+    sLog.outCatLog("Plr's %s ait is %u and total ie %u", GetName(), m_aitemlevel, totalvalue);
+
+    if (GetGroup())
+        GetGroup()->UpdateAverageItemLevel();
 }
+
 uint32 Player::GetMaxItemLevel()
 {
-    ItemLevelList list = GetItemLevelList();
     uint32 maxvalue = 0;
+    ItemLevelList list = GetItemLevelList();
     for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
         if (*itr > maxvalue)
             maxvalue = *itr;
@@ -23241,8 +23255,8 @@ uint32 Player::GetMaxItemLevel()
 
 uint32 Player::GetMinItemLevel()
 {
-    ItemLevelList list = GetItemLevelList();
     uint32 minvalue = 0;
+    ItemLevelList list = GetItemLevelList();
     for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
         if (*itr < minvalue)
             minvalue = *itr;
@@ -23250,22 +23264,13 @@ uint32 Player::GetMinItemLevel()
     return minvalue;
 }
 
-uint32 Player::GetGroupAverageItemLevel()
+uint32 Player::GetGroupOrPlayerAverageItemLevel() const
 {
-    Group* group = GetGroup();
-    if (!group)
-        return GetAverageItemLevel();
+    return GetGroup() ? GetGroup()->GetAverageItemLevel() : m_aitemlevel;
+}
 
-    uint32 total = 0;
-    for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
-    {
-        Player *pl = itr->getSource();
-
-        if (!pl || !pl->GetSession() )
-            continue;
-
-        total += pl->GetAverageItemLevel();
-    }
-
-    return total/group->GetMembersCount();
+void SetItem(Item* item, uint8 slot)
+{
+    m_items[slot] = item;
+    UpdateAverageItemLevel();
 }
