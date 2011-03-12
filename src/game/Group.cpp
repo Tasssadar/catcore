@@ -1910,5 +1910,5 @@ void Group::UpdateAverageItemLevel()
         }
     }
 
-    m_aitemlevel = total_value/GetMembersCount();
+    m_aitemlevel = total_value ? total_value/GetMembersCount() : total_value;
 }

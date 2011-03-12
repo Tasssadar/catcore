@@ -11321,6 +11321,7 @@ Item* Player::_StoreItem( uint16 pos, Item *pItem, uint32 count, bool clone, boo
 
         if (bag == INVENTORY_SLOT_BAG_0)
         {
+            sLog.outCatLog("one %u", pItem->GetProto()->ItemLevel)
             SetItem(pItem,slot);
             SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
             pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
@@ -11569,6 +11570,7 @@ void Player::VisualizeItem( uint8 slot, Item *pItem)
 
     DEBUG_LOG( "STORAGE: EquipItem slot = %u, item = %u", slot, pItem->GetEntry());
 
+    sLog.outCatLog("two %u", pItem->GetProto()->ItemLevel)
     SetItem(pItem,slot);
     SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
@@ -11670,6 +11672,7 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
+            sLog.outCatLog("three %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
             SetUInt64Value(PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), 0);
 
@@ -11804,6 +11807,7 @@ void Player::DestroyItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
+            sLog.outCatLog("four %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
         }
         else if (Bag *pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag ))
@@ -12471,6 +12475,7 @@ void Player::AddItemToBuyBackSlot( Item *pItem )
         RemoveItemFromBuyBackSlot( slot, true );
         DEBUG_LOG( "STORAGE: AddItemToBuyBackSlot item = %u, slot = %u", pItem->GetEntry(), slot);
 
+        sLog.outCatLog("five %u", pItem->GetProto()->ItemLevel)
         SetItem(pItem,slot);
         time_t base = time(NULL);
         uint32 etime = uint32(base - m_logintime + (30 * 3600));
@@ -12509,6 +12514,7 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
             if (del) pItem->SetState(ITEM_REMOVED, this);
         }
 
+        sLog.outCatLog("six %u", pItem->GetProto()->ItemLevel)
         SetItem(NULL,slot);
 
         uint32 eslot = slot - BUYBACK_SLOT_START;
@@ -15654,6 +15660,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
+            sLog.outCatLog("sevent %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
         }
     }
