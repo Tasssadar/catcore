@@ -6184,7 +6184,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
         return 0;
 
     // For Conjure Mana Gem triggered spells
-    if (m_IsTriggeredSpell && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_RESTORE_ITEM_CHARGES && !spellInfo->Effect[EFFECT_INDEX_1])
+    if (spell && spell->IsTriggered() && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_RESTORE_ITEM_CHARGES && !spellInfo->Effect[EFFECT_INDEX_1])
         return 0;
 
     // Spell drain all exist power on cast (Only paladin lay of Hands)
@@ -7475,7 +7475,7 @@ ObjectGuid Spell::GetTargetForPeriodicTriggerAura() const
     // dummy aura provides target
     for (uint8 i = 0; i<MAX_EFFECT_INDEX; i++)
         if (m_spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AURA && m_spellInfo->EffectApplyAuraName[i] == SPELL_AURA_DUMMY)
-            for(std::list<TargetInfo>::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
+            for(tbb::concurrent_vector<TargetInfo>::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
             {
                 if(itr->effectMask & (1 << i))
                     return (*itr).targetGUID;
