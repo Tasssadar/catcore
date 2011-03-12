@@ -556,13 +556,7 @@ SingleEnemyTargetAura::SingleEnemyTargetAura(SpellEntry const* spellproto, Spell
 Unit *caster, Item* castItem, Spell* createdBySpell) : Aura(spellproto, eff, currentBasePoints, target, caster, castItem)
 {
     if (caster)
-    {
-        if (createdBySpell && createdBySpell->GetTargetForPeriodicTriggerAura())
-            m_casters_target_guid = createdBySpell->GetTargetForPeriodicTriggerAura().GetRawValue();
-
-        if (!m_casters_target_guid)
-            m_casters_target_guid = target->GetGUID();
-    }
+        m_casters_target_guid = caster->GetTypeId()==TYPEID_PLAYER ? ((Player*)caster)->GetSelection() : caster->GetTargetGUID();
     else
         m_casters_target_guid = 0;
 }
@@ -1768,10 +1762,10 @@ void Aura::HandleAddModifier(bool apply, bool Real)
 void Aura::TriggerSpell()
 {
     const uint64& casterGUID = GetCasterGUID();
-    Unit* caster = GetCaster();
+    //Unit* caster = GetCaster();
     Unit* triggerTarget = GetTriggerTarget();
 
-    if (!casterGUID || !triggerTarget || !caster)
+    if (!casterGUID || !triggerTarget ||/* !caster*/)
         return;
 
     // generic casting code with custom spells and target/caster customs
@@ -2294,11 +2288,14 @@ void Aura::TriggerSpell()
 
     // All ok cast by default case
     if (triggeredSpellInfo)
-        caster->CastSpell(triggerTarget, triggeredSpellInfo, true, NULL, this, casterGUID);
+        triggerTarget->CastSpell(triggerTarget, triggeredSpellInfo, true, NULL, this, casterGUID);
     else
     {
-        if (triggerTarget->GetTypeId() != TYPEID_UNIT || !sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget))
-            sLog.outError("Aura::TriggerSpell: Spell %u have 0 in EffectTriggered[%d], not handled custom case?",GetId(),GetEffIndex());
+        if (Unit* caster = GetCaster())	  	
+        {
+            if (triggerTarget->GetTypeId() != TYPEID_UNIT || !sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget))
+                sLog.outError("Aura::TriggerSpell: Spell %u have 0 in EffectTriggered[%d], not handled custom case?",GetId(),GetEffIndex());
+        }
     }
 }
 
