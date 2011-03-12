@@ -1765,7 +1765,7 @@ void Aura::TriggerSpell()
     //Unit* caster = GetCaster();
     Unit* triggerTarget = GetTriggerTarget();
 
-    if (!casterGUID || !triggerTarget ||/* !caster*/)
+    if (!casterGUID || !triggerTarget /*|| !caster*/)
         return;
 
     // generic casting code with custom spells and target/caster customs
@@ -2293,7 +2293,7 @@ void Aura::TriggerSpell()
     {
         if (Unit* caster = GetCaster())	  	
         {
-            if (triggerTarget->GetTypeId() != TYPEID_UNIT || !sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget))
+            if (triggerTarget->GetTypeId() != TYPEID_UNIT || !Script->EffectDummyCreature(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget))
                 sLog.outError("Aura::TriggerSpell: Spell %u have 0 in EffectTriggered[%d], not handled custom case?",GetId(),GetEffIndex());
         }
     }

@@ -11569,7 +11569,7 @@ void Player::VisualizeItem( uint8 slot, Item *pItem)
 
     DEBUG_LOG( "STORAGE: EquipItem slot = %u, item = %u", slot, pItem->GetEntry());
 
-    SetItem(pItem,slot)
+    SetItem(pItem,slot);
     SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_OWNER, GetGUID() );
@@ -11670,7 +11670,7 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            SetItem(NULL,slot)
+            SetItem(NULL,slot);
             SetUInt64Value(PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), 0);
 
             if ( slot < EQUIPMENT_SLOT_END )
@@ -11804,7 +11804,7 @@ void Player::DestroyItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            SetItem(NULL,slot)
+            SetItem(NULL,slot);
         }
         else if (Bag *pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag ))
             pBag->RemoveItem(slot, update);
@@ -12471,7 +12471,7 @@ void Player::AddItemToBuyBackSlot( Item *pItem )
         RemoveItemFromBuyBackSlot( slot, true );
         DEBUG_LOG( "STORAGE: AddItemToBuyBackSlot item = %u, slot = %u", pItem->GetEntry(), slot);
 
-        SetItem(pItem,slot)
+        SetItem(pItem,slot);
         time_t base = time(NULL);
         uint32 etime = uint32(base - m_logintime + (30 * 3600));
         uint32 eslot = slot - BUYBACK_SLOT_START;
@@ -12509,7 +12509,7 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
             if (del) pItem->SetState(ITEM_REMOVED, this);
         }
 
-        SetItem(NULL,slot)
+        SetItem(NULL,slot);
 
         uint32 eslot = slot - BUYBACK_SLOT_START;
         SetUInt64Value( PLAYER_FIELD_VENDORBUYBACK_SLOT_1 + (eslot * 2), 0 );
@@ -15654,7 +15654,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
-            SetItem(NULL,slot)
+            SetItem(NULL,slot);
         }
     }
 
@@ -23218,7 +23218,7 @@ ItemLevelList Player::GetItemLevelList(bool entire_equip, bool count_2h_twice)
         if (count_2h_twice && !itemlevel && i == EQUIPMENT_SLOT_OFFHAND)
             if (Item* mainHand = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
                 if (mainHand->GetProto()->InventoryType == INVTYPE_2HWEAPON)
-                    itemlevel = mainHand->GetProto()->ItemLevel();
+                    itemlevel = mainHand->GetProto()->ItemLevel;
 
         list.push_back(itemlevel);
     }
@@ -23234,7 +23234,7 @@ void Player::BuildAverageItemLevel()
         for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
             totalvalue += *itr;
 
-    m_aitemlevel = totalvalue ? totalvalue/list.size() : totalsize;
+    m_aitemlevel = totalvalue ? totalvalue/list.size() : totalvalue;
 
     sLog.outCatLog("Plr's %s ait is %u and total ie %u", GetName(), m_aitemlevel, totalvalue);
 
@@ -23269,8 +23269,8 @@ uint32 Player::GetGroupOrPlayerAverageItemLevel() const
     return GetGroup() ? GetGroup()->GetAverageItemLevel() : m_aitemlevel;
 }
 
-void SetItem(Item* item, uint8 slot)
+void Player::SetItem(Item* item, uint8 slot)
 {
     m_items[slot] = item;
-    UpdateAverageItemLevel();
+    BuildAverageItemLevel();
 }

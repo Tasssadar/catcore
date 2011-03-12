@@ -9911,7 +9911,7 @@ bool Unit::RemoveAllAttackers(bool forced)
             {
                 Player* member = itr->getSource();
                 if (member && member->GetObjectGuid() != GetObjectGuid() &&
-                    member->IsAtGroupRewardDistance(pRewardSource) && member->isInCombat())
+                    member->IsAtGroupRewardDistance(this) && member->isInCombat())
                 {
                     sLog.outCatLog("Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
                     return false;
@@ -9924,6 +9924,7 @@ bool Unit::RemoveAllAttackers(bool forced)
 
     while(!m_attackers.empty())
     {
+        AttackerSet::iterator iter = m_attackers.begin();
         if (!(*iter)->AttackStop())
         {
             sLog.outError("WORLD: Unit has an attacker that isn't attacking it!");
