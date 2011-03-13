@@ -12492,6 +12492,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
 
     // Special cases
 
+    // With vanish aura, player is udetectable
+    if (Aura* vanishAura = GetAura(SPELL_AURA_MOD_STEALTH, SPELLFAMILY_ROGUE, SPELLFAMILYFLAG_ROGUE_VANISH, NULL))
+        return false;
+
     // If is attacked then stealth is lost, some creature can use stealth too
     if ( !getAttackers().empty() )
         return true;
