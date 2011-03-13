@@ -9902,7 +9902,7 @@ bool Unit::isAttackingPlayer() const
 bool Unit::RemoveAllAttackers(bool forced)
 {
     // check if attackers should be removed
-    if (!forced && GetTypeId() == TYPEID_PLAYER && (GetMap()->IsDungeon() || GetMap()->IsBattleGroundOrArena()))
+    if (!forced && GetTypeId() == TYPEID_PLAYER && GetMap()->IsDungeon())
     {
         Player* plr = (Player*)this;
         if (Group* grp = plr->GetGroup())
