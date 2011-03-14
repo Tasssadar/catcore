@@ -9902,7 +9902,7 @@ bool Unit::isAttackingPlayer() const
 bool Unit::RemoveAllAttackers(bool forced)
 {
     // check if attackers should be removed
-    if (!forced && GetTypeId() == TYPEID_PLAYER && (GetMap()->IsDungeon() || GetMap()->IsBattleGroundOrArena()))
+    if (!forced && GetTypeId() == TYPEID_PLAYER && GetMap()->IsDungeon())
     {
         Player* plr = (Player*)this;
         if (Group* grp = plr->GetGroup())
@@ -12396,12 +12396,6 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     if (m_Visibility == VISIBILITY_OFF)
         return false;
 
-    // Arena visibility before arena start
-    if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
-        if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
-            return ((Player*)this)->GetBGTeam() == p_target->GetBGTeam();
-
-
     // phased visibility (both must phased in same way)
     if (!InSamePhase(u))
         return false;
@@ -12420,6 +12414,11 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     {
         invisible = false;
     }
+
+    // Arena visibility before arena start
+    if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
+        if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
+            invisible = ((Player*)this)->GetBGTeam() != p_target->GetBGTeam();
 
     // In DK starting map should be enemy players invisible
     if (GetMapId() == 609)
@@ -12492,6 +12491,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return (u->GetTypeId() == TYPEID_PLAYER) ? ((Player*)u)->HaveAtClient(this) : false;
 
     // Special cases
+
+    // With vanish aura, player is udetectable
+    if (Aura* vanishAura = GetAura(SPELL_AURA_MOD_STEALTH, SPELLFAMILY_ROGUE, SPELLFAMILYFLAG_ROGUE_VANISH, NULL))
+        return false;
 
     // If is attacked then stealth is lost, some creature can use stealth too
     if ( !getAttackers().empty() )
