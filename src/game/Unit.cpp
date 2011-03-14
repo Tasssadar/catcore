@@ -9901,6 +9901,7 @@ bool Unit::isAttackingPlayer() const
 
 bool Unit::RemoveAllAttackers(bool forced)
 {
+    bool removing_all = true;
     // check if attackers should be removed
     if (!forced && GetTypeId() == TYPEID_PLAYER && (GetMap()->IsDungeon() || GetMap()->IsBattleGroundOrArena()))
     {
@@ -9914,7 +9915,11 @@ bool Unit::RemoveAllAttackers(bool forced)
                     member->IsAtGroupRewardDistance(this) && member->isInCombat())
                 {
                     sLog.outCatLog("Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
-                    return false;
+                    removing_all = false;
+                    if (GetMap()->IsBattleGroundOrArena())
+                        break;
+                    else
+                        return removing_all;
                 }
                 else if (member)
                     sLog.outCatLog("Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
@@ -9931,7 +9936,7 @@ bool Unit::RemoveAllAttackers(bool forced)
             m_attackers.erase(iter);
         }
     }
-    return true;
+    return removing_all;
 }
 
 bool Unit::HasAuraStateForCaster(AuraState flag, uint64 caster) const
