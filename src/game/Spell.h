@@ -371,7 +371,7 @@ class Spell
         void EffectRedirectThreat(SpellEffectIndex eff_idx);
 
 
-        Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL );
+        Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), Spell** triggeringContainer = NULL, SpellEntry const* triggeredBy = NULL);
         ~Spell();
 
         void prepare(SpellCastTargets const* targets, Aura* triggeredByAura = NULL);
@@ -451,6 +451,7 @@ class Spell
         //void HandleAddAura(Unit* Target);
 
         SpellEntry const* m_spellInfo;
+        SpellEntry const* m_triggeredBySpellInfo;
         int32 m_currentBasePoints[MAX_EFFECT_INDEX];        // cache SpellEntry::CalculateSimpleValue and use for set custom base points
         Item* m_CastItem;
         uint8 m_cast_count;
@@ -483,6 +484,7 @@ class Spell
 
         bool IsNeedSendToClient() const;                    // use for hide spell cast for client in case when cast not have client side affect (animation or log entries)
         bool IsTriggeredSpellWithRedundentData() const;     // use for ignore some spell data for triggered spells like cast time, some triggered spells have redundent copy data from main spell for client use purpose
+        bool IsTriggered() const { return m_IsTriggeredSpell; }
 
         CurrentSpellTypes GetCurrentContainer();
 
@@ -512,6 +514,8 @@ class Spell
 
         void CleanupTargetList();
         void ClearCastItem();
+
+        ObjectGuid GetTargetForPeriodicTriggerAura() const;
 
         static void SelectMountByAreaAndSkill(Unit* target, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
         bool isCausingAura(AuraType aura);

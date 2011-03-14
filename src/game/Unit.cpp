@@ -722,11 +722,13 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         Player * plr = (Player*)pVictim;
-        uint32 itemlevel = plr->GetGroupAverageItemLevel();
+        uint32 itemlevel = plr->GetGroupOrPlayerAverageItemLevel();
         uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
         uint8  coef = diff ? 226 : 213;
         float multiple = float(itemlevel)/coef;
-        damage *= multiple > 1.0f ? multiple : 1;
+        sLog.outCatLog("Average itemlevel for player %s (GUID: %u) is %u, due to some calculation multiplier is %f", plr->GetName(), plr->GetGUIDLow(), itemlevel, multiple);
+        if (multiple > 1)
+            damage *= multiple;
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageStart");
@@ -1265,7 +1267,7 @@ void Unit::CastStop(uint32 except_spellid)
             InterruptSpell(CurrentSpellTypes(i),false);
 }
 
-void Unit::CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
 
@@ -1278,10 +1280,10 @@ void Unit::CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castIte
         return;
     }
 
-    CastSpell(Victim, spellInfo, triggered, castItem, triggeredByAura, originalCaster);
+    CastSpell(Victim, spellInfo, triggered, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
-void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if(!Victim)
         return;
@@ -1297,10 +1299,15 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, 
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
 
-    if (originalCaster.IsEmpty() && triggeredByAura)
-        originalCaster = triggeredByAura->GetCasterGUID();
+    if (triggeredByAura)
+    {
+        if(originalCaster.IsEmpty())
+            originalCaster = triggeredByAura->GetCasterGUID();
 
-    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster);
+        triggeredBy = triggeredByAura->GetSpellProto();
+    }
+
+    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster, NULL, triggeredBy);
 
     SpellCastTargets targets;
     targets.setUnitTarget( Victim );
@@ -1308,7 +1315,7 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, 
     spell->prepare(&targets, triggeredByAura);
 }
 
-void Unit::CastCustomSpell(Unit* Victim,uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastCustomSpell(Unit* Victim,uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
 
@@ -1321,10 +1328,10 @@ void Unit::CastCustomSpell(Unit* Victim,uint32 spellId, int32 const* bp0, int32 
         return;
     }
 
-    CastCustomSpell(Victim, spellInfo, bp0, bp1, bp2, triggered, castItem, triggeredByAura, originalCaster);
+    CastCustomSpell(Victim, spellInfo, bp0, bp1, bp2, triggered, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
-void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if(!Victim)
         return;
@@ -1340,10 +1347,15 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 cons
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
 
-    if (originalCaster.IsEmpty() && triggeredByAura)
-        originalCaster = triggeredByAura->GetCasterGUID();
+    if (triggeredByAura)
+    {
+        if(originalCaster.IsEmpty())
+            originalCaster = triggeredByAura->GetCasterGUID();
 
-    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster);
+        triggeredBy = triggeredByAura->GetSpellProto();
+    }
+
+    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster, NULL, triggeredBy);
 
     if (bp0)
         spell->m_currentBasePoints[EFFECT_INDEX_0] = *bp0;
@@ -1361,7 +1373,7 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 cons
 }
 
 // used for scripting
-void Unit::CastSpell(float x, float y, float z, uint32 spellId, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastSpell(float x, float y, float z, uint32 spellId, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
 
@@ -1374,11 +1386,11 @@ void Unit::CastSpell(float x, float y, float z, uint32 spellId, bool triggered, 
         return;
     }
 
-    CastSpell(x, y, z, spellInfo, triggered, castItem, triggeredByAura, originalCaster);
+    CastSpell(x, y, z, spellInfo, triggered, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
 // used for scripting
-void Unit::CastSpell(float x, float y, float z, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster)
+void Unit::CastSpell(float x, float y, float z, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if (!spellInfo)
     {
@@ -1392,10 +1404,15 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const *spellInfo, boo
     if (castItem)
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
 
-    if (originalCaster.IsEmpty() && triggeredByAura)
-        originalCaster = triggeredByAura->GetCasterGUID();
+    if (triggeredByAura)
+    {
+        if(originalCaster.IsEmpty())
+            originalCaster = triggeredByAura->GetCasterGUID();
 
-    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster);
+        triggeredBy = triggeredByAura->GetSpellProto();
+    }
+
+    Spell *spell = new Spell(this, spellInfo, triggered, originalCaster, NULL, triggeredBy);
 
     SpellCastTargets targets;
     targets.setDestination(x, y, z);
@@ -4408,7 +4425,10 @@ bool Unit::AddAura(Aura *Aur)
                     case SPELL_AURA_PERIODIC_LEECH:
                     case SPELL_AURA_PERIODIC_HEAL:
                     case SPELL_AURA_OBS_MOD_HEALTH:
+                    case SPELL_AURA_MOD_DECREASE_SPEED:
+                    case SPELL_AURA_PROC_TRIGGER_SPELL:
                     case SPELL_AURA_PERIODIC_MANA_LEECH:
+                    case SPELL_AURA_CHANNEL_DEATH_ITEM:
                     case SPELL_AURA_OBS_MOD_MANA:
                     case SPELL_AURA_POWER_BURN_MANA:
                     case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
@@ -9847,6 +9867,7 @@ void Unit::CombatStop(bool includingCast, bool forced)
     AttackStop();
     if ( GetTypeId()==TYPEID_PLAYER )
         ((Player*)this)->SendAttackSwingCancelAttack();     // melee and ranged forced attack cancel
+
     if (RemoveAllAttackers(forced))
         ClearInCombat();
 }
@@ -9880,24 +9901,42 @@ bool Unit::isAttackingPlayer() const
 
 bool Unit::RemoveAllAttackers(bool forced)
 {
-    bool removed_all = true;
-    for (AttackerSet::iterator iter = m_attackers.begin(); iter != m_attackers.end();)
+    bool removing_all = true;
+    // check if attackers should be removed
+    if (!forced && GetTypeId() == TYPEID_PLAYER && (GetMap()->IsDungeon() || GetMap()->IsBattleGroundOrArena()))
     {
-        if (!forced && (*iter)->GetTypeId() == TYPEID_UNIT && ((Creature*)*iter)->isWorldBoss())
+        Player* plr = (Player*)this;
+        if (Group* grp = plr->GetGroup())
         {
-            ++iter;
-            removed_all = false;
-            continue;
+            for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+            {
+                Player* member = itr->getSource();
+                if (member && member->GetObjectGuid() != GetObjectGuid() &&
+                    member->IsAtGroupRewardDistance(this) && member->isInCombat())
+                {
+                    sLog.outCatLog("Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
+                    removing_all = false;
+                    if (GetMap()->IsBattleGroundOrArena())
+                        break;
+                    else
+                        return removing_all;
+                }
+                else if (member)
+                    sLog.outCatLog("Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
+            }
         }
+    }
 
+    while(!m_attackers.empty())
+    {
+        AttackerSet::iterator iter = m_attackers.begin();
         if (!(*iter)->AttackStop())
         {
             sLog.outError("WORLD: Unit has an attacker that isn't attacking it!");
             m_attackers.erase(iter);
         }
-        iter = m_attackers.begin();
     }
-    return removed_all;
+    return removing_all;
 }
 
 bool Unit::HasAuraStateForCaster(AuraState flag, uint64 caster) const
@@ -10260,11 +10299,12 @@ void Unit::EnergizeBySpell(Unit *pVictim, uint32 SpellID, uint32 Damage, Powers 
 int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int32 benefit, int32 ap_benefit,  DamageEffectType damagetype, bool donePart, float defCoeffMod)
 {
     // Distribute Damage over multiple effects, reduce by AoE
-    float coeff;
+    float coeff = 1.0f;
 
     // Not apply this to creature casted spells
     if (GetTypeId()==TYPEID_UNIT && !((Creature*)this)->isPet())
-        coeff = 1.0f;
+        return;
+
     // Check for table values
     else if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
     {
@@ -10628,6 +10668,11 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
 
     // Done fixed damage bonus auras
     int32 DoneAdvertisedBenefit = SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto));
+
+    // Item - Druid T8 Balance Relic
+    if (Aura *relicAura = GetAura(64950, EFFECT_INDEX_0))
+        if (spellProto->SpellFamilyFlags & UI64LIT(0x200000))    // Insect Swarm
+            DoneAdvertisedBenefit += relicAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
 
     // Pets just add their bonus damage to their spell damage
     // note that their spell damage is just gain of their own auras
@@ -12375,20 +12420,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         invisible = false;
     }
 
-    // With Arena Preparation players shouldn't see opposite team in arenas
-    if (HasAura(32727))
-    {
-        if (GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER)
-        {
-            if ( (HasAura(SPELL_HORDE_GOLD_FLAG) && u->HasAura(SPELL_HORDE_GOLD_FLAG)) ||
-                (HasAura(SPELL_ALLIANCE_GOLD_FLAG) && u->HasAura(SPELL_ALLIANCE_GOLD_FLAG)) ||
-                (HasAura(SPELL_HORDE_GREEN_FLAG) && u->HasAura(SPELL_HORDE_GREEN_FLAG)) ||
-                (HasAura(SPELL_ALLIANCE_GREEN_FLAG) && u->HasAura(SPELL_ALLIANCE_GREEN_FLAG)))
-                invisible = false;
-            else
-                invisible = true;
-        }
-    }
+    // Arena visibility before arena start
+    if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
+        if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
+            invisible = ((Player*)this)->GetBGTeam() != p_target->GetBGTeam();
 
     // In DK starting map should be enemy players invisible
     if (GetMapId() == 609)
@@ -12461,6 +12496,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return (u->GetTypeId() == TYPEID_PLAYER) ? ((Player*)u)->HaveAtClient(this) : false;
 
     // Special cases
+
+    // With vanish aura, player is udetectable
+    if (Aura* vanishAura = GetAura(SPELL_AURA_MOD_STEALTH, SPELLFAMILY_ROGUE, SPELLFAMILYFLAG_ROGUE_VANISH, NULL))
+        return false;
 
     // If is attacked then stealth is lost, some creature can use stealth too
     if ( !getAttackers().empty() )
@@ -13145,6 +13184,8 @@ bool Unit::SelectHostileTarget()
     {
         if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED))
         {
+            if (!IsNonMeleeSpellCasted(false))
+                SetInFront(target);
             /*if (IsNonMeleeSpellCasted(false))
             {
                 for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
@@ -13152,7 +13193,7 @@ bool Unit::SelectHostileTarget()
                         if (spell->m_targets.getUnitTarget())
                             SetInFront(spell->m_targets.getUnitTarget());
             }*/
-            SetInFront(target);
+            //SetInFront(target);
 
             ((Creature*)this)->AI()->AttackStart(target);
             // check if currently selected target is reachable

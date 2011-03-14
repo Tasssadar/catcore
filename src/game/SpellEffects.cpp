@@ -2502,6 +2502,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     if (Unit *owner = m_caster->GetOwner())
                     {
+                        // spell have SPELL_DAMAGE_CLASS_NONE and not get bonuses from owner, use main spell for bonuses
+                        if (m_triggeredBySpellInfo)
+                        {
+                            damage = int32(owner->SpellHealingBonusDone(unitTarget, m_triggeredBySpellInfo, damage, HEAL));
+                            damage = int32(unitTarget->SpellHealingBonusTaken(owner, m_triggeredBySpellInfo, damage, HEAL));
+                        }
                         // Restorative Totems
                         Unit::AuraList const& mDummyAuras = owner->GetAurasByType(SPELL_AURA_DUMMY);
                         for(Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
@@ -3358,7 +3364,7 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
-    Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem);
+    Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem, this);
 
     // Now Reduce spell duration using data received at spell hit
     // dont apply on boss casts ... is that correct ???
@@ -6047,6 +6053,9 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     Player* plr = ((Player*)m_caster);
                     if(plr && plr->GetLastPetNumber())
                     {
+                        if (plr->getClass() != CLASS_HUNTER && plr->getClass() != CLASS_WARLOCK)
+                            return;
+
                         PetType NewPetType = (plr->getClass()==CLASS_HUNTER) ? HUNTER_PET : SUMMON_PET;
                         if (Pet* NewPet = new Pet(NewPetType))
                         {
@@ -7352,12 +7361,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     // Blood Plague
-                    if (mainTarget->HasAura(55078))
-                        m_caster->CastSpell(unitTarget, 55078, true);
+                    if (Aura* aura = mainTarget->GetAura(55078, EFFECT_INDEX_0))
+                        if (aura->GetCasterGUID() == m_caster->GetGUID())
+                            m_caster->CastSpell(unitTarget, 55078, true);
 
                     // Frost Fever
-                    if (mainTarget->HasAura(55095))
-                        m_caster->CastSpell(unitTarget, 55095, true);
+                    if (Aura* aura = mainTarget->GetAura(55095, EFFECT_INDEX_0))
+                        if (aura->GetCasterGUID() == m_caster->GetGUID())
+                            m_caster->CastSpell(unitTarget, 55095, true);
 
                     break;
                 }

@@ -803,12 +803,12 @@ float TerrainInfo::GetHeight(float x, float y, float z, bool pUseVmaps, float ma
     return mapHeight;
 }
 
-void TerrainInfo::FindGroundLevels(std::vector<float> *list, float x, float y)
+void TerrainInfo::FindGroundLevels(std::vector<float> *list, float x, float y) const
 {
     if(list == NULL)
         return;
     float curZ = MAX_HEIGHT;
-    for(; true; curZ -= 0.5f)
+    for(; true; curZ -= 2.1f)
     {
         curZ = GetHeight(x, y, curZ, true, MAX_FALL_DISTANCE);
         

@@ -302,8 +302,8 @@ void WaypointMovementGenerator<Creature>::MoveToNextNode(CreatureTraveller &trav
     PathInfo sub_path(owner, node.x, node.y, node.z);
     PointPath pointPath = sub_path.getFullPath();
     
-    if (creature.canFly())
-        creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+    if (owner->canFly())
+        owner->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
     float speed = traveller.Speed()*0.001f; // in ms
     uint32 traveltime = uint32(pointPath.GetTotalLength()/speed);

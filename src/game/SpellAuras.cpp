@@ -553,7 +553,7 @@ PersistentAreaAura::~PersistentAreaAura()
 }
 
 SingleEnemyTargetAura::SingleEnemyTargetAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target,
-Unit *caster, Item* castItem) : Aura(spellproto, eff, currentBasePoints, target, caster, castItem)
+Unit *caster, Item* castItem, Spell* createdBySpell) : Aura(spellproto, eff, currentBasePoints, target, caster, castItem)
 {
     if (caster)
         m_casters_target_guid = caster->GetTypeId()==TYPEID_PLAYER ? ((Player*)caster)->GetSelection() : caster->GetTargetGUID();
@@ -570,7 +570,7 @@ Unit* SingleEnemyTargetAura::GetTriggerTarget() const
     return ObjectAccessor::GetUnit(*m_target, m_casters_target_guid);
 }
 
-Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem)
+Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem, Spell* createdBySpell)
 {
     if (IsAreaAuraEffect(spellproto->Effect[eff]))
         return new AreaAura(spellproto, eff, currentBasePoints, target, caster, castItem);
@@ -580,7 +580,7 @@ Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *curr
     if (SpellEntry const* triggeredSpellInfo = sSpellStore.LookupEntry(triggeredSpellId))
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
             if (triggeredSpellInfo->EffectImplicitTargetA[i] == TARGET_SINGLE_ENEMY)
-                return new SingleEnemyTargetAura(spellproto, eff, currentBasePoints, target, caster, castItem);
+                return new SingleEnemyTargetAura(spellproto, eff, currentBasePoints, target, caster, castItem, createdBySpell);
 
     return new Aura(spellproto, eff, currentBasePoints, target, caster, castItem);
 }
@@ -1762,9 +1762,10 @@ void Aura::HandleAddModifier(bool apply, bool Real)
 void Aura::TriggerSpell()
 {
     const uint64& casterGUID = GetCasterGUID();
+    //Unit* caster = GetCaster();
     Unit* triggerTarget = GetTriggerTarget();
 
-    if (!casterGUID || !triggerTarget)
+    if (!casterGUID || !triggerTarget /*|| !caster*/)
         return;
 
     // generic casting code with custom spells and target/caster customs
@@ -2290,7 +2291,7 @@ void Aura::TriggerSpell()
         triggerTarget->CastSpell(triggerTarget, triggeredSpellInfo, true, NULL, this, casterGUID);
     else
     {
-        if (Unit* caster = GetCaster())
+        if (Unit* caster = GetCaster())	  	
         {
             if (triggerTarget->GetTypeId() != TYPEID_UNIT || !Script->EffectDummyCreature(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget))
                 sLog.outError("Aura::TriggerSpell: Spell %u have 0 in EffectTriggered[%d], not handled custom case?",GetId(),GetEffIndex());
@@ -3119,6 +3120,17 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
         }
         case SPELLFAMILY_PRIEST:
         {
+            // Penance
+            if (GetSpellProto()->SpellIconID == 2818)
+            {
+                Unit* caster = GetCaster();
+                if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                if (apply && target)
+                    ((Player*)caster)->SetSelection(target->GetGUID());
+                return;
+            }
             // Pain and Suffering
             if (GetSpellProto()->SpellIconID == 2874 && target->GetTypeId()==TYPEID_PLAYER)
             {

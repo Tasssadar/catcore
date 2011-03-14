@@ -57,7 +57,7 @@ typedef void(Aura::*pAuraHandler)(bool Apply, bool Real);
 class MANGOS_DLL_SPEC Aura
 {
     friend struct ReapplyAffectedPassiveAurasHelper;
-    friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem);
+    friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem, Spell* createdBySpell);
 
     public:
         //aura handlers
@@ -470,16 +470,16 @@ class MANGOS_DLL_SPEC PersistentAreaAura : public Aura
 
 class MANGOS_DLL_SPEC SingleEnemyTargetAura : public Aura
 {
-    friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem);
+    friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster, Item* castItem, Spell* createdBySpell);
 
     public:
         ~SingleEnemyTargetAura();
         Unit* GetTriggerTarget() const;
 
     protected:
-        SingleEnemyTargetAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster  = NULL, Item* castItem = NULL);
+        SingleEnemyTargetAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster  = NULL, Item* castItem = NULL, Spell* createdBySpell = NULL);
         uint64 m_casters_target_guid;
 };
 
-Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
+Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL, Spell* createdBySpell = NULL);
 #endif

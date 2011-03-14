@@ -285,7 +285,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 // swimming creature
                 float x,y,z;
                 unit->GetPosition(x,y,z);
-                if(((Creature*)unit)->canSwim() && unit->GetMap()->IsInWater(x,y,z))
+                if(((Creature*)unit)->canSwim() && unit->GetMap()->GetTerrain()->IsInWater(x,y,z))
                 {
                     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
                     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);

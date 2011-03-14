@@ -311,7 +311,7 @@ void SpellCastTargets::write( ByteBuffer& data ) const
         data << m_strTarget;
 }
 
-Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID, Spell** triggeringContainer )
+Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid originalCasterGUID, Spell** triggeringContainer, SpellEntry const* triggeredBy )
 {
     ASSERT( caster != NULL && info != NULL );
     ASSERT( info == sSpellStore.LookupEntry( info->Id ) && "`info` must be pointer to sSpellStore element");
@@ -327,6 +327,7 @@ Spell::Spell( Unit* caster, SpellEntry const *info, bool triggered, ObjectGuid o
         m_spellInfo = info;
 
     m_destroyed = false;
+    m_triggeredBySpellInfo = triggeredBy;
     m_caster = caster;
     m_selfContainer = NULL;
     m_triggeringContainer = triggeringContainer;
@@ -6182,6 +6183,10 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     if (castItem)
         return 0;
 
+    // For Conjure Mana Gem triggered spells
+    if (spell && spell->IsTriggered() && spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_RESTORE_ITEM_CHARGES && !spellInfo->Effect[EFFECT_INDEX_1])
+        return 0;
+
     // Spell drain all exist power on cast (Only paladin lay of Hands)
     if (spellInfo->AttributesEx & SPELL_ATTR_EX_DRAIN_ALL_POWER)
     {
@@ -7463,6 +7468,20 @@ void Spell::CancelGlobalCooldown()
         m_caster->GetCharmInfo()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
     else if (m_caster->GetTypeId() == TYPEID_PLAYER)
         ((Player*)m_caster)->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
+}
+
+ObjectGuid Spell::GetTargetForPeriodicTriggerAura() const
+{
+    // dummy aura provides target
+    for (uint8 i = 0; i<MAX_EFFECT_INDEX; i++)
+        if (m_spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AURA && m_spellInfo->EffectApplyAuraName[i] == SPELL_AURA_DUMMY)
+            for(tbb::concurrent_vector<TargetInfo>::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
+            {
+                if(itr->effectMask & (1 << i))
+                    return (*itr).targetGUID;
+            }
+
+    return ObjectGuid();
 }
 
 bool Spell::isCausingAura(AuraType aura)
