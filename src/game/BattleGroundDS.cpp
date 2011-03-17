@@ -278,7 +278,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
 bool BattleGroundDS::IsXYZPositionOK(float x, float y, float z)
 {
     // watterfall coords are not ok
-    if (m_WaterfallCollision && !m_WaterfallCollision->GetDistance2d(x,y))
+    if (m_WaterfallCollision && m_WaterfallCollision->IsInWorld() && !m_WaterfallCollision->GetDistance2d(x,y))
         return false;
     
     // creates
