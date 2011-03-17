@@ -5,7 +5,7 @@ GUID OVERFLOW FIXER
  - look at line 36
 
  For compile use:
-     g++ -o guid $(mysql_config --cflags) guid.cpp $(mysql_config --libs) -g
+     g++ -o creature_guid $(mysql_config --cflags) creature_guid.cpp $(mysql_config --libs) -g
 
 */
 
@@ -53,7 +53,7 @@ int main()
     MYSQL_ROW row;
 
     std::stringstream file;
-    file << "guidlog_" << time(NULL);
+    file << "creature_guidlog_" << time(NULL);
     FILE *log = fopen(file.str().c_str(), "a");
 
     char *server = "localhost";
