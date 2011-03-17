@@ -2813,4 +2813,9 @@ enum RandomTimearForesees
 };
 #define MAX_RandomTimearForesees_Daily_EVENT       4
 
+enum CreatureCatFlags
+{
+    CREATURE_CATFLAGS_LOGGABLE           = 0x01,    // marks creatures which should be logged into boss kill log
+};
+
 #endif

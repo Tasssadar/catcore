@@ -758,9 +758,4 @@ class ForcedDespawnDelayEvent : public BasicEvent
         Creature& m_owner;
 };
 
-enum CreatureCatFlags
-{
-    CREATURE_CATFLAGS_LOGGABLE           = 0x01,    // marks creatures which should be logged into boss kill log
-
-};
 #endif
