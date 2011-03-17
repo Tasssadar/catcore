@@ -17192,6 +17192,8 @@ void Player::BindToInstance(InstanceSave* save, bool permanent, bool sendNotice)
         m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(save->GetGUID() != itr->second->GetGUID())
     {
+        if(itr->second->IsPermanent())
+            return;
         itr->second->RemovePlayer(GetGUID());
         itr->second = save;
     } 
