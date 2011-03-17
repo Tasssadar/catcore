@@ -117,7 +117,7 @@ m_deathTimer(0), m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_resp
 m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE), m_DBTableGuid(0), m_equipmentId(0),
 m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
-m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
+m_isHardModeKill(false), m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
 m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE),
 m_DoNotInsertToInstanceCombatList(false)
 {
@@ -2358,14 +2358,16 @@ uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, flo
     return transitTime;
 }
 
-void Creature::LogKill(Player* killer)
+void Creature::LogKill(Unit *killer, int32 icomments)
 {
-    if (!killer)
+    if (!killer || !killer->GetTypeId() != TYPEID_PLAYER)
         return;
+
+    Player* plr = (Player*)killer;
 
     // fill killers string
     std::ostringstream killers;
-    if (Group* group = killer->GetGroup())
+    if (Group* group = plr->GetGroup())
     {
         for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
         {
@@ -2383,7 +2385,7 @@ void Creature::LogKill(Player* killer)
     }
     else
     {
-        killers << killer->GetName();
+        killers << plr->GetName();
         
         sLog.outBossLog("Player %s (GUID: %u) soloed a boss %s (entry: %u, guid %u)", killer->GetName(), killer->GetGUIDLow(), 
             GetName(), GetEntry(), GetGUIDLow());
@@ -2402,11 +2404,14 @@ void Creature::LogKill(Player* killer)
 
     // generate sql
     std::ostringstream sql;
-    sql << "INSERT INTO boss_kill_log (guid, entry, name, killers) VALUES ("
+    sql << "INSERT INTO boss_kill_log (guid, entry, name, killers, difficulty, hard_mode, comments_in_int) VALUES ("
         << GetGUIDLow() << ", "
         << GetEntry() << ", '"
         << name.c_str() << "', '"
-        << killers.str().c_str() << "')";
+        << killers.str().c_str() << "', '"
+        << (int)GetMap()->GetDifficulty() << "', '"
+        << (int)m_isHardModeKill << "', '"
+        << icomments << "')";
 
     CharacterDatabase.Execute(sql.str().c_str());
 }
