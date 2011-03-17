@@ -106,6 +106,7 @@ struct CreatureInfo
     uint32  rangedattackpower;
     uint32  type;                                           // enum CreatureType values
     uint32  type_flags;                                     // enum CreatureTypeFlags mask values
+    uint32  cat_flags;                                      // enum CreatureCatFlags mask values
     uint32  lootid;
     uint32  pickpocketLootId;
     uint32  SkinLootId;
@@ -666,7 +667,9 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         uint32 SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float o, bool relocate = false);
 
-        void LogKill(Player* killer);
+        void LogKill(Unit* killer, int32 icomments = 0);
+        void SetHardModeKill(bool set_to) { m_isHardModeKill = set_to; }
+        bool IsLoggable() const { return GetCreatureInfo()->cat_flags & CREATURE_CATFLAGS_LOGGABLE; }
 
     protected:
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
@@ -707,6 +710,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool m_regenHealth;
         bool m_AI_locked;
         bool m_isDeadByDefault;
+        bool m_isHardModeKill;
 
         SpellSchoolMask m_meleeDamageSchoolMask;
         uint32 m_originalEntry;

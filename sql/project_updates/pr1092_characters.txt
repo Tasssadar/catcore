@@ -1,0 +1,12 @@
+RENAME TABLE `boss_kill_log` TO `boss_kill_log_old`
+
+CREATE TABLE `boss_kill_log` (
+`kill_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+`guid` INT UNSIGNED NOT NULL ,
+`entry` INT UNSIGNED NOT NULL ,
+`name` VARCHAR( 35 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`killers` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+`difficulty` INT UNSIGNED NOT NULL ,
+`hard_mode` INT UNSIGNED NOT NULL ,
+`comments_in_int` INT UNSIGNED NOT NULL ,
+) ENGINE = INNODB CHARACTER SET utf8 COLLATE utf8_general_ci;

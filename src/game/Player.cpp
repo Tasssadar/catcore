@@ -984,7 +984,7 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     uint32 final_damage = 0;
     if (GetHealth() <= damage && isInCombat() && !getAttackers().empty())
     {
-        Unit* u = 0;
+        Unit* u = this;
         AttackerSet::iterator itr = getAttackers().begin();
         while (!u && itr != getAttackers().end())
         {
@@ -1221,8 +1221,10 @@ void Player::Update( uint32 p_time )
     if (!IsInWorld())
         return;
 
+    time_t now = time (NULL);
+
     // undelivered mail
-    if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(NULL))
+    if (m_nextMailDelivereTime && m_nextMailDelivereTime <= now)
     {
         SendNewMail();
         ++unReadMails;
@@ -1246,8 +1248,6 @@ void Player::Update( uint32 p_time )
     {
         setAttackTimer(OFF_ATTACK, (p_time >= off_att ? 0 : off_att - p_time) );
     }
-
-    time_t now = time (NULL);
 
     UpdatePvPFlag(now);
 
@@ -6506,7 +6506,7 @@ void Player::RewardReputation(Unit *pVictim, float rate)
     uint32 Repfaction1 = Rep->repfaction1;
     uint32 Repfaction2 = Rep->repfaction2;
     uint32 tabardFactionID = 0;
-     
+
     // Championning tabard reputation system
     // aura 57818 is a hidden aura common to northrend tabards allowing championning.
     if (pVictim->GetMap()->IsDungeon() && HasAura(57818))
@@ -6517,9 +6517,9 @@ void Player::RewardReputation(Unit *pVictim, float rate)
         // only for expansion 2 map (wotlk), and : min level >= lv75 or dungeon only heroic mod
         // entering a lv80 designed instance require a min level>=75. note : min level != suggested level
         if ( StoredMap->Expansion() == 2 && ( mInstance->levelMin >= 75 || pVictim->GetMap()->GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC ) )
-        {             
+        {
             if ( Item* pItem = GetItemByPos( INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TABARD ) )
-            {                 
+            {
                 if ( tabardFactionID = pItem->GetProto()->RequiredReputationFaction ) 
                 {
                      Repfaction1 = tabardFactionID;
@@ -6527,7 +6527,7 @@ void Player::RewardReputation(Unit *pVictim, float rate)
                 }
             }
         }
-    }  
+    }
 
     if (Rep->repfaction1 && (!Rep->team_dependent || GetTeam()==ALLIANCE))
     {
@@ -6734,7 +6734,7 @@ bool Player::RewardHonor(Unit *uVictim, uint32 groupsize, float honor)
             }
 
             int32 v_rank =1;                                //need more info
-            
+
             // count the number of playerkills in one day
             ApplyModUInt32Value(PLAYER_FIELD_KILLS, 1, true);
             // and those in a lifetime
@@ -6812,6 +6812,18 @@ void Player::ModifyHonorPoints( int32 value )
     }
     else
         SetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY, GetHonorPoints() < sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS) - value ? GetHonorPoints() + value : sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS));
+
+    // add honor item, which is linked in currency
+    if (!HasItemCount(43308, 1))
+    {
+        ItemPosCountVec dest;
+        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43308, 1 ) == EQUIP_ERR
+        {
+            Item* item = StoreNewItem( dest, 43308, true);
+            SendNewItem(item, 1, true, false);
+        }
+    }
+
 }
 
 void Player::ModifyArenaPoints( int32 value )
@@ -6825,6 +6837,18 @@ void Player::ModifyArenaPoints( int32 value )
     }
     else
         SetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY, GetArenaPoints() < sWorld.getConfig(CONFIG_UINT32_MAX_ARENA_POINTS) - value ? GetArenaPoints() + value : sWorld.getConfig(CONFIG_UINT32_MAX_ARENA_POINTS));
+
+    // add arena point item, which is linked in currency
+    if (!HasItemCount(43307, 1))
+    {
+        ItemPosCountVec dest;
+        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43307, 1 ) == EQUIP_ERR
+        {
+            Item* item = StoreNewItem( dest, 43307, true);
+            SendNewItem(item, 1, true, false);
+        }
+    }
+
 }
 
 uint32 Player::GetGuildIdFromDB(uint64 guid)
@@ -11321,7 +11345,6 @@ Item* Player::_StoreItem( uint16 pos, Item *pItem, uint32 count, bool clone, boo
 
         if (bag == INVENTORY_SLOT_BAG_0)
         {
-            sLog.outCatLog("one %u", pItem->GetProto()->ItemLevel)
             SetItem(pItem,slot);
             SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
             pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
@@ -11570,7 +11593,6 @@ void Player::VisualizeItem( uint8 slot, Item *pItem)
 
     DEBUG_LOG( "STORAGE: EquipItem slot = %u, item = %u", slot, pItem->GetEntry());
 
-    sLog.outCatLog("two %u", pItem->GetProto()->ItemLevel)
     SetItem(pItem,slot);
     SetUInt64Value( PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), pItem->GetGUID() );
     pItem->SetUInt64Value( ITEM_FIELD_CONTAINED, GetGUID() );
@@ -11672,7 +11694,6 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            sLog.outCatLog("three %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
             SetUInt64Value(PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), 0);
 
@@ -11807,7 +11828,6 @@ void Player::DestroyItem( uint8 bag, uint8 slot, bool update )
             else if (slot >= CURRENCYTOKEN_SLOT_START && slot < CURRENCYTOKEN_SLOT_END)
                 UpdateKnownCurrencies(pItem->GetEntry(), false);
 
-            sLog.outCatLog("four %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
         }
         else if (Bag *pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, bag ))
@@ -12475,7 +12495,6 @@ void Player::AddItemToBuyBackSlot( Item *pItem )
         RemoveItemFromBuyBackSlot( slot, true );
         DEBUG_LOG( "STORAGE: AddItemToBuyBackSlot item = %u, slot = %u", pItem->GetEntry(), slot);
 
-        sLog.outCatLog("five %u", pItem->GetProto()->ItemLevel)
         SetItem(pItem,slot);
         time_t base = time(NULL);
         uint32 etime = uint32(base - m_logintime + (30 * 3600));
@@ -12514,7 +12533,6 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
             if (del) pItem->SetState(ITEM_REMOVED, this);
         }
 
-        sLog.outCatLog("six %u", pItem->GetProto()->ItemLevel)
         SetItem(NULL,slot);
 
         uint32 eslot = slot - BUYBACK_SLOT_START;
@@ -15660,7 +15678,6 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
-            sLog.outCatLog("sevent %u", pItem->GetProto()->ItemLevel)
             SetItem(NULL,slot);
         }
     }
