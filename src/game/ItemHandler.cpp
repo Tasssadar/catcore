@@ -1345,7 +1345,12 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
 
     //Gems should remove refundable flag
     if (itemTarget->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
-        itemTarget->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE);
+    {
+        uint32 flags = itemTarget->GetUInt32Value(ITEM_FIELD_FLAGS);
+        flags &= ~(ITEM_FLAGS_REFUNDABLE);
+        itemTarget->SetUInt32Value(ITEM_FIELD_FLAGS, flags);
+        itemTarget->SetState(ITEM_CHANGED, _player);
+    }
 
     _player->ToggleMetaGemsActive(slot, true);              // turn on all metagems (except for target item)
 }

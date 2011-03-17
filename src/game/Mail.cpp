@@ -221,7 +221,13 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data )
 
         //When you send item its no longer refundable
         if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
-            item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE);
+        {
+            uint32 flags = item->GetUInt32Value(ITEM_FIELD_FLAGS);
+            flags &= ~(ITEM_FLAGS_REFUNDABLE);
+            item->SetUInt32Value(ITEM_FIELD_FLAGS, flags);
+            item->SetState(ITEM_CHANGED, pl);
+            item->SaveToDB();
+        }
 
         items[i] = item;
     }

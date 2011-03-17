@@ -161,6 +161,14 @@ void WorldSession::moveItems(Item* myItems[], Item* hisItems[])
 
                 // store
                 trader->MoveItemToInventory( traderDst, myItems[i], true, true);
+
+                if (myItems[i]->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
+                {
+                    uint32 flags = myItems[i]->GetUInt32Value(ITEM_FIELD_FLAGS);
+                    flags &= ~(ITEM_FLAGS_REFUNDABLE);
+                    myItems[i]->SetUInt32Value(ITEM_FIELD_FLAGS, flags);
+                    myItems[i]->SetState(ITEM_CHANGED, trader);
+                }
             }
 
             if (hisItems[i])
@@ -177,6 +185,13 @@ void WorldSession::moveItems(Item* myItems[], Item* hisItems[])
 
                 // store
                 _player->MoveItemToInventory( playerDst, hisItems[i], true, true);
+                if (hisItems[i]->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
+                {
+                    uint32 flags = hisItems[i]->GetUInt32Value(ITEM_FIELD_FLAGS);
+                    flags &= ~(ITEM_FLAGS_REFUNDABLE);
+                    hisItems[i]->SetUInt32Value(ITEM_FIELD_FLAGS, flags);
+                    hisItems[i]->SetState(ITEM_CHANGED, _player);
+                }
             }
         }
         else
