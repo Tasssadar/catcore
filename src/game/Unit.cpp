@@ -12424,21 +12424,12 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Arena visibility before arena start
     if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
         if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
-            invisible = ((Player*)this)->GetBGTeam() != p_target->GetBGTeam();
+            invisible = HasAura(SPELL_HORDE_GOLD_FLAG) != p_target->HasAura(SPELL_HORDE_GOLD_FLAG) ||
+                        HasAura(SPELL_ALLIANCE_GOLD_FLAG) != p_target->HasAura(SPELL_ALLIANCE_GOLD_FLAG);
 
     // In DK starting map should be enemy players invisible
     if (GetMapId() == 609)
-    {
-        if (GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (IsHostileTo(u))
-                invisible = true;
-            else
-                invisible = false;
-        }
-        else
-            invisible = false;
-    }
+        invisible = GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER && IsHostileTo(u);
 
     // special cases for always overwrite invisibility/stealth
     if (invisible || m_Visibility == VISIBILITY_GROUP_STEALTH)
