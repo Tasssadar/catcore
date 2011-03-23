@@ -7361,14 +7361,26 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     // Blood Plague
-                    if (Aura* aura = mainTarget->GetAura(55078, EFFECT_INDEX_0))
-                        if (aura->GetCasterGUID() == m_caster->GetGUID())
+                    Unit::AuraList const& diseaseList = mainTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    for(Unit::AuraList::const_iterator i = diseaseList.begin(); i != diseaseList.end(); ++i)
+                    {
+                        if ((*i)->GetSpellProto()->Id == 55078 && (*i)->GetCasterGUID() == m_caster->GetGUID())
+                        {
                             m_caster->CastSpell(unitTarget, 55078, true);
+                            break;
+                        }
+                    }
 
                     // Frost Fever
-                    if (Aura* aura = mainTarget->GetAura(55095, EFFECT_INDEX_0))
-                        if (aura->GetCasterGUID() == m_caster->GetGUID())
+                    Unit::AuraList const& diseaseList = mainTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+                    for(Unit::AuraList::const_iterator i = diseaseList.begin(); i != diseaseList.end(); ++i)
+                    {
+                        if ((*i)->GetSpellProto()->Id == 55095 && (*i)->GetCasterGUID() == m_caster->GetGUID())
+                        {
                             m_caster->CastSpell(unitTarget, 55095, true);
+                            break;
+                        }
+                    }
 
                     break;
                 }
