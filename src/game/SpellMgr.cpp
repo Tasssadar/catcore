@@ -2498,10 +2498,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->Id == 20066 && spellInfo_2->Id == 61840)
                     return true;
             }
-            // Blessing of Sanctuary  and Lightning shield
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_SHAMAN)
+            {
+                // Blessing of Sanctuary  and Lightning shield
                 if(spellInfo_2->SpellIconID == 19 && spellInfo_1->SpellIconID == 19 )
                     return false;
+                // Greater Blessing of Sanctuary  and Lightning shield
+                if(spellInfo_1->SpellIconID == 19 && spellInfo_2->SpellIconID == 206 )
+                    return false;
+            }
 
             // Blessing of Sanctuary (multi-family check, some from 16 spell icon spells)
             if (spellInfo_2->Id == 67480 && spellInfo_1->Id == 20911)
@@ -2551,11 +2556,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->SpellIconID == 2019 && spellInfo_2->SpellIconID == 2019)
                     return false;
             }
-            // Blessing of Sanctuary  and Lightning shield
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+            {
+                // Blessing of Sanctuary  and Lightning shield
                 if(spellInfo_1->SpellIconID == 19 && spellInfo_2->SpellIconID == 19 )
                     return false;
-
+                // Greater Blessing of Sanctuary  and Lightning shield
+                if(spellInfo_2->SpellIconID == 19 && spellInfo_1->SpellIconID == 206 )
+                    return false;
+            }
             // Bloodlust and Bloodthirst (multi-family check)
             if ( spellInfo_1->Id == 2825 && spellInfo_2->SpellIconID == 38 && spellInfo_2->SpellVisual[0] == 0 )
                 return false;
