@@ -4263,13 +4263,13 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_HUNTER:
         {
             // Scatter Shot
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000040000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000))
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000040000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000) && spellproto->SpellIconID == 132)
                 return DIMINISHING_SCATTER_SHOT;
              // Freezing Trap & Freezing Arrow & Wyvern Sting
             if  (spellproto->SpellIconID == 180 || (spellproto->SpellIconID == 1721 && spellproto->SpellFamilyFlags & UI64LIT(0x0000100000000000)))
                 return DIMINISHING_DISORIENT;
             // Hunter's Mark
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x400))
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x400) && spellproto->SpellIconID == 538)
                 return DIMINISHING_LIMITONLY;
         }
         case SPELLFAMILY_WARLOCK:
