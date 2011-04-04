@@ -10391,6 +10391,13 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                                                                 // 0 == any inventory type (not wand then)
             {
                 DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
+
+                // Cinderglacier - we need to drop charge here
+                if ((*i)->GetId() == 53386)
+                {
+                    if ((*i)->DropAuraCharge())
+                        RemoveAura((*i));
+                }
             }
         }
     }
