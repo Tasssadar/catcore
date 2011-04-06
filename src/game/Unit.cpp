@@ -2587,18 +2587,10 @@ void Unit::CalculateDamageAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolM
             if (((*i)->GetModifier()->m_miscvalue & schoolMask)==0)
                 continue;
 
-            // Damage can be splitted only if aura has an alive caster and if caster is pet, it must be controlled
+            // Damage can be splitted only if aura has an alive caster
             Unit *caster = (*i)->GetCaster();
             if (!caster || caster == this || !caster->IsInWorld() || !caster->isAlive())
                 continue;
-
-            if (caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isPet())
-            {
-                uint32 pet_unitflag = caster->GetUInt32Value(UNIT_FIELD_FLAGS);
-
-                if (pet_unitflag & (UNIT_FLAG_PACIFIED|UNIT_FLAG_STUNNED|UNIT_FLAG_FLEEING|UNIT_FLAG_CONFUSED))
-	                continue;
-            }
 
             uint32 splitted = uint32(RemainingDamage * (*i)->GetModifier()->m_amount / 100.0f);
 
