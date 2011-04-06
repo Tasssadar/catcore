@@ -209,7 +209,7 @@ void SpellMgr::ApplySpellHacks()
 
     // Fan of knives - rychlost (ma to bejt hned je to jakysi zpoždìny)
     SpellEntry *sfix32 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(51723));
-    sfix32->speed = 5;
+    sfix32->speed = 0;
     SpellEntry *sfix33 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
-    sfix33->speed = 5;
+    sfix33->speed = 0;
 }
