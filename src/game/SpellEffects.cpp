@@ -8417,6 +8417,16 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
     if (!unitTarget)
         return;
 
+    // Typhoon
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && m_spellInfo->SpellIconID == 15 && (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0100000000000000)))
+    {
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (m_caster->HasAura(62135))
+                return;
+        }
+    }
+
     // Dismount/remove flight form
     if (unitTarget->GetTypeId() == TYPEID_PLAYER)
     {
