@@ -6842,6 +6842,19 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                // Intravenous Healing Potion
+                case 61263:
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER || unitTarget->isInCombat())
+                        return;
+
+                    // Intravenous Health Regeneration
+                    m_caster->CastSpell(unitTarget, 61267, true);
+                    // Mana Regeneration
+                    m_caster->CastSpell(unitTarget, 61268, true);
+
+                    return;
+                }
                 case 60893:                                 // Northrend Alchemy Research
                 case 61177:                                 // Northrend Inscription Research
                 case 61288:                                 // Minor Inscription Research
