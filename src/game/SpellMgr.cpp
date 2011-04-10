@@ -4271,6 +4271,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hunter's Mark
             if (spellproto->SpellFamilyFlags & UI64LIT(0x400) && spellproto->SpellIconID == 538)
                 return DIMINISHING_LIMITONLY;
+            break;
         }
         case SPELLFAMILY_WARLOCK:
         {
