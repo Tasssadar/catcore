@@ -2354,7 +2354,7 @@ uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, flo
 
 void Creature::LogKill(Unit *killer, int32 icomments)
 {
-    if (!killer || !killer->GetTypeId() != TYPEID_PLAYER)
+    if (!killer || killer->GetTypeId() != TYPEID_PLAYER)
         return;
 
     Player* plr = (Player*)killer;

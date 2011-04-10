@@ -10296,7 +10296,7 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
 
     // Not apply this to creature casted spells
     if (GetTypeId()==TYPEID_UNIT && !((Creature*)this)->isPet())
-        return;
+        return total;
 
     // Check for table values
     else if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
@@ -12489,7 +12489,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Special cases
 
     // With vanish aura, player is udetectable
-    if (Aura* vanishAura = GetAura(SPELL_AURA_MOD_STEALTH, SPELLFAMILY_ROGUE, SPELLFAMILYFLAG_ROGUE_VANISH, NULL))
+    if (HasAura(11327))
         return false;
 
     // If is attacked then stealth is lost, some creature can use stealth too
