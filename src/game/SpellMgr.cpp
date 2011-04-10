@@ -1893,6 +1893,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             {
                 case SPELLFAMILY_GENERIC:                   // same family case
                 {
+                    // Intravenous Health Regeneration and Mana Regeneration
+                    if ((spellInfo_1->Id == 61267 && spellInfo_2->Id == 61268) ||
+                        (spellInfo_2->Id == 61267 && spellInfo_1->Id == 61268))
+                        return false;
+
                     // Thunderfury
                     if ((spellInfo_1->Id == 21992 && spellInfo_2->Id == 27648) ||
                         (spellInfo_2->Id == 21992 && spellInfo_1->Id == 27648))
