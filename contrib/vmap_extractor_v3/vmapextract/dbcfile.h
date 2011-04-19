@@ -6,6 +6,7 @@
 
 #undef min
 #undef max
+
 class DBCFile
 {
 public:

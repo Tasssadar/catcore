@@ -171,6 +171,7 @@ bool Group::LoadMemberFromDB(uint32 guidLow, uint8 subgroup, bool assistant)
     member.group     = subgroup;
     member.assistant = assistant;
     m_memberSlots.push_back(member);
+    UpdateAverageItemLevel();
 
     SubGroupCounterIncrease(subgroup);
     //set role in lfg group
@@ -1012,6 +1013,17 @@ void Group::SendUpdate()
             Player* member = sObjectMgr.GetPlayer(citr2->guid);
             uint8 onlineState = (member) ? MEMBER_STATUS_ONLINE : MEMBER_STATUS_OFFLINE;
             onlineState = onlineState | ((isBGGroup()) ? MEMBER_STATUS_PVP : 0);
+/*            if(member && member->isAFK())
+                onlineState |= MEMBER_STATUS_AFK;
+            if(member && member->isDND())
+                onlineState |= MEMBER_STATUS_DND;*/
+            if(member && member->IsInWorld())
+            {
+                if(member->isAFK())
+                    onlineState |= MEMBER_STATUS_AFK;
+                if(member->isDND())
+                    onlineState |= MEMBER_STATUS_DND;
+            }
 
             data << citr2->name;
             data << uint64(citr2->guid);
@@ -1132,6 +1144,7 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
     member.group     = group;
     member.assistant = isAssistant;
     m_memberSlots.push_back(member);
+    UpdateAverageItemLevel();
 
     if(!isLfgGroup())
         SubGroupCounterIncrease(group);
@@ -1220,10 +1233,11 @@ bool Group::_removeMember(const uint64 &guid)
     member_witerator slot = _getMemberWSlot(guid);
     if (slot != m_memberSlots.end())
     {
-        if(!isLfgGroup())
+        if (!isLfgGroup())
             SubGroupCounterDecrease(slot->group);
 
         m_memberSlots.erase(slot);
+        UpdateAverageItemLevel();
     }
 
     if (!isBGGroup())
@@ -1823,12 +1837,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
         {
             // normal creature (not pet/etc) can be only in !PvP case
             if (pVictim->GetTypeId()==TYPEID_UNIT)
-            {
                 pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
-                if (((Creature*)pVictim)->isWorldBoss())
-                    sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", pGroupGuy->GetName(), pGroupGuy->GetGUIDLow(), 
-                    pVictim->GetName(), ((Creature*)pVictim)->GetEntry(), pVictim->GetGUIDLow());
-            }
         }
     }
 }
@@ -1887,4 +1896,19 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
                 RewardGroupAtKill_helper(player_tap, pVictim, count, PvP, group_rate, sum_level, is_dungeon, not_gray_member_with_max_level, member_with_max_level, xp);
         }
     }
+}
+
+void Group::UpdateAverageItemLevel()
+{
+    uint32 total_value = 0;
+    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+    {
+        if (Player* player = sObjectMgr.GetPlayer(citr->guid))
+        {
+            sLog.outCatLog("Player's %s average item list is %u", player->GetName(), player->GetAverageItemLevel());
+            total_value += player->GetAverageItemLevel();
+        }
+    }
+
+    m_aitemlevel = total_value ? total_value/GetMembersCount() : total_value;
 }

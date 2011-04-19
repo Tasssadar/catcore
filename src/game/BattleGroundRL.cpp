@@ -35,6 +35,8 @@ BattleGroundRL::BattleGroundRL()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
+
+    m_fMinZ = 30.0f;
 }
 
 BattleGroundRL::~BattleGroundRL()
@@ -121,6 +123,14 @@ void BattleGroundRL::HandleAreaTrigger(Player *Source, uint32 Trigger)
     {
         case 4696:                                          // buff trigger?
         case 4697:                                          // buff trigger?
+            break;
+        case 4928:
+        case 4929:
+        case 4941:
+        case 5041:
+        case 5042:
+            HandlePlayerUnderMap(Source);
+            sLog.outError("BattleGroundRL:: Player %s is under map due to trigger %u", Source->GetName(), Trigger);
             break;
         default:
             sLog.outError("WARNING: Unhandled AreaTrigger in Battleground: %u", Trigger);

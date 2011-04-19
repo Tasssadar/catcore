@@ -36,6 +36,7 @@ class Path
         size_t size() const { return i_nodes.size(); }
         bool empty() const { return i_nodes.empty(); }
         void resize(unsigned int sz) { i_nodes.resize(sz); }
+        void clear() { i_nodes.clear(); }
         void crop(unsigned int start, unsigned int end)
         {
             while(start && !i_nodes.empty())
@@ -50,8 +51,6 @@ class Path
                 --end;
             }
         }
-
-        void clear() { i_nodes.clear(); }
 
         float GetTotalLength(uint32 start, uint32 end) const
         {
@@ -96,5 +95,6 @@ class Path
 };
 
 typedef Path<PathNode> PointPath;
+
 
 #endif

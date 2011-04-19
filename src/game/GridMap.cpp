@@ -25,6 +25,7 @@
 #include "DBCStores.h"
 #include "GridMap.h"
 #include "VMapFactory.h"
+#include "MoveMap.h"
 #include "World.h"
 #include "Policies/SingletonImp.h"
 #include "Util.h"
@@ -44,7 +45,7 @@ GridMap::GridMap()
     m_area_map = NULL;
 
     // Height level data
-    m_gridHeight = INVALID_HEIGHT;
+    m_gridHeight = VMAP_INVALID_HEIGHT_VALUE;
     m_gridGetHeight = &GridMap::getHeightFromFlat;
     m_V9 = NULL;
     m_V8 = NULL;
@@ -55,7 +56,7 @@ GridMap::GridMap()
     m_liquid_offY   = 0;
     m_liquid_width  = 0;
     m_liquid_height = 0;
-    m_liquidLevel = INVALID_HEIGHT;
+    m_liquidLevel = VMAP_INVALID_HEIGHT_VALUE;
     m_liquid_type = NULL;
     m_liquid_map  = NULL;
 }
@@ -478,10 +479,10 @@ float GridMap::getLiquidLevel(float x, float y)
     int cy_int = ((int)y & (MAP_RESOLUTION-1)) - m_liquid_offX;
 
     if (cx_int < 0 || cx_int >=m_liquid_height)
-        return INVALID_HEIGHT;
+        return VMAP_INVALID_HEIGHT_VALUE;
 
     if (cy_int < 0 || cy_int >=m_liquid_width )
-        return INVALID_HEIGHT;
+        return VMAP_INVALID_HEIGHT_VALUE;
 
     return m_liquid_map[cx_int*m_liquid_width + cy_int];
 }
@@ -618,7 +619,7 @@ bool GridMap::ExistVMap(uint32 mapid,int gx,int gy)
 }
 
 //////////////////////////////////////////////////////////////////////////
-TerrainInfo::TerrainInfo(uint32 mapid) : m_mapId(mapid), m_navMesh(NULL)
+TerrainInfo::TerrainInfo(uint32 mapid) : m_mapId(mapid)
 {
     for (int k = 0; k < MAX_NUMBER_OF_GRIDS; ++k)
     {
@@ -645,12 +646,7 @@ TerrainInfo::~TerrainInfo()
             delete m_GridMaps[i][k];
 
     VMAP::VMapFactory::createOrGetVMapManager()->unloadMap(m_mapId);
-
-    if (m_navMesh)
-    {
-        dtFreeNavMesh(m_navMesh);
-        m_navMesh = NULL;
-    }
+    MMAP::MMapFactory::createOrGetMMapManager()->unloadMap(m_mapId);
 }
 
 GridMap * TerrainInfo::Load(const uint32 x, const uint32 y)
@@ -713,7 +709,7 @@ void TerrainInfo::CleanUpGrids(const uint32 diff)
                 VMAP::VMapFactory::createOrGetVMapManager()->unloadMap(m_mapId, x, y);
 
                 //unload mmap...
-                UnloadNavMesh(x, y);
+                MMAP::MMapFactory::createOrGetMMapManager()->unloadMap(m_mapId, x, y);
             }
         }
     }
@@ -805,6 +801,20 @@ float TerrainInfo::GetHeight(float x, float y, float z, bool pUseVmaps, float ma
     }
 
     return mapHeight;
+}
+
+void TerrainInfo::FindGroundLevels(std::vector<float> *list, float x, float y) const
+{
+    if(list == NULL)
+        return;
+    float curZ = MAX_HEIGHT;
+    for(; true; curZ -= 2.1f)
+    {
+        curZ = GetHeight(x, y, curZ, true, MAX_FALL_DISTANCE);
+        
+        if(curZ > INVALID_HEIGHT) list->push_back(curZ);
+        else break;
+    }
 }
 
 inline bool IsOutdoorWMO(uint32 mogpFlags, int32 adtId, int32 rootId, int32 groupId,
@@ -1099,7 +1109,7 @@ GridMap * TerrainInfo::LoadMapAndVMap( const uint32 x, const uint32 y )
             }
 
             // load navmesh
-            LoadNavMesh(x, y);
+            MMAP::MMapFactory::createOrGetMMapManager()->loadMap(m_mapId, x, y);
         }
     }
 

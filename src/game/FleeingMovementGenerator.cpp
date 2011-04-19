@@ -45,7 +45,6 @@ FleeingMovementGenerator<T>::_setTargetLocation(T &owner)
         return;
 
     owner.addUnitState(UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true, x, y, z);
     Traveller<T> traveller(owner);
     i_destinationHolder.SetDestination(traveller, x, y, z);
 }
@@ -63,6 +62,7 @@ FleeingMovementGenerator<T>::_getPoint(T &owner, float &x, float &y, float &z)
 
     float temp_x, temp_y, angle;
     const TerrainInfo * _map = owner.GetTerrain();
+    const Map* map = owner.GetMap();
     //primitive path-finding
     for(uint8 i = 0; i < 18; ++i)
     {
@@ -163,6 +163,9 @@ FleeingMovementGenerator<T>::_getPoint(T &owner, float &x, float &y, float &z)
             bool is_water_next = _map->IsInWater(temp_x,temp_y,new_z);
 
             if ((is_water_now && !is_water_next && !is_land_ok) || (!is_water_now && is_water_next && !is_water_ok))
+                continue;
+
+            if (map->IsPositionForbidden(temp_x, temp_y, new_z))
                 continue;
 
             if ( !(new_z - z) || distance / fabs(new_z - z) > 1.0f)
@@ -329,14 +332,13 @@ template<>
 void FleeingMovementGenerator<Player>::Finalize(Player &owner)
 {
     owner.clearUnitState(UNIT_STAT_FLEEING|UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<>
 void FleeingMovementGenerator<Creature>::Finalize(Creature &owner)
 {
+    owner.AddSplineFlag(SPLINEFLAG_WALKMODE);
     owner.clearUnitState(UNIT_STAT_FLEEING|UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -344,7 +346,6 @@ void FleeingMovementGenerator<T>::Interrupt(T &owner)
 {
     // flee state still applied while movegen disabled
     owner.clearUnitState(UNIT_STAT_FLEEING_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>

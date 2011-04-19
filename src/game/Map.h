@@ -37,8 +37,8 @@
 
 #include <bitset>
 #include <list>
+#include <set>
 
-class Creature;
 class Unit;
 class WorldPacket;
 class InstanceData;
@@ -146,6 +146,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         // some calls like isInWater should not use vmaps due to processor power
         // can return INVALID_HEIGHT if under z+2 z coord not found height
+        int8 GetVmapLoadResult() const { return m_vmapLoadResult; }
 
         virtual void RemoveAllObjectsInRemoveList();
 
@@ -176,10 +177,12 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         bool IsRaidOrHeroicDungeon() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC; }
         bool IsHeroicRaid10Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC; }
         bool IsHeroicRaid25Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool IsHeroicRaid() const {return GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
         bool IsBattleGround() const { return i_mapEntry && i_mapEntry->IsBattleGround(); }
         bool IsBattleArena() const { return i_mapEntry && i_mapEntry->IsBattleArena(); }
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
         bool IsNextZcoordOK(float x, float y, float oldZ, float maxDiff = 5.0f) const;
+        bool IsPositionForbidden(float x, float y, float z) const;
 
         InstanceSave* GetInstanceSave() const { return m_instanceSave; }
 
@@ -330,7 +333,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         template<class T>
             void DeleteFromWorld(T*);
-        // end movemap-related
+
+        int8 m_vmapLoadResult;
 };
 
 enum InstanceResetMethod

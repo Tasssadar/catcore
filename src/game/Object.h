@@ -361,6 +361,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void GetPosition( WorldLocation &loc ) const
             { loc.mapid = m_mapId; GetPosition(loc.coord_x, loc.coord_y, loc.coord_z); loc.orientation = GetOrientation(); }
         float GetOrientation( ) const { return m_orientation; }
+        WorldLocation GetLocation() const { return WorldLocation(m_mapId, m_positionX, m_positionY, m_positionZ, m_orientation); }
         void GetNearPoint2D( float &x, float &y, float distance, float absAngle) const;
         void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_bounding_radius, float distance2d, float absAngle) const;
         void GetClosePoint(float &x, float &y, float &z, float bounding_radius, float distance2d = 0, float angle = 0) const
@@ -402,8 +403,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         virtual const char* GetNameForLocaleIdx(int32 /*locale_idx*/) const { return GetName(); }
 
         float GetDistance( const WorldObject* obj ) const;
-        float GetDistanceSqr(float x, float y, float z) const;
         float GetDistance(float x, float y, float z) const;
+        float GetDistanceSqr(float x, float y, float z) const;
         float GetDistance2d(const WorldObject* obj) const;
         float GetDistance2d(float x, float y) const;
         float GetDistanceZ(const WorldObject* obj) const;
@@ -495,6 +496,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void BuildUpdateData(UpdateDataMapType &);
 
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
+        Creature* SummonCreature(uint32 id, WorldLocation loc, TempSummonType spwtype,uint32 despwtime)	{ return SummonCreature(id, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation, spwtype, despwtime); }
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
 

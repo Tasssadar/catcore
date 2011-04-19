@@ -250,7 +250,7 @@ HostileReference* ThreatContainer::addThreat(Unit* pVictim, float pThreat)
 
 void ThreatContainer::modifyThreatPercent(Unit *pVictim, int32 pPercent)
 {
-    if(HostileReference* ref = getReferenceByTarget(pVictim))
+    if (HostileReference* ref = getReferenceByTarget(pVictim))
     {
         if(pPercent < -100)
         {
@@ -278,6 +278,7 @@ void ThreatContainer::update()
     if (iDirty && iThreatList.size() >1)
     {
         iThreatList.sort(HostileReferenceSortPredicate);
+        iPlayerThreatList.sort(HostileReferenceSortPredicate);
     }
     iDirty = false;
 }

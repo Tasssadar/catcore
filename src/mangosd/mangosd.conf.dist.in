@@ -14,7 +14,7 @@ ConfVersion=2010062001
 #    DataDir
 #        Data directory setting.
 #        Important: DataDir needs to be quoted, as it is a string which may contain space characters.
-#        Example: "@prefix@/share/mangos"
+#        Example: "@CMAKE_INSTALL_PREFIX@/share/mangos"
 #
 #    LogsDir
 #        Logs directory setting.
@@ -37,6 +37,14 @@ ConfVersion=2010062001
 #                    hostname;port;username;password;database
 #                    .;/path/to/unix_socket/DIRECTORY or . for default path;username;password;database - use Unix sockets at Unix/Linux
 #
+#	LoginDatabaseConnections
+#	WorldDatabaseConnections
+#	CharacterDatabaseConnections
+#		 Amount of connections to database which will be used for SELECT queries. Maximum 16 connections per database.
+#		 Please, note, for data consistency only one connection for each database is used for transactions and async SELECTs.
+#		 So formula to find out how many connections will be established: X = ¹_connections + 1
+#		 Default: 1 connection for SELECT statements
+#
 #    MaxPingTime
 #        Settings for maximum database-ping interval (minutes between pings)
 #
@@ -54,6 +62,9 @@ LogsDir = ""
 LoginDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;realmd"
 WorldDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;mangos"
 CharacterDatabaseInfo = "127.0.0.1;3306;mangos;mangos;characters"
+LoginDatabaseConnections = 1
+WorldDatabaseConnections = 1
+CharacterDatabaseConnections = 1
 MaxPingTime = 30
 WorldServerPort = 8085
 BindIP = "0.0.0.0"
@@ -150,10 +161,6 @@ BindIP = "0.0.0.0"
 #        Default: 1 (Enabled)
 #                 0 (Disabled)
 #
-#    mmap.enable
-#        Enable or disable pathfinding system
-#        Default: 1 (Enabled)
-#                 0 (Disabled) 
 #
 #    DetectPosCollision
 #        Check final move position, summon position, etc for visible collision with other objects or
@@ -166,6 +173,15 @@ BindIP = "0.0.0.0"
 #        after that new target movmeent point calculated. Max: melee attack range (5), min: contact range (0.5)
 #        More distance let have better performence, less distance let have more sensitive reaction at target move.
 #        Default: 1.5
+#
+#    mmap.enabled
+#        Enable/Disable pathfinding using mmaps
+#        Default: 1 (enable)
+#                 0 (disable)
+#
+#    mmap.ignoreMapIds
+#        Disable mmap pathfinding on the listed maps.
+#        List of map ids with delimiter ','
 #
 #    UpdateUptimeInterval
 #        Update realm uptime period in minutes (for save data in 'uptime' table). Must be > 0
@@ -208,9 +224,10 @@ vmap.enableHeight = 0
 vmap.ignoreMapIds = ""
 vmap.ignoreSpellIds = "7720"
 vmap.enableIndoorCheck = 1
-mmap.enable = 1
 DetectPosCollision = 1
 TargetPosRecalculateRange = 1.5
+mmap.enabled = 1
+mmap.ignoreMapIds = ""
 UpdateUptimeInterval = 10
 MaxCoreStuckTime = 0
 AddonChannel = 1
@@ -262,6 +279,7 @@ CleanCharacterDB = 1
 #    LogFilter_VisibilityChanges
 #    LogFilter_Weather
 #    LogFilter_DbStrictedCheck
+#    LogFilter_Pathfinding
 #        Log filters (active by default)
 #        Default: 1 - not include with any log level
 #                 0 - include in log if log level permit
@@ -356,6 +374,7 @@ LogFilter_TransportMoves = 1
 LogFilter_VisibilityChanges = 1
 LogFilter_Weather = 1
 LogFilter_DbStrictedCheck = 1
+LogFilter_Pathfinding = 1
 LogFilter_PeriodicAffects = 0
 LogFilter_PlayerMoves = 0
 LogFilter_SQLText = 0
@@ -378,6 +397,7 @@ ArenaRatedLogFile = "Arena.log"
 LfgLogFile = "LfgLog.log"
 LfgLogTimestamp = 0
 BossLogFile = "BossKill.log"
+CatLogFile = "CatLog.log"
 LogColors = ""
 
 ###################################################################################################################
@@ -1252,6 +1272,21 @@ Visibility.Notify.Period.InBGArenas   = 1000
 #         Default: 0  - no decrease
 #                  75 - in 2 times each 75 skill points
 #
+#    SkillFail.Loot.Fishing	
+#         For fishing instead fail provided junk loot
+#         Default: 1 (enabled)
+#                  0 (disabled)
+#
+#    SkillFail.Gain.Fishing
+#         For fishing skill gain possible at fail also
+#         Default: 1 (enabled)
+#                  0 (disabled)
+#
+#    SkillFail.Possible.FishingPool
+#         For fishing pool impossible fail from low skill by default
+#         Default: 0 (disabled)
+#                  1 (enabled)
+#
 #    DurabilityLossChance.Damage
 #         Chance lost one from equiped items durability point at damage apply or receive.
 #         Default: 0.5 (100/0.5 = 200) Each 200 damage apply one from 19 possible equipped items
@@ -1334,6 +1369,9 @@ SkillChance.Green  = 25
 SkillChance.Grey   = 0
 SkillChance.MiningSteps   = 0
 SkillChance.SkinningSteps = 0
+SkillFailLoot.Fishing = 1
+SkillFail.Gain.Fishing = 1
+SkillFail.Possible.FishingPool = 0
 DurabilityLossChance.Damage = 0.5
 DurabilityLossChance.Absorb = 0.5
 DurabilityLossChance.Parry  = 0.05

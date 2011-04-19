@@ -221,7 +221,7 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data )
 
         //When you send item its no longer refundable
         if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
-            item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE);
+            item->SetOriginalOwner(0);
 
         items[i] = item;
     }

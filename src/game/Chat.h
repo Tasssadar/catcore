@@ -155,7 +155,6 @@ class ChatHandler
         bool HandleDebugSpellCheckCommand(const char* args);
         bool HandleDebugUpdateCommand(const char* args);
         bool HandleDebugUpdateWorldStateCommand(const char* args);
-        bool HandleDebugMoveMapCommand(const char* args);
 
         bool HandleDebugPlayCinematicCommand(const char* args);
         bool HandleDebugPlayMovieCommand(const char* args);
@@ -186,6 +185,7 @@ class ChatHandler
         bool HandleGameObjectPhaseCommand(const char* args);
         bool HandleGameObjectTargetCommand(const char* args);
         bool HandleGameObjectTurnCommand(const char* args);
+        bool HandleGameObjectClickCommand(const char* args);
 
         bool HandleGMCommand(const char* args);
         bool HandleGMChatCommand(const char* args);
@@ -283,7 +283,6 @@ class ChatHandler
         bool HandleModifyArenaCommand(const char* args);
         bool HandleModifyPhaseCommand(const char* args);
         bool HandleModifyGenderCommand(const char* args);
-        bool HandleMMapGlobalStats(const char* args);
 
         //-----------------------Npc Commands-----------------------
         bool HandleNpcAddCommand(const char* args);
@@ -543,6 +542,8 @@ class ChatHandler
         bool HandleMmapLocCommand(const char* args);
         bool HandleMmapLoadedTilesCommand(const char* args);
         bool HandleMmapStatsCommand(const char* args);
+        bool HandleMmap(const char* args);
+        bool HandleMmapTestArea(const char* args);
 
         //! Development Commands
         bool HandleSaveAllCommand(const char* args);

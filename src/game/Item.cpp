@@ -246,6 +246,7 @@ Item::Item( )
     mb_in_trade = false;
     m_ExtendedCostId = 0;
     m_price = 0;
+    m_originalOwnerGUID = 0;
 }
 
 bool Item::Create( uint32 guidlow, uint32 itemid, Player const* owner)
@@ -297,13 +298,12 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
         return;
     }
 
+    if (m_originalOwnerGUID && HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
+        if (!GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) || (owner->m_Played_time[0] > (GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) + 2*60*60)))
+            m_originalOwnerGUID = 0;
+
     SetUInt32Value(ITEM_FIELD_DURATION, GetUInt32Value(ITEM_FIELD_DURATION) - diff);
     SetState(ITEM_CHANGED, owner);                          // save new time in database
-
-    //Remove refundable flag for next time if item is no logner refundable
-    if (HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
-        if (!GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) || (GetOwner() && GetOwner()->m_Played_time[0] > (GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) + 2*60*60)))
-            RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE);
 }
 
 void Item::SaveToDB()
@@ -317,10 +317,10 @@ void Item::SaveToDB()
             CharacterDatabase.escape_string(text);
             CharacterDatabase.PExecute( "DELETE FROM item_instance WHERE guid = '%u'", guid );
             std::ostringstream ss;
-            ss << "INSERT INTO item_instance (guid,owner_guid,data,text, ExtendedCost, price) VALUES (" << guid << "," << GUID_LOPART(GetOwnerGUID()) << ",'";
+            ss << "INSERT INTO item_instance (guid,owner_guid,data,text, ExtendedCost, price, original_owner_guid) VALUES (" << guid << "," << GUID_LOPART(GetOwnerGUID()) << ",'";
             for(uint16 i = 0; i < m_valuesCount; ++i )
                 ss << GetUInt32Value(i) << " ";
-            ss << "', '" << text << "', '" << m_ExtendedCostId << "', '" << m_price << "')";
+            ss << "', '" << text << "', '" << m_ExtendedCostId << "', '" << m_price << "', '" << m_originalOwnerGUID << "')";
             CharacterDatabase.Execute( ss.str().c_str() );
         } break;
         case ITEM_CHANGED:
@@ -332,7 +332,8 @@ void Item::SaveToDB()
             for(uint16 i = 0; i < m_valuesCount; ++i )
                 ss << GetUInt32Value(i) << " ";
             ss << "', owner_guid = '" << GUID_LOPART(GetOwnerGUID());
-            ss << "', text = '" << text << "', ExtendedCost = '" << m_ExtendedCostId << "', price = '" << m_price << "' WHERE guid = '" << guid << "'";
+            ss << "', text = '" << text << "', ExtendedCost = '" << m_ExtendedCostId << "', price = '" << m_price << "', original_owner_guid = '" << m_originalOwnerGUID;
+            ss << "' WHERE guid = '" << guid << "'";
 
             CharacterDatabase.Execute( ss.str().c_str() );
 
@@ -448,11 +449,13 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result)
     //Set extended cost for refundable item
     if (HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
     {
-        QueryResult *result_ext = CharacterDatabase.PQuery("SELECT ExtendedCost, price FROM item_instance WHERE guid = '%u'", guid);
+        QueryResult *result_ext = CharacterDatabase.PQuery("SELECT ExtendedCost, price, original_owner_guid FROM item_instance WHERE guid = '%u'", guid);
         if (result_ext)
         {
-            m_ExtendedCostId = result_ext->Fetch()[0].GetUInt32();
-            m_price = result_ext->Fetch()[1].GetUInt32();
+            fields = result_ext->Fetch();
+            m_ExtendedCostId = fields[0].GetUInt32();
+            m_price = fields[1].GetUInt32();
+            m_originalOwnerGUID = fields[2].GetUInt32();
             delete result_ext;
         }
     }
@@ -477,83 +480,6 @@ ItemPrototype const *Item::GetProto() const
 Player* Item::GetOwner()const
 {
     return sObjectMgr.GetPlayer(GetOwnerGUID());
-}
-
-uint32 Item::GetSkill()
-{
-    const static uint32 item_weapon_skills[MAX_ITEM_SUBCLASS_WEAPON] =
-    {
-        SKILL_AXES,     SKILL_2H_AXES,  SKILL_BOWS,          SKILL_GUNS,      SKILL_MACES,
-        SKILL_2H_MACES, SKILL_POLEARMS, SKILL_SWORDS,        SKILL_2H_SWORDS, 0,
-        SKILL_STAVES,   0,              0,                   SKILL_UNARMED,   0,
-        SKILL_DAGGERS,  SKILL_THROWN,   SKILL_ASSASSINATION, SKILL_CROSSBOWS, SKILL_WANDS,
-        SKILL_FISHING
-    };
-
-    const static uint32 item_armor_skills[MAX_ITEM_SUBCLASS_ARMOR] =
-    {
-        0,SKILL_CLOTH,SKILL_LEATHER,SKILL_MAIL,SKILL_PLATE_MAIL,0,SKILL_SHIELD,0,0,0,0
-    };
-
-    ItemPrototype const* proto = GetProto();
-
-    switch (proto->Class)
-    {
-        case ITEM_CLASS_WEAPON:
-            if ( proto->SubClass >= MAX_ITEM_SUBCLASS_WEAPON )
-                return 0;
-            else
-                return item_weapon_skills[proto->SubClass];
-
-        case ITEM_CLASS_ARMOR:
-            if ( proto->SubClass >= MAX_ITEM_SUBCLASS_ARMOR )
-                return 0;
-            else
-                return item_armor_skills[proto->SubClass];
-
-        default:
-            return 0;
-    }
-}
-
-uint32 Item::GetSpell()
-{
-    ItemPrototype const* proto = GetProto();
-
-    switch (proto->Class)
-    {
-        case ITEM_CLASS_WEAPON:
-            switch (proto->SubClass)
-            {
-                case ITEM_SUBCLASS_WEAPON_AXE:     return  196;
-                case ITEM_SUBCLASS_WEAPON_AXE2:    return  197;
-                case ITEM_SUBCLASS_WEAPON_BOW:     return  264;
-                case ITEM_SUBCLASS_WEAPON_GUN:     return  266;
-                case ITEM_SUBCLASS_WEAPON_MACE:    return  198;
-                case ITEM_SUBCLASS_WEAPON_MACE2:   return  199;
-                case ITEM_SUBCLASS_WEAPON_POLEARM: return  200;
-                case ITEM_SUBCLASS_WEAPON_SWORD:   return  201;
-                case ITEM_SUBCLASS_WEAPON_SWORD2:  return  202;
-                case ITEM_SUBCLASS_WEAPON_STAFF:   return  227;
-                case ITEM_SUBCLASS_WEAPON_DAGGER:  return 1180;
-                case ITEM_SUBCLASS_WEAPON_THROWN:  return 2567;
-                case ITEM_SUBCLASS_WEAPON_SPEAR:   return 3386;
-                case ITEM_SUBCLASS_WEAPON_CROSSBOW:return 5011;
-                case ITEM_SUBCLASS_WEAPON_WAND:    return 5009;
-                default: return 0;
-            }
-        case ITEM_CLASS_ARMOR:
-            switch(proto->SubClass)
-            {
-                case ITEM_SUBCLASS_ARMOR_CLOTH:    return 9078;
-                case ITEM_SUBCLASS_ARMOR_LEATHER:  return 9077;
-                case ITEM_SUBCLASS_ARMOR_MAIL:     return 8737;
-                case ITEM_SUBCLASS_ARMOR_PLATE:    return  750;
-                case ITEM_SUBCLASS_ARMOR_SHIELD:   return 9116;
-                default: return 0;
-            }
-    }
-    return 0;
 }
 
 int32 Item::GenerateItemRandomPropertyId(uint32 item_id)

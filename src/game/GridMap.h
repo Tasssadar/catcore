@@ -26,8 +26,6 @@
 #include "Object.h"
 #include "SharedDefines.h"
 
-#include "../../dep/recastnavigation/Detour/Include/DetourNavMesh.h"
-
 #include <bitset>
 #include <list>
 
@@ -227,6 +225,7 @@ public:
     float GetWaterOrGroundLevel(float x, float y, float z, float* pGround = NULL, bool swim = false) const;
     bool IsInWater(float x, float y, float z, GridMapLiquidData *data = 0) const;
     bool IsUnderWater(float x, float y, float z) const;
+    void FindGroundLevels(std::vector<float> *list, float x, float y) const;
 
     GridMapLiquidStatus getLiquidStatus(float x, float y, float z, uint8 ReqLiquidType, GridMapLiquidData *data = 0) const;
 
@@ -250,7 +249,7 @@ public:
 
 protected:
     friend class Map;
-    //load/unload terrain data 
+    //load/unload terrain data
     GridMap * Load(const uint32 x, const uint32 y);
     void Unload(const uint32 x, const uint32 y);
 
@@ -276,19 +275,6 @@ private:
     typedef ACE_Guard<LOCK_TYPE> LOCK_GUARD;
     LOCK_TYPE m_mutex;
     LOCK_TYPE m_refMutex;
-
-    // begin movemap-related
-public:
-    dtNavMesh const* GetNavMesh() const;
-    static void preventPathfindingOnMaps(std::string ignoreMapIds);
-    bool IsPathfindingEnabled() const;
-
-private:
-    void LoadNavMesh(int gx, int gy);
-    void UnloadNavMesh(int gx, int gy);
-    dtNavMesh* m_navMesh;
-    UNORDERED_MAP<uint32, dtTileRef> m_mmapLoadedTiles;    // maps [map grid coords] to [dtTile]
-    // end movemap-related
 };
 
 //class for managing TerrainData object and all sort of geometry querying operations

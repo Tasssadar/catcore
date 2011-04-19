@@ -153,7 +153,8 @@ class Pet : public Creature
         bool LoadPetFromDB( Player* owner,uint32 petentry = 0,uint32 petnumber = 0, bool current = false );
         void SavePetToDB(PetSaveMode mode);
         void Remove(PetSaveMode mode, bool returnreagent = false);
-        static void DeleteFromDB(uint32 guidlow);
+        static void DeleteFromDB(uint32 guidlow, bool separate_transaction = true);
+
 
         void setDeathState(DeathState s);                   // overwrite virtual Creature::setDeathState and Unit::setDeathState
         void Update(uint32 diff);                           // overwrite virtual Creature::Update and Unit::Update
@@ -255,7 +256,6 @@ class Pet : public Creature
         bool    m_loading;
         bool    m_needSave;                                 // is pet needed to be saved in DB (for chained - only originally first in chain)
         float   m_petFollowAngle;                           // follow angle for the pet
-        bool    m_speedBoost;
 
         DeclinedName *m_declinedname;
 

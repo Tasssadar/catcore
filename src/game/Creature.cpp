@@ -117,7 +117,7 @@ m_deathTimer(0), m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_resp
 m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE), m_DBTableGuid(0), m_equipmentId(0),
 m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
-m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
+m_isHardModeKill(false), m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
 m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE),
 m_DoNotInsertToInstanceCombatList(false)
 {
@@ -151,8 +151,6 @@ void Creature::AddToWorld()
         GetMap()->GetObjectsStore().insert<Creature>(GetGUID(), (Creature*)this);
 
     Unit::AddToWorld();
-
-    InitializeMovementFlags();
 }
 
 void Creature::RemoveFromWorld()
@@ -671,6 +669,7 @@ bool Creature::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, 
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
                 break;
         }
+
         LoadCreaturesAddon();
     }
 
@@ -1377,10 +1376,11 @@ bool Creature::FallGround()
     // use larger distance for vmap height search than in most other cases
     float tz = GetTerrain()->GetHeight(GetPositionX(), GetPositionY(), GetPositionZ(), true, MAX_FALL_DISTANCE);
 
-    if (tz < INVALID_HEIGHT)
+    if (tz <= INVALID_HEIGHT)
     {
         DEBUG_LOG("FallGround: creature %u at map %u (x: %f, y: %f, z: %f), not able to retrive a proper GetHeight (z: %f).",
             GetEntry(), GetMap()->GetId(), GetPositionX(), GetPositionX(), GetPositionZ(), tz);
+        return false;
     }
 
     // Abort too if the ground is very near
@@ -1457,24 +1457,14 @@ void Creature::EnterCombat(Unit* pEnemy)
 
 void Creature::InsertIntoInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->InsertIntoCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->InsertIntoCombatList(this);
 }
 
 void Creature::RemoveFromInstanceCombatList()
 {
-    if (GetMap() && GetMap()->IsDungeon())
-    {
-        InstanceMap* instance = (InstanceMap*)GetMap();
-        if (instance)
-            if (instance->GetInstanceData())
-                instance->GetInstanceData()->RemoveFromCombatList(this);
-    }
+	if (InstanceData* data = GetInstanceData())
+		data->RemoveFromCombatList(this);
 }
 
 bool Creature::IsImmunedToSpell(SpellEntry const* spellInfo)
@@ -2348,4 +2338,74 @@ void Creature::SendAreaSpiritHealerQueryOpcode(Player *pl)
     WorldPacket data(SMSG_AREA_SPIRIT_HEALER_TIME, 8 + 4);
     data << GetGUID() << next_resurrect;
     pl->SendDirectMessage(&data);
+}
+
+uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float angle, bool relocate)
+{
+    Traveller<Creature> traveller(*(Creature*)this);
+    uint32 transitTime = traveller.GetTotalTrevelTimeTo(x, y, z);
+
+    SendMonsterMove(x, y, z, SPLINETYPE_FACINGANGLE, GetSplineFlags(), transitTime, NULL, angle);
+    if (relocate)
+        Relocate(x,y,z);
+
+    return transitTime;
+}
+
+void Creature::LogKill(Unit *killer, int32 icomments)
+{
+    if (!killer || killer->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* plr = (Player*)killer;
+
+    // fill killers string
+    std::ostringstream killers;
+    if (Group* group = plr->GetGroup())
+    {
+        for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        {
+            Player* member = itr->getSource();
+            if (!member)
+                continue;
+            
+            killers << member->GetName();
+            if (itr->next() != NULL)
+                killers << " ";
+
+            sLog.outBossLog("Player %s (GUID: %u) killed in group a boss %s (entry: %u, guid %u)", member->GetName(), member->GetGUIDLow(), 
+                GetName(), GetEntry(), GetGUIDLow());
+        }
+    }
+    else
+    {
+        killers << plr->GetName();
+        
+        sLog.outBossLog("Player %s (GUID: %u) soloed a boss %s (entry: %u, guid %u)", killer->GetName(), killer->GetGUIDLow(), 
+            GetName(), GetEntry(), GetGUIDLow());
+    }
+
+    // we must ' -> \' in name of unit
+    std::string name = GetName();
+    for (unsigned int i = 0; i < name.size(); ++i)
+    {
+        if (name.at(i) == '\'')
+        {
+            name.replace(i, 1, "\\'");
+            ++i;
+        }
+    }
+
+    // generate sql
+    std::ostringstream sql;
+    sql << "INSERT INTO boss_kill_log (guid, entry, name, killers, difficulty, hard_mode, comments_in_int) VALUES ("
+        << GetGUIDLow() << ", "
+        << GetEntry() << ", '"
+        << name.c_str() << "', '"
+        << killers.str().c_str() << "', '"
+        << (int)GetMap()->GetDifficulty() << "', '"
+        << (int)m_isHardModeKill << "', '"
+        << icomments << "')";
+
+    CharacterDatabase.Execute(sql.str().c_str());
 }

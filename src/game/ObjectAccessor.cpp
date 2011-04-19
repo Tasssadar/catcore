@@ -94,6 +94,9 @@ Corpse* ObjectAccessor::GetCorpseInMap(ObjectGuid guid, uint32 mapid)
 Player*
 ObjectAccessor::FindPlayer(ObjectGuid guid)
 {
+    if (guid.IsEmpty())
+        return NULL;
+
     Player * plr = HashMapHolder<Player>::Find(guid);;
     if (!plr || !plr->IsInWorld())
         return NULL;
@@ -121,6 +124,15 @@ ObjectAccessor::SaveAllPlayers()
     HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
     for(HashMapHolder<Player>::MapType::iterator itr = m.begin(); itr != m.end(); ++itr)
         itr->second->SaveToDB();
+}
+
+void
+ObjectAccessor::ResetLFGCache()
+{
+    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
+    for(HashMapHolder<Player>::MapType::iterator itr = m.begin(); itr != m.end(); ++itr)
+        itr->second->m_lookingForGroup.lockInfoOutdated = true;
 }
 
 void ObjectAccessor::KickPlayer(uint64 guid)

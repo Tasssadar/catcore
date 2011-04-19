@@ -36,10 +36,9 @@
 #include "DBCEnums.h"
 #include "InstanceSaveMgr.h"
 #include "VMapFactory.h"
+#include "MoveMap.h"
 #include "BattleGroundMgr.h"
 #include "TemporarySummon.h"
-
-#include "../recastnavigation/Detour/Include/DetourNavMesh.h"
 
 struct ScriptAction
 {
@@ -57,6 +56,9 @@ Map::~Map()
     if (!m_scriptSchedule.empty())
         sWorld.DecreaseScheduledScriptCount(m_scriptSchedule.size());
 
+    // unload instance specific navigation data
+    MMAP::MMapFactory::createOrGetMMapManager()->unloadMapInstance(m_TerrainData->GetMapId(), GetInstanceId());
+
     //release reference count
     if(m_TerrainData->Release())
         sTerrainMgr.UnloadTerrain(m_TerrainData->GetMapId());
@@ -69,7 +71,6 @@ void Map::LoadMapAndVMap(int gx,int gy)
 {
     if(m_bLoadedGrids[gx][gx])
         return;
-
     GridMap * pInfo = m_TerrainData->Load(gx, gy);
     if(pInfo)
         m_bLoadedGrids[gx][gy] = true;
@@ -80,7 +81,8 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
   i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
   m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_instanceSave(NULL),
   m_activeNonPlayersIter(m_activeNonPlayers.end()),
-  i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id))
+  i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id)),
+  m_vmapLoadResult(-1)
 {
     for(unsigned int j=0; j < MAX_NUMBER_OF_GRIDS; ++j)
     {
@@ -290,7 +292,7 @@ bool Map::EnsureGridLoaded(const Cell &cell)
         //otherwise there is a possibility of infinity chain (grid loading will be called many times for the same grid)
         //possible scenario:
         //active object A(loaded with loader.LoadN call and added to the  map)
-        //summons some active object B, while B added to map grid loading called again and so on.. 
+        //summons some active object B, while B added to map grid loading called again and so on..
         setGridObjectDataLoaded(true,cell.GridX(), cell.GridY());
 
         ObjectGridLoader loader(*grid, this, cell);
@@ -1449,6 +1451,9 @@ void InstanceMap::Update(const uint32& t_diff)
 
     if (i_data)
         i_data->Update(t_diff);
+    uint32 mapid = GetId();
+    if (mapid ==800)
+        return;
 }
 
 void BattleGroundMap::Update(const uint32& diff)
@@ -2693,3 +2698,17 @@ Creature* Map::SummonCreature(uint32 id, float x, float y, float z, float ang,Te
     // return the creature therewith the summoner has access to it
     return pCreature;
 }
+
+bool Map::IsPositionForbidden(float x, float y, float z) const
+{
+    //check in battleground for forbidden loc
+    if (IsBattleGroundOrArena())
+    {
+        BattleGround* bg = ((BattleGroundMap*)this)->GetBG();
+        if (bg && !bg->IsXYZPositionOK(x,y,z))
+            return true;
+    }
+
+    return false;
+}
+

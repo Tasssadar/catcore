@@ -205,6 +205,7 @@ inline bool IsLootCraftingSpell(SpellEntry const *spellInfo)
 
 int32 CompareAuraRanks(uint32 spellId_1, SpellEffectIndex effIndex_1, uint32 spellId_2, SpellEffectIndex effIndex_2);
 
+bool IsSingleFromSpellSpecificPerCasterNoStack(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
 // order from less to more strict
 bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1,SpellSpecific spellSpec2);
 bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1,SpellSpecific spellSpec2);

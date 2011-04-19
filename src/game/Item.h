@@ -276,8 +276,8 @@ class MANGOS_DLL_SPEC Item : public Object
         bool IsInBag() const { return m_container != NULL; }
         bool IsEquipped() const;
 
-        uint32 GetSkill();
-        uint32 GetSpell();
+        uint32 GetSkill() { return const_cast<ItemPrototype*>(GetProto())->GetSkill(); };
+        uint32 GetSpell() { return const_cast<ItemPrototype*>(GetProto())->GetSpell(); };
 
         // RandomPropertyId (signed but stored as unsigned)
         int32 GetItemRandomPropertyId() const { return GetInt32Value(ITEM_FIELD_RANDOM_PROPERTIES_ID); }
@@ -334,6 +334,9 @@ class MANGOS_DLL_SPEC Item : public Object
         uint32 GetExtCostId() { return m_ExtendedCostId; };
         void SetPrice(uint32 price) { m_price = price; };
         uint32 GetPrice() { return m_price; };
+        void SetOriginalOwner(uint32 guid) { m_originalOwnerGUID = guid; }
+        uint32 GetOriginalOwner() { return m_originalOwnerGUID; }
+
     private:
         std::string m_text;
         uint8 m_slot;
@@ -343,5 +346,6 @@ class MANGOS_DLL_SPEC Item : public Object
         bool mb_in_trade;                                   // true if item is currently in trade-window
         uint32 m_price;
         uint32 m_ExtendedCostId;
+        uint32 m_originalOwnerGUID;
 };
 #endif

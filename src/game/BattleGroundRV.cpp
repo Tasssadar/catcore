@@ -35,6 +35,10 @@ BattleGroundRV::BattleGroundRV()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
+
+    // ele down : floor z 1,5 = actual z ground z = 28.29
+    // ele up : floor z 28.28 = actual z ground z = 28.28
+    m_fMinZ = 1;
 }
 
 BattleGroundRV::~BattleGroundRV()
@@ -49,18 +53,32 @@ void BattleGroundRV::Update(uint32 diff)
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
+    if (!m_bElevatorsUp)
+    {
+        if (m_bElevatingTimer < diff)
+        {
+            m_bElevatorsUp = true;
+            m_fMinZ = 27.5f;
+        }
+        else m_bElevatingTimer -= diff;
+        
+        // elevators are still moving so arena mechanics should not be affected
+        return;
+
+    }
+
     if (m_uiPillarChanging < diff)
         ChangeActivePillars();
     else m_uiPillarChanging -= diff;
 
-    if (m_uiTexturesCheck < diff)
+    /*if (m_uiTexturesCheck < diff)
     {
         for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
             if (Player* plr = sObjectMgr.GetPlayer(itr->first))
                 if (plr->GetPositionZ() < 20.0f)
                     HandlePlayerUnderMap(plr);
         m_uiTexturesCheck = 10*IN_MILLISECONDS;
-    }else m_uiTexturesCheck -= diff;
+    }else m_uiTexturesCheck -= diff;*/
 }
 
 void BattleGroundRV::StartingEventCloseDoors()
@@ -161,6 +179,10 @@ void BattleGroundRV::HandleAreaTrigger(Player * Source, uint32 Trigger)
         case 5473:
         case 5474:
             break;
+        case 5447:
+            HandlePlayerUnderMap(Source);
+            sLog.outError("BattleGroundRV:: Player %s is under map due to trigger %u", Source->GetName(), Trigger);
+            break;
         default:
             sLog.outError("WARNING: Unhandled AreaTrigger in Battleground: %u", Trigger);
             Source->GetSession()->SendAreaTriggerMessage("Warning: Unhandled AreaTrigger in Battleground: %u", Trigger);
@@ -172,9 +194,11 @@ void BattleGroundRV::Reset()
 {
     //call parent's class reset
     BattleGround::Reset();
-    m_uiTeleport = 22000;
-    m_uiPillarChanging = urand(25,35)*IN_MILLISECONDS + BATTLEGROUND_RV_ELEVATING_TIME;
-    m_uiTexturesCheck = 10*IN_MILLISECONDS + BATTLEGROUND_RV_ELEVATING_TIME;
+    //m_uiTeleport = 22000;
+    m_uiPillarChanging = urand(25,35)*IN_MILLISECONDS;
+    //m_uiTexturesCheck = 10*IN_MILLISECONDS;
+    m_bElevatorsUp = false;
+    m_bElevatingTimer = BATTLEGROUND_RV_ELEVATING_TIME;
 }
 
 void BattleGroundRV::FillInitialWorldStates(WorldPacket &data, uint32& count)
@@ -206,7 +230,7 @@ bool BattleGroundRV::ObjectInLOS(Unit* caster, Unit* target)
         x += x_per_i;
         y += y_per_i;
         for(std::list<GameObject*>::iterator itr = m_lPillars.begin(); itr != m_lPillars.end();++itr)
-            if ((*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
+            if ((*itr) && (*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
                 return true;
     }
     return false;
@@ -225,7 +249,16 @@ void BattleGroundRV::ClickOnPillar(uint64 const& guid)
                 obj->SendCreateUpdateToPlayer(plr);
     }
     else
-    {
-        sLog.outError("BattleGround: Pillar object not found! - doors will be closed.");
-    }
+        sLog.outError("BattleGround: Pillar object not found!");
 }
+
+bool BattleGroundRV::IsXYZPositionOK(float x, float y, float z)
+{
+    // is xyz near active pillar
+    for(std::list<GameObject*>::iterator itr = m_lPillars.begin(); itr != m_lPillars.end();++itr)
+        if ((*itr) && (*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->IsWithinBoundingRadius(x,y))
+            return false;
+
+    return true;
+}
+>>>>>>> da8fd31ef17a454de43bf53db460ba0db9350e8e

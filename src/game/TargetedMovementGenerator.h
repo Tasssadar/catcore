@@ -24,6 +24,7 @@
 #include "Traveller.h"
 #include "FollowerReference.h"
 #include "PathFinder.h"
+#include "Timer.h"
 
 class MANGOS_DLL_SPEC TargetedMovementGeneratorBase
 {
@@ -77,7 +78,6 @@ class MANGOS_DLL_SPEC TargetedMovementGeneratorMedium
         float i_angle;
         DestinationHolder< Traveller<T> > i_destinationHolder;
         bool i_recalculateTravel;
-
         PathInfo* i_path;
         uint32 m_pathPointsSent;
         bool pathLost;

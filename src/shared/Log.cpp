@@ -48,6 +48,7 @@ LogFilterData logFilterData[LOG_FILTER_COUNT] =
     { "combat",              "LogFilter_Combat",             false },
     { "spell_cast",          "LogFilter_SpellCast",          false },
     { "db_stricted_check",   "LogFilter_DbStrictedCheck",    true  },
+    { "pathfinding",         "LogFilter_Pathfinding",        true },
 };
 
 enum LogType
@@ -62,7 +63,7 @@ const int LogType_count = int(LogError) +1;
 
 Log::Log() :
     raLogfile(NULL), logfile(NULL), gmLogfile(NULL), charLogfile(NULL), arenaLogfile(NULL), lfgLogFile(NULL),
-    bossLogFile(NULL), dberLogfile(NULL), m_colored(false), m_includeTime(false), m_gmlog_per_account(false)
+    bossLogFile(NULL), catLogFile(NULL), dberLogfile(NULL), m_colored(false), m_includeTime(false), m_gmlog_per_account(false)
 {
     Initialize();
 }
@@ -258,11 +259,12 @@ void Log::Initialize()
 
     charLogfile = openLogFile("CharLogFile","CharLogTimestamp","a");
     dberLogfile = openLogFile("DBErrorLogFile",NULL,"a");
-    raLogfile = openLogFile("RaLogFile",NULL,"a");
-    worldLogfile = openLogFile("WorldLogFile","WorldLogTimestamp","a");
-    arenaLogfile = openLogFile("ArenaRatedLogFile",NULL,"a");
-    lfgLogFile = openLogFile("LfgLogFile","LfgLogTimestamp","a");
+    raLogfile   = openLogFile("RaLogFile",NULL,"a");
+    worldLogfile= openLogFile("WorldLogFile","WorldLogTimestamp","a");
+    arenaLogfile= openLogFile("ArenaRatedLogFile",NULL,"a");
+    lfgLogFile  = openLogFile("LfgLogFile","LfgLogTimestamp","a");
     bossLogFile = openLogFile("BossLogFile",NULL,"a");
+    catLogFile  = openLogFile("CatLogFile",NULL,"a");
 
     // Main log file settings
     m_includeTime  = sConfig.GetBoolDefault("LogTime", false);
@@ -875,6 +877,24 @@ void Log::outBossLog(const char * str, ...)
         fprintf(bossLogFile, "\n" );
         va_end(ap);
         fflush(bossLogFile);
+    }
+    fflush(stdout);
+}
+
+void Log::outCatLog(const char * str, ...)
+{
+    if (!str)
+        return;
+
+    if (catLogFile)
+    {
+        va_list ap;
+        outTimestamp(catLogFile);
+        va_start(ap, str);
+        vfprintf(catLogFile, str, ap);
+        fprintf(catLogFile, "\n" );
+        va_end(ap);
+        fflush(catLogFile);
     }
     fflush(stdout);
 }

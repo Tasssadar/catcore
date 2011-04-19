@@ -40,7 +40,7 @@ char const* petTypeSuffix[MAX_PET_TYPE] =
 Pet::Pet(PetType type) :
 Creature(CREATURE_SUBTYPE_PET), m_removed(false), m_petType(type), m_happinessTimer(7500), m_duration(0), m_resetTalentsCost(0),
 m_bonusdamage(0), m_resetTalentsTime(0), m_usedTalentCount(0), m_loading(false),
-m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT), m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true), m_speedBoost(false)
+m_declinedname(NULL), m_petModeFlags(PET_MODE_DEFAULT), m_petFollowAngle(PET_DEFAULT_FOLLOW_ANGLE), m_needSave(true)
 {
     m_name = "Pet";
     m_regenTimer = 2000;
@@ -390,6 +390,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
         if (mode != PET_SAVE_AS_CURRENT)
             RemoveAllAuras();
 
+        //save pet's data as one single transaction
+        CharacterDatabase.BeginTransaction();
         _SaveSpells();
         _SaveSpellCooldowns();
         _SaveAuras();
@@ -397,7 +399,6 @@ void Pet::SavePetToDB(PetSaveMode mode)
         uint32 owner = GUID_LOPART(GetOwnerGUID());
         std::string name = m_name;
         CharacterDatabase.escape_string(name);
-        CharacterDatabase.BeginTransaction();
         // remove current data
         CharacterDatabase.PExecute("DELETE FROM character_pet WHERE owner = '%u' AND id = '%u'", owner,m_charmInfo->GetPetNumber() );
 
@@ -453,13 +454,19 @@ void Pet::SavePetToDB(PetSaveMode mode)
     }
 }
 
-void Pet::DeleteFromDB(uint32 guidlow)
+void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
 {
+    if(separate_transaction)
+        CharacterDatabase.BeginTransaction();
+
     CharacterDatabase.PExecute("DELETE FROM character_pet WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM character_pet_declinedname WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_aura WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell_cooldown WHERE guid = '%u'", guidlow);
+
+    if(separate_transaction)
+        CharacterDatabase.CommitTransaction();
 }
 
 void Pet::setDeathState(DeathState s)                       // overwrite virtual Creature::setDeathState and Unit::setDeathState
@@ -503,7 +510,7 @@ void Pet::Update(uint32 diff)
         {
             if ( m_deathTimer <= diff )
             {
-                //ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
+                ASSERT(getPetType()!=SUMMON_PET && "Must be already removed.");
                 Remove(PET_SAVE_NOT_IN_SLOT);               //hunters' pets never get removed because of death, NEVER!
                 return;
             }
@@ -538,14 +545,6 @@ void Pet::Update(uint32 diff)
                     Remove(getPetType() != SUMMON_PET ? PET_SAVE_AS_DELETED:PET_SAVE_NOT_IN_SLOT);
                     return;
                 }
-            }
-
-            // pet should get boost
-            if((m_speedBoost && isInCombat()) || (m_speedBoost && IsWithinDistInMap(owner, 10.0f)) || (!m_speedBoost && !IsWithinDistInMap(owner, 10.0f) && !isInCombat()))
-            {
-                m_speedBoost = !m_speedBoost;
-                float speed = owner->GetSpeedRate(MOVE_RUN);
-                SetSpeedRate(MOVE_RUN, m_speedBoost ? speed*2 : speed, true);
             }
 
             //regenerate focus for hunter pets or energy for deathknight's ghoul
@@ -1840,6 +1839,10 @@ bool Pet::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint3
         return false;
 
     SetSheath(SHEATH_STATE_MELEE);
+
+    // for hunter pets set 47 min, so that Call Pet cannot be used in arena
+    if (getPetType() == HUNTER_PET)
+        m_corpseDelay = 2820;
 
     if (getPetType() == MINI_PET)                            // always non-attackable
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);

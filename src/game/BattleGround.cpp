@@ -283,6 +283,9 @@ BattleGround::BattleGround()
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_WS_START_HALF_MINUTE;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_WS_HAS_BEGUN;
 
+    // default value
+    m_fMinZ = -500.0f;
+
     m_uiPlayersJoined  = 0;
 }
 
@@ -550,7 +553,7 @@ void BattleGround::Update(uint32 diff)
     }
 
     // Arena duration
-    if (isArena() && isRated())
+    if (isArena() && isRated() && GetStatus() == STATUS_IN_PROGRESS)
         m_ArenaDuration += float(diff)/1000;
     
     //update start time
@@ -900,6 +903,7 @@ void BattleGround::EndBattleGround(uint32 winner)
             //needed cause else in av some creatures will kill the players at the end
             plr->CombatStop();
             plr->getHostileRefManager().deleteReferences();
+            plr->RemoveArenaAuras(true);
         }
 
         //this line is obsolete - team is set ALWAYS
@@ -1026,7 +1030,6 @@ void BattleGround::EndBattleGround(uint32 winner)
         std::ostringstream dbstring;
         dbstring << "INSERT INTO arena_log_" << winner_arena_team->GetType() << " (" << table.str().c_str() << ") VALUES (" << tabledata.str().c_str() << " );";
         CharacterDatabase.PExecute( dbstring.str().c_str() );
-        sLog.outString( dbstring.str().c_str() );
     }
 
     if (winmsg_id)

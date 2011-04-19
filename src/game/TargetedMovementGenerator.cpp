@@ -74,7 +74,12 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
             return;
     */
 
-    //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
+    // Just a temp hack, GetContactPoint/GetClosePoint in above code use UpdateGroundPositionZ (in GetNearPoint)
+    // and then has the wrong z to use when creature try follow unit in the air.
+    if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly())
+        z = i_target->GetPositionZ();
+
+  //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
     //ACE_hrtime_t elapsed;
     //timer.start();
 
@@ -100,7 +105,11 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
     Traveller<T> traveller(owner);
     i_path->getNextPosition(x, y, z);
     i_destinationHolder.SetDestination(traveller, x, y, z, false);
-    owner.UpdateMovementFlags(true, x, y, z);
+
+    if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly() &&
+        !(((Creature*)&owner)->canWalk() && ((Creature*)&owner)->IsAtGroundLevel(x,y,z)))
+        ((Creature&)owner).AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
 
     // send the path if:
     //    we have brand new path
@@ -112,7 +121,6 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
         // send 10 nodes, or send all nodes if there are less than 10 left
         m_pathPointsSent = std::min<uint32>(10, pointPath.size() - 1);
         uint32 endIndex = m_pathPointsSent + 1;
-
         // dist to next node + world-unit length of the path
         x -= owner.GetPositionX();
         y -= owner.GetPositionY();
@@ -124,7 +132,7 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
         SplineFlags flags = (owner.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&owner)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         owner.SendMonsterMoveByPath(pointPath, 1, endIndex, flags, traveltime);
     }
-    
+
     D::_addUnitStateMove(owner);
 }
 
@@ -173,15 +181,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
     if (owner.IsNonMeleeSpellCasted(false, false,  true))
     {
         if (!owner.IsStopped())
-        {
-            if(owner.GetTypeId() == TYPEID_UNIT)
-            {
-                float x, y, z;
-                i_destinationHolder.GetLocationNowNoMicroMovement(x, y, z);
-                owner.GetMap()->CreatureRelocation((Creature*)&owner, x, y, z, owner.GetOrientation()); 
-            }
             owner.StopMoving();
-        }
         return true;
     }
 
@@ -192,18 +192,9 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         return true;
     }
 
-    if (!i_destinationHolder.HasDestination())
-        _setTargetLocation(owner);
+    if (i_path && (i_path->getPathType() & PATHFIND_NOPATH))
+        return true;
 
-    if (owner.IsStopped() && !i_destinationHolder.HasArrived())
-    {
-        D::_addUnitStateMove(owner);
-        _setTargetLocation(owner);
-        float x,y,z;
-        i_destinationHolder.GetLocationNowNoMicroMovement(x,y,z);
-        owner.UpdateMovementFlags(true, x,y,z);
-    }
-            
     if(pathLost)
     {
         i_findPathTimer.Update(time_diff);
@@ -214,14 +205,17 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         }else return true;
     }
 
-    if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
+
+  if(!pathLost && (i_path && (i_path->getPathType() & PATHFIND_NOPATH)))
     {
         pathLost = true;
         i_findPathTimer.Reset(1000);
-        return true;
     }
 
     Traveller<T> traveller(owner);
+
+    if (!i_destinationHolder.HasDestination())
+        _setTargetLocation(owner);
 
     if (i_destinationHolder.UpdateTraveller(traveller, time_diff, i_recalculateTravel || owner.IsStopped()))
     {
@@ -230,9 +224,9 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
 
         // put targeted movement generators on a higher priority
         if (owner.GetObjectBoundingRadius())
-            i_destinationHolder.ResetUpdate(50);
+            i_destinationHolder.ResetUpdate(100);
 
-        //More distance let have better performance, less distance let have more sensitive reaction at target move.
+      //More distance let have better performance, less distance let have more sensitive reaction at target move.
         float dist = i_target->GetObjectBoundingRadius() + owner.GetObjectBoundingRadius() + sWorld.getConfig(CONFIG_FLOAT_RATE_TARGET_POS_RECALCULATION_RANGE);
 
         float x,y,z;
@@ -245,7 +239,7 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
             PathNode end_point = i_path->getEndPosition();
             next_point = i_path->getNextPosition();
 
-            needNewDest = i_destinationHolder.HasArrived() && !inRange(next_point, i_path->getActualEndPosition(), dist, 2*dist);
+            needNewDest = i_destinationHolder.HasArrived() && !inRange(next_point, i_path->getActualEndPosition(), dist, dist);
 
             // GetClosePoint() will always return a point on the ground, so we need to
             // handle the difference in elevation when the creature is flying
@@ -269,17 +263,15 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
         else if (!i_angle && !owner.HasInArc(0.01f, next_point.x, next_point.y))
             owner.SetOrientation(owner.GetAngle(next_point.x, next_point.y));
 
-        //What is purpose of this?
-       /* if ((owner.IsStopped() && !i_destinationHolder.HasArrived()) || i_recalculateTravel)
+        if ((owner.IsStopped() && !i_destinationHolder.HasArrived()) || i_recalculateTravel)
         {
             i_recalculateTravel = false;
-
             //Angle update will take place into owner.StopMoving()
             owner.SetOrientation(owner.GetAngle(next_point.x, next_point.y));
 
             owner.StopMoving();
             static_cast<D*>(this)->_reachTarget(owner);
-        }*/
+        }
     }
     return true;
 }
@@ -318,14 +310,12 @@ template<class T>
 void ChaseMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
 void ChaseMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_CHASE|UNIT_STAT_CHASE_MOVE);
-    owner.UpdateMovementFlags(true);
 }
 
 template<class T>
@@ -395,7 +385,6 @@ template<class T>
 void FollowMovementGenerator<T>::Finalize(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
-    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }
@@ -404,7 +393,6 @@ template<class T>
 void FollowMovementGenerator<T>::Interrupt(T &owner)
 {
     owner.clearUnitState(UNIT_STAT_FOLLOW|UNIT_STAT_FOLLOW_MOVE);
-    owner.UpdateMovementFlags(true);
     _updateWalkMode(owner);
     _updateSpeed(owner);
 }

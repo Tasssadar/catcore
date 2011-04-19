@@ -26,8 +26,5 @@ endif
 # Intel's TBB
 SUBDIRS += tbb
 
-# pathfinding
-SUBDIRS += recastnavigation
-
 ## Additional files to include when running 'make dist'
 #  Nothing yet.

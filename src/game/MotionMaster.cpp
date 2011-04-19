@@ -20,6 +20,7 @@
 #include "CreatureAISelector.h"
 #include "Creature.h"
 #include "Traveller.h"
+#include "Path.h"
 
 #include "ConfusedMovementGenerator.h"
 #include "FleeingMovementGenerator.h"
@@ -80,13 +81,13 @@ MotionMaster::UpdateMotion(uint32 diff)
         }
         else
             m_pauseTimer -= diff;
-        return;      
+        return;
     }
-    
+
     //ASSERT( !empty() );
     if (empty())
         return;
-    
+
     m_cleanFlag |= MMCF_UPDATE;
     if (!top()->Update(*i_owner, diff))
     {
@@ -324,7 +325,8 @@ MotionMaster::MoveFollow(Unit* target, float dist, float angle)
         Mutate(new FollowMovementGenerator<Creature>(*target,dist,angle));
 }
 
-void MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool usePathfinding)
+void
+MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool usePathfinding)
 {
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s targeted point (Id: %u X: %f Y: %f Z: %f)", i_owner->GetObjectGuid().GetString().c_str(), id, x, y, z );
 

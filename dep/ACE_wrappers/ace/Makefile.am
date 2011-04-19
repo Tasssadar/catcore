@@ -12,6 +12,12 @@
 ACE_BUILDDIR = $(top_builddir)
 ACE_ROOT = $(top_srcdir)
 
+SUBDIRS = \
+        . \
+        ETCL \
+        Monitor_Control \
+        SSL
+
 CLEANFILES =
 
 lib_LTLIBRARIES = libACE.la

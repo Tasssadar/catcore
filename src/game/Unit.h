@@ -449,6 +449,7 @@ enum UnitState
     UNIT_STAT_FLEEING         = 0x00020000,                     // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
     UNIT_STAT_ON_VEHICLE      = 0x00080000,
+    UNIT_STAT_IGNORE_PATHFINDING = 0x00100000,                  // do not use pathfinding in any MovementGenerator
 
     // masks (only for check)
 
@@ -775,10 +776,6 @@ class MovementInfo
         bool HasMovementFlag(MovementFlags f) const { return moveFlags & f; }
         MovementFlags GetMovementFlags() const { return MovementFlags(moveFlags); }
         void SetMovementFlags(MovementFlags f) { moveFlags = f; }
-
-        void AddMovementFlag2(MovementFlags2 f) { moveFlags2 |= f; }
-        void RemoveMovementFlag2(MovementFlags2 f) { moveFlags2 &= ~f; }
-        bool HasMovementFlag2(MovementFlags2 f) const { return moveFlags2 & f; }
         MovementFlags2 GetMovementFlags2() const { return MovementFlags2(moveFlags2); }
         void SetMovementFlags2(MovementFlags2 f) { moveFlags2 = f; }
 
@@ -1211,7 +1208,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         }
         void _removeAttacker(Unit *pAttacker)               // must be called only from Unit::AttackStop()
         {
-            m_attackers.erase(pAttacker);
+            AttackerSet::const_iterator itr = m_attackers.find(pAttacker);
+            if (itr != m_attackers.end())
+                m_attackers.erase(itr);
         }
         Unit * getAttackerForHelper()                       // If someone wants to help, who to give them
         {
@@ -1226,11 +1225,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool Attack(Unit *victim, bool meleeAttack);
         void CastStop(uint32 except_spellid = 0);
         bool AttackStop(bool targetSwitch = false);
-        void RemoveAllAttackers();
+        bool RemoveAllAttackers(bool forced);
         AttackerSet const& getAttackers() const { return m_attackers; }
         bool isAttackingPlayer() const;
         Unit* getVictim() const { return m_attacking; }
-        void CombatStop(bool includingCast = false);
+        void CombatStop(bool includingCast = false, bool forced = true);
         void CombatStopWithPets(bool includingCast = false);
         void StopAttackFaction(uint32 faction_id);
         Unit* SelectRandomUnfriendlyTarget(Unit* except = NULL, float radius = ATTACK_DISTANCE) const;
@@ -1372,7 +1371,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // values below increased from 1.0 to 2.0 to match 3.3.3 resillience
         uint32 GetMeleeDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
         uint32 GetRangedDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
-        uint32 GetSpellDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); } 
+        uint32 GetSpellDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 100.0f, damage); }
 
         float  MeleeSpellMissChance(Unit *pVictim, WeaponAttackType attType, int32 skillDiff, SpellEntry const *spell);
         SpellMissInfo MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell);
@@ -1465,12 +1464,12 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendEnergizeSpellLog(Unit *pVictim, uint32 SpellID, uint32 Damage,Powers powertype);
         void EnergizeBySpell(Unit *pVictim, uint32 SpellID, uint32 Damage, Powers powertype);
         uint32 SpellNonMeleeDamageLog(Unit *pVictim, uint32 spellID, uint32 damage);
-        void CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
-        void CastSpell(Unit* Victim,SpellEntry const *spellInfo, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
-        void CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
-        void CastCustomSpell(Unit* Victim,SpellEntry const *spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
-        void CastSpell(float x, float y, float z, uint32 spellId, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
-        void CastSpell(float x, float y, float z, SpellEntry const *spellInfo, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid());
+        void CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
+        void CastSpell(Unit* Victim,SpellEntry const *spellInfo, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
+        void CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
+        void CastCustomSpell(Unit* Victim,SpellEntry const *spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, bool triggered, Item *castItem= NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
+        void CastSpell(float x, float y, float z, uint32 spellId, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
+        void CastSpell(float x, float y, float z, SpellEntry const *spellInfo, bool triggered, Item *castItem = NULL, Aura* triggeredByAura = NULL, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = NULL);
 
         bool IsDamageToThreatSpell(SpellEntry const * spellInfo) const;
 
@@ -1487,7 +1486,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void MonsterMove(float x, float y, float z, uint32 transitTime);
         void MonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0);
-
         void MonsterMoveByPath(float x, float y, float z, uint32 speed, bool smoothPath = true);
         template<typename PathElem, typename PathNode>
         void MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
@@ -1596,11 +1594,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void RemoveAura(AuraMap::iterator &i, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void RemoveAura(uint32 spellId, SpellEffectIndex effindex, Aura* except = NULL, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
 
-        // DEVELOPER CODE START 
-        // deactivating auras effect 
-        void DeactivateAurasDueToSpell(uint32 spellId); 
-        void ActivateAurasDueToSpell(uint32 spellId); 
-        // DEVELOPER CODE END 
+        // DEVELOPER CODE START
+        // deactivating auras effect
+        void DeactivateAurasDueToSpell(uint32 spellId);
+        void ActivateAurasDueToSpell(uint32 spellId);
+        // DEVELOPER CODE END
 
         // removing specific aura stacks by diff reasons and selections
         void RemoveAurasDueToSpell(uint32 spellId, Aura* except = NULL, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
@@ -1964,7 +1962,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SheduleAINotify(uint32 delay);
 
         bool m_notify_sheduled;
-        struct 
+        struct
         {
             float x, y, z;
         } m_last_notified_position;
@@ -1972,9 +1970,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff);
 
         void AddAndLinkAura(uint32 auraId, bool apply);
-
-        void InitializeMovementFlags();
-        void UpdateMovementFlags(bool updateMovement, float x = 0, float y = 0, float z = 0, bool walkmode = false);
 
     protected:
         explicit Unit ();
@@ -2097,6 +2092,9 @@ void Unit::CallForAllControlledUnits(Func const& func, bool withTotems, bool wit
 template<typename Func>
 bool Unit::CheckAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms) const
 {
+    if (!this->IsInWorld())
+        return false;
+
     if (Pet const* pet = GetPet())
         if (func(pet))
             return true;

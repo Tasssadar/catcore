@@ -192,6 +192,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "spawnvehicle",   SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugSpawnVehicle,               "", NULL },
         { "uws",            SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugUpdateWorldStateCommand,    "", NULL },
         { "update",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugUpdateCommand,              "", NULL },
+
         { NULL,             0,                  false, NULL,                                                "", NULL }
     };
 
@@ -239,6 +240,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "setphase",       SEC_GAMEMASTER,     false, &ChatHandler::HandleGameObjectPhaseCommand,     "", NULL },
         { "target",         SEC_GAMEMASTER,     false, &ChatHandler::HandleGameObjectTargetCommand,    "", NULL },
         { "turn",           SEC_GAMEMASTER,     false, &ChatHandler::HandleGameObjectTurnCommand,      "", NULL },
+        { "click",          SEC_GAMEMASTER,     true,  &ChatHandler::HandleGameObjectClickCommand,     "", NULL },
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
 
@@ -399,6 +401,16 @@ ChatCommand * ChatHandler::getCommandTable()
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
 
+    static ChatCommand mmapCommandTable[] =
+    {
+        { "path",           SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapPathCommand,            "", NULL },
+        { "loc",            SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapLocCommand,             "", NULL },
+        { "loadedtiles",    SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapLoadedTilesCommand,     "", NULL },
+        { "stats",          SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapStatsCommand,           "", NULL },
+        { "testarea",       SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapTestArea,               "", NULL },
+        { "",               SEC_ADMINISTRATOR,  false, &ChatHandler::HandleMmap,                       "", NULL },
+        { NULL,             0,                  false, NULL,                                           "", NULL }
+    };
     static ChatCommand pdumpCommandTable[] =
     {
         { "load",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandlePDumpLoadCommand,           "", NULL },
@@ -505,7 +517,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "spell_loot_template",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadLootTemplatesSpellCommand,      "", NULL },
         { "spell_pet_auras",             SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellPetAurasCommand,           "", NULL },
         { "spell_proc_event",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellProcEventCommand,          "", NULL },
-        { "spell_stack_data",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellStackCommand,              "", NULL }, 
+        { "spell_stack_data",            SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellStackCommand,              "", NULL },
         { "spell_proc_item_enchant",     SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellProcItemEnchantCommand,    "", NULL },
         { "spell_script_target",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellScriptTargetCommand,       "", NULL },
         { "spell_scripts",               SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellScriptsCommand,            "", NULL },
@@ -633,15 +645,6 @@ ChatCommand * ChatHandler::getCommandTable()
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
 
-    static ChatCommand mmapCommandTable[] =
-    {
-        { "path",           SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapPathCommand,            "", NULL },
-        { "loc",            SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapLocCommand,             "", NULL },
-        { "loadedtiles",    SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapLoadedTilesCommand,     "", NULL },
-        { "stats",          SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapStatsCommand,           "", NULL },
-        { NULL,             0,                  false, NULL,                                           "", NULL }
-    };
-
     static ChatCommand commandTable[] =
     {
         { "account",        SEC_PLAYER,         true,  NULL,                                           "", accountCommandTable  },
@@ -730,13 +733,13 @@ ChatCommand * ChatHandler::getCommandTable()
         { "repairitems",    SEC_GAMEMASTER,     true,  &ChatHandler::HandleRepairitemsCommand,         "", NULL },
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },
-        { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
         { "litak",          SEC_PLAYER,         true,  &ChatHandler::HandleLitakCommand,               "", NULL },
         { "assemblerandoms",SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReassembleRandomDungeonOptionsCommand,"", NULL },
         { "spocitejspojenyrepky",SEC_ADMINISTRATOR,true,&ChatHandler::HandleSpojenyRepky,              "", NULL },
-        { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats,            "", NULL },
+//        { "mmapglobal",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleMMapGlobalStats,            "", NULL },
         { "arenajoin",      SEC_MODERATOR,      false, &ChatHandler::HandleArenaJoinCommand,           "", NULL },
         { "test",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleTestCommand,                "", NULL },
+        { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };

@@ -51,6 +51,7 @@
 #include "BattleGroundMgr.h"
 #include "TemporarySummon.h"
 #include "VMapFactory.h"
+#include "MoveMap.h"
 #include "GameEventMgr.h"
 #include "PoolManager.h"
 #include "Database/DatabaseImpl.h"
@@ -78,7 +79,6 @@ float World::m_MaxVisibleDistanceForObject    = DEFAULT_VISIBILITY_DISTANCE;
 float World::m_MaxVisibleDistanceInFlight     = DEFAULT_VISIBILITY_DISTANCE;
 float World::m_VisibleUnitGreyDistance        = 0;
 float World::m_VisibleObjectGreyDistance      = 0;
-bool  World::m_MMapsEnabled                   = true;
 
 /// World constructor
 World::World()
@@ -92,7 +92,6 @@ World::World()
     world_diff_time = 0;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
-    m_resultQueue = NULL;
     m_NextDailyQuestReset = 0;
     m_NextWeeklyQuestReset = 0;
     m_scheduledScripts = 0;
@@ -138,8 +137,7 @@ World::~World()
         delete command;
 
     VMAP::VMapFactory::clear();
-
-    if (m_resultQueue) delete m_resultQueue;
+    MMAP::MMapFactory::clear();
 
     //TODO free addSessQueue
 }
@@ -649,6 +647,10 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_SKILL_CHANCE_GREEN,  "SkillChance.Green",  25);
     setConfig(CONFIG_UINT32_SKILL_CHANCE_GREY,   "SkillChance.Grey",   0);
 
+    setConfig(CONFIG_BOOL_SKILL_FAIL_LOOT_FISHING,         "SkillFail.Loot.Fishing", true);
+    setConfig(CONFIG_BOOL_SKILL_FAIL_GAIN_FISHING,         "SkillFail.Gain.Fishing", true);
+    setConfig(CONFIG_BOOL_SKILL_FAIL_POSSIBLE_FISHINGPOOL, "SkillFail.Possible.FishingPool", false);
+
     setConfigPos(CONFIG_UINT32_SKILL_CHANCE_MINING_STEPS,   "SkillChance.MiningSteps",   75);
     setConfigPos(CONFIG_UINT32_SKILL_CHANCE_SKINNING_STEPS, "SkillChance.SkinningSteps", 75);
 
@@ -835,7 +837,6 @@ void World::LoadConfigSettings(bool reload)
         m_VisibleObjectGreyDistance = MAX_VISIBILITY_DISTANCE;
     }
 
-
     //visibility on continents
     m_MaxVisibleDistanceOnContinents      = sConfig.GetFloatDefault("Visibility.Distance.Continents",     DEFAULT_VISIBILITY_DISTANCE);
     if (m_MaxVisibleDistanceOnContinents < 45*getConfig(CONFIG_FLOAT_RATE_CREATURE_AGGRO))
@@ -926,24 +927,11 @@ void World::LoadConfigSettings(bool reload)
     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i",enableLOS, enableHeight);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
     sLog.outString( "WORLD: VMap config keys are: vmap.enableLOS, vmap.enableHeight, vmap.ignoreMapIds, vmap.ignoreSpellIds");
-    m_MMapsEnabled = sConfig.GetBoolDefault("mmap.enable", true); 
-    sLog.outString( "WORLD: MMaps are %s", m_MMapsEnabled ? "Enabled" : "Disabled");
-    if(m_MMapsEnabled && reload)
-    {
-        MapEntry const *mapEntry = NULL;
-        std::stringstream str;
-        for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
-        {
-            mapEntry = sMapStore.LookupEntry(i);
-            if(!mapEntry)
-                continue;
-            char fileName[512];
-            sprintf(fileName, "%smmaps/%03i.mmap", GetDataPath().c_str(), mapEntry->MapID);
-            if(fopen(fileName, "r"))
-                str << mapEntry->MapID << ", ";
-        }
-        sLog.outString( "WORLD: MMaps files found for these maps: %s", str.str().c_str());
-    }
+
+    setConfig(CONFIG_BOOL_MMAP_ENABLED, "mmap.enabled", true);
+    std::string ignoreMMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
+    MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMMapIds.c_str());
+    sLog.outString("WORLD: mmap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 }
 
 /// Initialize the World
@@ -954,6 +942,9 @@ void World::SetInitialWorldSettings()
 
     ///- Time server startup
     uint32 uStartTime = getMSTime();
+
+    ///- Initialize detour memory management
+    dtAllocSetCustom(dtCustomAlloc, dtCustomFree);
 
     ///- Initialize config settings
     LoadConfigSettings();
@@ -1013,7 +1004,7 @@ void World::SetInitialWorldSettings()
 
     ///- Load and pack instances
     sLog.outString( "Loading instance saves..." );
-    sInstanceSaveMgr.LoadSavesFromDb();                // must be called before `creature_respawn`/`gameobject_respawn` tables  
+    sInstanceSaveMgr.LoadSavesFromDb();                // must be called before `creature_respawn`/`gameobject_respawn` tables
 
     sLog.outString( "Packing instances..." );
     sInstanceSaveMgr.PackInstances();
@@ -1059,13 +1050,13 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading Spell Bonus Data..." );
     sSpellMgr.LoadSpellBonuses();                           // must be after LoadSpellChains
 
-    // DEVELOPER CODE START 
-    sLog.outString( "Loading Spell Stack Data..." ); 
-    sSpellMgr.LoadSpellStack(); 
- 
-    sLog.outString( "Loading Spell Stack Group Data..." ); 
-    sSpellMgr.LoadSpellStackGroup(); 
-    // DEVELOPER CODE END 
+    // DEVELOPER CODE START
+    sLog.outString( "Loading Spell Stack Data..." );
+    sSpellMgr.LoadSpellStack();
+
+    sLog.outString( "Loading Spell Stack Group Data..." );
+    sSpellMgr.LoadSpellStackGroup();
+    // DEVELOPER CODE END
 
     sLog.outString( "Loading Spell Proc Item Enchant..." );
     sSpellMgr.LoadSpellProcItemEnchant();                   // must be after LoadSpellChains
@@ -1433,24 +1424,6 @@ void World::SetInitialWorldSettings()
     // Delete all characters which have been deleted X days before
     Player::DeleteOldCharacters();
 
-    sLog.outString( "WORLD: MMaps are %s", m_MMapsEnabled ? "Enabled" : "Disabled");
-    if(m_MMapsEnabled)
-    {
-        MapEntry const *mapEntry = NULL;
-        std::stringstream str;
-        for(uint32 i = 0; i < sMapStore.GetNumRows(); ++i)
-        {
-            mapEntry = sMapStore.LookupEntry(i);
-            if(!mapEntry)
-                continue;
-            char fileName[512];
-            sprintf(fileName, "%smmaps/%03i.mmap", GetDataPath().c_str(), mapEntry->MapID);
-            if(fopen(fileName, "r"))
-                str << mapEntry->MapID << ", ";
-        }
-        sLog.outString( "WORLD: MMaps files found for these maps: %s", str.str().c_str());
-    }
-
     sLog.outString( "WORLD: World initialized" );
 
     uint32 uStartInterval = getMSTimeDiff(uStartTime, getMSTime());
@@ -1520,7 +1493,7 @@ void World::Update(uint32 diff)
     ///- Update the game time and check for shutdown time
     _UpdateGameTime();
 
-    // Reset instances 
+    // Reset instances
     if (m_timers[WUPDATE_INSTANCE_RESET].Passed())
     {
         m_timers[WUPDATE_INSTANCE_RESET].SetInterval(HOUR);
@@ -2068,13 +2041,14 @@ void World::ProcessCliCommands()
 
 void World::InitResultQueue()
 {
-    m_resultQueue = new SqlResultQueue;
-    CharacterDatabase.SetResultQueue(m_resultQueue);
 }
 
 void World::UpdateResultQueue()
 {
-    m_resultQueue->Update();
+    //process async result queues
+    CharacterDatabase.ProcessResultQueue();
+    WorldDatabase.ProcessResultQueue();
+    LoginDatabase.ProcessResultQueue();
 }
 
 void World::UpdateRealmCharCount(uint32 accountId)
@@ -2090,8 +2064,11 @@ void World::_UpdateRealmCharCount(QueryResult *resultCharCount, uint32 accountId
         Field *fields = resultCharCount->Fetch();
         uint32 charCount = fields[0].GetUInt32();
         delete resultCharCount;
+
+        LoginDatabase.BeginTransaction();
         LoginDatabase.PExecute("DELETE FROM realmcharacters WHERE acctid= '%u' AND realmid = '%u'", accountId, realmID);
         LoginDatabase.PExecute("INSERT INTO realmcharacters (numchars, acctid, realmid) VALUES (%u, %u, %u)", charCount, accountId, realmID);
+        LoginDatabase.CommitTransaction();
     }
 }
 
@@ -2202,12 +2179,12 @@ void World::SelectRandomDungeonDaily()
         sGameEventMgr.StopEvent(RandomDungeon_Daily_Ingvar+eventId);
         WorldDatabase.PExecute("UPDATE game_event SET occurence = 5184000 WHERE entry = %u", RandomDungeon_Daily_Ingvar+eventId);
     }
-    //Start new event  
+    //Start new event
     uint8 random;
     static uint8 ToSelect[OpenedHCs] = {0,1,4,5,8,9,10,11};
 
     random = ToSelect[urand(0,OpenedHCs-1)];
-        
+
     sGameEventMgr.StartEvent(RandomDungeon_Daily_Ingvar+random);
     WorldDatabase.PExecute("UPDATE game_event SET occurence = 1400 WHERE entry = %u", RandomDungeon_Daily_Ingvar+random);
 }
@@ -2220,7 +2197,7 @@ void World::SelectRandomTimearForeseesDaily()
         sGameEventMgr.StopEvent(RandomTimearForesees_Daily_Centrifuge+eventId);
         WorldDatabase.PExecute("UPDATE game_event SET occurence = 5184000 WHERE entry = %u",RandomTimearForesees_Daily_Centrifuge+eventId);
     }
-    //Start new event  
+    //Start new event
     uint8 random;
     static uint8 ToSelect[OpenedNormals] = {3};
 
@@ -2444,7 +2421,7 @@ void World::LoadBroadCastMessages()
     m_broadcastMessages.clear();
 
     uint32 count = 0;
-    //                                                0   1           2   
+    //                                                0   1           2
     QueryResult *result = WorldDatabase.Query("SELECT ID, RepeatMins, text FROM broadcast_messages WHERE enabled = 1");
 
     if ( !result )
@@ -2465,7 +2442,7 @@ void World::LoadBroadCastMessages()
         Field *fields = result->Fetch();
 
         bar.step();
-        
+
         BroadCastMessage *message = new BroadCastMessage();
         message->Id                   = fields[0].GetUInt32();
         message->RepeatMins           = fields[1].GetUInt32();
@@ -2525,7 +2502,7 @@ void World::SpocitejRepkyCommand()
                     continue;
                 }
                 Field *fields = result->Fetch();
-                hodnoty[i] = fields[0].GetUInt32();	
+                hodnoty[i] = fields[0].GetUInt32();
             }
             int32 soucet = 0;
             for (uint32 i = 0; i < 4; ++i)

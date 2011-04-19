@@ -174,6 +174,11 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
+    UpdateAverageItemLevel();
+
+    if (!GetDungeonInfo(true))
+         SetOriginalDungeonInfo(GetDungeonInfo());
+
     player->m_lookingForGroup.groups.insert(std::pair<uint32, uint32>(GetDungeonInfo(true)->ID,GetId()));
     return true;
 }
@@ -182,7 +187,10 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
 {
     member_witerator slot = _getMemberWSlot(guid);
     if (slot != m_memberSlots.end())
+    {
         m_memberSlots.erase(slot);
+        UpdateAverageItemLevel();
+    }
 
     sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
     if (Player *player = sObjectMgr.GetPlayer(guid))
@@ -314,7 +322,7 @@ void LfgGroup::KilledCreature(Creature *creature)
             data << uint32(m_dungeonInfo->Entry());
 
             uint32 ID = GetDungeonInfo((IsRandom() || IsFromRnd(plr->GetGUID())))->ID;
-            sLfgMgr.BuildRewardBlock(data, ID, plr);
+            sLfgMgr.BuildRewardBlock(&data, ID, plr);
             plr->GetSession()->SendPacket(&data);
             LfgReward *reward = sLfgMgr.GetDungeonReward(ID, plr->m_lookingForGroup.DoneDungeon(ID, plr), plr->getLevel());
             if (!reward)
@@ -534,19 +542,20 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
 
     if (IsInDungeon())
     {
-        for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
+        if(newPlr)
         {
-            Player *player = itr->getSource();
-            if (!player)
-                continue;
-            if (player->GetMapId() == GetDungeonInfo()->map)
+            for (GroupReference *itr = GetFirstMember(); itr != NULL; itr = itr->next())
             {
-                WorldLocation loc;
-                player->GetPosition(loc);
-                plr->TeleportTo(loc);
-                return;
+                Player *player = itr->getSource();
+                if (!player  || player->GetMapId() != GetDungeonInfo()->map)
+                    continue;
+
+				plr->TeleportTo(player->GetLocation());
+				return;
             }
         }
+        plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x, dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
+        return;
     }
 
     //Must re-add player to reset id...
@@ -668,6 +677,13 @@ void LfgGroup::SendUpdate()
             Player* member = sObjectMgr.GetPlayer(citr2->guid);
             uint8 onlineState = (member) ? MEMBER_STATUS_ONLINE : MEMBER_STATUS_OFFLINE;
             onlineState = onlineState | ((isBGGroup()) ? MEMBER_STATUS_PVP : 0);
+            if(member)
+            {
+                if(member->isAFK())
+                    onlineState |= MEMBER_STATUS_AFK;
+                if(member->isDND())
+                    onlineState |= MEMBER_STATUS_DND;
+            }
 
             data << citr2->name;
             data << uint64(citr2->guid);
@@ -885,7 +901,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     {
         Player *player = sObjectMgr.GetPlayer(citr->guid);
         if (m_roleCheck.m_rolesProposal.find(citr->guid) != m_roleCheck.m_rolesProposal.end() || !player || !player->GetSession() ||
-            player->m_lookingForGroup.roles == 255)
+            player->m_lookingForGroup.roles == 0)
             continue;
         m_roleCheck.m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
@@ -1014,7 +1030,7 @@ void LfgGroup::SendRoleCheckUpdate(uint8 state)
         if (!plr || !plr->GetSession())
             continue;
         if(state == LFG_ROLECHECK_INITIALITING)
-            plr->m_lookingForGroup.roles = 255;
+            plr->m_lookingForGroup.roles = 0;
         plr->GetSession()->SendPacket(&data);
     }
 }

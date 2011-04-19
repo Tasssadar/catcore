@@ -65,10 +65,12 @@ enum GroupMemberOnlineStatus
     MEMBER_STATUS_PVP       = 0x0002,
     MEMBER_STATUS_UNK0      = 0x0004,                       // dead? (health=0)
     MEMBER_STATUS_UNK1      = 0x0008,                       // ghost? (health=1)
-    MEMBER_STATUS_UNK2      = 0x0010,                       // never seen
+    MEMBER_STATUS_PVP_FFA   = 0x0010,                       // never seen
     MEMBER_STATUS_UNK3      = 0x0020,                       // never seen
-    MEMBER_STATUS_UNK4      = 0x0040,                       // appears with dead and ghost flags
-    MEMBER_STATUS_UNK5      = 0x0080,                       // never seen
+    MEMBER_STATUS_AFK       = 0x0040,                       // Lua_UnitIsAFK
+    MEMBER_STATUS_DND       = 0x0080,                       // Lua_UnitIsDND
+   // MEMBER_STATUS_UNK4      = 0x0040,                       // appears with dead and ghost flags
+//    MEMBER_STATUS_UNK5      = 0x0080,                       // never seen
 };
 
 enum GroupType                                              // group type flags?
@@ -355,6 +357,9 @@ class MANGOS_DLL_SPEC Group
         InstanceSave* GetBoundInstance(Map* aMap, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
 
+        void UpdateAverageItemLevel();
+        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
+
     protected:
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant=false);
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant, uint8 group);
@@ -448,5 +453,6 @@ class MANGOS_DLL_SPEC Group
         Rolls               RollId;
         BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
+        uint32              m_aitemlevel;
 };
 #endif

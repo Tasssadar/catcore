@@ -23,6 +23,7 @@ ADD_DEFINITIONS("-O3")
 include_directories(
     ../../src
     ../../src/shared
+    ../../src/game
     ../../src/shared/vmap
     ../../dep/include/g3dlite
     ../../src/framework
@@ -164,6 +165,7 @@ add_library(Recast
 )
 
 set(SOURCES
+    ./src/IntermediateValues.cpp
     ./src/generator.cpp
     ./src/MapBuilder.cpp
     ./src/TerrainBuilder.cpp

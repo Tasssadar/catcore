@@ -1,46 +1,54 @@
-generator command line args
+Generator command line args
 
---maxAngle			[#]				max walkable inclination angle
+--offMeshInput      [file.*]        Path to file containing off mesh connections data.
+                                    Format must be: (see offmesh_example.txt)
+                                    "map_id tile_x,tile_y (start_x start_y start_z) (end_x end_y end_z) size  //optional comments"
+                                    Single mesh connection per line.
 
-									float between 45 and 90 degrees (default 60)
+--silent                            Make us script friendly. Do not wait for user input
+                                    on error or completion.
 
---skipLiquid						liquid data for maps
+--bigBaseUnit       [true|false]    Generate tile/map using bigger basic unit.
+                                    Use this option only if you have unexpected gaps.
 
-									true: do not include liquid data (default)
+                                    false: use normal metrics (default)
 
---skipContinents	[true|false]	continents are maps 0 (Eastern Kingdoms),
-									1 (Kalimdor), 530 (Outlands), 571 (Northrend)
+--maxAngle          [#]             Max walkable inclination angle
 
-									true: skip continents (default)
+                                    float between 45 and 90 degrees (default 60)
 
---skipJunkMaps		[true|false]	junk maps include some unused
-									maps, transport maps, and some other
+--skipLiquid                        liquid data for maps
 
-									true: skip junk maps (default)
+                                    false: include liquid data (default)
 
---skipBattlegrouns	[true|false]	does not include PVP arenas
+--skipContinents    [true|false]    continents are maps 0 (Eastern Kingdoms),
+                                    1 (Kalimdor), 530 (Outlands), 571 (Northrend)
 
-									true: skip battlegrounds (default)
+                                    false: build continents (default)
 
---hiResHeightmaps	[true|false]	hi-res heightmaps may result in better maps,
-									but dramatically increase memory requirements
+--skipJunkMaps      [true|false]    junk maps include some unused
+                                    maps, transport maps, and some other
 
-									false: use low-res heightmaps (default)
+                                    true: skip junk maps (default)
 
---debugOutput		[true|false]	create debugging files for use with RecastDemo
-									if you are only creating mmaps for use with MaNGOS,
-									you don't want debugging files
+--skipBattlegrounds [true|false]    does not include PVP arenas
 
-									false: don't create debugging files (default)
+                                    true: skip battlegrounds (default)
 
---tile				[#,#]			build the specified tile
-									seperate number with a comma ','
-									must specify a map number (see below)
-									if this option is not used, all tiles are built
+--debugOutput       [true|false]    create debugging files for use with RecastDemo
+                                    if you are only creating mmaps for use with MaNGOS,
+                                    you don't want debugging files
 
-					[#]				build only the map specified by #
-									this command will build the map regardless of --skip* option settings
-									if you do not specify a map number, builds all maps that pass the filters specified by --skip* options
+                                    false: don't create debugging files (default)
+
+--tile              [#,#]           Build the specified tile
+                                    seperate number with a comma ','
+                                    must specify a map number (see below)
+                                    if this option is not used, all tiles are built
+
+                    [#]             Build only the map specified by #
+                                    this command will build the map regardless of --skip* option settings
+                                    if you do not specify a map number, builds all maps that pass the filters specified by --skip* options
 
 
 examples:
@@ -48,11 +56,11 @@ examples:
 movemapgen
 builds maps using the default settings (see above for defaults)
 
-movemapgen --hiResHeightmaps true --skipContinents false
-builds the default maps, plus continents, using hi resolution heightmaps
+movemapgen --skipContinents true
+builds the default maps, except continents
 
 movemapgen 0
 builds all tiles of map 0
 
 movemapgen 0 --tile 34,46
-builds only tile 34,46 of map 0 (this is the souther face of blackrock mountain)
+builds only tile 34,46 of map 0 (this is the southern face of blackrock mountain)

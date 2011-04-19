@@ -533,6 +533,8 @@ class BattleGround
         void DoorClose(uint64 const& guid);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
+        virtual bool IsXYZPositionOK(float x, float y, float z) { return true; }
+        virtual bool ObjectInLOS(Unit* caster, Unit* target) { return false ; }
 
         // since arenas can be AvA or Hvh, we have to get the "temporary" team of a player
         uint32 GetPlayerTeam(uint64 guid);
@@ -566,6 +568,10 @@ class BattleGround
         // guid, endtimestamp, winner, loser, total dmg done, total heal done, map, arena length
         void SaveArenaStats(uint32 guid, uint32 winnerid, uint32 loserid, uint32 dmgdone, uint32 healdone, uint32 mapid, uint32 length);
 
+        float GetMinZ() { return m_fMinZ; }
+
+        bool IsCoordInRange(float coord, float compare_min, float compare_max) const { return compare_min < coord && coord < compare_max; }
+
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();
@@ -587,6 +593,8 @@ class BattleGround
         BattleGroundStartTimeIntervals  m_StartDelayTimes[BG_STARTING_EVENT_COUNT];
         //this must be filled in constructors!
         uint32 m_StartMessageIds[BG_STARTING_EVENT_COUNT];
+
+        float m_fMinZ;
 
         bool   m_BuffChange;
         bool   m_IsRandom;

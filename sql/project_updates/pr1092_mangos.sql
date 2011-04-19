@@ -1,0 +1,1 @@
+ALTER TABLE `creature_template` ADD `cat_flags` INT( 11 ) UNSIGNED NOT NULL DEFAULT '0' AFTER `type_flags`;

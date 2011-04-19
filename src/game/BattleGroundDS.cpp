@@ -36,6 +36,10 @@ BattleGroundDS::BattleGroundDS()
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
     m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
+
+    // 2,5 z out platform
+    // on platform 5, radius from 1291 791 is 21
+    m_fMinZ = 2.5f;
 }
 
 BattleGroundDS::~BattleGroundDS()
@@ -73,20 +77,12 @@ void BattleGroundDS::KnockOutOfTubes()
 {
     //DespawnEvent(DOORS_EVENT, 0);
 
-    bool m_bIsAnyPlayerInTube = false;
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
         Player * plr = sObjectMgr.GetPlayer(itr->first);
-        if (plr->GetTeam() == ALLIANCE && plr->GetDistance2d(1214, 765) <= 50 && plr->GetPositionZ() > 10)
-        {
-            plr->KnockWithAngle(6.05f, 35.0f, 7.0f);
-            m_bIsAnyPlayerInTube = true;
-        }
-        if (plr->GetTeam() == HORDE && plr->GetDistance2d(1369, 817) <= 50 && plr->GetPositionZ() > 10)
-        {
-            plr->KnockWithAngle(3.03f, 35.0f, 7.0f);
-            m_bIsAnyPlayerInTube = true;
-        }
+        float angle = itr->second.Team == ALLIANCE ? 6.05f : 3.03f; 
+        if ((plr->GetDistance2d(1214, 765) <= 50 || plr->GetDistance2d(1369, 817) <= 50) && plr->GetPositionZ() > 10)
+            plr->KnockWithAngle(angle, 32.85f, 5.8f);
 
         // Remove Demonic Circle
         if (plr->getClass() == CLASS_WARLOCK)
@@ -111,7 +107,7 @@ void BattleGroundDS::KnockbackFromWaterfall()
         
         float angle = m_WaterfallCollision->GetAngle(plr);
         if (!m_WaterfallCollision->GetDistance2d(plr))
-            plr->KnockWithAngle(angle, 10.0f, 7.0f);
+            plr->KnockWithAngle(angle, 5.0f, 7.0f);
     }
 }
 
@@ -271,6 +267,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     float distance = caster->GetDistance(target);
     float x = caster->GetPositionX();
     float y = caster->GetPositionY();
+    float bounding = m_WaterfallCollision->IsWithinBoundingRadius(x,y);
     for (int32 i = 0; i < distance; ++i)
     {
         x += x_per_i;
@@ -279,4 +276,22 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
             return true;
     }
     return false;
+}
+
+bool BattleGroundDS::IsXYZPositionOK(float x, float y, float z)
+{
+    // watterfall coords are not ok
+    if (m_WaterfallCollision && m_WaterfallCollision->IsInWorld() && !m_WaterfallCollision->GetDistance2d(x,y))
+        return false;
+    
+    // creates
+    if ((IsCoordInRange(x, 1270, 1280) && IsCoordInRange(y, 803, 813)) ||
+        (IsCoordInRange(x, 1303, 1314) && IsCoordInRange(y, 769, 779)))
+        return false;
+
+    // under platform
+    if (IsCoordInRange(x, 1270, 1314) && IsCoordInRange(y, 717, 813) && z < 6.5f)
+        return false;
+
+    return true;
 }

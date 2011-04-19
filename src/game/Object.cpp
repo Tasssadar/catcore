@@ -247,12 +247,6 @@ void Object::DestroyForPlayer( Player *target, bool anim ) const
 
 void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
 {
-    uint16 moveFlags2 = (isType(TYPEMASK_UNIT) ? ((Unit*)this)->m_movementInfo.GetMovementFlags2() : MOVEFLAG2_NONE);
-
-    if (GetTypeId() == TYPEID_UNIT)
-        if (((Creature*)this)->isVehicle())
-            moveFlags2 |= MOVEFLAG2_ALLOW_PITCHING;         // always allow pitch
-
     *data << uint16(updateFlags);                           // update flags
 
     // 0x20
@@ -260,7 +254,83 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
     {
         Unit *unit = ((Unit*)this);
 
-        unit->UpdateMovementFlags(false);
+        switch(GetTypeId())
+        {
+            case TYPEID_UNIT:
+            {
+                unit->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
+
+                // disabled, makes them run-in-same-place before movement generator updated once.
+                /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
+
+                if (((Creature*)unit)->canFly() && !(((Creature*)unit)->canWalk()
+                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
+                {
+                    // (ok) most seem to have this
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+
+                    // Add flying effect. This should be in db, but...
+                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
+                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+
+                    if (!((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    {
+                        // (ok) possibly some "hover" mode
+                        //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT); //problems sometimes...
+                    }
+                }
+
+                // swimming creature
+                float x,y,z;
+                unit->GetPosition(x,y,z);
+                if(((Creature*)unit)->canSwim() && unit->GetMap()->GetTerrain()->IsInWater(x,y,z))
+                {
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+
+                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
+                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
+                }
+
+                if (unit->GetVehicleGUID())
+                   unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                if (unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == RANDOM_CIRCLE_MOTION_TYPE)
+                {
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
+                }
+
+            }
+            break;
+            case TYPEID_PLAYER:
+            {
+                Player *player = ((Player*)unit);
+
+                if (player->GetTransport())
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+                else
+                    player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                // remove unknown, unused etc flags for now
+                player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+
+                if (((Unit*)this)->GetVehicleGUID())
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+                if (((Player*)this)->isInFlight())
+                {
+                    ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_FORWARD);
+                    player->m_movementInfo.AddMovementFlag(MOVEFLAG_SPLINE_ENABLED);
+                }
+            }
+            break;
+        }
 
         // Update movement info time
         unit->m_movementInfo.UpdateTime(getMSTime());
@@ -664,15 +734,34 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                         *data << (m_uint32Values[ index ] & ~UNIT_DYNFLAG_TAPPED);
                 }
                 // Mixed Dungeon Finder
-                else if(index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE && GetTypeId() == TYPEID_PLAYER)
+                else if((index == UNIT_FIELD_BYTES_2 || index == UNIT_FIELD_FACTIONTEMPLATE)
+                    && (GetTypeId() == TYPEID_PLAYER || GetTypeId() == TYPEID_UNIT))
                 {
-                    Player *player = (Player*)this;
-                    if((player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId()) ||
-                        player->IsSpectator())
+                    bool allow = false;
+                    Group *group = NULL;
+                    if(GetTypeId() == TYPEID_PLAYER)
+                    {
+                        Player *player = (Player*)this;
+                        group = player->GetGroup();
+                        allow = ((player->m_lookingForGroup.mixed && player->m_lookingForGroup.mixed_map == player->GetMapId()) || player->IsSpectator());
+                    }
+                    else
+                    {
+                        Creature* creature = (Creature*)this;
+                        Player* owner = (Player*)creature->GetOwner();
+                        if((creature->isPet() || creature->isTotem()) && creature->GetOwner() && creature->GetOwner()->GetTypeId() == TYPEID_PLAYER &&
+                            ((owner->m_lookingForGroup.mixed && owner->m_lookingForGroup.mixed_map == creature->GetMapId()) || owner->IsSpectator()))
+                        {
+                            allow = true;
+                            group = owner->GetGroup();
+                        }
+                    }
+                    
+                    if(allow)
                     {
                         if(index == UNIT_FIELD_BYTES_2)
                             *data << ( m_uint32Values[ index ] | (UNIT_BYTE2_FLAG_SANCTUARY << 8) );
-                        else if(player->GetGroup() == target->GetGroup())
+                        else if(group == target->GetGroup())
                             *data << uint32(target->getFaction());
                         else
                             *data << m_uint32Values[ index ];
@@ -1157,8 +1246,7 @@ void WorldObject::SetOrientation(float orientation)
 {
     m_orientation = orientation;
     if (isType(TYPEMASK_UNIT))
-        ((Unit*)this)->m_movementInfo.ChangeOrientation(orientation);
-
+       ((Unit*)this)->m_movementInfo.ChangeOrientation(orientation);
 }
 
 uint32 WorldObject::GetZoneId() const
@@ -1193,6 +1281,15 @@ float WorldObject::GetDistance(const WorldObject* obj) const
     return ( dist > 0 ? dist : 0);
 }
 
+float WorldObject::GetDistanceSqr(float x, float y, float z) const
+{
+    float dx = GetPositionX() - x;
+    float dy = GetPositionY() - y;
+    float dz = GetPositionZ() - z;
+    float sizefactor = GetObjectBoundingRadius();
+    float dist = dx*dx+dy*dy+dz*dz-sizefactor;
+    return (dist > 0 ? dist : 0);
+}
 float WorldObject::GetDistance2d(float x, float y) const
 {
     float dx = GetPositionX() - x;
@@ -1210,16 +1307,6 @@ float WorldObject::GetDistance(float x, float y, float z) const
     float sizefactor = GetObjectBoundingRadius();
     float dist = sqrt((dx*dx) + (dy*dy) + (dz*dz)) - sizefactor;
     return ( dist > 0 ? dist : 0);
-}
-
-float WorldObject::GetDistanceSqr(float x, float y, float z) const
-{
-    float dx = GetPositionX() - x;
-    float dy = GetPositionY() - y;
-    float dz = GetPositionZ() - z;
-    float sizefactor = GetObjectBoundingRadius();
-    float dist = dx*dx+dy*dy+dz*dz-sizefactor;
-    return (dist > 0 ? dist : 0);
 }
 
 float WorldObject::GetDistance2d(const WorldObject* obj) const
@@ -1416,7 +1503,7 @@ bool WorldObject::HasInArc(const float arcangle, const float x, const float y) c
     if(x == m_positionX && y == m_positionY)
         return true;
 
-    float arc = arcangle;
+        float arc = arcangle;
 
     // move arc to range 0.. 2*pi
     while( arc >= 2.0f * M_PI_F )
@@ -1433,7 +1520,7 @@ bool WorldObject::HasInArc(const float arcangle, const float x, const float y) c
     while(angle < -M_PI_F)
         angle += 2.0f * M_PI_F;
 
-    float lborder =  -1 * (arc/2.0f);                       // in range -pi..0
+    float lborder = -1 * (arc/2.0f);                       // in range -pi..0
     float rborder = (arc/2.0f);                             // in range 0..pi
     return (( angle >= lborder ) && ( angle <= rborder ));
 }

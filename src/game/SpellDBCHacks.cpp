@@ -201,4 +201,15 @@ void SpellMgr::ApplySpellHacks()
     // Bladestorm, zkurvena immunita na nulu...
     SpellEntry *sfix30 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(46924));
     sfix30->EffectMiscValue[1]= 0;
+
+    // magnetic core nechce se mì s tim srat v scriptu takže nasrat a rozmazat
+    SpellEntry *sfix31 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64436));
+    sfix31->EffectImplicitTargetA[EFFECT_INDEX_1]= 1;
+    sfix31->EffectImplicitTargetB[EFFECT_INDEX_1]= 0;
+
+    // Fan of knives - rychlost (ma to bejt hned je to jakysi zpoždìny)
+    SpellEntry *sfix32 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(51723));
+    sfix32->speed = 0;
+    SpellEntry *sfix33 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
+    sfix33->speed = 0;
 }

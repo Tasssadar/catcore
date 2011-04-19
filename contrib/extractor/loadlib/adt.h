@@ -285,8 +285,8 @@ public:
     void free();
 
     adt_MHDR *a_grid;
-};
 
-bool isHole(int holes, int i, int j);
+    bool isHole(int holes, int i, int j);
+};
 
 #endif

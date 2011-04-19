@@ -126,6 +126,7 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         }
 
         void SaveAllPlayers();
+        void ResetLFGCache();
 
         // Corpse access
         Corpse* GetCorpseForPlayerGUID(ObjectGuid guid);

@@ -43,6 +43,7 @@
 #include <map>
 
 #include "TargetedMovementGenerator.h"                      // for HandleNpcUnFollowCommand
+#include "MoveMap.h"                                        // for mmap manager
 #include "PathFinder.h"                                     // for mmap commands
 
 static uint32 ReputationRankStrIndex[MAX_REPUTATION_RANK] =
@@ -641,6 +642,60 @@ bool ChatHandler::HandleGameObjectTurnCommand(const char* args)
     obj->Refresh();
 
     PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, obj->GetGUIDLow(), obj->GetGOInfo()->name, obj->GetGUIDLow());
+
+    return true;
+}
+
+// clicking on object by guid
+bool ChatHandler::HandleGameObjectClickCommand(const char* args)
+{
+    // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+    char* cId = extractKeyFromLink((char*)args,"Hgameobject");
+    if (!cId)
+        return false;
+
+    uint32 lowguid = atoi(cId);
+    if (!lowguid)
+        return false;
+
+    GameObject* obj = NULL;
+
+    // by DB guid
+    if (GameObjectData const* go_data = sObjectMgr.GetGOData(lowguid))
+        obj = GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid,go_data->id);
+
+    if (!obj)
+    {
+        PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, lowguid);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (obj->GetGoType() != GAMEOBJECT_TYPE_DOOR)
+    {
+        PSendSysMessage("This command can be used only on doors");
+        return false;
+    }
+
+    char* po = strtok(NULL, " ");
+    int iopen = po ? (int)atof(po) : 0;
+
+    if (iopen && iopen != 1)
+        return false;
+
+    bool open = iopen;
+
+    obj->SetLootState(GO_READY);
+
+    const char* status;
+    if (obj->GetGoState() == GO_STATE_READY)
+        status = "from ready state to active state";
+    else
+        status = "from active state to ready state";
+
+    obj->UseDoorOrButton();
+
+    PSendSysMessage("Object %s (entry: %u) change its GoState %s", obj->GetName(), obj->GetEntry(), status);
 
     return true;
 }
@@ -4698,7 +4753,7 @@ bool ChatHandler::HandleTitlesCurrentCommand(const char* args)
 
 bool ChatHandler::HandleMmapPathCommand(const char* args)
 {
-    if (!m_session->GetPlayer()->GetMap()->GetTerrain()->GetNavMesh())
+    if (!MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(m_session->GetPlayer()->GetMapId()))
     {
         PSendSysMessage("NavMesh not loaded for current map.");
         return true;
@@ -4747,37 +4802,37 @@ bool ChatHandler::HandleMmapPathCommand(const char* args)
 
     // this entry visible only to GM's with "gm on"
     static const uint32 WAYPOINT_NPC_ENTRY = 1;
+    Creature* wp = NULL;
     for (uint32 i = 0; i < pointPath.size(); ++i)
-        player->SummonCreature(WAYPOINT_NPC_ENTRY, pointPath[i].x, pointPath[i].y, pointPath[i].z, 0, TEMPSUMMON_TIMED_DESPAWN, 9000);
+    {
+        wp = player->SummonCreature(WAYPOINT_NPC_ENTRY, pointPath[i].x, pointPath[i].y, pointPath[i].z, 0, TEMPSUMMON_TIMED_DESPAWN, 9000);
+        // TODO: make creature not sink/fall
+    }
 
     return true;
 }
 
-bool ChatHandler::HandleMmapLocCommand(const char* args)
+bool ChatHandler::HandleMmapLocCommand(const char* /*args*/)
 {
     PSendSysMessage("mmap tileloc:");
 
     // grid tile location
     Player* player = m_session->GetPlayer();
 
-    int32 gx = 32 - player->GetPositionX() / 533.33333f;
-    int32 gy = 32 - player->GetPositionY() / 533.33333f;
+    int32 gx = 32 - player->GetPositionX() / SIZE_OF_GRIDS;
+    int32 gy = 32 - player->GetPositionY() / SIZE_OF_GRIDS;
 
     PSendSysMessage("%03u%02i%02i.mmtile", player->GetMapId(), gy, gx);
     PSendSysMessage("gridloc [%i,%i]", gx, gy);
 
     // calculate navmesh tile location
-    const dtNavMesh* navmesh = player->GetMap()->GetTerrain()->GetNavMesh();
-
-    if (!navmesh)
+    const dtNavMesh* navmesh = MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(player->GetMapId());
+    const dtNavMeshQuery* navmeshquery = MMAP::MMapFactory::createOrGetMMapManager()->GetNavMeshQuery(player->GetMapId(), player->GetInstanceId());
+    if (!navmesh || !navmeshquery)
     {
         PSendSysMessage("NavMesh not loaded for current map.");
         return true;
     }
-
-    dtNavMeshQuery* query = dtAllocNavMeshQuery();
-    ASSERT(query);
-    query->init((dtNavMesh*)navmesh, MESH_MAX_NODES);
 
     const float* min = navmesh->getParams()->orig;
 
@@ -4786,14 +4841,15 @@ bool ChatHandler::HandleMmapLocCommand(const char* args)
     float location[VERTEX_SIZE] = {y, z, x};
     float extents[VERTEX_SIZE] = {2.f,4.f,2.f};
 
-    int32 tilex = int32((y - min[0]) / 533.33333);
-    int32 tiley = int32((x - min[2]) / 533.33333);
+    int32 tilex = int32((y - min[0]) / SIZE_OF_GRIDS);
+    int32 tiley = int32((x - min[2]) / SIZE_OF_GRIDS);
 
     PSendSysMessage("Calc   [%02i,%02i]", tilex, tiley);
 
     // navmesh poly -> navmesh tile location
     dtQueryFilter filter = dtQueryFilter();
-    dtPolyRef polyRef = query->findNearestPoly(location, extents, &filter, NULL);
+    dtPolyRef polyRef = INVALID_POLYREF;
+    navmeshquery->findNearestPoly(location, extents, &filter, &polyRef, NULL);
 
     if (polyRef == INVALID_POLYREF)
         PSendSysMessage("Dt     [??,??] (invalid poly, probably no tile loaded)");
@@ -4808,51 +4864,22 @@ bool ChatHandler::HandleMmapLocCommand(const char* args)
             PSendSysMessage("Dt     [??,??] (no tile loaded)");
     }
 
-    // mmtile file header -> navmesh tile location
-    uint32 pathLen = sWorld.GetDataPath().length() + strlen("mmaps/%03i%02i%02i.mmtile")+1;
-    char *fileName = new char[pathLen];
-    snprintf(fileName, pathLen, (char*)(sWorld.GetDataPath()+"mmaps/%03i%02i%02i.mmtile").c_str(), player->GetMapId(), gx, gy);
-
-    FILE* file = fopen(fileName, "rb");
-    if (!file)
-        PSendSysMessage("mmtile [??,??] (file %03u%02i%02i.mmtile not found)", player->GetMapId(), gx, gy);
-    else
-    {
-        fseek(file, 0, SEEK_END);
-        int32 length = ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        unsigned char* data = new unsigned char[length];
-        fread(data, length, 1, file);
-        fclose(file);
-
-        dtMeshHeader* header = (dtMeshHeader*)data;
-
-        PSendSysMessage("mmtile [%02i,%02i]", header->x, header->y);
-
-        delete [] data;
-    }
-
-    delete [] fileName;
-    dtFreeNavMeshQuery(query);
     return true;
 }
 
-bool ChatHandler::HandleMmapLoadedTilesCommand(const char* args)
+bool ChatHandler::HandleMmapLoadedTilesCommand(const char* /*args*/)
 {
-    const dtNavMesh* navmesh = m_session->GetPlayer()->GetMap()->GetTerrain()->GetNavMesh();
+    uint32 mapid = m_session->GetPlayer()->GetMapId();
 
-    if (!navmesh)
+    const dtNavMesh* navmesh = MMAP::MMapFactory::createOrGetMMapManager()->GetNavMesh(mapid);
+    const dtNavMeshQuery* navmeshquery = MMAP::MMapFactory::createOrGetMMapManager()->GetNavMeshQuery(mapid, m_session->GetPlayer()->GetInstanceId());
+    if (!navmesh || !navmeshquery)
     {
         PSendSysMessage("NavMesh not loaded for current map.");
         return true;
     }
 
     PSendSysMessage("mmap loadedtiles:");
-
-    dtNavMeshQuery* query = dtAllocNavMeshQuery();
-    ASSERT(query);
-    query->init((dtNavMesh*)navmesh, MESH_MAX_NODES);
 
     for (int32 i = 0; i < navmesh->getMaxTiles(); ++i)
     {
@@ -4863,16 +4890,18 @@ bool ChatHandler::HandleMmapLoadedTilesCommand(const char* args)
         PSendSysMessage("[%02i,%02i]", tile->header->x, tile->header->y);
     }
 
-    dtFreeNavMeshQuery(query);
     return true;
 }
 
-bool ChatHandler::HandleMmapStatsCommand(const char* args)
+bool ChatHandler::HandleMmapStatsCommand(const char* /*args*/)
 {
     PSendSysMessage("mmap stats:");
-    PSendSysMessage("  global mmap pathfinding is %sabled", sWorld.MMapsEnabled() ? "en" : "dis");
+    PSendSysMessage("  global mmap pathfinding is %sabled", sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 
-    const dtNavMesh* navmesh = m_session->GetPlayer()->GetMap()->GetTerrain()->GetNavMesh();
+    MMAP::MMapManager *manager = MMAP::MMapFactory::createOrGetMMapManager();
+    PSendSysMessage(" %u maps loaded with %u tiles overall", manager->getLoadedMapsCount(), manager->getLoadedTilesCount());
+
+    const dtNavMesh* navmesh = manager->GetNavMesh(m_session->GetPlayer()->GetMapId());
     if (!navmesh)
     {
         PSendSysMessage("NavMesh not loaded for current map.");
@@ -4901,7 +4930,7 @@ bool ChatHandler::HandleMmapStatsCommand(const char* args)
         dataSize += tile->dataSize;
     }
 
-    PSendSysMessage("Navmesh stats:");
+    PSendSysMessage("Navmesh stats on current map:");
     PSendSysMessage(" %u tiles loaded", tileCount);
     PSendSysMessage(" %u BVTree nodes", nodeCount);
     PSendSysMessage(" %u polygons (%u vertices)", polyCount, vertCount);

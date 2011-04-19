@@ -74,10 +74,11 @@ void WaypointMovementGenerator<Creature>::LoadPath(Creature &creature)
         }
     }
 
-    // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
-    CreatureTraveller traveller(creature);
+    if (creature.canFly())
+        creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
     // We have to set the destination here (for the first point), right after Initialize. Without, we may not have valid xyz for GetResetPosition
+    CreatureTraveller traveller(creature);
     MoveToNextNode(traveller);
 }
 
@@ -90,13 +91,11 @@ void WaypointMovementGenerator<Creature>::Initialize(Creature &creature)
 void WaypointMovementGenerator<Creature>::Finalize(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
-    creature.UpdateMovementFlags(true);
 }
 
 void WaypointMovementGenerator<Creature>::Interrupt(Creature &creature)
 {
     creature.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
-    creature.UpdateMovementFlags(true);
 }
 
 void WaypointMovementGenerator<Creature>::Reset(Creature &creature)
@@ -302,8 +301,9 @@ void WaypointMovementGenerator<Creature>::MoveToNextNode(CreatureTraveller &trav
 
     PathInfo sub_path(owner, node.x, node.y, node.z);
     PointPath pointPath = sub_path.getFullPath();
-
-    owner->UpdateMovementFlags(true, node.x, node.y, node.z, true);
+    
+    if (owner->canFly())
+        owner->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
 
     float speed = traveller.Speed()*0.001f; // in ms
     uint32 traveltime = uint32(pointPath.GetTotalLength()/speed);
@@ -360,13 +360,13 @@ void FlightPathMovementGenerator::Finalize(Player & player)
         // when client side flight end early in comparison server side
         player.StopMoving();
     }
-    player.UpdateMovementFlags(true);
+    player.SendInitialActionButtons();
 }
 
 void FlightPathMovementGenerator::Interrupt(Player & player)
 {
     player.clearUnitState(UNIT_STAT_IN_FLIGHT);
-    player.UpdateMovementFlags(true);
+    player.SendInitialActionButtons();
 }
 
 void FlightPathMovementGenerator::Reset(Player & player)
@@ -376,8 +376,13 @@ void FlightPathMovementGenerator::Reset(Player & player)
     player.SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_TAXI_FLIGHT);
     Traveller<Player> traveller(player);
     // do not send movement, it was sent already
-
-    i_destinationHolder.SetDestination(traveller, (*i_path)[i_currentNode].x, (*i_path)[i_currentNode].y, (*i_path)[i_currentNode].z, false);
+    const TaxiPathNodeList* debug_path = i_path;
+    if (i_path && !i_path->empty())
+    {
+        if (i_path->size() <= i_currentNode)
+            i_currentNode = uint32(i_path->size()-1);
+        i_destinationHolder.SetDestination(traveller, (*i_path)[i_currentNode].x, (*i_path)[i_currentNode].y, (*i_path)[i_currentNode].z, false);
+    }
 
     TaxiPathNodeList path = GetPath();
     uint32 pathEndPoint = GetPathAtMapEnd();
@@ -451,3 +456,4 @@ void FlightPathMovementGenerator::DoEventIfAny(Player& player, TaxiPathNodeEntry
         player.GetMap()->ScriptsStart(sEventScripts, eventid, &player, &player);
     }
 }
+

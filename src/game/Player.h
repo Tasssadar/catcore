@@ -409,14 +409,16 @@ struct LookingForGroup
         mixed_map = 0;
         sendAtMapAdd[0] = 0;
         sendAtMapAdd[1] = 0;
+        lockInfo = NULL;
+        lockInfoOutdated = true;
     }
-    
+
     std::string comment;
     uint8 roles;
     LfgDungeonList queuedDungeons;
     GroupMap groups;
     std::map<uint32, GroupReference*> m_LfgGroup; // dung ID
-    uint32 joinTime; 
+    uint32 joinTime;
 
     bool DoneDungeon(uint32 ID, Player *player);
     WorldLocation joinLoc;
@@ -431,6 +433,8 @@ struct LookingForGroup
         mixed = activate;
         mixed_map = map;
     }
+    WorldPacket *lockInfo;
+    bool lockInfoOutdated;
 };
 
 enum RaidGroupError
@@ -611,6 +615,7 @@ enum AtLoginFlags
     AT_LOGIN_LEARN_TAXI_NODES       = 0x200,
     AT_LOGIN_DELAY_ONE_LOGIN        = 0x400,
     AT_LOGIN_LEARN_DEFAULT_SPELLS   = 0x800
+    //AT_LOGIN_ADD_PET                = 0x800
 };
 
 typedef std::map<uint32, QuestStatusData> QuestStatusMap;
@@ -1046,6 +1051,7 @@ class TradeData
         ObjectGuid m_items[TRADE_SLOT_COUNT];               // traded itmes from m_player side including non-traded slot
 };
 
+typedef std::list<uint32> ItemLevelList;
 class MANGOS_DLL_SPEC Player : public Unit
 {
     friend class WorldSession;
@@ -1220,6 +1226,20 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             return _CanStoreItem(bag, slot, dest, item, count, NULL, false, no_space_count );
         }
+        bool IsValidItemLevelSlot(uint16 slot)
+        {
+            if (slot == EQUIPMENT_SLOT_BODY || slot == EQUIPMENT_SLOT_TABARD)
+                return false;
+
+            return true;
+        }
+
+        ItemLevelList GetItemLevelList(bool entire_equip = false, bool count_2h_twice = true);
+        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
+        uint32 GetMaxItemLevel();
+        uint32 GetMinItemLevel();
+        uint32 GetGroupOrPlayerAverageItemLevel() const;
+
         uint8 CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec& dest, Item *pItem, bool swap = false ) const
         {
             if (!pItem)
@@ -1721,8 +1741,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         static bool IsActionButtonDataValid(uint8 button, uint32 action, uint8 type, Player* player, bool msg = true);
         ActionButton* addActionButton(uint8 spec, uint8 button, uint32 action, uint8 type);
         void removeActionButton(uint8 spec, uint8 button);
-        void SendActionButtons(uint32 state) const;
-        void SendInitialActionButtons() const { SendActionButtons(1); }
+
+        void SendInitialActionButtons() const;
+        void SendLockActionButtons() const;
+
         ActionButton const* GetActionButton(uint8 button);
 
         PvPInfo pvpInfo;
@@ -2559,6 +2581,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;
 
+        void SetItem(Item* item, uint8 slot);
+        void BuildAverageItemLevel();
+        uint32 m_aitemlevel;
+
         uint32 m_team;
         uint32 m_nextSave;
         time_t m_speakTime;
@@ -2824,7 +2850,15 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
 
         if (mod->charges > 0 )
         {
-            --mod->charges;
+            // Item - Mage T8 4P Bonus
+            if (HasAura(64869) && (spellInfo->Id == 44401 || spellInfo->Id == 48108 || spellInfo->Id == 57761))
+            {
+                if (!roll_chance_f(10.0f))
+                    --mod->charges;
+            }
+            else
+                --mod->charges;
+
             if (mod->charges == 0)
             {
                 mod->charges = -1;

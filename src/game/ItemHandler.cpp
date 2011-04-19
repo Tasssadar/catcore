@@ -1345,7 +1345,7 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
 
     //Gems should remove refundable flag
     if (itemTarget->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE))
-        itemTarget->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE);
+        itemTarget->SetOriginalOwner(0);
 
     _player->ToggleMetaGemsActive(slot, true);              // turn on all metagems (except for target item)
 }
@@ -1417,7 +1417,8 @@ void WorldSession::HandleItemRefundInfoRequest(WorldPacket& recv_data)
         return;
     }
 
-    if (!item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE) || item->GetExtCostId() == 0)
+    if (!item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE) || item->GetExtCostId() == 0 || !item->GetOriginalOwner()
+        || item->GetOriginalOwner() != _player->GetGUIDLow())
     {
         DEBUG_LOG("Item refund: item not refundable!");
         return;
@@ -1473,7 +1474,7 @@ void WorldSession::HandleItemRefund(WorldPacket& recv_data)
         return;
     }
 
-    if (!item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE) || !item->GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME)
+    if (!item->GetOriginalOwner() || item->GetOriginalOwner() != _player->GetGUIDLow() || !item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_REFUNDABLE) || !item->GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME)
         || _player->m_Played_time[0] > (item->GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME) + 2*60*60))  // can be refunded only two hours after buy
     {
         DEBUG_LOG("Item refund: item not refundable!");

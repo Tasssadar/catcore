@@ -351,6 +351,17 @@ bool ChatHandler::HandleGPSCommand(const char* args)
     {
         PSendSysMessage(LANG_LIQUID_STATUS, liquid_status.level, liquid_status.depth_level, liquid_status.type, res);
     }
+
+    Map* pMap = obj->GetMap();
+    if (pMap->IsDungeon())
+    {
+        uint32 mapid = pMap->GetId();
+        QueryResult* result = CharacterDatabase.PQuery("SELECT data FROM instance WHERE map = '%u' AND id = '%u'", mapid, pMap->GetInstanceId());
+        const char* data = result ? result->Fetch()[0].GetString() : "";
+        Difficulty diff = pMap->GetDifficulty();
+        const char* name = pMap->GetMapName();
+        PSendSysMessage("INSTANCE INFO: Map name: %s, Map id: %u, Map difficulty: %i, Instance data: %s", name, mapid, int(diff), data);
+    }
     return true;
 }
 

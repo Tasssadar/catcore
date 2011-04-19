@@ -102,7 +102,6 @@ namespace VMAP
             std::vector<MeshTriangle> triangles;
             BIH meshTree;
             WmoLiquid *iLiquid;
-
 #ifdef MMAP_GENERATOR
         public:
             void getMeshData(std::vector<Vector3> &vertices, std::vector<MeshTriangle> &triangles, WmoLiquid* &liquid);
@@ -126,7 +125,6 @@ namespace VMAP
             uint32 RootWMOID;
             std::vector<GroupModel> groupModels;
             BIH groupTree;
-
 #ifdef MMAP_GENERATOR
         public:
             void getGroupModels(std::vector<GroupModel> &groupModels);

@@ -57,7 +57,7 @@ void InstanceData::RemoveFromCombatList(Creature* pCreature)
         {
             lCombatList.erase(itr);
             break;
-        }		
+        }
     }*/
     lCombatList.remove(pCreature->GetGUID());
 }

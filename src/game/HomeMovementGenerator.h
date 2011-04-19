@@ -35,8 +35,8 @@ class MANGOS_DLL_SPEC HomeMovementGenerator<Creature>
 {
     public:
 
-        HomeMovementGenerator(){}
-        ~HomeMovementGenerator(){}
+        HomeMovementGenerator() {}
+        ~HomeMovementGenerator() {}
 
         void Initialize(Creature &);
         void Finalize(Creature &) {}

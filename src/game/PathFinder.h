@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,47 +20,23 @@
 #define MANGOS_PATH_FINDER_H
 
 #include "Path.h"
+#include "MoveMapSharedDefines.h"
 #include "../recastnavigation/Detour/Include/DetourNavMesh.h"
 #include "../recastnavigation/Detour/Include/DetourNavMeshQuery.h"
 
-class WorldObject;
+class Unit;
 
-#define PRINT_DEBUG_INFO    0
-#define PATH_DEBUG(...)             \
-    do {                            \
-        if (PRINT_DEBUG_INFO)       \
-            printf(__VA_ARGS__);    \
-    } while(0)
-
-
-// 128*6.0f=768y  number_of_points*interval = max_path_len
+// 64*6.0f=384y  number_of_points*interval = max_path_len
 // this is way more than actual evade range
 // I think we can safely cut those down even more
-#define MESH_MAX_NODES          1024
-#define MAX_PATH_LENGTH         128
-#define MAX_POINT_PATH_LENGTH   128
+#define MAX_PATH_LENGTH         64
+#define MAX_POINT_PATH_LENGTH   64
 
 #define SMOOTH_PATH_STEP_SIZE   6.0f
 #define SMOOTH_PATH_SLOP        0.4f
 
 #define VERTEX_SIZE       3
-
 #define INVALID_POLYREF   0
-
-// see contrib/mmap/src/TileBuilder.h
-enum NavTerrain
-{
-    NAV_EMPTY   = 0x00,
-    NAV_GROUND  = 0x01,
-    NAV_MAGMA   = 0x02,
-    NAV_SLIME   = 0x04,
-    NAV_WATER   = 0x08,
-    NAV_UNUSED1 = 0x10,
-    NAV_UNUSED2 = 0x20,
-    NAV_UNUSED3 = 0x40,
-    NAV_UNUSED4 = 0x80
-    // we only have 8 bits
-};
 
 enum PathType
 {
@@ -75,7 +51,7 @@ enum PathType
 class PathInfo
 {
     public:
-        PathInfo(const WorldObject* from, const float destX, const float destY, const float destZ, bool useStraightPath = false);
+        PathInfo(Unit const* owner, const float destX, const float destY, const float destZ, bool useStraightPath = false);
         ~PathInfo();
 
         // return value : true if new path was calculated
@@ -96,8 +72,8 @@ class PathInfo
 
     private:
 
-        dtPolyRef   *   m_pathPolyRefs;     // array of detour polygon references
-        uint32          m_polyLength;       // number of polygons in the path
+        dtPolyRef       m_pathPolyRefs[MAX_PATH_LENGTH];   // array of detour polygon references
+        uint32          m_polyLength;                      // number of polygons in the path
 
         PointPath       m_pathPoints;       // our actual (x,y,z) path to the target
         PathType        m_type;             // tells what kind of path this is
@@ -109,9 +85,11 @@ class PathInfo
         PathNode        m_endPosition;      // {x, y, z} of the destination
         PathNode        m_actualEndPosition;  // {x, y, z} of the closest possible point to given destination
 
-        const WorldObject *m_sourceObject;  // the object that is moving (safe pointer because PathInfo is only accessed from the mover?)
-        dtNavMesh   *   m_navMesh;          // the nav mesh
-        dtNavMeshQuery* m_navMeshQuery;     // the nav mesh query used to find the path
+        const Unit* const       m_sourceUnit;       // the unit that is moving
+        const dtNavMesh*        m_navMesh;          // the nav mesh
+        const dtNavMeshQuery*   m_navMeshQuery;     // the nav mesh query used to find the path
+
+        dtQueryFilter m_filter;                     // use single filter for all movements, update it when needed
 
         inline void setNextPosition(PathNode point) { m_nextPosition = point; }
         inline void setStartPosition(PathNode point) { m_startPosition = point; }
@@ -120,41 +98,31 @@ class PathInfo
 
         inline void clear()
         {
-            delete [] m_pathPolyRefs;
-            m_pathPolyRefs = NULL;
             m_polyLength = 0;
-
             m_pathPoints.clear();
         }
 
-        //dtPolyRef getPathPolyByPosition(PathNode p, float &distance);
-        
-        dtPolyRef getPathPolyByPosition(dtPolyRef *polyPath, uint32 polyPathSize, PathNode p, float *distance = NULL);
+        dtPolyRef getPathPolyByPosition(dtPolyRef *polyPath, uint32 polyPathSize, const float* point, float *distance = NULL);
+        dtPolyRef getPolyByLocation(const float* point, float *distance);
 
         void BuildPolyPath(PathNode startPos, PathNode endPos);
         void BuildPointPath(float *startPoint, float *endPoint);
         void BuildShortcut();
 
-        // owner calls
-        bool canFly();
-        bool canSwim();
-
         NavTerrain getNavTerrain(float x, float y, float z);
-        dtQueryFilter createFilter();
+        void createFilter();
+        void updateFilter();
 
         // smooth path functions
         uint32 fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32 maxPath,
                              const dtPolyRef* visited, const uint32 nvisited);
-/*        bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist,
+        bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist,
                             const dtPolyRef* path, const uint32 pathSize, float* steerPos,
-                            unsigned char& steerPosFlag, dtPolyRef& steerPosRef,
-                            float* outPoints = 0, uint32* outPountcount = 0);*/
-        bool getSteerTarget(const float* startPos, const float* endPos,
-                            const float minTargetDist, const dtPolyRef* path, const uint32 pathSize,
-                            float* steerPos, unsigned char& steerPosFlag, dtPolyRef& steerPosRef);
-        uint32 findSmoothPath(const float* startPos, const float* endPos,
+                            unsigned char& steerPosFlag, dtPolyRef& steerPosRef);
+        dtStatus findSmoothPath(const float* startPos, const float* endPos,
                               const dtPolyRef* polyPath, const uint32 polyPathSize,
-                              float* smoothPath, const uint32 smoothPathMaxSize);
+                              float* smoothPath, int* smoothPathSize, bool &usedOffmesh,
+                              const uint32 smoothPathMaxSize);
 };
 
 inline bool inRangeYZX(const float* v1, const float* v2, const float r, const float h)
