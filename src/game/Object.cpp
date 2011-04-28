@@ -1197,7 +1197,7 @@ void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
 
 WorldObject::WorldObject()
     : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL),
-    m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f)
+    m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f), m_fOrientation(-1.0f)
 {
 }
 
@@ -1217,7 +1217,7 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
     m_positionX = x;
     m_positionY = y;
     m_positionZ = z;
-    m_orientation = orientation;
+    m_orientation = HasFixedOrientation() ? m_fOrientation : orientation;
 
     if (isType(TYPEMASK_UNIT))
     {
@@ -1243,9 +1243,9 @@ void WorldObject::Relocate(float x, float y, float z)
 
 void WorldObject::SetOrientation(float orientation)
 {
-    m_orientation = orientation;
+    m_orientation = HasFixedOrientation() ? m_fOrientation : orientation;
     if (isType(TYPEMASK_UNIT))
-       ((Unit*)this)->m_movementInfo.ChangeOrientation(orientation);
+       ((Unit*)this)->m_movementInfo.ChangeOrientation(m_orientation);
 }
 
 uint32 WorldObject::GetZoneId() const
@@ -2233,4 +2233,11 @@ bool WorldObject::IsControlledByPlayer() const
         default:
             return false;
     }
+}
+
+void WorldObject::FixOrientation(float ori)
+{
+    m_fOrientation = ori;
+    if (ori != -1.0f)
+        m_orientation = ori;
 }

@@ -417,6 +417,8 @@ class Spell
         void DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
         void DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
 
+        void CreatureSummoned(Creature* crt);
+
         void WriteSpellGoTargets( WorldPacket * data );
         void WriteAmmoToPacket( WorldPacket * data );
 
