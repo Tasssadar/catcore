@@ -6817,7 +6817,7 @@ void Player::ModifyHonorPoints( int32 value )
     if (!HasItemCount(43308, 1))
     {
         ItemPosCountVec dest;
-        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43308, 1 ) == EQUIP_ERR
+        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43308, 1 ) == EQUIP_ERR_OK)
         {
             Item* item = StoreNewItem( dest, 43308, true);
             SendNewItem(item, 1, true, false);
@@ -6842,7 +6842,7 @@ void Player::ModifyArenaPoints( int32 value )
     if (!HasItemCount(43307, 1))
     {
         ItemPosCountVec dest;
-        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43307, 1 ) == EQUIP_ERR
+        if (CanStoreNewItem( NULL_BAG, NULL_SLOT, dest, 43307, 1 ) == EQUIP_ERR_OK)
         {
             Item* item = StoreNewItem( dest, 43307, true);
             SendNewItem(item, 1, true, false);
@@ -19467,6 +19467,7 @@ bool Player::BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 
                 it->SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, m_Played_time[0]);
                 it->SetPrice(price); // <- cuz of faction discount
                 it->SetExtCostId(extCostId); // <- because we cant get to it afterwards :/
+                it->SetOriginalOwner(GetGUIDLow());
             }
         }
     }

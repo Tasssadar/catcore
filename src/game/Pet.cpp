@@ -1840,6 +1840,10 @@ bool Pet::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, uint3
 
     SetSheath(SHEATH_STATE_MELEE);
 
+    // for hunter pets set 47 min, so that Call Pet cannot be used in arena
+    if (getPetType() == HUNTER_PET)
+        m_corpseDelay = 2820;
+
     if (getPetType() == MINI_PET)                            // always non-attackable
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 

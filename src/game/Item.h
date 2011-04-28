@@ -334,6 +334,9 @@ class MANGOS_DLL_SPEC Item : public Object
         uint32 GetExtCostId() { return m_ExtendedCostId; };
         void SetPrice(uint32 price) { m_price = price; };
         uint32 GetPrice() { return m_price; };
+        void SetOriginalOwner(uint32 guid) { m_originalOwnerGUID = guid; }
+        uint32 GetOriginalOwner() { return m_originalOwnerGUID; }
+
     private:
         std::string m_text;
         uint8 m_slot;
@@ -343,5 +346,6 @@ class MANGOS_DLL_SPEC Item : public Object
         bool mb_in_trade;                                   // true if item is currently in trade-window
         uint32 m_price;
         uint32 m_ExtendedCostId;
+        uint32 m_originalOwnerGUID;
 };
 #endif

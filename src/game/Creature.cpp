@@ -669,12 +669,6 @@ bool Creature::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, 
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
                 break;
         }
-        // for hunter pets set 47 min, so that Call Pet cannot be used in arena
-        if (isPet())
-        {
-            if (((Pet*)this)->getPetType() == HUNTER_PET)
-                m_corpseDelay = 2820;
-        }
 
         LoadCreaturesAddon();
     }
@@ -2360,7 +2354,7 @@ uint32 Creature::SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, flo
 
 void Creature::LogKill(Unit *killer, int32 icomments)
 {
-    if (!killer || !killer->GetTypeId() != TYPEID_PLAYER)
+    if (!killer || killer->GetTypeId() != TYPEID_PLAYER)
         return;
 
     Player* plr = (Player*)killer;

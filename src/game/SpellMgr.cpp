@@ -1893,6 +1893,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             {
                 case SPELLFAMILY_GENERIC:                   // same family case
                 {
+                    // Intravenous Health Regeneration and Mana Regeneration
+                    if ((spellInfo_1->Id == 61267 && spellInfo_2->Id == 61268) ||
+                        (spellInfo_2->Id == 61267 && spellInfo_1->Id == 61268))
+                        return false;
+
                     // Thunderfury
                     if ((spellInfo_1->Id == 21992 && spellInfo_2->Id == 27648) ||
                         (spellInfo_2->Id == 21992 && spellInfo_1->Id == 27648))
@@ -2498,10 +2503,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->Id == 20066 && spellInfo_2->Id == 61840)
                     return true;
             }
-            // Blessing of Sanctuary  and Lightning shield
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_SHAMAN)
+            {
+                // Blessing of Sanctuary  and Lightning shield
                 if(spellInfo_2->SpellIconID == 19 && spellInfo_1->SpellIconID == 19 )
                     return false;
+                // Greater Blessing of Sanctuary  and Lightning shield
+                if(spellInfo_1->SpellIconID == 19 && spellInfo_2->SpellIconID == 206 )
+                    return false;
+            }
 
             // Blessing of Sanctuary (multi-family check, some from 16 spell icon spells)
             if (spellInfo_2->Id == 67480 && spellInfo_1->Id == 20911)
@@ -2551,11 +2561,15 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if (spellInfo_1->SpellIconID == 2019 && spellInfo_2->SpellIconID == 2019)
                     return false;
             }
-            // Blessing of Sanctuary  and Lightning shield
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+            {
+                // Blessing of Sanctuary  and Lightning shield
                 if(spellInfo_1->SpellIconID == 19 && spellInfo_2->SpellIconID == 19 )
                     return false;
-
+                // Greater Blessing of Sanctuary  and Lightning shield
+                if(spellInfo_2->SpellIconID == 19 && spellInfo_1->SpellIconID == 206 )
+                    return false;
+            }
             // Bloodlust and Bloodthirst (multi-family check)
             if ( spellInfo_1->Id == 2825 && spellInfo_2->SpellIconID == 38 && spellInfo_2->SpellVisual[0] == 0 )
                 return false;
@@ -4254,14 +4268,15 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_HUNTER:
         {
             // Scatter Shot
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000040000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000))
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000040000) && spellproto->SpellFamilyFlags2 & UI64LIT(0x00000008000) && spellproto->SpellIconID == 132)
                 return DIMINISHING_SCATTER_SHOT;
              // Freezing Trap & Freezing Arrow & Wyvern Sting
             if  (spellproto->SpellIconID == 180 || (spellproto->SpellIconID == 1721 && spellproto->SpellFamilyFlags & UI64LIT(0x0000100000000000)))
                 return DIMINISHING_DISORIENT;
             // Hunter's Mark
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x400))
+            if (spellproto->SpellFamilyFlags & UI64LIT(0x400) && spellproto->SpellIconID == 538)
                 return DIMINISHING_LIMITONLY;
+            break;
         }
         case SPELLFAMILY_WARLOCK:
         {

@@ -2587,18 +2587,10 @@ void Unit::CalculateDamageAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolM
             if (((*i)->GetModifier()->m_miscvalue & schoolMask)==0)
                 continue;
 
-            // Damage can be splitted only if aura has an alive caster and if caster is pet, it must be controlled
+            // Damage can be splitted only if aura has an alive caster
             Unit *caster = (*i)->GetCaster();
             if (!caster || caster == this || !caster->IsInWorld() || !caster->isAlive())
                 continue;
-
-            if (caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->isPet())
-            {
-                uint32 pet_unitflag = caster->GetUInt32Value(UNIT_FIELD_FLAGS);
-
-                if (pet_unitflag & (UNIT_FLAG_PACIFIED|UNIT_FLAG_STUNNED|UNIT_FLAG_FLEEING|UNIT_FLAG_CONFUSED))
-	                continue;
-            }
 
             uint32 splitted = uint32(RemainingDamage * (*i)->GetModifier()->m_amount / 100.0f);
 
@@ -10304,7 +10296,7 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
 
     // Not apply this to creature casted spells
     if (GetTypeId()==TYPEID_UNIT && !((Creature*)this)->isPet())
-        return;
+        return total;
 
     // Check for table values
     else if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
@@ -10391,6 +10383,13 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
                                                                 // 0 == any inventory type (not wand then)
             {
                 DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
+
+                // Cinderglacier - we need to drop charge here
+                if ((*i)->GetId() == 53386)
+                {
+                    if ((*i)->DropAuraCharge())
+                        RemoveAura((*i));
+                }
             }
         }
     }
@@ -12490,7 +12489,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Special cases
 
     // With vanish aura, player is udetectable
-    if (Aura* vanishAura = GetAura(SPELL_AURA_MOD_STEALTH, SPELLFAMILY_ROGUE, SPELLFAMILYFLAG_ROGUE_VANISH, NULL))
+    if (HasAura(11327))
         return false;
 
     // If is attacked then stealth is lost, some creature can use stealth too
