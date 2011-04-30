@@ -779,6 +779,10 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             }
         }
 
+        // Spinning Pain Spike
+        if (m_spellInfo->SpellDifficultyId == 347)
+            damage += urand(50,75)*unitTarget->GetMaxHealth()/10000;
+
         if (damage >= 0)
             m_damage += damage;
     }
@@ -4563,6 +4567,8 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         creature->setFaction(m_caster->getFaction());
 
         summoner = creature;
+
+        CreatureSummoned(creature, m_spellInfo->Id);
     }
 }
 
@@ -4859,6 +4865,8 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
 
             if (forceFaction)
                 summon->setFaction(forceFaction);
+
+            CreatureSummoned(summon, m_spellInfo->Id);
         }
     }
 }
@@ -4963,6 +4971,8 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
         m_caster->AddGuardian(spawnCreature);
 
         map->Add((Creature*)spawnCreature);
+
+        CreatureSummoned(spawnCreature, m_spellInfo->Id);
     }
 }
 
@@ -5957,7 +5967,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
                  curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE &&
                  (IsChanneledSpell(curSpellInfo) || GetSpellCastTime(curSpellInfo)))
             {
-                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_spellInfo, eff_idx, unitTarget));
+                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), 8);
                 unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
             }
         }
@@ -6988,8 +6998,13 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         }
                     }
                     break;
-                 }
+                }
             }
+
+            // Mistress Kiss
+            if (m_spellInfo->SpellDifficultyId == 344)
+                m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
+
             break;
         }
         case SPELLFAMILY_WARLOCK:
@@ -7707,6 +7722,8 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
         data << uint32(m_spellInfo->Id);
         ((Player*)m_caster)->SendDirectMessage(&data);
     }
+
+    CreatureSummoned(pTotem, m_spellInfo->Id);
 }
 
 void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)
@@ -8410,6 +8427,8 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
     player->SetMiniPet(critter);
 
     map->Add((Creature*)critter);
+
+    CreatureSummoned(critter, m_spellInfo->Id);
 }
 
 void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
@@ -9198,4 +9217,36 @@ void Spell::EffectWMORepair(SpellEffectIndex eff_idx)
 {
     if(gameObjTarget && gameObjTarget->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
         gameObjTarget->Rebuild(m_caster);
+}
+
+void Spell::CreatureSummoned(Creature *crt)
+{
+    if (!crt)
+        return;
+
+    // used for special handling for scripts and stuff
+    switch(crt->GetEntry())
+    {
+        // Legion Flame
+        case 34784:
+        {
+            ctr->CastSpell(crt, 66201, false);
+            break;
+        }
+        // Infernal Eruption
+        case 34813:
+        {
+            ctr->CastSpell(crt, 66252, false);
+            break;
+        }
+        // Nether Portal
+        case 34825:
+        {
+            ctr->CastSpell(crt, 66263, false);
+            break;
+
+        }
+
+    }
+
 }
