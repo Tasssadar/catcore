@@ -121,13 +121,6 @@ LfgGroup::~LfgGroup()
         delete(r);
     }
 
-    // it is undefined whether objectmgr (which stores the groups) or instancesavemgr
-    // will be unloaded first so we must be prepared for both cases
-    // this may unload some instance saves
-   // for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
-     //   for(BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
-       //     itr2->second.save->RemoveGroup(this);
-
     // Mangos structure expect that this is called separately
     //sObjectMgr.RemoveGroup(this);
 }
@@ -362,9 +355,6 @@ void LfgGroup::TeleportToDungeon()
             DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
             plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);
             TeleportPlayer(plr, dungeonInfo, m_dungeonInfo->ID);
-            /*SendUpdate();
-            plr->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
-            UpdatePlayerOutOfRange(plr);*/
         }
         return;
     }
