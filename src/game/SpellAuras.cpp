@@ -4762,13 +4762,20 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             return;
         }
         // Stone Grip
-        if (GetId() == 62056 || GetId() == 63981)
+        else if (GetId() == 62056 || GetId() == 63981)
         {
             WorldPacket data(12);
             data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
             data << target->GetPackGUID();
             data << uint32(0);
             target->SendMessageToSet(&data, true);
+        }
+        // Surge of Adrenaline
+        else if (GetId() == 66683)
+        {
+            if (target->GetMap() && !target->GetMap()->IsHeroicRaid())
+                target->CastSpell(target, 68667, true);
+            return;
         }
     }
 }
@@ -9407,7 +9414,15 @@ void Aura::PeriodicDummyTick()
                 else
                     target->RemoveAurasDueToSpell(58670);
             }
+            // Mistress's Kiss
+            if (spell->SpellDifficultyId == 783)
+            {
+                for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+                    if (unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
+                        target->CastSpell(target, 66359, true);
+            }
             break;
+
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image

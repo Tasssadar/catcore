@@ -360,7 +360,12 @@ class MANGOS_DLL_SPEC WorldObject : public Object
             { x = m_positionX; y = m_positionY; z = m_positionZ; }
         void GetPosition( WorldLocation &loc ) const
             { loc.mapid = m_mapId; GetPosition(loc.coord_x, loc.coord_y, loc.coord_z); loc.orientation = GetOrientation(); }
+
         float GetOrientation( ) const { return m_orientation; }
+        float GetFixedOrientation( ) const { return m_fOrientation; }
+        bool HasFixedOrientation() const { return m_fOrientation != -1.0f;}
+        void FixOrientation( float ori = -1);
+
         WorldLocation GetLocation() const { return WorldLocation(m_mapId, m_positionX, m_positionY, m_positionZ, m_orientation); }
         void GetNearPoint2D( float &x, float &y, float distance, float absAngle) const;
         void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_bounding_radius, float distance2d, float absAngle) const;
@@ -528,6 +533,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         float m_positionY;
         float m_positionZ;
         float m_orientation;
+        float m_fOrientation;
 
         ViewPoint m_viewPoint;
 };
