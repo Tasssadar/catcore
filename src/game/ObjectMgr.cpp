@@ -961,6 +961,110 @@ void ObjectMgr::LoadCreatureAddons()
                 sLog.outErrorDb("Creature (GUID: %u) does not exist but has a record in `creature_addon`",addon->guidOrEntry);
 }
 
+void ObjectMgr::PackCreatureGuids()
+{
+    String tables[][2]=
+    {
+        {"creature_addon", "guid"},
+        {"creature_battleground", "guid"},
+        {"creature_movement", "id"},
+        {"game_event_creature", "guid"},
+        {"game_event_model_equip", "guid"},
+        {"npc_gossip", "npc_guid"},
+        {"pool_creature", "guid"}
+    };
+
+    std::list<uint32> guids;
+    std::list<uint32> free;
+    bool changeGUID = sWorld.getConfig(CONFIG_BOOL_CREATURE_GUID_CHANGE);
+    uint32 minGuid = sWorld.getConfig(CONFIG_UINT32_CREATURE_GUID_MIN);
+    uint32 count = 0;
+
+    sLog.outString( ">> Loading creature guids...." );
+    //                                                0
+    QueryResult *result = WorldDatabase.Query("SELECT guid FROM creature ORDER BY guid");
+    Field *fields = NULL;
+    do
+    {
+        fields = result->Fetch();
+        guids.push_back(fields[0].GetUInt32());
+    } while( result->NextRow() );
+    delete result;
+    
+    sLog.outString( ">> Assembling free guids...." );
+    
+    uint32 lastGuid = *(guids.begin())-1;
+    for(std::list<uint32>::iterator itr = guids.begin(); itr != guids.end(); ++itr)
+    {
+        if((*itr) - lastGuid > 1)
+        {
+            ++lastGuid;
+            for(;lastGuid < (*itr); ++lastGuid)
+               free.push_back(lastGuid);
+        }
+        else
+            ++lastGuid;
+    }
+
+    sLog.outString( ">> Cleaning up 0 guid...." );
+
+    result = WorldDatabase.Query("SELECT guid FROM creature WHERE guid=0");
+    if ( result )
+    {
+        delete result;
+        WorldDatabase.PExecute("UPDATE creature SET guid = %u WHERE guid = 0", *(free.begin()));
+        free.pop_front();
+        guids.pop_front();
+    }
+
+    sLog.outString( ">> Changing guids...." );
+    guids.reverse();
+
+    bool can = true;
+
+    barGoLink bar( (int)guids.size() );
+    for(std::list<uint32>::iterator itr = guids.begin(); itr != guids.end(); ++itr)
+    {
+        bar.step();
+
+        can = true;
+        if(*itr <= *(free.begin()))
+            break;
+
+        for(int y = 0; y < 6; ++y)
+        {
+             result = WorldDatabase.PQuery("SELECT %s FROM %s WHERE %s = %u", tables[y][1], tables[y][0], tables[y][1], *itr);
+             if(!result)
+                continue;
+             delete result;
+
+             if(changeGUID && *itr > minGuid)
+                WorldDatabase.PExecute("UPDATE %s SET %s = %u WHERE %s = %u", tables[y][0], tables[y][1], *(free.begin()), tables[y][1], *itr);
+             else
+             {
+                can = false;
+                break;
+             }
+        }
+        if(!can)
+            continue;
+
+        WorldDatabase.PExecute("UPDATE creature SET guid = %u WHERE guid = %u", *(free.begin()), *itr);
+
+        free.pop_front();
+        if(free.empty())
+            break;
+        ++count;
+    }
+    result = WorldDatabase.Query("SELECT MAX(guid) FROM creature");
+    uint32 maxGuid = result->Fetch()[0].GetUInt32();
+    delete result;
+
+    sLog.outString();
+    sLog.outString( ">> Changed %u creature guids, max guid is %u (%u%% full), space between overflow", count, maxGuid,
+                    uint32(float(maxGuid)/(float(0xFFFFFF)/100)), (0xFFFFFF - maxguid));
+}
+
 EquipmentInfo const* ObjectMgr::GetEquipmentInfo(uint32 entry)
 {
     return sEquipmentStorage.LookupEntry<EquipmentInfo>(entry);

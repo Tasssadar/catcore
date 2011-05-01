@@ -767,6 +767,10 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_BONUS_HONOR_FLAG_AV,                       "BG.BonusHonor.AV.Flag", 2);
     setConfig(CONFIG_UINT32_BONUS_HONOR_FLAG_EOS,                      "BG.BonusHonor.EOS.Flag",2);
 
+    setConfig(CONFIG_UINT32_CREATURE_GUID_MIN,                         "GuidOverflow.Creature.MinGuid", 0);
+    setConfig(CONFIG_BOOL_CREATURE_GUID_ENABLED,                       "GuidOverflow.Creature.Enabled", true);
+    setConfig(CONFIG_BOOL_CREATURE_GUID_CHANGE,                        "GuidOverflow.Creature.Change",  false);
+
     setConfig(CONFIG_BOOL_OFFHAND_CHECK_AT_TALENTS_RESET, "OffhandCheckAtTalentsReset", false);
 
     setConfig(CONFIG_BOOL_KICK_PLAYER_ON_BAD_PACKET, "Network.KickOnBadPacket", false);
@@ -1009,6 +1013,12 @@ void World::SetInitialWorldSettings()
 
     sLog.outString( "Packing groups..." );
     sObjectMgr.PackGroupIds();
+
+    if(getConfig(CONFIG_BOOL_CREATURE_GUID_ENABLED))
+    {
+        sLog.outString("Packing creature guids...");
+        sObjectMgr.PackCreatureGuids();
+    }
 
     sLog.outString();
     sLog.outString( "Loading Localization strings..." );

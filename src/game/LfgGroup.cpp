@@ -540,8 +540,8 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
                 if (!player  || player->GetMapId() != GetDungeonInfo()->map)
                     continue;
 
-				plr->TeleportTo(player->GetLocation());
-				return;
+                plr->TeleportTo(player->GetLocation());
+                return;
             }
         }
         plr->TeleportTo(dungeonInfo->start_map, dungeonInfo->start_x, dungeonInfo->start_y, dungeonInfo->start_z, dungeonInfo->start_o);
