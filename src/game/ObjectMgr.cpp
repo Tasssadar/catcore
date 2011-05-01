@@ -963,7 +963,7 @@ void ObjectMgr::LoadCreatureAddons()
 
 void ObjectMgr::PackCreatureGuids()
 {
-    String tables[][2]=
+    std::string tables[][2]=
     {
         {"creature_addon", "guid"},
         {"creature_battleground", "guid"},
@@ -1033,13 +1033,15 @@ void ObjectMgr::PackCreatureGuids()
 
         for(int y = 0; y < 6; ++y)
         {
-             result = WorldDatabase.PQuery("SELECT %s FROM %s WHERE %s = %u", tables[y][1], tables[y][0], tables[y][1], *itr);
+             result = WorldDatabase.PQuery("SELECT %s FROM %s WHERE %s = %u",
+                                           tables[y][1].c_str(), tables[y][0].c_str(), tables[y][1].c_str(), *itr);
              if(!result)
                 continue;
              delete result;
 
              if(changeGUID && *itr > minGuid)
-                WorldDatabase.PExecute("UPDATE %s SET %s = %u WHERE %s = %u", tables[y][0], tables[y][1], *(free.begin()), tables[y][1], *itr);
+                WorldDatabase.PExecute("UPDATE %s SET %s = %u WHERE %s = %u",
+                                       tables[y][0].c_str(), tables[y][1].c_str(), *(free.begin()), tables[y][1].c_str(), *itr);
              else
              {
                 can = false;
@@ -1061,8 +1063,8 @@ void ObjectMgr::PackCreatureGuids()
     delete result;
 
     sLog.outString();
-    sLog.outString( ">> Changed %u creature guids, max guid is %u (%u%% full), space between overflow", count, maxGuid,
-                    uint32(float(maxGuid)/(float(0xFFFFFF)/100)), (0xFFFFFF - maxguid));
+    sLog.outString( ">> Changed %u creature guids, max guid is %u (%f%% full), space between overflow", count, maxGuid,
+                    float(maxGuid)/(float(0xFFFFFF)/100), (0xFFFFFF - maxGuid));
 }
 
 EquipmentInfo const* ObjectMgr::GetEquipmentInfo(uint32 entry)

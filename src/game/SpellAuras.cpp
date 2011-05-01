@@ -9401,7 +9401,7 @@ void Aura::PeriodicDummyTick()
             if (spell->SpellDifficultyId == 783)
             {
                 for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
-                    if (unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
+                    if (target->GetCurrentSpell(CurrentSpellTypes(i)))
                         target->CastSpell(target, 66359, true);
             }
             break;            
