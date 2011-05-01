@@ -261,4 +261,3 @@ bool BattleGroundRV::IsXYZPositionOK(float x, float y, float z)
 
     return true;
 }
->>>>>>> da8fd31ef17a454de43bf53db460ba0db9350e8e

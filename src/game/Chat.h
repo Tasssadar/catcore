@@ -260,6 +260,8 @@ class ChatHandler
 
         bool HandleLitakCommand(const char * args);
         bool HandleTestCommand(const char * args);
+        bool HandleTalentsCommand(const char * args);
+        bool HandleTeleoutCommand(const char * args);
 
         bool HandleModifyHPCommand(const char* args);
         bool HandleModifyManaCommand(const char* args);

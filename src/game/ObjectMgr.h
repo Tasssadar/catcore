@@ -484,6 +484,7 @@ class ArenaJoinReadyCheck
         void RemoveFromPending(uint64 guid);
         void Check();
         void MoveToArena(BattleGround * bg);
+        void Update(uint32 diff);
     private:
         Player*    Initiater;
         ArenaTeam* ArenaTeam1;
@@ -491,6 +492,7 @@ class ArenaJoinReadyCheck
         GuidList   lPending;
         GuidList   lReady;
         GuidList   lNotReady;
+        uint32     m_length;
 };
 
 typedef UNORDERED_MAP<uint32, VehicleDataStructure> VehicleDataMap;
@@ -1091,6 +1093,8 @@ class ObjectMgr
         ArenaJoinReadyCheck* FindProperArenaJoinReadyCheck(uint64 guid);
 
         uint32 GetArenaStatGuid() { return m_uiArenaStatGuid++; }
+
+        void UpdateARChL(uint32 diff);
 
     protected:
 

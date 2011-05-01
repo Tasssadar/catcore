@@ -740,7 +740,8 @@ ChatCommand * ChatHandler::getCommandTable()
         { "arenajoin",      SEC_MODERATOR,      false, &ChatHandler::HandleArenaJoinCommand,           "", NULL },
         { "test",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleTestCommand,                "", NULL },
         { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
-
+        { "talents",        SEC_PLAYER,         false, &ChatHandler::HandleTalentsCommand,             "", NULL },
+        { "teleout",        SEC_PLAYER,         false, &ChatHandler::HandleTeleoutCommand,             "", NULL },
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
 

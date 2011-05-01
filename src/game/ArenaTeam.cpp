@@ -835,50 +835,51 @@ void ArenaTeam::UpdateAllRanks()
 bool ArenaTeam::MembersOnline(Player* reportTo)
 {
     bool foundNotPrepared = false;
+    std::ostringstream  message;
     for(MemberList::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
     {
         Player* plr = sObjectMgr.GetPlayer(itr->guid);
         if (!plr)
         {
             std::string name;
-            if (reportTo && sObjectMgr.GetPlayerNameByGUID(itr->guid, name))
-                ChatHandler(reportTo).PSendSysMessage("Missing player's name is %s", name.c_str());
-            else if (reportTo)
-                ChatHandler(reportTo).PSendSysMessage("Missing player's guid is %s", itr->guid);  
+            if (sObjectMgr.GetPlayerNameByGUID(itr->guid, name))
+                message << name.c_str() << ": is offline; ";
+            else
+                message << "GUID(" << itr->guid << "): not found; ";
             foundNotPrepared = true;
             continue;
         }
 
         else if (!plr->GetSession())
         {
-            if (reportTo)
-                ChatHandler(reportTo).PSendSysMessage("Missing player is: %s , is just being teleporting?", plr->GetName());
+            message << plr->GetName() << ": is teleporting; ";
             foundNotPrepared = true;
             continue;
         }
         else if (!plr->GetGroup())
         {
-            if (reportTo)
-                ChatHandler(reportTo).PSendSysMessage("Player %s is without group", plr->GetName());
+            message << plr->GetName() << ": is without group; ";
             foundNotPrepared = true;
             continue;
             
         }
         else if (plr->GetGUID() == reportTo->GetGUID())
         {
-            if (reportTo)
-                ChatHandler(reportTo).PSendSysMessage("You can't join yourself!");
+            message << plr->GetName() << ": is YOU; ";
             foundNotPrepared = true;
             continue;
         }
         else if (plr->InArena())
         {
-            if (reportTo)
-                ChatHandler(reportTo).PSendSysMessage("Player %s is already in arena pyco!", plr->GetName());
+            message << plr->GetName() << ": is already in arena; ";
             foundNotPrepared = true;
             continue;
-        }            
+        }
+        message << plr->GetName() << ": OK; ";
     }
+
+    if (reportTo)
+        ChatHandler(reportTo).PSendSysMessage("%s", message.str().c_str());
 
     return !foundNotPrepared;
 }

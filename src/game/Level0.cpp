@@ -369,3 +369,47 @@ bool ChatHandler::HandleTestCommand(const char * args)
 {
     return true;
 }
+
+bool ChatHandler::HandleTalentsCommand(const char *args)
+{
+    Player* target = m_session->GetPlayer();
+
+    if (target->GetMap()->IsBattleArena())
+    {
+        SendSysMessage("You cannot reset your talents in arena");
+        SetSentErrorMessage(true);
+        return false;
+    }
+    if (target)
+    {
+        target->resetTalents(true);
+        target->SendTalentsInfoData(false);
+        ChatHandler(target).SendSysMessage(LANG_RESET_TALENTS);
+        if (!m_session || m_session->GetPlayer() != target)
+            PSendSysMessage(LANG_RESET_TALENTS_ONLINE,GetNameLink(target).c_str());
+
+        Pet* pet = target->GetPet();
+        Pet::resetTalentsForAllPetsOf(target, pet);
+        if (pet)
+            target->SendTalentsInfoData(true);
+        return true;
+    }
+
+    SendSysMessage("Could not reset talents, wierd huh ?!");
+    SetSentErrorMessage(true);
+    return false;
+}
+
+bool ChatHandler::HandleTeleoutCommand(const char *args)
+{
+    Player* plr = m_session->GetPlayer();
+
+    if (!plr->IsSpectator())
+    {
+        SendSysMessage("This command is usable only for spectators");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    return HandleGoHelper(plr, 530, -2011, 5240, -43);
+}

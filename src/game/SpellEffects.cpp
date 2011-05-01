@@ -7390,7 +7390,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
 
                     // Frost Fever
-                    Unit::AuraList const& diseaseList = mainTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                     for(Unit::AuraList::const_iterator i = diseaseList.begin(); i != diseaseList.end(); ++i)
                     {
                         if ((*i)->GetSpellProto()->Id == 55095 && (*i)->GetCasterGUID() == m_caster->GetGUID())

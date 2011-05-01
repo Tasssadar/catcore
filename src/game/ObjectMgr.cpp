@@ -9390,6 +9390,13 @@ void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
     delete readyCheck;
 }
 
+void ObjectMgr::UpdateARChL(uint32 diff)
+{
+    for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
+        if (*itr)
+            (*itr)->Update(diff);
+}
+
 ArenaJoinReadyCheck* ObjectMgr::FindProperArenaJoinReadyCheck(uint64 guid)
 {
     for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
@@ -9408,6 +9415,8 @@ void ArenaJoinReadyCheck::Initialize()
     ArenaTeam2->WriteMemberGuidsIntoList(lPending);
 
     SendReadyCheckPacket();
+
+    m_length = 0;
 
 }
 
@@ -9430,9 +9439,24 @@ void ArenaJoinReadyCheck::HandlePlayerGuid(uint64 guid, uint8 state)
     else
         lReady.push_back(guid);
 
-    Player* plr = sObjectMgr.GetPlayer(guid);	
+    std::ostringstream sPending;
+    std::ostringstream sReady;
+    std::ostringstream sNotReady;
+
+    for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+        if (Player* plr = sObjectMgr.GetPlayer(*itr))
+            sPending << plr->GetName() << " ";
+
+    for(GuidList::iterator itr = lReady.begin(); itr != lReady.end(); ++itr)
+        if (Player* plr = sObjectMgr.GetPlayer(*itr))
+            sReady << plr->GetName() << " ";
+
+    for(GuidList::iterator itr = lNotReady.begin(); itr != lNotReady.end(); ++itr)
+        if (Player* plr = sObjectMgr.GetPlayer(*itr))
+            sNotReady << plr->GetName() << " ";
+
     if (Initiater)
-        ChatHandler(Initiater).PSendSysMessage("Player's %s  is: %s", plr->GetName(), state ? "ready" : "not ready");
+        ChatHandler(Initiater).PSendSysMessage("PRN status for: %s (GUID:%u) vs %s (GUID:%u) - %s/%s/%s", ArenaTeam1->GetName(), ArenaTeam1->GetId(), ArenaTeam2->GetName(), ArenaTeam2->GetId(), sPending.str().c_str(), sReady.str().c_str(), sNotReady.str().c_str());
 
     Check();
 }
@@ -9540,4 +9564,30 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
           bg->GetTeamStartLoc(team, x, y, z, O);
           plr->TeleportTo(mapid, x, y, z, O);
     }
+}
+
+void ArenaJoinReadyCheck::Update(uint32 diff)
+{
+    m_length += diff;
+    if (m_length > 60000)
+        sObjectMgr.DeleteArenaJoinReadyCheck(this);
+
+    std::ostringstream pendingNames;
+    if (lPending.empty())
+    {
+        if (Initiater)
+            ChatHandler(Initiater).PSendSysMessage("WTF? Empty pending list ?");
+    }
+    else
+    {
+        for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+        {
+            Player* plr = sObjectMgr.GetPlayer(*itr);
+            if (plr)
+                pendingNames << plr->GetName() << " ";
+        }
+    }
+
+    if (Initiater)
+        ChatHandler(Initiater).PSendSysMessage("Sixty seconds have passed, these players are ignored ready check: %s", pendingNames.str().c_str());
 }
