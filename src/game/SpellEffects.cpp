@@ -5967,7 +5967,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
                  curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE &&
                  (IsChanneledSpell(curSpellInfo) || GetSpellCastTime(curSpellInfo)))
             {
-                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), 8);
+                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), unitTarget->CalculateSpellDuration(m_spellInfo, eff_idx, unitTarget));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
             }
         }
