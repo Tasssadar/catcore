@@ -82,14 +82,14 @@ void BattleGroundDS::KnockOutOfTubes()
         Player * plr = sObjectMgr.GetPlayer(itr->first);
         float angle = itr->second.Team == ALLIANCE ? 6.05f : 3.03f; 
         if ((plr->GetDistance2d(1214, 765) <= 50 || plr->GetDistance2d(1369, 817) <= 50) && plr->GetPositionZ() > 10)
-            plr->KnockWithAngle(angle, 32.85f, 5.8f);
+            plr->KnockWithAngle(angle, 42.85f, 7.8f);
 
         // Remove Demonic Circle
         if (plr->getClass() == CLASS_WARLOCK)
             if (GameObject* obj = plr->GetGameObject(48018))
                 obj->Delete();
     }
-    if (GetStartTime() > 90)
+    if (GetStartTime() > 90000)
         m_bTubeIsEmpty = true;
 }
 

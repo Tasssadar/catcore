@@ -9400,12 +9400,8 @@ void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 void ObjectMgr::UpdateARChL(uint32 diff)
 {
     if (mArenaReadyCheck.empty())
-    {
-        sLog.outString("Arena ready check list is empty!");
         return;
-    }
 
-    sLog.outString("Updating checks %u!", diff);
     for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
         if (*itr)
             (*itr)->Update(diff);
@@ -9503,7 +9499,7 @@ void ArenaJoinReadyCheck::Check()
         if (Initiater)
             ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
 
-        m_finished = true;
+
         //sObjectMgr.DeleteArenaJoinReadyCheck(this);
     }
     else
@@ -9517,7 +9513,7 @@ void ArenaJoinReadyCheck::Check()
         BattleGround * bg = sBattleGroundMgr.CreateNewBattleGround();
         if (!bg)
         {
-            sLog.outError("ArenaJoinCheck::Cannot creature arena!");
+            sLog.outError("ArenaJoinCheck::Cannot create arena!");
             return;
         }
 
@@ -9529,6 +9525,8 @@ void ArenaJoinReadyCheck::Check()
         // start bg
         bg->StartBattleGround();
     }
+
+    m_finished = true;
 }
 
 void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
@@ -9586,13 +9584,10 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
 void ArenaJoinReadyCheck::Update(uint32 diff)
 {
     if (m_finished)
-    {
-        sLog.outString("ArenaJoinReadyCheck::Check is finished, should be deleted any minute!");
         return;
-    }
 
     m_length += diff;
-    sLog.outString("ArenaJoinReadyCheck::m_length is %u", m_length);
+
     if (m_length > 60000)
     {
         std::ostringstream pendingNames;

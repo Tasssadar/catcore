@@ -485,7 +485,7 @@ class ArenaJoinReadyCheck
         void Check();
         void MoveToArena(BattleGround * bg);
         void Update(uint32 diff);
-        bool IsFinished() const { return m_length; }
+        bool IsFinished() const { return m_finished; }
     private:
         Player*    Initiater;
         ArenaTeam* ArenaTeam1;
