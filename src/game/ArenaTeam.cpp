@@ -878,8 +878,14 @@ bool ArenaTeam::MembersOnline(Player* reportTo)
         message << plr->GetName() << ": OK; ";
     }
 
+    if (!foundNotPrepared)
+        message << "Team ready !";
+    else
+        message << "Team NOT ready !";
+
+
     if (reportTo)
-        ChatHandler(reportTo).PSendSysMessage("%s", message.str().c_str());
+        ChatHandler(reportTo).PSendSysMessage("Team %s (ID:%u): %s",  GetName().c_str(), GetId(), message.str().c_str());
 
     return !foundNotPrepared;
 }

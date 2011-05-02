@@ -474,7 +474,7 @@ class ArenaJoinReadyCheck
 {
     public:
         ArenaJoinReadyCheck(Player* m_initiater, ArenaTeam* m_team1, ArenaTeam* m_team2) :
-          Initiater(m_initiater), ArenaTeam1(m_team1), ArenaTeam2(m_team2) { Initialize(); }
+          Initiater(m_initiater), ArenaTeam1(m_team1), ArenaTeam2(m_team2), m_length(0), m_finished(false) { Initialize(); }
           
         void Initialize();
         void SendReadyCheckPacket();
@@ -493,6 +493,7 @@ class ArenaJoinReadyCheck
         GuidList   lReady;
         GuidList   lNotReady;
         uint32     m_length;
+        bool       m_finished;
 };
 
 typedef UNORDERED_MAP<uint32, VehicleDataStructure> VehicleDataMap;

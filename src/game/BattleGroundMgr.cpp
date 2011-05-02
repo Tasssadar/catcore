@@ -1516,7 +1516,7 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
 BattleGround * BattleGroundMgr::CreateNewBattleGround()
 {
     BattleGroundTypeId arenas[] = {BATTLEGROUND_NA, BATTLEGROUND_BE, BATTLEGROUND_RL, BATTLEGROUND_DS, BATTLEGROUND_RV};
-    BattleGroundTypeId bgTypeId = arenas[urand(0, 2)];
+    BattleGroundTypeId bgTypeId = arenas[urand(0, 3)];
 
     // get the template BG
     BattleGround *bg_template = GetBattleGroundTemplate(bgTypeId);

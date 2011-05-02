@@ -6781,19 +6781,8 @@ bool ChatHandler::HandleArenaJoinCommand(const char* args)
 
     if (!m_hasCorrectSize)
         return true;
-    
-    bool  m_isEveryoneOnline = true;
-    if (team1->MembersOnline(_player))
-        ChatHandler(_player).PSendSysMessage("Team1:: All members are prepaired for ready check");
-    else
-        m_isEveryoneOnline = false;
 
-    if (team2->MembersOnline(_player))
-        ChatHandler(_player).PSendSysMessage("Team2:: All members are prepaired for ready check");
-    else
-        m_isEveryoneOnline = false;
-
-    if (!m_isEveryoneOnline)
+    if (!team1->MembersOnline(_player) || !team2->MembersOnline(_player))
         return true;
 
     // All checks should be complete, lets initiate ready check

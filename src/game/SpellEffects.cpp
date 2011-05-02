@@ -4568,7 +4568,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
 
         summoner = creature;
 
-        CreatureSummoned(creature, m_spellInfo->Id);
+        CreatureSummoned(creature);
     }
 }
 
@@ -4866,7 +4866,7 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
             if (forceFaction)
                 summon->setFaction(forceFaction);
 
-            CreatureSummoned(summon, m_spellInfo->Id);
+            CreatureSummoned(summon);
         }
     }
 }
@@ -4972,7 +4972,7 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
 
         map->Add((Creature*)spawnCreature);
 
-        CreatureSummoned(spawnCreature, m_spellInfo->Id);
+        CreatureSummoned(spawnCreature);
     }
 }
 
@@ -5955,6 +5955,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
     if (!unitTarget->isAlive())
         return;
 
+    bool isInterruptSuccesfull = false;
     // TODO: not all spells that used this effect apply cooldown at school spells
     // also exist case: apply cooldown to interrupted cast only and to all spells
     for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
@@ -7404,7 +7405,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
 
                     // Frost Fever
-                    Unit::AuraList const& diseaseList = mainTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                     for(Unit::AuraList::const_iterator i = diseaseList.begin(); i != diseaseList.end(); ++i)
                     {
                         if ((*i)->GetSpellProto()->Id == 55095 && (*i)->GetCasterGUID() == m_caster->GetGUID())
@@ -7727,7 +7727,7 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
         ((Player*)m_caster)->SendDirectMessage(&data);
     }
 
-    CreatureSummoned(pTotem, m_spellInfo->Id);
+    CreatureSummoned(pTotem);
 }
 
 void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)
@@ -8432,7 +8432,7 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
 
     map->Add((Creature*)critter);
 
-    CreatureSummoned(critter, m_spellInfo->Id);
+    CreatureSummoned(critter);
 }
 
 void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
@@ -9234,23 +9234,21 @@ void Spell::CreatureSummoned(Creature *crt)
         // Legion Flame
         case 34784:
         {
-            ctr->CastSpell(crt, 66201, false);
+            crt->CastSpell(crt, 66201, false);
             break;
         }
         // Infernal Eruption
         case 34813:
         {
-            ctr->CastSpell(crt, 66252, false);
+            crt->CastSpell(crt, 66252, false);
             break;
         }
         // Nether Portal
         case 34825:
         {
-            ctr->CastSpell(crt, 66263, false);
+            crt->CastSpell(crt, 66263, false);
             break;
 
         }
-
     }
-
 }

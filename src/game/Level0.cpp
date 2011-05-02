@@ -411,5 +411,5 @@ bool ChatHandler::HandleTeleoutCommand(const char *args)
         return false;
     }
 
-    return HandleGoHelper(plr, 530, -2011, 5240, -43);
+    return HandleGoHelper(plr, 530, -2011.0f, 5240.0f);
 }

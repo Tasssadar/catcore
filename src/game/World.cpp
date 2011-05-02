@@ -1580,6 +1580,8 @@ void World::Update(uint32 diff)
 
         sBattleGroundMgr.Update(diff);
         sLfgMgr.Update(diff);
+
+        sObjectMgr.UpdateARChL(diff);
     }
 
     ///- Delete all characters which have been deleted X days before

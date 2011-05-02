@@ -2490,7 +2490,6 @@ void ObjectMgr::LoadItemExtendedCost()
             pExtCost->reqarenaslot = newBracket;
         if (newRating >= 0)
             pExtCost->reqpersonalarenarating = newRating;
- 
 
         ++count;
     } while (result->NextRow());
@@ -9304,7 +9303,7 @@ bool FindCreatureData::operator()( CreatureDataPair const& dataPair )
         i_mapDist = new_dist;
     }
 
-    // skip not spawned (in any state), 
+    // skip not spawned (in any state),
     uint16 pool_id = sPoolMgr.IsPartOfAPool<Creature>(dataPair.first);
     if (pool_id && !sPoolMgr.IsSpawnedObject<Creature>(dataPair.first))
         return false;
@@ -9386,12 +9385,27 @@ void ObjectMgr::AddArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 
 void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 {
-    mArenaReadyCheck.remove(readyCheck);
-    delete readyCheck;
+    for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
+    {
+        if (*itr == readyCheck)
+        {
+            mArenaReadyCheck.remove(readyCheck);
+            delete *itr;
+            mArenaReadyCheck.erase(itr);
+            break;
+        }
+    }
 }
 
 void ObjectMgr::UpdateARChL(uint32 diff)
 {
+    if (mArenaReadyCheck.empty())
+    {
+        sLog.outString("Arena ready check list is empty!");
+        return;
+    }
+
+    sLog.outString("Updating checks %u!", diff);
     for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
         if (*itr)
             (*itr)->Update(diff);
@@ -9415,9 +9429,6 @@ void ArenaJoinReadyCheck::Initialize()
     ArenaTeam2->WriteMemberGuidsIntoList(lPending);
 
     SendReadyCheckPacket();
-
-    m_length = 0;
-
 }
 
 void ArenaJoinReadyCheck::SendReadyCheckPacket()
@@ -9456,7 +9467,7 @@ void ArenaJoinReadyCheck::HandlePlayerGuid(uint64 guid, uint8 state)
             sNotReady << plr->GetName() << " ";
 
     if (Initiater)
-        ChatHandler(Initiater).PSendSysMessage("PRN status for: %s (GUID:%u) vs %s (GUID:%u) - %s/%s/%s", ArenaTeam1->GetName(), ArenaTeam1->GetId(), ArenaTeam2->GetName(), ArenaTeam2->GetId(), sPending.str().c_str(), sReady.str().c_str(), sNotReady.str().c_str());
+        ChatHandler(Initiater).PSendSysMessage("PRN status for: %s (GUID:%u) vs %s (GUID:%u) - %s/%s/%s", ArenaTeam1->GetName().c_str(), ArenaTeam1->GetId(), ArenaTeam2->GetName().c_str(), ArenaTeam2->GetId(), sPending.str().c_str(), sReady.str().c_str(), sNotReady.str().c_str());
 
     Check();
 }
@@ -9503,9 +9514,9 @@ void ArenaJoinReadyCheck::Check()
             sLog.outError("ArenaJoinCheck::Cannot creature arena!");
             return;
         }
-        
+
         MoveToArena(bg);
-        
+
         bg->SetArenaTeamIdForTeam(ALLIANCE, ArenaTeam1->GetId());
         bg->SetArenaTeamIdForTeam(HORDE, ArenaTeam2->GetId());
 
@@ -9521,10 +9532,10 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
         Player* plr = sObjectMgr.GetPlayer(*itr);
         if (!plr)
             continue;
-        
+
         if (!plr->InBattleGround())
              plr->SetBattleGroundEntryPoint();
-    
+
          // resurrect the player
          if (!plr->isAlive())
          {
@@ -9552,13 +9563,13 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
 
           // set the destination team
           uint32 team = ArenaTeam1->HaveMember(plr->GetGUID()) ? ALLIANCE : ArenaTeam2->HaveMember(plr->GetGUID()) ? HORDE : 0;
-          
+
           if (!team)
               return;
 
           plr->SetBGTeam(team);
           bg->IncreaseInvitedCount(team);
-            
+
           uint32 mapid = bg->GetMapId();
           float x, y, z, O;
           bg->GetTeamStartLoc(team, x, y, z, O);
@@ -9568,26 +9579,33 @@ void ArenaJoinReadyCheck::MoveToArena(BattleGround * bg)
 
 void ArenaJoinReadyCheck::Update(uint32 diff)
 {
+    if (m_finished)
+    {
+        sLog.outString("ArenaJoinReadyCheck::Check is finished, should be deleted any minute!");
+        return;
+    }
+
     m_length += diff;
+    sLog.outString("ArenaJoinReadyCheck::m_length is %u", m_length);
     if (m_length > 60000)
-        sObjectMgr.DeleteArenaJoinReadyCheck(this);
-
-    std::ostringstream pendingNames;
-    if (lPending.empty())
     {
-        if (Initiater)
-            ChatHandler(Initiater).PSendSysMessage("WTF? Empty pending list ?");
-    }
-    else
-    {
-        for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+        std::ostringstream pendingNames;
+        if (lPending.empty())
         {
-            Player* plr = sObjectMgr.GetPlayer(*itr);
-            if (plr)
-                pendingNames << plr->GetName() << " ";
+            if (Initiater)
+                ChatHandler(Initiater).PSendSysMessage("WTF? Empty pending list ?");
         }
-    }
+        else
+        {
+            for(GuidList::iterator itr = lPending.begin(); itr != lPending.end(); ++itr)
+                if (Player* plr = sObjectMgr.GetPlayer(*itr))
+                    pendingNames << plr->GetName() << " ";
 
-    if (Initiater)
-        ChatHandler(Initiater).PSendSysMessage("Sixty seconds have passed, these players are ignored ready check: %s", pendingNames.str().c_str());
+            if (Initiater)
+                ChatHandler(Initiater).PSendSysMessage("Sixty seconds have passed, these players are ignored ready check: %s", pendingNames.str().c_str());
+        }
+
+        sObjectMgr.DeleteArenaJoinReadyCheck(this);
+        m_finished = true;
+    }
 }

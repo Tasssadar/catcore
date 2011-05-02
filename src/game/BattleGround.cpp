@@ -815,6 +815,8 @@ void BattleGround::EndBattleGround(uint32 winner)
         loser_arena_team = sObjectMgr.GetArenaTeamById(winner ? GetArenaTeamIdForTeam(GetOtherTeam(winner)): GetArenaTeamIdForTeam(HORDE));
         if (winner_arena_team && loser_arena_team)
         {
+            sWorld.SendWorldText(10000, winner_arena_team->GetName().c_str(), loser_arena_team->GetName().c_str(), uint32(m_ArenaDuration));
+
             loser_rating = loser_arena_team->GetStats().rating;
             winner_rating = winner_arena_team->GetStats().rating;
 
