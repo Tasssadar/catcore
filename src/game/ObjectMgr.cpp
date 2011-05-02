@@ -9385,16 +9385,16 @@ void ObjectMgr::AddArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 
 void ObjectMgr::DeleteArenaJoinReadyCheck( ArenaJoinReadyCheck* readyCheck)
 {
-    for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
+    /*for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
     {
         if (*itr == readyCheck)
         {
             mArenaReadyCheck.remove(readyCheck);
             delete *itr;
             mArenaReadyCheck.erase(itr);
-            break;
+            return;
         }
-    }
+    }*/
 }
 
 void ObjectMgr::UpdateARChL(uint32 diff)
@@ -9414,9 +9414,14 @@ void ObjectMgr::UpdateARChL(uint32 diff)
 ArenaJoinReadyCheck* ObjectMgr::FindProperArenaJoinReadyCheck(uint64 guid)
 {
     for(ArenaReadyCheckList::iterator itr = mArenaReadyCheck.begin(); itr != mArenaReadyCheck.end(); ++itr)
+    {
+        if ((*itr)->IsFinished())
+            continue;
+
         for(GuidList::const_iterator i = (*itr)->GetPendingPlayers().begin(); i != (*itr)->GetPendingPlayers().end(); ++i)
             if ((*i) == guid)
                 return *itr;
+    }
 
     return NULL;
 }
@@ -9498,7 +9503,8 @@ void ArenaJoinReadyCheck::Check()
         if (Initiater)
             ChatHandler(Initiater).PSendSysMessage("One of players is not ready, raid check ends");
 
-        sObjectMgr.DeleteArenaJoinReadyCheck(this);
+        m_finished = true;
+        //sObjectMgr.DeleteArenaJoinReadyCheck(this);
     }
     else
     {
@@ -9605,7 +9611,7 @@ void ArenaJoinReadyCheck::Update(uint32 diff)
                 ChatHandler(Initiater).PSendSysMessage("Sixty seconds have passed, these players are ignored ready check: %s", pendingNames.str().c_str());
         }
 
-        sObjectMgr.DeleteArenaJoinReadyCheck(this);
+        //sObjectMgr.DeleteArenaJoinReadyCheck(this);
         m_finished = true;
     }
 }
