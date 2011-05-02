@@ -1386,6 +1386,10 @@ void BattleGround::AddPlayer(Player *plr)
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
         plr->ToggleAFK();
     
+    if (!plr->IsSpectator())
+        if (ShouldBePlayerSpectator(plr))
+            plr->SetSpectator(true);
+
     if(plr->IsSpectator())
         return;
 
@@ -2185,4 +2189,15 @@ void BattleGround::SaveArenaStats(uint32 guid, uint32 winnerid, uint32 loserid, 
 {
     CharacterDatabase.PExecute("INSERT INTO arena_stats (guid, winnerid, loserid, dmgdone, healdone, mapid, duration)"
         " VALUES(%u, %u, %u, %u, %u, %u, %u);", guid, winnerid, loserid, dmgdone, healdone, mapid, length);
+}
+bool BattleGround::ShouldBePlayerSpectator(Player *plr)
+{
+    uint32 teamId[2] = { ALLIANCE, HORDE };
+    for (uint8 i = 0; i < 2; ++i)
+        if (ArenaTeam* team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(teamId[i])))
+            for(MemberList::iterator itr = team->m_membersBegin(); itr != team->m_membersEnd(); ++itr)
+                if (itr->guid == plr->GetGUID())
+                    return false;
+
+    return true;
 }

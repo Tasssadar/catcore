@@ -641,8 +641,7 @@ void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
 
 uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const *spellProto, bool durabilityLoss, uint32 absorb)
 {
-    if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()) ||
-        pVictim->GetTypeId() == TYPEID_PLAYER && ((Player*)pVictim)->IsSpectator())
+    if (IsSpectatorPlayerOrPet() || pVictim->IsSpectatorPlayerOrPet())
         return 0;
 
     // remove affects from victim
@@ -650,9 +649,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         pVictim->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
     //Get in CombatState
-    if (pVictim != this && damagetype != DOT &&
-        (pVictim->GetTypeId() != TYPEID_PLAYER || !((Player*)pVictim)->IsSpectator()) &&
-        (GetTypeId() != TYPEID_PLAYER || !((Player*)this)->IsSpectator()))
+    if (pVictim != this && damagetype != DOT)
     {
         SetInCombatWith(pVictim);
         pVictim->SetInCombatWith(this);
@@ -12312,8 +12309,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return true;
 
     // normal players or npcs cant see player in spectator mode
-    if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()))// || (u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator()))
+    if (IsSpectator())
         return false;
+
+    //if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()))// || (u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator()))
 
     // player visible for other player if not logout and at same transport
     // including case when player is out of world
@@ -16870,4 +16869,16 @@ void Unit::AddAndLinkAura(uint32 auraId, bool apply)
     else
         RemoveAurasDueToSpell(auraId);
 
+}
+
+bool Unit::IsSpectatorPlayerOrPet()
+{
+    if (GetTypeId() == TYPEID_PLAYER)
+        return ((Player*)this)->IsSpectator();
+
+    if (Unit* owner = ((Creature*)this)->GetOwner())
+    {
+        if (owner->GetTypeId() == TYPEID_PLAYER)
+            return ((Player*)owner)->IsSpectator();
+    }
 }

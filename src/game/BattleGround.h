@@ -572,6 +572,7 @@ class BattleGround
 
         bool IsCoordInRange(float coord, float compare_min, float compare_max) const { return compare_min < coord && coord < compare_max; }
 
+        bool ShouldBePlayerSpectator(Player* plr);
     protected:
         //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();

@@ -124,6 +124,10 @@ void BattleGroundRV::ClickEvent(uint8 event1, uint8 event2 /*=0*/)
 
 void BattleGroundRV::AddPlayer(Player *plr)
 {
+    if (!plr->IsSpectator())
+        if (ShouldBePlayerSpectator(plr))
+            plr->SetSpectator(true);
+
     if(!plr->IsSpectator())
     {
         BattleGround::AddPlayer(plr);

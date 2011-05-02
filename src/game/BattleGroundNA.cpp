@@ -65,6 +65,10 @@ void BattleGroundNA::StartingEventOpenDoors()
 
 void BattleGroundNA::AddPlayer(Player *plr)
 {
+    if (!plr->IsSpectator())
+        if (ShouldBePlayerSpectator(plr))
+            plr->SetSpectator(true);
+
     if(!plr->IsSpectator())
     {
         BattleGround::AddPlayer(plr);

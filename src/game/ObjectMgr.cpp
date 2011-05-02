@@ -9517,10 +9517,10 @@ void ArenaJoinReadyCheck::Check()
             return;
         }
 
-        MoveToArena(bg);
-
         bg->SetArenaTeamIdForTeam(ALLIANCE, ArenaTeam1->GetId());
         bg->SetArenaTeamIdForTeam(HORDE, ArenaTeam2->GetId());
+
+        MoveToArena(bg);
 
         // start bg
         bg->StartBattleGround();
