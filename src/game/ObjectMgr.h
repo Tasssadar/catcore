@@ -729,6 +729,8 @@ class ObjectMgr
         void LoadInstanceTemplate();
         void LoadMailLevelRewards();
 
+        void PackCreatureGuids();
+
         void LoadGossipText();
 
         void LoadAreaTriggerTeleports();
