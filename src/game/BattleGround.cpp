@@ -1528,6 +1528,9 @@ void BattleGround::AddPlayer(Player *plr)
 /* this method adds player to his team's bg group, or sets his correct group if player is already in bg group */
 void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player *plr, uint64 plr_guid, uint32 team)
 {
+    if (plr->IsSpectator())
+        return;
+
     Group* group = GetBgRaid(team);
     if (!group)                                      // first player joined
     {

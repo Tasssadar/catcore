@@ -1556,6 +1556,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         Unit* GetCreator() const;
         bool IsCharmerOrOwnerPlayerOrPlayerItself() const;
         Player* GetCharmerOrOwnerPlayerOrPlayerItself();
+        Player* GetCharmerOrOwnerPlayerOrPlayerItself() const;
         float GetCombatDistance( const Unit* target ) const;
 
         void SetPet(Pet* pet);

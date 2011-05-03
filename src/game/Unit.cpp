@@ -10047,6 +10047,15 @@ Player* Unit::GetCharmerOrOwnerPlayerOrPlayerItself()
     return GetTypeId()==TYPEID_PLAYER ? (Player*)this : NULL;
 }
 
+Player* Unit::GetCharmerOrOwnerPlayerOrPlayerItself() const
+{
+    uint64 guid = GetCharmerOrOwnerGUID();
+    if (IS_PLAYER_GUID(guid))
+        return ObjectAccessor::FindPlayer(guid);
+
+    return GetTypeId()==TYPEID_PLAYER ? (Player*)this : NULL;
+}
+
 Pet* Unit::GetPet() const
 {
     if(!GetMap())
@@ -12426,15 +12435,10 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Arena Preparation
     if (u->GetTypeId() == TYPEID_PLAYER && u->HasAura(32727))
     {
-        Player* looker = (Player*)u;
-        Player* target = GetCharmerOrOwnerPlayerOrPlayerItself();
-        if (looker && target)
-        {
-            BattleGround* looker_bg = looker->GetBattleGround();
-            BattleGround* target_bg = target->GetBattleGround();
-            if (looker_bg && target_bg && looker_bg == target_bg)
-                return looker->GetArenaTeamId(ArenaTeam::GetSlotByType(looker_bg->GetArenaType())) != target->GetArenaTeamId(ArenaTeam::GetSlotByType(target_bg->GetArenaType()));
-        }
+        Player *looker = (Player*)u;
+        Player *lookat = GetCharmerOrOwnerPlayerOrPlayerItself();
+        if (looker && lookat)
+            return looker->IsInSameRaidWith(lookat);
     }
 
     // raw invisibility

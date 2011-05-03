@@ -340,6 +340,14 @@ bool Map::Add(Player *player)
     {
         player->SetSpectator(true);
     }*/
+    if (IsBattleGroundOrArena())
+    {
+        if (BattleGround* bg = ((BattleGroundMap*)this)->GetBG())
+            if (!player->IsSpectator())
+                if (bg->ShouldBePlayerSpectator(player))
+                    player->SetSpectator(true);
+    }
+
     if(player->IsSpectator())
     {
         float modSpeed = 1.0f;

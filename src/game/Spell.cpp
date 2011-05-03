@@ -987,6 +987,9 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
     if (!unit)
         return;
 
+    if (unit->IsSpectatorPlayerOrPet())
+        return;
+
     target->processed = true;                               // Target checked in apply effects procedure
 
     // Get mask of effects for target
@@ -1219,6 +1222,9 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
 void Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask)
 {
     if (!unit || !effectMask)
+        return;
+
+    if (unit->IsSpectatorPlayerOrPet())
         return;
 
     Unit* realCaster = GetAffectiveCaster();
