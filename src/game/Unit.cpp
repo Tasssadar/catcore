@@ -12309,7 +12309,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return true;
 
     // normal players or npcs cant see player in spectator mode
-    if (IsSpectator())
+    if (IsSpectatorPlayerOrPet())
         return false;
 
     //if((GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsSpectator()))// || (u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->IsSpectator()))
@@ -12439,8 +12439,11 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // Arena visibility before arena start
     if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
         if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
-            invisible = HasAura(SPELL_HORDE_GOLD_FLAG) != p_target->HasAura(SPELL_HORDE_GOLD_FLAG) ||
-                        HasAura(SPELL_ALLIANCE_GOLD_FLAG) != p_target->HasAura(SPELL_ALLIANCE_GOLD_FLAG);
+        {
+            invisible = GetArenaTeamId(1) != p_target->GetArenaTeamId(1);
+            if (!invisible)
+                return true;
+        }
 
     // In DK starting map should be enemy players invisible
     if (GetMapId() == 609)
@@ -16871,14 +16874,14 @@ void Unit::AddAndLinkAura(uint32 auraId, bool apply)
 
 }
 
-bool Unit::IsSpectatorPlayerOrPet()
+bool Unit::IsSpectatorPlayerOrPet() const
 {
     if (GetTypeId() == TYPEID_PLAYER)
         return ((Player*)this)->IsSpectator();
 
     if (Unit* owner = ((Creature*)this)->GetOwner())
-    {
         if (owner->GetTypeId() == TYPEID_PLAYER)
             return ((Player*)owner)->IsSpectator();
-    }
+
+    return false;
 }

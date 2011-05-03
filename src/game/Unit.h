@@ -1971,7 +1971,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void AddAndLinkAura(uint32 auraId, bool apply);
 
-        bool IsSpectatorPlayerOrPet();
+        bool IsSpectatorPlayerOrPet() const;
 
     protected:
         explicit Unit ();

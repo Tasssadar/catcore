@@ -2195,9 +2195,8 @@ bool BattleGround::ShouldBePlayerSpectator(Player *plr)
     uint32 teamId[2] = { ALLIANCE, HORDE };
     for (uint8 i = 0; i < 2; ++i)
         if (ArenaTeam* team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(teamId[i])))
-            for(MemberList::iterator itr = team->m_membersBegin(); itr != team->m_membersEnd(); ++itr)
-                if (itr->guid == plr->GetGUID())
-                    return false;
+            if (team->HaveMember(plr->GetGUID()))
+                return false;
 
     return true;
 }
