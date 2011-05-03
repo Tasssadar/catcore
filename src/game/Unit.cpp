@@ -12299,6 +12299,7 @@ int32 Unit::ModifyPower(Powers power, int32 dVal)
     return gain;
 }
 
+// is this visible for u
 bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList, bool is3dDistance) const
 {
     if (!u || !IsInMap(u))
@@ -12421,6 +12422,21 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     if (!InSamePhase(u))
         return false;
 
+    // Arena visibility before arena start
+    // Arena Preparation
+    if (u->GetTypeId() == TYPEID_PLAYER && u->HasAura(32727))
+    {
+        Player* looker = (Player*)u;
+        Player* target = GetCharmerOrOwnerPlayerOrPlayerItself();
+        if (looker && target)
+        {
+            BattleGround* looker_bg = looker->GetBattleGround();
+            BattleGround* target_bg = target->GetBattleGround();
+            if (looker_bg && target_bg && looker_bg == target_bg)
+                return looker->GetArenaTeamId(ArenaTeam::GetSlotByType(looker_bg->GetArenaType())) != target->GetArenaTeamId(ArenaTeam::GetSlotByType(target_bg->GetArenaType()));
+        }
+    }
+
     // raw invisibility
     bool invisible = (m_invisibilityMask != 0 || u->m_invisibilityMask !=0);
 
@@ -12435,15 +12451,6 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     {
         invisible = false;
     }
-
-    // Arena visibility before arena start
-    if (GetTypeId() == TYPEID_PLAYER && HasAura(32727)) // Arena Preparation
-        if (Player * p_target = ((Unit*)u)->GetCharmerOrOwnerPlayerOrPlayerItself())
-        {
-            invisible = GetArenaTeamId(1) != p_target->GetArenaTeamId(1);
-            if (!invisible)
-                return true;
-        }
 
     // In DK starting map should be enemy players invisible
     if (GetMapId() == 609)
