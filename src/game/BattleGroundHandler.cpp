@@ -675,7 +675,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
 
     if (isRated && arenatype != ARENA_TYPE_5v5)
     {
-        if (!IsActiveEventForArena(arenatype))
+        if (!sGameEventMgr.IsActiveEventForArena(arenatype))
         {
             SendNotification("You cannot join this arena type. Check avalible arena types by typing .arenainfo");
             return;
