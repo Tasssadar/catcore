@@ -513,7 +513,7 @@ void GameEventMgr::UnApplyEvent(uint16 event_id)
 
 void GameEventMgr::ApplyNewEvent(uint16 event_id)
 {
-    if (sWorld.getConfig(CONFIG_BOOL_EVENT_ANNOUNCE))
+    if (sWorld.getConfig(CONFIG_BOOL_EVENT_ANNOUNCE) && IsEventAnnouncable(event_id))
         sWorld.SendWorldText(LANG_EVENTMESSAGE, mGameEvent[event_id].description.c_str());
 
     sLog.outString("GameEvent %u \"%s\" started.", event_id, mGameEvent[event_id].description.c_str());
@@ -892,4 +892,25 @@ MANGOS_DLL_SPEC bool IsHolidayActive( HolidayIds id )
             return true;
 
     return false;
+}
+
+bool GameEventMgr::IsActiveEventForArena(uint8 arena_type)
+{
+    for(ActiveEvents::iterator itr = m_ActiveEvents.begin(); itr != m_ActiveEvents.end(); ++itr)
+    {
+        if (*itr < 10000)
+        {
+            break;
+        }
+        else if (*itr < 10100)
+        {
+            if (arena_type == ARENA_TYPE_2v2)
+               return true;
+        }
+        else if (*itr < 10200)
+        {
+            if (arena_type == ARENA_TYPE_3v3)
+               return true;
+        }
+    }
 }

@@ -367,3 +367,24 @@ bool ChatHandler::HandleTestCommand(const char * args)
 {
     return true;
 }
+
+bool ChatHandler::HandleArenaInfoCommand(const char * /*args*/)
+{
+    std::ostringstream ss;
+    bool twos = sGameEventMgr.IsActiveEventForArena(ARENA_TYPE_2v2);
+    bool threes = sGameEventMgr.IsActiveEventForArena(ARENA_TYPE_3v3);
+    if (!twos && !threes)
+    {
+        ss << "No arena brackets are active right now";
+    }
+    else
+    {
+        ss << "Currently active arena brackets are: ";
+        if (twos)
+            ss << "2v2 ";
+        if (threes)
+            ss << "3v3 ";
+    }
+
+    SendSysMessage( ss.str().c_str() );
+}

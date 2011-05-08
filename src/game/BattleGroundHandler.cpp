@@ -672,6 +672,15 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             return;
     }
 
+    if (isRated && arenatype != ARENA_TYPE_5v5)
+    {
+        if (!IsActiveEventForArena(arenatype))
+        {
+            SendNotification("You cannot join this arena type. Check avalible arena types by typing .arenainfo");
+            return;
+        }
+    }
+
     // check existence
     BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(BATTLEGROUND_AA);
     if (!bg)

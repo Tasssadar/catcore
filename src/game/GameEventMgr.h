@@ -64,11 +64,13 @@ class GameEventMgr
         void LoadFromDB();
         uint32 Update();
         bool IsActiveEvent(uint16 event_id) { return ( m_ActiveEvents.find(event_id)!=m_ActiveEvents.end()); }
+        bool IsActiveEventForArena(uint8 arena_type);
         uint32 Initialize();
         void StartEvent(uint16 event_id, bool overwrite = false);
         void StopEvent(uint16 event_id, bool overwrite = false);
         template<typename T>
         int16 GetGameEventId(uint32 guid_or_poolid);
+        bool IsEventAnnouncable(uint16 event_id) const { return event_id < 10000; }
     private:
         void AddActiveEvent(uint16 event_id) { m_ActiveEvents.insert(event_id); }
         void RemoveActiveEvent(uint16 event_id) { m_ActiveEvents.erase(event_id); }

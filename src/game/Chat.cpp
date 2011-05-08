@@ -737,6 +737,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "assemblerandoms",SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReassembleRandomDungeonOptionsCommand,"", NULL },
         { "spocitejspojenyrepky",SEC_ADMINISTRATOR,true,&ChatHandler::HandleSpojenyRepky,              "", NULL },
         { "test",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleTestCommand,                "", NULL },
+        { "arenainfo",      SEC_PLAYER,         true,  &ChatHandler::HandleArenaInfoCommand,           "", NULL },
         { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
