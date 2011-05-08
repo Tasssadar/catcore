@@ -673,11 +673,13 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             return;
     }
 
+    // is current arena type active
     if (isRated && arenatype != ARENA_TYPE_5v5)
     {
         if (!sGameEventMgr.IsActiveEventForArena(arenatype))
         {
-            SendNotification("You cannot join this arena type. Check avalible arena types by typing .arenainfo");
+            SendNotification("This arena bracket is not allowed right now");
+            ChatHandler(GetPlayer()).SendSysMessage("Check avalible arena types by typing .arenainfo");
             return;
         }
     }

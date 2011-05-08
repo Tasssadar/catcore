@@ -363,7 +363,7 @@ bool ChatHandler::HandleLitakCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleTestCommand(const char * args)
+bool ChatHandler::HandleTestCommand(const char * /*args*/)
 {
     return true;
 }
@@ -387,4 +387,6 @@ bool ChatHandler::HandleArenaInfoCommand(const char * /*args*/)
     }
 
     SendSysMessage( ss.str().c_str() );
+
+    return true;
 }

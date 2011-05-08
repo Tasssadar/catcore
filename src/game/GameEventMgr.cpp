@@ -913,4 +913,6 @@ bool GameEventMgr::IsActiveEventForArena(uint8 arena_type)
                return true;
         }
     }
+
+    return false;
 }
