@@ -31,6 +31,7 @@
 #include "ArenaTeam.h"
 #include "Language.h"
 #include "ScriptCalls.h"
+#include "GameEventMgr.h"
 
 void WorldSession::HandleBattlemasterHelloOpcode(WorldPacket & recv_data)
 {
