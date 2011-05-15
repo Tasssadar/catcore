@@ -183,6 +183,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
         bool IsNextZcoordOK(float x, float y, float oldZ, float maxDiff = 5.0f) const;
         bool IsPositionForbidden(float x, float y, float z) const;
+        bool IsCoordAvailableFromXYZ(float new_x, float new_y, float new_z, float x, float y, float z);
 
         InstanceSave* GetInstanceSave() const { return m_instanceSave; }
 

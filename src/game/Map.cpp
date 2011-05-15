@@ -2679,9 +2679,28 @@ bool Map::IsPositionForbidden(float x, float y, float z) const
     {
         BattleGround* bg = ((BattleGroundMap*)this)->GetBG();
         if (bg && !bg->IsXYZPositionOK(x,y,z))
+        {
+            sLog.outCatLog("MovementCheck::Coords X:%f Y:%f Z:%f on map %u are forbidden while fleeing", x, y, z, GetId());
             return true;
+        }
     }
 
     return false;
 }
 
+bool Map::IsCoordAvailableFromXYZ(float new_x, float new_y, float new_z, float x, float y, float z)
+{
+    // check different z levels in Dalaran Sewers arena
+    if (GetId() == 617)
+    {
+        // check ground difference level
+        if (fabs(new_z-z) < 3)
+        {
+            sLog.outCatLog("MovementCheck:: Unit cannot move from z %f to z %f due to big difference", z, new_z);
+            return false;
+        }
+        return fabs(new_z-z) < 3;
+    }
+
+    return true;
+}

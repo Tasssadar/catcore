@@ -165,7 +165,8 @@ FleeingMovementGenerator<T>::_getPoint(T &owner, float &x, float &y, float &z)
             if ((is_water_now && !is_water_next && !is_land_ok) || (!is_water_now && is_water_next && !is_water_ok))
                 continue;
 
-            if (map->IsPositionForbidden(temp_x, temp_y, new_z))
+            if (map->IsPositionForbidden(temp_x, temp_y, new_z) ||
+                !map->IsCoordAvailableFromXYZ(temp_x, temp_y, new_z, x,y,z))
                 continue;
 
             if ( !(new_z - z) || distance / fabs(new_z - z) > 1.0f)
