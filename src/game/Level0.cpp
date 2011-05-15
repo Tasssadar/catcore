@@ -390,3 +390,27 @@ bool ChatHandler::HandleArenaInfoCommand(const char * /*args*/)
 
     return true;
 }
+
+bool ChatHandler::HandleCurrSpellsCommand(const char *args)
+{
+    Player* pl = m_session->GetPlayer();
+    if (!pl)
+        return false;
+
+    std::ostringstream ss;
+    ss << "Currently casted spells are";
+    bool firstSpell = true;
+    for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+    {
+        if (Spell* spell = unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
+        {
+            SpellEntry const* info = spell->m_spellInfo;
+            ss << firstSpell ? ": " : ", " << info->SpellName << "(" << info->Id << ")";
+            firstSpell = false;
+        }
+    }
+
+    SendSysMessage( ss.str().c_str() );
+
+    return true;
+}
