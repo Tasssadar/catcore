@@ -6987,7 +6987,7 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
             // all ok by some way or another, skip normal check
             break;
         default:                                            // normal case
-            if(!(m_spellInfo->AttributesEx2 & SPELL_ATTR_EX2_CANT_REFLECTED))
+            if(m_spellInfo->EffectImplicitTargetA[eff] == TARGET_ALL_ENEMY_IN_AREA_INSTANT)
             {
                 // Get GO cast coordinates if original caster -> GO
                 if (target != m_caster)
