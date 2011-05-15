@@ -1167,7 +1167,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             }
         }
 
-        if (damagetype != NODAMAGE && damage && pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (damagetype != NODAMAGE && pVictim->GetTypeId() == TYPEID_PLAYER)
         {
             if ( damagetype != DOT )
             {
@@ -1196,7 +1196,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                             {
                                 if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
                                     pVictim->InterruptSpell(CurrentSpellTypes(i));
-                                else
+                                else if (damage)
                                     spell->Delayed();
                             }
                         }
@@ -1204,21 +1204,30 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                 }
             }
 
-            if (Spell* spell = pVictim->m_currentSpells[CURRENT_CHANNELED_SPELL])
+            if (damage)
             {
-                if (damagetype != DOT)
+                if (Spell* spell = pVictim->m_currentSpells[CURRENT_CHANNELED_SPELL])
                 {
-                    if (spell->getState() == SPELL_STATE_CASTING)
+                    if (damagetype != DOT)
                     {
-                        uint32 channelInterruptFlags = spell->m_spellInfo->ChannelInterruptFlags;
-                        if ( channelInterruptFlags & CHANNEL_FLAG_DELAY )
+                        if (spell->getState() == SPELL_STATE_CASTING)
                         {
-                            if (pVictim!=this)                   //don't shorten the duration of channeling if you damage yourself
-                                spell->DelayedChannel();
+                            uint32 channelInterruptFlags = spell->m_spellInfo->ChannelInterruptFlags;
+                            if ( channelInterruptFlags & CHANNEL_FLAG_DELAY )
+                            {
+                                if (pVictim!=this)                   //don't shorten the duration of channeling if you damage yourself
+                                    spell->DelayedChannel();
+                            }
+                            else if ( (channelInterruptFlags & (CHANNEL_FLAG_DAMAGE | CHANNEL_FLAG_DAMAGE2)) )
+                            {
+                                sLog.outDetail("Spell %u canceled at damage!",spell->m_spellInfo->Id);
+                                pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                            }
                         }
-                        else if ( (channelInterruptFlags & (CHANNEL_FLAG_DAMAGE | CHANNEL_FLAG_DAMAGE2)) )
+                        else if (spell->getState() == SPELL_STATE_DELAYED)
+                            // break channeled spell in delayed state on damage
                         {
-                            sLog.outDetail("Spell %u canceled at damage!",spell->m_spellInfo->Id);
+                            DETAIL_LOG("Spell %u canceled at damage!",spell->m_spellInfo->Id);
                             pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
                         }
                     }
@@ -1228,12 +1237,6 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                         DETAIL_LOG("Spell %u canceled at damage!",spell->m_spellInfo->Id);
                         pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
                     }
-                }
-                else if (spell->getState() == SPELL_STATE_DELAYED)
-                    // break channeled spell in delayed state on damage
-                {
-                    DETAIL_LOG("Spell %u canceled at damage!",spell->m_spellInfo->Id);
-                    pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
                 }
             }
         }
