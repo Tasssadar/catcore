@@ -6987,13 +6987,22 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
             // all ok by some way or another, skip normal check
             break;
         default:                                            // normal case
-            if(m_spellInfo->EffectImplicitTargetA[eff] == TARGET_ALL_ENEMY_IN_AREA_INSTANT)
+            if (target != m_caster)
             {
-                // Get GO cast coordinates if original caster -> GO
-                if (target != m_caster)
+                // if is aoe check against center
+                if (IsAreaEffectTarget(Targets(m_spellInfo->EffectImplicitTargetA[eff])))
+                {
+                    if (m_targets.m_destX && m_targets.m_destY && m_targets.m_destZ)
+                        if (!target->IsWithinLOS(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ))
+                            return false;
+                }
+                else
+                {
+                    // Get GO cast coordinates if original caster -> GO
                     if (WorldObject *caster = GetCastingObject())
                         if (!target->IsWithinLOSInMap(caster))
                             return false;
+                }
             }
             break;
     }
