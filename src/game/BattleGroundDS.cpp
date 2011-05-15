@@ -238,7 +238,7 @@ void BattleGroundDS::Reset()
 {
     //call parent's class reset
     BattleGround::Reset();
-    m_uiKnockTimer = 10000;
+    m_uiKnockTimer = 6000;
     m_bKnocked = false;
     m_uiWaterfallStage = 0;
     m_bTubeIsEmpty = false;
