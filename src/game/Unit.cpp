@@ -726,6 +726,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
         uint8  coef = diff ? 226 : 213;
         float multiple = float(itemlevel)/coef;
+        sLog.outCatLog("Average itemlevel for player %s (GUID: %u) is %u, due to some calculation multiplier is %f", plr->GetName(), plr->GetGUIDLow(), itemlevel, multiple);
         if (multiple > 1)
             damage *= multiple;
     }
@@ -10382,8 +10383,11 @@ uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, u
     if (!(spellProto->AttributesEx6 & SPELL_ATTR_EX6_NO_DMG_PERCENT_MODS))
     {
         AuraList const& mModDamagePercentDone = GetAurasByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
-        for(AuraList::const_iterator i = mModDamagePercentDone.begin(); i != mModDamagePercentDone.end(); ++i)
+        AuraList::const_iterator i, i_next;
+        for(i = mModDamagePercentDone.begin(); i != mModDamagePercentDone.end();i= i_next)
         {
+            i_next = i;
+            ++i_next;
             if ( ((*i)->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellProto)) &&
                 (*i)->GetSpellProto()->EquippedItemClass == -1 &&
                                                                 // -1 == any item class (not wand then)

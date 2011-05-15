@@ -515,6 +515,10 @@ void GameEventMgr::ApplyNewEvent(uint16 event_id)
 {
     if (sWorld.getConfig(CONFIG_BOOL_EVENT_ANNOUNCE) && IsEventAnnouncable(event_id))
         sWorld.SendWorldText(LANG_EVENTMESSAGE, mGameEvent[event_id].description.c_str());
+    else if (event_id < 10100)
+        sWorld.SendWorldText(LANG_ANNOUNCE_BRACKET_2);
+    else if (event_id < 10200)
+        sWorld.SendWorldText(LANG_ANNOUNCE_BRACKET_3);
 
     sLog.outString("GameEvent %u \"%s\" started.", event_id, mGameEvent[event_id].description.c_str());
     // spawn positive event tagget objects
@@ -900,7 +904,7 @@ bool GameEventMgr::IsActiveEventForArena(uint8 arena_type)
     {
         if (*itr < 10000)
         {
-            break;
+            continue;
         }
         else if (*itr < 10100)
         {
