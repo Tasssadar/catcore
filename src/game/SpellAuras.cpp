@@ -3127,8 +3127,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
                     return;
 
-                if (apply && target)
-                    ((Player*)caster)->SetSelection(target->GetGUID());
+                if (apply)
+                    ((Player*)caster)->SetSelection(target ? target->GetGUID() : caster->GetGUID());
                 return;
             }
             // Pain and Suffering

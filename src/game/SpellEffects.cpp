@@ -2113,7 +2113,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             // Penance
             if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0080000000000000))
             {
-                if (!unitTarget)
+                if (!unitTarget || !unitTarget->isAlive())
                     return;
 
                 int hurt = 0;
