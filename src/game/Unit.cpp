@@ -9906,18 +9906,24 @@ bool Unit::RemoveAllAttackers(bool forced)
             for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
             {
                 Player* member = itr->getSource();
-                if (member && member->GetObjectGuid() != GetObjectGuid() &&
-                    member->IsAtGroupRewardDistance(this) && member->isInCombat())
+                if (member)
                 {
-                    sLog.outCatLog("Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
-                    removing_all = false;
-                    if (GetMap()->IsBattleGroundOrArena())
-                        break;
+                    if (member->GetObjectGuid() != GetObjectGuid() &&
+                        member->IsAtGroupRewardDistance(this) &&
+                        member->isInCombat())
+                    {
+                        sLog.outCatLog("RemoveAllAttackers:: Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
+                        if (GetMap()->IsBattleGroundOrArena())
+                        {
+                            removing_all = false;
+                            break;
+                        }
+                        else
+                            return false;
+                    }
                     else
-                        return removing_all;
+                        sLog.outCatLog("RemoveAllAttackers:: Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
                 }
-                else if (member)
-                    sLog.outCatLog("Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
             }
         }
     }
@@ -9925,6 +9931,7 @@ bool Unit::RemoveAllAttackers(bool forced)
     while(!m_attackers.empty())
     {
         AttackerSet::iterator iter = m_attackers.begin();
+        ASSERT(*iter != NULL);
         if (!(*iter)->AttackStop())
         {
             sLog.outError("WORLD: Unit has an attacker that isn't attacking it!");
