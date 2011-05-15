@@ -2694,12 +2694,11 @@ bool Map::IsCoordAvailableFromXYZ(float new_x, float new_y, float new_z, float x
     if (GetId() == 617)
     {
         // check ground difference level
-        if (fabs(new_z-z) < 3)
+        if (fabs(new_z-z) > 2)
         {
             sLog.outCatLog("MovementCheck:: Unit cannot move from z %f to z %f due to big difference", z, new_z);
             return false;
         }
-        return fabs(new_z-z) < 3;
     }
 
     return true;
