@@ -21224,7 +21224,11 @@ void Player::RewardPlayerAndGroupAtCast(WorldObject* pRewardSource, uint32 spell
 
 bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
 {
-    if (pRewardSource->IsWithinDistInMap(this,sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE)))
+    float dist = sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE);
+    if (GetMap()->IsBattleGroundOrArena())
+        dist *= 2.5f;
+
+    if (pRewardSource->IsWithinDistInMap(this,dist))
         return true;
 
     if (isAlive())
@@ -21234,7 +21238,7 @@ bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
     if (!corpse)
         return false;
 
-    return pRewardSource->IsWithinDistInMap(corpse,sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE));
+    return pRewardSource->IsWithinDistInMap(corpse,dist);
 }
 
 uint32 Player::GetBaseWeaponSkillValue (WeaponAttackType attType) const
