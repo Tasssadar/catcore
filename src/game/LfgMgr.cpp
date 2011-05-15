@@ -821,11 +821,12 @@ void LfgMgr::UpdateFormedGroups(LfgGroup *group)
                     removeFromFormed.insert(*grpitr);
             }
         }
-        if(!removeFromFormed.empty() && sWorld.getConfig(CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE))
-            UpdateQueue(i);
 
         for(GroupsList::iterator itr = removeFromFormed.begin(); itr != removeFromFormed.end(); ++itr)
             formedGroups[i].erase(*itr);
+
+        if(!removeFromFormed.empty() && sWorld.getConfig(CONFIG_BOOL_LFG_IMMIDIATE_QUEUE_UPDATE))
+            UpdateQueue(i);
 
         removeFromFormed.clear();
     }
