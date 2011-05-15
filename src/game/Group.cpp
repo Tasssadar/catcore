@@ -1902,13 +1902,8 @@ void Group::UpdateAverageItemLevel()
 {
     uint32 total_value = 0;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
-    {
         if (Player* player = sObjectMgr.GetPlayer(citr->guid))
-        {
-            sLog.outCatLog("Player's %s average item list is %u", player->GetName(), player->GetAverageItemLevel());
             total_value += player->GetAverageItemLevel();
-        }
-    }
 
     m_aitemlevel = total_value ? total_value/GetMembersCount() : total_value;
 }
