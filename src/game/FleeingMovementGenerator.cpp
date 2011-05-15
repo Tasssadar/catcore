@@ -166,7 +166,7 @@ FleeingMovementGenerator<T>::_getPoint(T &owner, float &x, float &y, float &z)
                 continue;
 
             if (map->IsPositionForbidden(temp_x, temp_y, new_z) ||
-                !map->IsCoordAvailableFromXYZ(temp_x, temp_y, new_z, x,y,z))
+                !((Map*)map)->IsCoordAvailableFromXYZ(temp_x, temp_y, new_z, x,y,z))
                 continue;
 
             if ( !(new_z - z) || distance / fabs(new_z - z) > 1.0f)

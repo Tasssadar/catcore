@@ -21225,7 +21225,7 @@ void Player::RewardPlayerAndGroupAtCast(WorldObject* pRewardSource, uint32 spell
 bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
 {
     float dist = sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE);
-    if (GetMap()->IsBattleGroundOrArena())
+    if (GetMap() && GetMap()->IsBattleGroundOrArena())
         dist *= 2.5f;
 
     if (pRewardSource->IsWithinDistInMap(this,dist))

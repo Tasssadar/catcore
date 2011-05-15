@@ -30,6 +30,7 @@
 #include "revision_nr.h"
 #include "Util.h"
 #include "GameEventMgr.h"
+#include "Spell.h"
 
 bool ChatHandler::HandleHelpCommand(const char* args)
 {
