@@ -6987,11 +6987,14 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
             // all ok by some way or another, skip normal check
             break;
         default:                                            // normal case
-            // Get GO cast coordinates if original caster -> GO
-            if (target != m_caster)
-                if (WorldObject *caster = GetCastingObject())
-                    if (!target->IsWithinLOSInMap(caster))
-                        return false;
+            if(!(m_spellInfo->AttributesEx2 & SPELL_ATTR_EX2_CANT_REFLECTED))
+            {
+                // Get GO cast coordinates if original caster -> GO
+                if (target != m_caster)
+                    if (WorldObject *caster = GetCastingObject())
+                        if (!target->IsWithinLOSInMap(caster))
+                            return false;
+            }
             break;
     }
 
