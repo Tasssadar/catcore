@@ -23263,8 +23263,6 @@ void Player::BuildAverageItemLevel()
 
     m_aitemlevel = totalvalue ? totalvalue/list.size() : totalvalue;
 
-    sLog.outCatLog("Plr's %s ait is %u and total ie %u", GetName(), m_aitemlevel, totalvalue);
-
     if (GetGroup())
         GetGroup()->UpdateAverageItemLevel();
 }
