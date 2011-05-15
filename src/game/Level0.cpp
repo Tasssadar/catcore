@@ -398,17 +398,23 @@ bool ChatHandler::HandleCurrSpellsCommand(const char *args)
         return false;
 
     std::ostringstream ss;
-    ss << "Currently casted spells are";
     bool firstSpell = true;
     for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
     {
-        if (Spell* spell = unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
+        if (Spell* spell = pl->GetCurrentSpell(CurrentSpellTypes(i)))
         {
+            if (firstSpell)
+                ss << "Currently casted spells are: ";
+            else
+                ss << ", ";
             SpellEntry const* info = spell->m_spellInfo;
-            ss << firstSpell ? ": " : ", " << info->SpellName << "(" << info->Id << ")";
+            ss << info->SpellName[0] << "(" << info->Id << ")";
             firstSpell = false;
         }
     }
+
+    if (firstSpell)
+        ss << "No spells are currently casted";
 
     SendSysMessage( ss.str().c_str() );
 
