@@ -224,7 +224,10 @@ void BattleGroundDS::HandleAreaTrigger(Player *Source, uint32 Trigger)
 }
 bool BattleGroundDS::HandlePlayerUnderMap(Player *player)
 {
-    player->TeleportTo(GetMapId(), 1299.046f, 784.825f, 9.338f, 2.422f, false);
+    if (m_uiWaterfallStage != 2)
+        player->TeleportTo(GetMapId(), 1299.046f, 784.825f, 9.338f, 2.422f, false);
+    else
+        player->TeleportTo(GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ()+5, M_PI_F, false);
     return true;
 }
 
