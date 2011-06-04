@@ -212,4 +212,8 @@ void SpellMgr::ApplySpellHacks()
     sfix32->speed = 0;
     SpellEntry *sfix33 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
     sfix33->speed = 0;
+
+    // Frost presence - 145% threat
+    SpellEntry *sfix34 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(48263));
+    sfix34->EffectBasePoints[1]= 145;
 }
