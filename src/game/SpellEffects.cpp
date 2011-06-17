@@ -9263,25 +9263,33 @@ void Spell::CreatureSummoned(Creature *crt)
         // Greater Earth Elemental
         case 15352:
         {
-            SetCreateMana(GetCreatureInfo()->minmana);
-            Unit * owner = spawnCreature->GetOwner()->GetOwner();
+            crt->SetCreateMana(GetCreatureInfo()->minmana);
+            Unit * owner = crt->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
-                spawnCreature->SetMaxHealth(owner->GetMaxHealth()*50/100);
-                spawnCreature->SetHealth(spawnCreature->GetMaxHealth());
+                crt->SetMaxHealth(owner->GetMaxHealth()*50/100);
+                crt->SetHealth(spawnCreature->GetMaxHealth());
             }
             break;
         }
         // Greater Fire Elemental
         case 15438:
         {
-            SetCreateMana(GetCreatureInfo()->minmana);
-            Unit * owner = spawnCreature->GetOwner()->GetOwner();
+            crt->SetCreateMana(GetCreatureInfo()->minmana);
+            Unit * owner = crt->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
-                spawnCreature->SetMaxHealth(owner->GetMaxHealth()*100/100);
-                spawnCreature->SetHealth(spawnCreature->GetMaxHealth());
+                crt->SetMaxHealth(owner->GetMaxHealth()*100/100);
+                crt->SetHealth(spawnCreature->GetMaxHealth());
             }
+            break;
+        }
+        // Snake Trap - snake faction
+        case 19921:
+        case 19833:
+        {
+            if (Unit* creator = crt->GetCreator())
+                crt->setFaction(creator->getFaction());
             break;
         }
     }
