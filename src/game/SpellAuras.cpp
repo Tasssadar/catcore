@@ -5318,11 +5318,6 @@ void Aura::HandleAuraModUseNormalSpeed(bool /*apply*/, bool Real)
 void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
 {
     uint32 misc  = m_modifier.m_miscvalue;
-    // Forbearance
-    // in DBC wrong mechanic immune since 3.0.x
-    if (GetId() == 25771)
-        misc = MECHANIC_IMMUNE_SHIELD;
-
     Unit *target = GetTarget();
 
     if (apply && GetSpellProto()->AttributesEx & SPELL_ATTR_EX_DISPEL_AURAS_ON_IMMUNITY)
@@ -5334,12 +5329,26 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
             mechanic=IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK;
 
         target->RemoveAurasAtMechanicImmunity(mechanic,GetId());
+
+        // Demonic Empowerment ( Felguard )
+        if (GetId() == 54508)
+        {
+            target->RemoveAurasAtMechanicImmunity((1 << (MECHANIC_ROOT-1)), GetId());
+            target->RemoveAurasAtMechanicImmunity((1 << (MECHANIC_SNARE-1)), GetId());
+        }
     }
 
     target->ApplySpellImmune(GetId(),IMMUNITY_MECHANIC,misc,apply);
 
+    // Demonic Empowerment ( Felguard )
+    if (GetId() == 54508)
+    {
+        target->ApplySpellImmune(GetId(),IMMUNITY_MECHANIC,MECHANIC_ROOT,apply);
+        target->ApplySpellImmune(GetId(),IMMUNITY_MECHANIC,MECHANIC_SNARE,apply);
+    }
+
     // Demonic Circle
-    if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && GetSpellProto()->SpellIconID == 3221)
+    else if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && GetSpellProto()->SpellIconID == 3221)
     {
         if (m_target->GetTypeId() != TYPEID_PLAYER)
             return;
@@ -5352,7 +5361,7 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
         }
     }
     // Bestial Wrath
-    if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellIconID == 1680)
+    else if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellIconID == 1680)
     {
         // The Beast Within cast on owner if talent present
         if (Unit* owner = target->GetOwner())
