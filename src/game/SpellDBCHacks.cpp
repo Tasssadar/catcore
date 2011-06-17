@@ -213,7 +213,8 @@ void SpellMgr::ApplySpellHacks()
     SpellEntry *sfix33 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
     sfix33->speed = 0;
 
-    // Frost presence - 145% threat
-    SpellEntry *sfix34 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(48263));
-    sfix34->EffectBasePoints[1]= 145;
+    // Forbearance
+    // in DBC wrong mechanic immune since 3.0.x
+    SpellEntry *sfix34 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(25771));
+    sfix34->EffectMiscValue[0] = MECHANIC_IMMUNE_SHIELD;
 }
