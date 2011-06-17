@@ -450,6 +450,7 @@ enum UnitState
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
     UNIT_STAT_ON_VEHICLE      = 0x00080000,
     UNIT_STAT_IGNORE_PATHFINDING = 0x00100000,                  // do not use pathfinding in any MovementGenerator
+    UNIT_STAT_IGNORE_TARGET   = 0x00200000,                     // do not send target in update packet
 
     // masks (only for check)
 
