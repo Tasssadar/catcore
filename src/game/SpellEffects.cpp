@@ -8456,7 +8456,10 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
                 return;
         }
     }
-
+    // Glyph of Thunderstorm
+    if(m_spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && m_spellInfo->SpellIconID == 3080 && m_caster->HasAura(62132))
+        return;
+    
     // Dismount/remove flight form
     if (unitTarget->GetTypeId() == TYPEID_PLAYER)
     {
