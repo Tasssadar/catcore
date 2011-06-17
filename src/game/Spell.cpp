@@ -6987,22 +6987,26 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
             // all ok by some way or another, skip normal check
             break;
         default:                                            // normal case
-            if (target != m_caster)
+            // if is aoe check against center
+            if (IsAreaEffectTarget(Targets(m_spellInfo->EffectImplicitTargetA[eff])))
             {
-                // if is aoe check against center
-                if (IsAreaEffectTarget(Targets(m_spellInfo->EffectImplicitTargetA[eff])))
-                {
-                    if (m_targets.m_destX && m_targets.m_destY && m_targets.m_destZ)
-                        if (!target->IsWithinLOS(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ))
-                            return false;
-                }
-                else
-                {
-                    // Get GO cast coordinates if original caster -> GO
-                    if (WorldObject *caster = GetCastingObject())
-                        if (!target->IsWithinLOSInMap(caster))
-                            return false;
-                }
+                if (m_targets.m_destX && m_targets.m_destY && m_targets.m_destZ)
+                    if (!target->IsWithinLOS(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ))
+                    {
+                        sLog.outCatLog("Spell::CheckTarget: Spell %u, target %s (%f, %f, %f) is not in LOS to dest (%f, %f, %f), (src is: %f, %f, %f) ",
+                                       m_spellInfo->Id, target->GetName(),
+                                       target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(),
+                                       m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ,
+                                       m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ);
+                        return false;
+                    }
+            }
+            else if (target != m_caster)
+            {
+                // Get GO cast coordinates if original caster -> GO
+                if (WorldObject *caster = GetCastingObject())
+                    if (!target->IsWithinLOSInMap(caster))
+                        return false;
             }
             break;
     }
