@@ -1524,13 +1524,17 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 51582:                                 // Rocket Boots Engaged (Rocket Boots Xtreme and Rocket Boots Xtreme Lite)
                 {
-                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
                         return;
 
                     if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
                         bg->EventPlayerDroppedFlag((Player*)m_caster);
 
-                    m_caster->CastSpell(m_caster, 30452, true, NULL);
+                    // remove cooldown if needed
+                    if (((Player*)unitTarget)->HasSpellCooldown(30452))
+                        ((Player*)unitTarget)->RemoveSpellCooldown(30452);
+
+                    unitTarget->CastSpell(unitTarget, 30452, true, NULL);
                     return;
                 }
                 case 51840:                                 // Despawn Fruit Tosser
