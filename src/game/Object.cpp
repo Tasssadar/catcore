@@ -582,7 +582,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
     // 0x4
     if (updateFlags & UPDATEFLAG_HAS_ATTACKING_TARGET)       // packed guid (current target guid)
     {
-        if (((Unit*)this)->getVictim())
+        if (((Unit*)this)->getVictim() && !((Unit*)this)->hasUnitState(UNIT_STAT_IGNORE_TARGET))
             *data << ((Unit*)this)->getVictim()->GetPackGUID();
         else
             data->appendPackGUID(0);
