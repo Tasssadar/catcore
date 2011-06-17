@@ -3653,6 +3653,14 @@ void Player::RemoveArenaSpellCooldowns()
             RemoveSpellCooldown(itr->first, true);
         }
     }
+
+    // remove cooldowns from pet in has one
+    if (Pet* _pet = GetPet())
+    {
+        _pet->m_CreatureSpellCooldowns.clear();
+        _pet->m_CreatureCategoryCooldowns.clear();
+        PetSpellInitialize();
+    }
 }
 
 void Player::RemoveAllSpellCooldown()
