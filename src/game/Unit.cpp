@@ -12246,7 +12246,7 @@ int32 Unit::ModifyHealth(int32 dVal)
         gain = maxHealth - curHealth;
     }
     // Blood Gorged - remove/add aura at 75% of HP
-    if (GetTypeId() == TYPEID_PLAYER && ((Player*)this)->getClass() == CLASS_DEATH_KNIGHT)
+    /*if (GetTypeId() == TYPEID_PLAYER && ((Player*)this)->getClass() == CLASS_DEATH_KNIGHT)
     {
         SpellEntry const* bloodGorgedInfo = NULL;
         if ((Player*)this->HasSpell(61154))
@@ -12273,7 +12273,7 @@ int32 Unit::ModifyHealth(int32 dVal)
                     RemoveAurasDueToSpell(bloodGorgedInfo->EffectTriggerSpell[EFFECT_INDEX_0]);
             }
         }
-    }
+    }*/
 
     return gain;
 }
