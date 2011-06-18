@@ -9263,24 +9263,24 @@ void Spell::CreatureSummoned(Creature *crt)
         // Greater Earth Elemental
         case 15352:
         {
-            crt->SetCreateMana(GetCreatureInfo()->minmana);
+            crt->SetCreateMana(crt->GetCreatureInfo()->minmana);
             Unit * owner = crt->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
                 crt->SetMaxHealth(owner->GetMaxHealth()*50/100);
-                crt->SetHealth(spawnCreature->GetMaxHealth());
+                crt->SetHealth(crt->GetMaxHealth());
             }
             break;
         }
         // Greater Fire Elemental
         case 15438:
         {
-            crt->SetCreateMana(GetCreatureInfo()->minmana);
+            crt->SetCreateMana(crt->GetCreatureInfo()->minmana);
             Unit * owner = crt->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
                 crt->SetMaxHealth(owner->GetMaxHealth()*100/100);
-                crt->SetHealth(spawnCreature->GetMaxHealth());
+                crt->SetHealth(crt->GetMaxHealth());
             }
             break;
         }
