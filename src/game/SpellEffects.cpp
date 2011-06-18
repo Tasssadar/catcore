@@ -9264,7 +9264,7 @@ void Spell::CreatureSummoned(Creature *crt)
         case 15352:
         {
             crt->SetCreateMana(crt->GetCreatureInfo()->minmana);
-            Unit * owner = crt->GetOwner();
+            Unit * owner = crt->GetOwner()->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
                 crt->SetMaxHealth(owner->GetMaxHealth()*50/100);
@@ -9276,7 +9276,7 @@ void Spell::CreatureSummoned(Creature *crt)
         case 15438:
         {
             crt->SetCreateMana(crt->GetCreatureInfo()->minmana);
-            Unit * owner = crt->GetOwner();
+            Unit * owner = crt->GetOwner()->GetOwner();
             if(owner && owner->GetTypeId() == TYPEID_PLAYER)
             {
                 crt->SetMaxHealth(owner->GetMaxHealth()*100/100);
