@@ -1063,7 +1063,7 @@ void ObjectMgr::PackCreatureGuids()
     delete result;
 
     sLog.outString();
-    sLog.outString( ">> Changed %u creature guids, max guid is %u (%f%% full), space between overflow", count, maxGuid,
+    sLog.outString( ">> Changed %u creature guids, max guid is %u (%f%% full), free guid slots: %u", count, maxGuid,
                     float(maxGuid)/(float(0xFFFFFF)/100), (0xFFFFFF - maxGuid));
 }
 
