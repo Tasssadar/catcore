@@ -993,7 +993,7 @@ void ObjectMgr::PackCreatureGuids()
     
     sLog.outString( ">> Assembling free guids...." );
     
-    uint32 lastGuid = *(guids.begin())-1;
+    uint32 lastGuid = 0;
     for(std::list<uint32>::iterator itr = guids.begin(); itr != guids.end(); ++itr)
     {
         if((*itr) - lastGuid > 1)
