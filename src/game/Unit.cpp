@@ -10343,9 +10343,9 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
         coeff = damagetype == DOT ? bonus->dot_damage : bonus->direct_damage;
 
         // apply ap bonus at done part calculation only (it flat total mod so common with taken)
-        if (donePart && bonus->ap_bonus)
+        if (donePart && (bonus->ap_bonus || bonus->ap_dot_bonus))
         {
-            float ap_bonus = bonus->ap_bonus;
+            float ap_bonus = damagetype == DOT ? bonus->ap_dot_bonus : bonus->ap_bonus;
 
             // Impurity
             if (GetTypeId() == TYPEID_PLAYER && spellProto->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)

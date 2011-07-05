@@ -406,6 +406,11 @@ inline bool IsAutoRepeatRangedSpell(SpellEntry const* spellInfo)
     return (spellInfo->Attributes & SPELL_ATTR_RANGED) && (spellInfo->AttributesEx2 & SPELL_ATTR_EX2_AUTOREPEAT_FLAG);
 }
 
+inline bool IsSpellRequiresRangedAP(SpellEntry const* spellInfo)
+{
+    return (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE);
+}
+
 SpellCastResult GetErrorAtShapeshiftedCast (SpellEntry const *spellInfo, uint32 form);
 
 inline bool IsChanneledSpell(SpellEntry const* spellInfo)
@@ -569,6 +574,7 @@ struct SpellBonusEntry
     float  direct_damage;
     float  dot_damage;
     float  ap_bonus;
+    float  ap_dot_bonus;
 };
 //DEVELOPER CODE START 
  
