@@ -6619,7 +6619,7 @@ bool ChatHandler::HandleBroadCastListCommand(const char* args)
     }
     SendSysMessage("Found these broadcast messages: ");
     for(BroadCastSet::iterator itr = sWorld.GetBroadCastMessages()->begin(); itr != sWorld.GetBroadCastMessages()->end(); ++itr)
-        PSendSysMessage("ID %u: %s (interval: %u min, %u left)", (*itr)->Id, (*itr)->text, (*itr)->RepeatMins, (*itr)->timeLeft);
+        PSendSysMessage("ID %u: %s (interval: %u min, %u left)", (*itr)->Id, (*itr)->text.c_str(), (*itr)->RepeatMins, (*itr)->timeLeft);
     SendSysMessage("You can use \".broadcast send *ID*\" to send message");
     return true;
 }
@@ -6634,8 +6634,8 @@ bool ChatHandler::HandleBroadCastSendCommand(const char* args)
     {
         if((*itr)->Id != id)
             continue;
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE,(*itr)->text);
-        PSendSysMessage("Message \"%s\" sent.", (*itr)->text);
+        sWorld.SendWorldText(LANG_SYSTEMMESSAGE,(*itr)->text.c_str());
+        PSendSysMessage("Message \"%s\" sent.", (*itr)->text.c_str());
         return true;
     }
     PSendSysMessage("Message %u not found.", id);
@@ -6653,7 +6653,7 @@ bool ChatHandler::HandleBroadCastResetTimerCommand(const char* args)
         if((*itr)->Id != id)
             continue;
 
-        PSendSysMessage("Timer for message \"%s\" has been reset from %u to %u minutes.", (*itr)->text, (*itr)->timeLeft, (*itr)->RepeatMins);
+        PSendSysMessage("Timer for message \"%s\" has been reset from %u to %u minutes.", (*itr)->text.c_str(), (*itr)->timeLeft, (*itr)->RepeatMins);
         (*itr)->timeLeft = (*itr)->RepeatMins;
         return true;
     }
