@@ -6616,10 +6616,6 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     if (!pVictim || !pVictim->isAlive())
                          return false;
 
-                     // overheals do not proc
-                     if (pVictim->GetHealth() == pVictim->GetMaxHealth())
-                         return false;
-
                      // find Protection of Ancient Kings on the target and get absorb amount
                      Aura* Protection = pVictim->GetAura(64413,EFFECT_INDEX_0);
                      if (Protection)
@@ -8603,6 +8599,10 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 //case 59735: break:                        // Woe Strike
                 case 64415:                                 // // Val'anyr Hammer of Ancient Kings - Equip Effect
                 {
+                    // overheals do not proc
+                    if (pVictim->GetHealth() == pVictim->GetMaxHealth())
+                        return false;
+
                     // for DOT procs
                     if (!IsPositiveSpell(procSpell->Id))
                         return false;
