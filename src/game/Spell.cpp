@@ -2353,7 +2353,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_SINGLE_ENEMY:
         {
-            if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), m_spellInfo))
+            Aura* pAura = m_triggeredByAuraSpell ? m_caster->GetLinkedDummyAura(m_triggeredByAuraSpell->Id) : NULL;
+            Unit* pTarget = pAura ? pAura->GetTarget() : m_targets.getUnitTarget();
+            if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(pTarget, m_spellInfo))
             {
                 m_targets.setUnitTarget(pUnitTarget);
                 targetUnitMap.push_back(pUnitTarget);
@@ -5278,9 +5280,16 @@ SpellCastResult Spell::CheckCast(bool strict)
             {
                 // Spell can be triggered, we need to check original caster prior to caster
                 Unit* caster = GetAffectiveCaster();
-                if (!caster || caster->GetTypeId() != TYPEID_PLAYER ||
-                    !m_targets.getUnitTarget() ||
-                    m_targets.getUnitTarget()->GetTypeId() == TYPEID_PLAYER)
+                if (!caster)
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                // target provided by dummy aura
+                Aura* dummyLink = caster->GetLinkedDummyAura(m_triggeredByAuraSpell->Id);
+                if (!dummyLink || caster->GetTypeId() != TYPEID_PLAYER)
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                Unit* target = dummyLink->GetTarget();
+                if (!target || target->GetTypeId() == TYPEID_PLAYER)
                     return SPELL_FAILED_BAD_TARGETS;
 
                 Player* plrCaster = (Player*)caster;
@@ -5291,27 +5300,27 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_DONT_REPORT;
                 }
 
-                Creature* target = (Creature*)m_targets.getUnitTarget();
+                Creature* creature = (Creature*)target;
 
-                if (target->isPet() || target->isCharmed())
+                if (creature->isPet() || creature->isCharmed())
                 {
                     plrCaster->SendPetTameFailure(PETTAME_CREATUREALREADYOWNED);
                     return SPELL_FAILED_DONT_REPORT;
                 }
 
-                if (target->getLevel() > plrCaster->getLevel())
+                if (creature->getLevel() > plrCaster->getLevel())
                 {
                     plrCaster->SendPetTameFailure(PETTAME_TOOHIGHLEVEL);
                     return SPELL_FAILED_DONT_REPORT;
                 }
 
-                if (target->GetCreatureInfo()->IsExotic() && !plrCaster->CanTameExoticPets())
+                if (creature->GetCreatureInfo()->IsExotic() && !plrCaster->CanTameExoticPets())
                 {
                     plrCaster->SendPetTameFailure(PETTAME_CANTCONTROLEXOTIC);
                     return SPELL_FAILED_DONT_REPORT;
                 }
 
-                if (!target->GetCreatureInfo()->isTameable(plrCaster->CanTameExoticPets()))
+                if (!creature->GetCreatureInfo()->isTameable(plrCaster->CanTameExoticPets()))
                 {
                     plrCaster->SendPetTameFailure(PETTAME_NOTTAMEABLE);
                     return SPELL_FAILED_DONT_REPORT;
