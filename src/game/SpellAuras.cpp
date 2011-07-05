@@ -4188,6 +4188,12 @@ void Aura::HandleModPossess(bool apply, bool Real)
         target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
 
         target->SetCharmerGUID(p_caster->GetGUID());
+
+        if (!m_modifier.m_miscvalue)
+            m_modifier.m_miscvalue = target->getFaction();
+        else
+            sLog.outError("HandleModPossess::WARNING:: Modifier's misc value is already set to %i", m_modifier.m_miscvalue);
+
         target->setFaction(p_caster->getFaction());
 
         p_caster->SetCharm(target);
@@ -4213,7 +4219,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
         {
             ((Creature*)target)->AIM_Initialize();
         }
-        else if (m_target->GetTypeId() == TYPEID_PLAYER && !m_target->GetVehicleGUID())
+        else if (target->GetTypeId() == TYPEID_PLAYER && !target->GetVehicleGUID())
         {
             ((Player*)target)->SetClientControl(target, 0);
         }
@@ -4243,26 +4249,23 @@ void Aura::HandleModPossess(bool apply, bool Real)
 
         target->SetCharmerGUID(0);
 
-        if (m_target->GetTypeId() == TYPEID_PLAYER && !m_target->GetVehicleGUID())
+        if (target->GetTypeId() == TYPEID_PLAYER && !target->GetVehicleGUID())
         {
-            //TEAMBG check
-            if ((((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) ||
-                ((Player*)m_target)->m_lookingForGroup.mixed) //BLUE(ali)
-                ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
-            else if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 2) //RED(horde)
-                ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED));
+            if (m_modifier.m_miscvalue)
+            {
+                target->setFaction(m_modifier.m_miscvalue);
+                m_modifier.m_miscvalue = 0;
+            }
             else
-                ((Player*)m_target)->setFactionForRace(m_target->getRace());
-            ((Player*)m_target)->SetClientControl(m_target, 1);
+                sLog.outError("HandleModPossess::ERROR:: Could not restore faction, modifer's misc value is %i", m_modifier.m_miscvalue);
+
+            ((Player*)target)->SetClientControl(target, 1);
         }
-        else if (target->GetTypeId() == TYPEID_UNIT)
+        else
         {
             CreatureInfo const *cinfo = ((Creature*)target)->GetCreatureInfo();
             target->setFaction(cinfo->faction_A);
-        }
 
-        if (target->GetTypeId() == TYPEID_UNIT)
-        {
             ((Creature*)target)->AIM_Initialize();
 
             if (((Creature*)target)->AI())
@@ -4355,6 +4358,12 @@ void Aura::HandleModCharm(bool apply, bool Real)
         }
 
         target->SetCharmerGUID(GetCasterGUID());
+
+        if (!m_modifier.m_miscvalue)
+            m_modifier.m_miscvalue = target->getFaction();
+        else
+            sLog.outError("HandleModCharm::WARNING:: Modifier's misc value is already set to %i", m_modifier.m_miscvalue);
+
         target->setFaction(caster->getFaction());
         target->CastStop(target == caster ? GetId() : 0);
         caster->SetCharm(target);
@@ -4401,16 +4410,15 @@ void Aura::HandleModCharm(bool apply, bool Real)
     {
         target->SetCharmerGUID(0);
 
-        if (m_target->GetTypeId() == TYPEID_PLAYER)
+        if (target->GetTypeId() == TYPEID_PLAYER)
         {
-            //TEAMBG check
-            if ((((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 1) ||
-                ((Player*)m_target)->m_lookingForGroup.mixed) //BLUE(ali)
-                ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_BLUE));
-            else if (((Player*)m_target)->isInTeamBG() && ((Player*)m_target)->getFakeTeam() == 2) //RED(horde)
-                ((Player*)m_target)->setFaction(sWorld.getConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED));
+            if (m_modifier.m_miscvalue)
+            {
+                target->setFaction(m_modifier.m_miscvalue);
+                m_modifier.m_miscvalue = 0;
+            }
             else
-                ((Player*)m_target)->setFactionForRace(m_target->getRace());
+                sLog.outError("HandleModCharm::ERROR:: Could not restore faction, modifer's misc value is %i", m_modifier.m_miscvalue);
         }
         else
         {
