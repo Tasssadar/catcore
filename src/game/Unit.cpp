@@ -574,8 +574,20 @@ void Unit::RemoveSpellbyDamageTaken(AuraType auraType, uint32 damage)
         m_fearDispelHp -= damage;
         if (m_fearDispelHp <= 0)
         {
-            RemoveSpellsCausingAura(auraType);
-            m_fearDispelHp = 0;
+            // do not remove horror mechanic
+            AuraList::const_iterator iter, next;
+            for (iter = m_modAuras[auraType].begin(); iter != m_modAuras[auraType].end(); iter = next)
+            {
+                next = iter;
+                ++next;
+
+                if ((*iter) && (*iter)->GetSpellProto()->Mechanic != MECHANIC_HORROR)
+                {
+                    m_fearDispelHp = 0;
+                    RemoveAurasDueToSpell((*iter)->GetId());
+                    next = m_modAuras[auraType].begin();
+                }
+            }
         }
     }
     else
@@ -594,7 +606,7 @@ void Unit::RemoveSpellbyDamageTaken(AuraType auraType, uint32 damage)
                     next = iter;
                     ++next;
 
-                    if ((*iter) && (*iter)->GetSpellProto()->Dispel == DISPEL_MAGIC)
+                    if ((*iter) && !(GetSpellSchoolMask(((*iter)->GetSpellProto())) & SPELL_SCHOOL_MASK_NORMAL))
                     {
                         RemoveAurasDueToSpell((*iter)->GetId());
                         next = m_modAuras[auraType].begin();
