@@ -6599,8 +6599,25 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     if (!IsPositiveSpell(procSpell->Id))
                         return false;
 
+                    if (!pVictim || !pVictim->isAlive())
+                         return false;
+
+                     // overheals do not proc
+                     if (pVictim->GetHealth() == pVictim->GetMaxHealth())
+                         return false;
+
+                     // find Protection of Ancient Kings on the target and get absorb amount
+                     Aura* Protection = pVictim->GetAura(64413,EFFECT_INDEX_0);
+                     if (Protection)
+                         basepoints[0] = Protection->GetModifier()->m_amount;
+
+                     basepoints[0] += damage * 15 / 100;
+
+                     // limit absorb amount
+                     if (basepoints[0] > 20000)
+                         basepoints[0] = 20000;
+
                     triggered_spell_id = 64413;
-                    basepoints[0] = damage * 15 / 100;
                     break;
                 }
             }
