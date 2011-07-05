@@ -2011,9 +2011,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if ( (spellInfo_2->SpellFamilyFlags & UI64LIT(0x2)) && spellInfo_1->Id == 23694 )
                         return false;
 
+                    // Glyph of Hamstring -> Hamstring (multi-family check)
+                    if ( (spellInfo_2->SpellFamilyFlags & UI64LIT(0x2)) && spellInfo_1->Id == 58373 )
+                        return false;
+
                     // Death Wish and Heart of a Dragon
                     if (spellInfo_1->Id == 169 && spellInfo_2->SpellIconID == 169)
                         return false;
+
                     break;
                 }
                 case SPELLFAMILY_DRUID:
@@ -2256,6 +2261,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
             // Hamstring -> Improved Hamstring (multi-family check)
             if ( (spellInfo_1->SpellFamilyFlags & UI64LIT(0x2)) && spellInfo_2->Id == 23694 )
+                return false;
+
+            // Hamstring -> Glyph of Hamstring (multi-family check)
+            if ( (spellInfo_1->SpellFamilyFlags & UI64LIT(0x2)) && spellInfo_2->Id == 58373 )
                 return false;
 
             // Defensive Stance and Scroll of Protection (multi-family check)
