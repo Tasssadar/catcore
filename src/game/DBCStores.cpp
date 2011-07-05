@@ -477,7 +477,20 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sMailTemplateStore,        dbcPath,"MailTemplate.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sMapStore,                 dbcPath,"Map.dbc");
 
+    //MapEntry *mapEdit = const_cast<MapEntry*>(sMapStore.LookupEntry(724));
+    //mapEdit->map_type = MAP_INSTANCE;
+
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sMapDifficultyStore,       dbcPath,"MapDifficulty.dbc");
+    /*
+    MapDifficultyEntry *mapDiff1 = const_cast<MapDifficultyEntry*>(sMapDifficultyStore.LookupEntry(750));
+    mapDiff1->maxPlayers = 5;
+    MapDifficultyEntry *mapDiff2 = const_cast<MapDifficultyEntry*>(sMapDifficultyStore.LookupEntry(751));
+    mapDiff2->maxPlayers = 5;
+    MapDifficultyEntry *mapDiff3 = const_cast<MapDifficultyEntry*>(sMapDifficultyStore.LookupEntry(752));
+    mapDiff3->maxPlayers = 5;
+    MapDifficultyEntry *mapDiff4 = const_cast<MapDifficultyEntry*>(sMapDifficultyStore.LookupEntry(753));
+    mapDiff4->maxPlayers = 5;
+    */
     // fill data
     for(uint32 i = 1; i < sMapDifficultyStore.GetNumRows(); ++i)
         if (MapDifficultyEntry const* entry = sMapDifficultyStore.LookupEntry(i))

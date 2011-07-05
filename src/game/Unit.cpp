@@ -364,10 +364,12 @@ void Unit::Update( uint32 p_time )
             // m_CombatTimer set at aura start and it will be freeze until aura removing
             if (m_CombatTimer <= p_time)
             {
+           //     sWorld.m_combatUpdateLock.acquire();
                 if (HasAuraType(SPELL_AURA_MOD_STEALTH) || (getVictim() && getVictim()->HasAuraType(SPELL_AURA_MOD_STEALTH)))
                     CombatStop();
                 else
                     ClearInCombat();
+         //       sWorld.m_combatUpdateLock.release();
             }
             else
                 m_CombatTimer -= p_time;
@@ -9506,27 +9508,27 @@ bool Unit::IsHostileTo(Unit const* unit) const
         return false;
 
     // always hostile to enemy
-    if (getVictim()==unit || unit->getVictim()==this)
+    if (((Unit*)this)->getVictim()==unit || ((Unit*)unit)->getVictim()==this)
         return true;
 
     // test pet/charm masters instead pers/charmeds
-    Unit const* testerOwner = GetCharmerOrOwner();
-    Unit const* targetOwner = unit->GetCharmerOrOwner();
+    Unit *testerOwner = GetCharmerOrOwner();
+    Unit *targetOwner = unit->GetCharmerOrOwner();
 
     // always hostile to owner's enemy
-    if (testerOwner && (testerOwner->getVictim()==unit || unit->getVictim()==testerOwner))
+    if (testerOwner && (((Unit*)testerOwner)->getVictim()==unit || ((Unit*)unit)->getVictim()==testerOwner))
         return true;
 
     // always hostile to enemy owner
-    if (targetOwner && (getVictim()==targetOwner || targetOwner->getVictim()==this))
+    if (targetOwner && (((Unit*)this)->getVictim()==targetOwner || ((Unit*)targetOwner)->getVictim()==this))
         return true;
 
     // always hostile to owner of owner's enemy
     if (testerOwner && targetOwner && (testerOwner->getVictim()==targetOwner || targetOwner->getVictim()==testerOwner))
         return true;
 
-    Unit const* tester = testerOwner ? testerOwner : this;
-    Unit const* target = targetOwner ? targetOwner : unit;
+    Unit *tester = testerOwner ? testerOwner : (Unit*)this;
+    Unit *target = targetOwner ? targetOwner : (Unit*)unit;
 
     // always non-hostile to target with common owner, or to owner/pet
     if (tester==target)
@@ -9648,27 +9650,27 @@ bool Unit::IsFriendlyTo(Unit const* unit) const
         return true;
 
     // always non-friendly to enemy
-    if (getVictim()==unit || unit->getVictim()==this)
+    if (((Unit*)this)->getVictim()==unit || ((Unit*)unit)->getVictim()==this)
         return false;
 
     // test pet/charm masters instead pers/charmeds
-    Unit const* testerOwner = GetCharmerOrOwner();
-    Unit const* targetOwner = unit->GetCharmerOrOwner();
+    Unit *testerOwner = GetCharmerOrOwner();
+    Unit *targetOwner = unit->GetCharmerOrOwner();
 
     // always non-friendly to owner's enemy
-    if (testerOwner && (testerOwner->getVictim()==unit || unit->getVictim()==testerOwner))
+    if (testerOwner && (testerOwner->getVictim()==unit || ((Unit*)unit)->getVictim()==testerOwner))
         return false;
 
     // always non-friendly to enemy owner
-    if (targetOwner && (getVictim()==targetOwner || targetOwner->getVictim()==this))
+    if (targetOwner && (((Unit*)this)->getVictim()==targetOwner || targetOwner->getVictim()==this))
         return false;
 
     // always non-friendly to owner of owner's enemy
     if (testerOwner && targetOwner && (testerOwner->getVictim()==targetOwner || targetOwner->getVictim()==testerOwner))
         return false;
 
-    Unit const* tester = testerOwner ? testerOwner : this;
-    Unit const* target = targetOwner ? targetOwner : unit;
+    Unit *tester = testerOwner ? testerOwner : (Unit*)this;
+    Unit *target = targetOwner ? targetOwner : (Unit*)unit;
 
     // always friendly to target with common owner, or to owner/pet
     if (tester==target)
@@ -9872,7 +9874,7 @@ bool Unit::Attack(Unit *victim, bool meleeAttack)
 
 bool Unit::AttackStop(bool targetSwitch /*=false*/)
 {
-    if (!m_attacking)
+    if (!m_attacking || !m_attacking->IsInWorld())
         return false;
 
     Unit* victim = m_attacking;
