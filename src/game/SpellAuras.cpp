@@ -1511,7 +1511,8 @@ bool Aura::IsEffectStacking()
             break;
         case SPELL_AURA_MOD_MELEE_HASTE:
             // Improved Icy Talons
-            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
                 return false;
             break;
         // case SPELL_AURA_MOD_HEALING_PCT:
