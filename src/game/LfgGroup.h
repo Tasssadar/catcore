@@ -132,6 +132,7 @@ struct RoleCheck
         if(tank) ++size;
         if(heal) ++size;
         size += dps.size();
+        return size;
     }
 
     uint64 tank;
