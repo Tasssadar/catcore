@@ -208,7 +208,11 @@ void GameObject::Update(uint32 p_time)
                             SetGoState(GO_STATE_ACTIVE);
                             SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN);
 
-                            SendForcedObjectUpdate();
+                            UpdateData udata;
+                            WorldPacket packet;
+                            BuildValuesUpdateBlockForPlayer(&udata,((Player*)caster));
+                            udata.BuildPacket(&packet);
+                            ((Player*)caster)->GetSession()->SendPacket(&packet);
 
                             SendGameObjectCustomAnim(GetGUID(), 0);
                         }
