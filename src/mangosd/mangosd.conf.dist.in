@@ -1812,10 +1812,10 @@ MapUpdate.Threads = 1
 ####################################################################################################################
 
 GuidOverflow.Creature.Enabled = 1
-GuidOverflow.Creature.Change = 0
+GuidOverflow.Creature.Agressive = 0
 GuidOverflow.Creature.MinGuid = 0
 
 GuidOverflow.GameObject.Enabled = 1
-GuidOverflow.GameObject.Change = 0
+GuidOverflow.GameObject.Agressive = 0
 GuidOverflow.GameObject.MinGuid = 0
 
