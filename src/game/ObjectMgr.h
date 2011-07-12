@@ -730,6 +730,7 @@ class ObjectMgr
         void LoadMailLevelRewards();
 
         void PackCreatureGuids();
+        void PackGObjectGuids();
 
         void LoadGossipText();
 
@@ -1140,6 +1141,7 @@ class ObjectMgr
         void ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* table, char const* guidEntryStr);
         void ConvertCreatureAddonPassengers(CreatureDataAddon* addon, char const* table, char const* guidEntryStr);
         void LoadQuestRelationsHelper(QuestRelations& map,char const* table);
+        void PackGuids(std::string guidTable, std::string tables[][2], uint8 tables_count, bool changeGUID, uint32 minGuid);
 
         MailLevelRewardMap m_mailLevelRewardMap;
 

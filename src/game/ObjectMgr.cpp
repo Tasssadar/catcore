@@ -974,15 +974,35 @@ void ObjectMgr::PackCreatureGuids()
         {"pool_creature", "guid"}
     };
 
-    std::list<uint32> guids;
-    std::list<uint32> free;
     bool changeGUID = sWorld.getConfig(CONFIG_BOOL_CREATURE_GUID_CHANGE);
     uint32 minGuid = sWorld.getConfig(CONFIG_UINT32_CREATURE_GUID_MIN);
+
+    PackGuids("creature", tables, 7, changeGUID, minGuid);
+}
+
+void ObjectMgr::PackGObjectGuids()
+{
+    std::string tables[][2]=
+    {   
+        {"gameobject_battleground", "guid"},
+        {"game_event_gameobject", "guid"},
+        {"pool_gameobject", "guid"}
+    };
+
+    bool changeGUID = sWorld.getConfig(CONFIG_BOOL_GO_GUID_CHANGE);
+    uint32 minGuid = sWorld.getConfig(CONFIG_UINT32_GO_GUID_MIN);
+    PackGuids("gameobject", tables, 3, changeGUID, minGuid);
+}
+
+void ObjectMgr::PackGuids(std::string guidTable, std::string tables[][2], uint8 tables_count, bool changeGUID, uint32 minGuid)
+{
+    std::list<uint32> guids;
+    std::list<uint32> free;
     uint32 count = 0;
 
-    sLog.outString( ">> Loading creature guids...." );
+    sLog.outString( ">> Loading %s guids...." , guidTable.c_str());
     //                                                0
-    QueryResult *result = WorldDatabase.Query("SELECT guid FROM creature ORDER BY guid");
+    QueryResult *result = WorldDatabase.PQuery("SELECT guid FROM %s ORDER BY guid", guidTable.c_str());
     Field *fields = NULL;
     do
     {
@@ -1008,11 +1028,11 @@ void ObjectMgr::PackCreatureGuids()
 
     sLog.outString( ">> Cleaning up 0 guid...." );
 
-    result = WorldDatabase.Query("SELECT guid FROM creature WHERE guid=0");
+    result = WorldDatabase.PQuery("SELECT guid FROM %s WHERE guid=0", guidTable.c_str());
     if ( result )
     {
         delete result;
-        WorldDatabase.PExecute("UPDATE creature SET guid = %u WHERE guid = 0", *(free.begin()));
+        WorldDatabase.PExecute("UPDATE %s SET guid = %u WHERE guid = 0", guidTable.c_str(), *(free.begin()));
         free.pop_front();
         guids.pop_front();
     }
@@ -1031,7 +1051,7 @@ void ObjectMgr::PackCreatureGuids()
         if(*itr <= *(free.begin()))
             break;
 
-        for(int y = 0; y < 6; ++y)
+        for(int y = 0; y < tables_count; ++y)
         {
              result = WorldDatabase.PQuery("SELECT %s FROM %s WHERE %s = %u",
                                            tables[y][1].c_str(), tables[y][0].c_str(), tables[y][1].c_str(), *itr);
@@ -1051,19 +1071,19 @@ void ObjectMgr::PackCreatureGuids()
         if(!can)
             continue;
 
-        WorldDatabase.PExecute("UPDATE creature SET guid = %u WHERE guid = %u", *(free.begin()), *itr);
+        WorldDatabase.PExecute("UPDATE %s SET guid = %u WHERE guid = %u", guidTable.c_str(), *(free.begin()), *itr);
 
         free.pop_front();
         if(free.empty())
             break;
         ++count;
     }
-    result = WorldDatabase.Query("SELECT MAX(guid) FROM creature");
+    result = WorldDatabase.PQuery("SELECT MAX(guid) FROM %s", guidTable.c_str());
     uint32 maxGuid = result->Fetch()[0].GetUInt32();
     delete result;
 
     sLog.outString();
-    sLog.outString( ">> Changed %u creature guids, max guid is %u (%f%% full), free guid slots: %u", count, maxGuid,
+    sLog.outString( ">> Changed %u %s guids, max guid is %u (%f%% full), free guid slots: %u", count, guidTable.c_str(), maxGuid,
                     float(maxGuid)/(float(0xFFFFFF)/100), (0xFFFFFF - maxGuid));
 }
 
