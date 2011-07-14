@@ -1,4 +1,4 @@
-﻿#####################################
+#####################################
 # MaNGOS Configuration file         #
 #####################################
 
@@ -1809,26 +1809,33 @@ FactionedMap.Team = 1
 MapUpdate.Threads = 1
 
 ###################################################################################################################
-# Creature guid overflow fixer config
+# Creature and GameObject guid overflow fixer config
 #
 #    GuidOverflow.Creature.Enabled
+#    GuidOverflow.GameObject.Enabled
 #        Enable or disable overflow fixer
 #        Default: 1 (Enabled)
 #                 0 (Disabled)
 #
-#    GuidOverflow.Creature.Change
-#        Change guids also in other tables than creature - result is
+#    GuidOverflow.Creature.Agressive
+#    GuidOverflow.GameObject.Agressive
+#        Change guids also in other tables than creature/gameobject - result is
 #        much more agressive optimalization
 #        Default: 0 (Disabled)
 #                 1 (Enabled)
 #
 #    GuidOverflow.Creature.MinGuid
-#        Use agressive optimimalization only to creatures with guid higher than this value
+#    GuidOverflow.GameObject.MinGuid
+#        Use agressive optimimalization only to creatures/GOs with guid higher than this value
 #        Default: 0 (Use on every creature)
 #
 ####################################################################################################################
 
 GuidOverflow.Creature.Enabled = 1
-GuidOverflow.Creature.Change = 0
+GuidOverflow.Creature.Agressive = 0
 GuidOverflow.Creature.MinGuid = 0
+
+GuidOverflow.GameObject.Enabled = 1
+GuidOverflow.GameObject.Agressive = 0
+GuidOverflow.GameObject.MinGuid = 0
 

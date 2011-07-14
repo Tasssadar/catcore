@@ -772,9 +772,13 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_BONUS_HONOR_FLAG_AV,                       "BG.BonusHonor.AV.Flag", 2);
     setConfig(CONFIG_UINT32_BONUS_HONOR_FLAG_EOS,                      "BG.BonusHonor.EOS.Flag",2);
 
-    setConfig(CONFIG_UINT32_CREATURE_GUID_MIN,                         "GuidOverflow.Creature.MinGuid", 0);
-    setConfig(CONFIG_BOOL_CREATURE_GUID_ENABLED,                       "GuidOverflow.Creature.Enabled", true);
-    setConfig(CONFIG_BOOL_CREATURE_GUID_CHANGE,                        "GuidOverflow.Creature.Change",  false);
+    setConfig(CONFIG_UINT32_CREATURE_GUID_MIN,                         "GuidOverflow.Creature.MinGuid",   0);
+    setConfig(CONFIG_BOOL_CREATURE_GUID_ENABLED,                       "GuidOverflow.Creature.Enabled",   true);
+    setConfig(CONFIG_BOOL_CREATURE_GUID_CHANGE,                        "GuidOverflow.Creature.Agressive", false);
+
+    setConfig(CONFIG_UINT32_GO_GUID_MIN,                               "GuidOverflow.GameObject.MinGuid",   0);
+    setConfig(CONFIG_BOOL_GO_GUID_ENABLED,                             "GuidOverflow.GameObject.Enabled",   true);
+    setConfig(CONFIG_BOOL_GO_GUID_CHANGE,                              "GuidOverflow.GameObject.Agressive", false);
 
     setConfig(CONFIG_BOOL_OFFHAND_CHECK_AT_TALENTS_RESET, "OffhandCheckAtTalentsReset", false);
 
@@ -1023,6 +1027,12 @@ void World::SetInitialWorldSettings()
     {
         sLog.outString("Packing creature guids...");
         sObjectMgr.PackCreatureGuids();
+    }
+
+    if(getConfig(CONFIG_BOOL_GO_GUID_ENABLED))
+    {
+        sLog.outString("Packing gameobject guids...");
+        sObjectMgr.PackGObjectGuids();
     }
 
     sLog.outString();

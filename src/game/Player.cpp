@@ -1287,7 +1287,7 @@ void Player::Update( uint32 p_time )
     if (hasUnitState(UNIT_STAT_MELEE_ATTACKING))
     {
         Unit *pVictim = getVictim();
-        if (pVictim && !IsNonMeleeSpellCasted(false))
+        if (pVictim && pVictim->IsInWorld() && !IsNonMeleeSpellCasted(false))
         {
             // default combat reach 10
             // TODO add weapon,skill check

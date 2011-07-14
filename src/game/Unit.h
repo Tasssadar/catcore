@@ -1229,7 +1229,13 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool RemoveAllAttackers(bool forced);
         AttackerSet const& getAttackers() const { return m_attackers; }
         bool isAttackingPlayer() const;
-        Unit* getVictim() const { return m_attacking; }
+        Unit* getVictim()
+        {
+             if(m_attacking && m_attacking->IsInWorld())
+                 return m_attacking;
+             m_attacking = NULL;
+             return NULL;
+        }
         void CombatStop(bool includingCast = false, bool forced = true);
         void CombatStopWithPets(bool includingCast = false);
         void StopAttackFaction(uint32 faction_id);
@@ -1445,7 +1451,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         bool HasStealthAura()      const { return HasAuraType(SPELL_AURA_MOD_STEALTH); }
         bool HasInvisibilityAura() const { return HasAuraType(SPELL_AURA_MOD_INVISIBILITY); }
-        bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
+    	bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
         bool isInRoots() const { return HasAuraType(SPELL_AURA_MOD_ROOT); }
         bool IsPolymorphed() const;
 
@@ -1977,7 +1983,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff);
 
         void AddAndLinkAura(uint32 auraId, bool apply);
-
+        Unit* m_attacking;
+        
     protected:
         explicit Unit ();
 
@@ -1989,7 +1996,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         float m_createStats[MAX_STATS];
 
         AttackerSet m_attackers;
-        Unit* m_attacking;
 
         DeathState m_deathState;
 

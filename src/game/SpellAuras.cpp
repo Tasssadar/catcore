@@ -562,7 +562,7 @@ Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *curr
 
 Unit* Aura::GetCaster() const
 {
-    if (m_target && m_caster_guid == m_target->GetGUID())
+    if (m_target && m_target->IsInWorld() && m_caster_guid == m_target->GetGUID())
         return m_target;
 
     //return ObjectAccessor::GetUnit(*m_target,m_caster_guid);
@@ -3578,6 +3578,38 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         }
     }
 
+    // now only powertype must be set
+    switch(form)
+    {
+        case FORM_SHADOWDANCE:
+        case FORM_CAT:
+            PowerType = POWER_ENERGY;
+            break;
+        case FORM_BEAR:
+        case FORM_DIREBEAR:
+        case FORM_BATTLESTANCE:
+        case FORM_BERSERKERSTANCE:
+        case FORM_DEFENSIVESTANCE:
+            PowerType = POWER_RAGE;
+            break;
+        case FORM_TRAVEL:
+        case FORM_AQUA:
+        case FORM_GHOUL:
+        case FORM_CREATUREBEAR:
+        case FORM_GHOSTWOLF:
+        case FORM_FLIGHT:
+        case FORM_MOONKIN:
+        case FORM_FLIGHT_EPIC:
+        case FORM_METAMORPHOSIS:
+        case FORM_AMBIENT:
+        case FORM_SHADOW:
+        case FORM_STEALTH:
+        case FORM_TREE:
+            break;
+        default:
+            break;
+    }
+
     modelid = m_target->GetModelForForm(form);
 
     // remove polymorph before changing display id to keep new display id
@@ -3636,28 +3668,8 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         // For Shadow Dance we must apply Stealth form (30) instead of current (13)
         m_target->SetByteValue(UNIT_FIELD_BYTES_2, 3, (form == FORM_SHADOWDANCE) ? uint8(FORM_STEALTH) : form);
 
-        // need send to client not form active state, or at re-apply form client go crazy
-        target->SendForcedObjectUpdate();
-
         if (modelid > 0)
             target->SetDisplayId(modelid);
-
-        // now only powertype must be set
-        switch (form)
-        {
-            case FORM_CAT:
-                PowerType = POWER_ENERGY;
-                break;
-            case FORM_BEAR:
-            case FORM_DIREBEAR:
-            case FORM_BATTLESTANCE:
-            case FORM_BERSERKERSTANCE:
-            case FORM_DEFENSIVESTANCE:
-                PowerType = POWER_RAGE;
-                break;
-            default:
-                break;
-        }
 
         if (PowerType != POWER_MANA)
         {
