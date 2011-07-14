@@ -740,8 +740,13 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_BATTLEGROUND_PREMATURE_FINISH_TIMER,       "BattleGround.PrematureFinishTimer", 5 * MINUTE * IN_MILLISECONDS);
     setConfig(CONFIG_UINT32_BATTLEGROUND_PREMADE_GROUP_WAIT_FOR_MATCH, "BattleGround.PremadeGroupWaitForMatch", 30 * MINUTE * IN_MILLISECONDS);
     setConfig(CONFIG_UINT32_BATTLEGROUND_REPORTS_NEEDED,               "BattleGround.ReportsNeeded", 3);
-    setConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE,               "Arena.MaxRatingDifference", 150);
+    //setConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE,               "Arena.MaxRatingDifference", 150);
+    setConfig(CONFIG_UINT32_START_MAX_RATING_DIFFERENCE,               "Arena.StartMaxRatingDifference", 150);
+    setConfig(CONFIG_UINT32_START_INCREASE_MAX_RATING_TIMER,           "Arena.StartIncrMaxRatingTimer", 15000);
+    setConfig(CONFIG_UINT32_STEP_ADD_RATING,                           "Arena.StepAddRating", 10);
+    setConfig(CONFIG_UINT32_STEP_INTERVAL,                             "Arena.StepTimer", 1000);
     setConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER,                "Arena.RatingDiscardTimer", 10 * MINUTE * IN_MILLISECONDS);
+    setConfig(CONFIG_UINT32_ARENA_MIX_CAP,                             "Arena.MixUntilRating", 1300);
     setConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS,                "Arena.AutoDistributePoints", false);
     setConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS,       "Arena.AutoDistributeInterval", 7);
     setConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_JOIN,                  "Arena.QueueAnnouncer.Join", false);

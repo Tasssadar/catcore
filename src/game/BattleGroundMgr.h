@@ -53,11 +53,18 @@ struct GroupQueueInfo                                       // stores informatio
     bool    IsRated;                                        // rated
     uint8   ArenaType;                                      // 2v2, 3v3, 5v5 or 0 when BG
     uint32  ArenaTeamId;                                    // team id if rated match
+    uint32  OpponentTeamId;                                 // opponent team id if rated match
     uint32  JoinTime;                                       // time when group was added
     uint32  RemoveInviteTime;                               // time when we will remove invite for players in group
     uint32  IsInvitedToBGInstanceGUID;                      // was invited to certain BG
     uint32  ArenaTeamRating;                                // if rated match, inited to the rating of the team
     uint32  OpponentsTeamRating;                            // for rated arena matches
+    uint32  CurrentMaxRatDiff;                              // current difference to max rating
+    uint32  LastUpdatedTime;                                // time of last max rating update
+    uint32  GetMinRating() const;
+    uint32  GetMaxRating() const;
+    bool    IsInAllowedRatingRange(uint32 rating) const { return rating >= GetMinRating() && rating <= GetMaxRating(); }
+                                                            // compares rating in parameter with min and max allowed rating
 };
 
 enum BattleGroundQueueGroupTypes
@@ -88,6 +95,7 @@ class BattleGroundQueue
         bool GetPlayerGroupInfoData(const uint64& guid, GroupQueueInfo* ginfo);
         void PlayerInvitedToBGUpdateAverageWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
+        void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, BattleGroundTypeId bgTypeId, PvPDifficultyEntry const* bracketEntry, uint8 arenaType, BattleGroundBracketId bracket_id);
 
     private:
         //mutex that should not allow changing private data, nor allowing to update Queue during private data change.
@@ -110,6 +118,7 @@ class BattleGroundQueue
              BG_QUEUE_NORMAL_HORDE      is used for normal (or small) horde groups or non-rated arena matches
         */
         GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
+        GroupsQueueType m_DiscartedGroups[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
         class SelectionPool
@@ -229,9 +238,13 @@ class BattleGroundMgr
         BGFreeSlotQueueType BGFreeSlotQueue[MAX_BATTLEGROUND_TYPE_ID];
 
         void ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id);
-        uint32 GetMaxRatingDifference() const;
+        uint32 GetStartMaxRatingDifference() const;
+        uint32 GetRatingAddStepsTimer() const;
+        uint32 GetAddedRatingOnStep() const;
+        uint32 GetStepInterval() const;
         uint32 GetRatingDiscardTimer()  const;
         uint32 GetPrematureFinishTime() const;
+        uint32 GetMixRatingCap() const;
 
         void InitAutomaticArenaPointDistribution();
         void DistributeArenaPoints();

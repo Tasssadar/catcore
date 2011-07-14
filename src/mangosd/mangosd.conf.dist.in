@@ -1433,16 +1433,32 @@ BattleGround.ReportsNeeded = 3
 ###################################################################################################################
 # ARENA CONFIG
 #
-#    Arena.MaxRatingDifference
-#        The maximum rating difference between two groups in rated matches
-#        Default: 150 (enable, recommended)
-#                 0 (disable, rating difference is discarded)
+#    Arena.StartMaxRatingDifference
+#        The maximum rating difference between two groups in rated matches from start
+#        Default: 150 (recommended)
+#
+#    Arena.StartIncrMaxRatingTimer
+#        The time after its pass, rating will be increase by steps
+#        Default: 15000 (15 sec, recommended)
+#
+#    Arena.StepAddRating
+#        Amount of rating added to current rating maximum
+#        Default: 10 (recommended)
+#
+#    Arena.StepTimer
+#        The interval in which step rating is added
+#        Default: 1000 (1 sec, recommended)
 #
 #    Arena.RatingDiscardTimer
 #        After the specified milliseconds has passed,
 #        rating information will be discarded when selecting teams for matches
 #        also initiates an update by this timer
 #        Default: 600000 (10 minutes, recommended)
+#                 0 (disable)
+#
+#    Arena.MixUntilRating
+#        Maximum rating under which teams will join together without taking to account team rating
+#        Default: 1300 (recommended)
 #                 0 (disable)
 #
 #    Arena.AutoDistributePoints
@@ -1486,8 +1502,12 @@ BattleGround.ReportsNeeded = 3
 #
 ###################################################################################################################
 
-Arena.MaxRatingDifference = 150
+Arena.StartMaxRatingDifference = 150
+Arena.StartIncrMaxRatingTimer = 15000
+Arena.StepAddRating = 10
+Arena.StepTimer = 1000
 Arena.RatingDiscardTimer = 600000
+Arena.MixUntilRating = 1300
 Arena.AutoDistributePoints = 0
 Arena.AutoDistributeInterval = 7
 Arena.QueueAnnouncer.Join = 0
