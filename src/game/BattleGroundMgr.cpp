@@ -952,19 +952,39 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
         GroupsQueueType::iterator itr_team[BG_TEAMS_COUNT];
         uint32 now = getMSTime();
 
-        // first put discarted team into special queue
-        uint32 discardTime = now - sBattleGroundMgr.GetRatingDiscardTimer();
+        // update queues
         for(uint32 i = BG_QUEUE_PREMADE_ALLIANCE; i <= BG_QUEUE_PREMADE_HORDE; i++)
         {
-            for(itr_team[i] = m_QueuedGroups[bracket_id][i].begin(); itr_team[i] != m_QueuedGroups[bracket_id][i].end(); ++(itr_team[i]))
+            for(itr_team[i] = m_QueuedGroups[bracket_id][i].begin(); itr_team[i] != m_QueuedGroups[bracket_id][i].end(); )
             {
                 GroupQueueInfo* ginfo = *itr_team[i];
-                if (ginfo->JoinTime < discardTime)
+                uint32 timeInQueue = getMSTimeDiff(ginfo->JoinTime, now);
+                if (timeInQueue > sBattleGroundMgr.GetRatingDiscardTimer())
                 {
                     m_DiscartedGroups[bracket_id].push_back(ginfo);
+                    sLog.outCatLog("BGQ::Update:: Discarting arena team %u after %u of wait time", ginfo->ArenaTeamId, getMSTime()-ginfo->JoinTime);
                     m_QueuedGroups[bracket_id][i].erase(itr_team[i]);
                     itr_team[i] = m_QueuedGroups[bracket_id][i].begin();
+                    continue;
                 }
+
+                else if (timeInQueue > sBattleGroundMgr.GetRatingAddStepsTimer())
+                {
+                    // time from start just passed
+                    if (!ginfo->LastUpdatedTime)
+                    {
+                        ginfo->CurrentMaxRatDiff += sBattleGroundMgr.GetAddedRatingOnStep();
+                        ginfo->LastUpdatedTime = now;
+                    }
+                    else
+                    {
+                        uint32 timeFromUpdate = getMSTimeDiff(ginfo->LastUpdatedTime, now);
+                        if (timeFromUpdate > sBattleGroundMgr.GetRatingAddStepsTimer())
+                            ginfo->CurrentMaxRatDiff += sBattleGroundMgr.GetAddedRatingOnStep();
+                    }
+                }
+
+                ++itr_team[i];
             }
         }
 
@@ -1006,33 +1026,8 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
                     m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
                     m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
 
+                    sLog.outCatLog("BGQ::Update:: Starting arena for discarted teams %u and %u", ginfo1->ArenaTeamId, ginfo2->ArenaTeamId);
                     StartRatedArena(ginfo1, ginfo2, bgTypeId, bracketEntry, arenaType, bracket_id);
-                }
-            }
-        }
-
-        // handling regulary queued teams
-        // update teams (rating difference increases with time)
-        for(uint32 i = BG_QUEUE_PREMADE_ALLIANCE; i <= BG_QUEUE_PREMADE_HORDE; i++)
-        {
-            for(itr_team[i] = m_QueuedGroups[bracket_id][i].begin(); itr_team[i] != m_QueuedGroups[bracket_id][i].end(); ++(itr_team[i]))
-            {
-                GroupQueueInfo* ginfo = *itr_team[i];
-                uint32 timeInQueue = getMSTimeDiff(ginfo->JoinTime, now);
-                if (timeInQueue > sBattleGroundMgr.GetRatingAddStepsTimer())
-                {
-                    // started time just passed
-                    if (!ginfo->LastUpdatedTime)
-                    {
-                        ginfo->CurrentMaxRatDiff += sBattleGroundMgr.GetAddedRatingOnStep();
-                        ginfo->LastUpdatedTime = now;
-                    }
-                    else
-                    {
-                        uint32 timeFromUpdate = getMSTimeDiff(ginfo->LastUpdatedTime, now);
-                        if (timeFromUpdate > sBattleGroundMgr.GetRatingAddStepsTimer())
-                            ginfo->CurrentMaxRatDiff += sBattleGroundMgr.GetAddedRatingOnStep();
-                    }
                 }
             }
         }
@@ -1114,12 +1109,30 @@ void BattleGroundQueue::StartRatedArena(GroupQueueInfo *ginfo1, GroupQueueInfo *
     if (ginfo1->Team != ALLIANCE)
     {
         m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].push_front(ginfo1);
-        m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].remove(ginfo1);
+        for(GroupsQueueType::iterator itr = m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].begin(); itr != m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].end();++itr)
+        {
+            if ((*itr)->ArenaTeamId == ginfo1->ArenaTeamId)
+            {
+                m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].erase(itr);
+                break;
+            }
+        }
+
+        //m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].remove(ginfo1);
     }
     if (ginfo2->Team != HORDE)
     {
         m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_HORDE].push_front(ginfo2);
-        m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].remove(ginfo2);
+        for(GroupsQueueType::iterator itr = m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].begin(); itr != m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].end();++itr)
+        {
+            if ((*itr)->ArenaTeamId == ginfo1->ArenaTeamId)
+            {
+                m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].erase(itr);
+                break;
+            }
+        }
+
+        //m_QueuedGroups[bracket_id][BG_QUEUE_PREMADE_ALLIANCE].remove(ginfo2);
     }
 
     InviteGroupToBG(ginfo1, arena, ALLIANCE);
@@ -1128,6 +1141,9 @@ void BattleGroundQueue::StartRatedArena(GroupQueueInfo *ginfo1, GroupQueueInfo *
     DEBUG_LOG("Starting rated arena match!");
 
     arena->StartBattleGround();
+
+    m_SelectionPools[BG_TEAM_ALLIANCE].Init();
+    m_SelectionPools[BG_TEAM_HORDE].Init();
 }
 
 /*********************************************************/
