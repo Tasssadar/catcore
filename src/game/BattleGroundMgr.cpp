@@ -164,7 +164,7 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
     ginfo->Team                      = leader->GetTeam();
     ginfo->ArenaTeamRating           = arenaRating;
     ginfo->OpponentsTeamRating       = 0;
-    ginfo->CurrentMaxRatDiff         = GetStartMaxRatingDifference();
+    ginfo->CurrentMaxRatDiff         = sBattleGroundMgr.GetStartMaxRatingDifference();
     ginfo->LastUpdatedTime           = 0;
 
     ginfo->Players.clear();
@@ -950,7 +950,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
     else
     {
         GroupsQueueType::iterator itr_team[BG_TEAMS_COUNT];
-        uint32 now = getMsTime();
+        uint32 now = getMSTime();
 
         // first put discarted team into special queue
         uint32 discardTime = now - sBattleGroundMgr.GetRatingDiscardTimer();
@@ -969,7 +969,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
         }
 
         // try to find two discarted teams
-        if (m_DiscartedGroups.size() >= 2)
+        if (m_DiscartedGroups[bracket_id].size() >= 2)
         {
             for(GroupsQueueType::iterator itr_disc1 = m_DiscartedGroups[bracket_id].begin(); itr_disc1 != m_DiscartedGroups[bracket_id].end(); ++itr_disc1)
             {
@@ -1277,7 +1277,7 @@ void BattleGroundMgr::Update(uint32 diff)
     }
 
     // if rating difference counts, maybe force-update queues
-    if (sWorld.getConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE) && sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER))
+    /*if (sWorld.getConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE) && sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER))
     {
         // it's time to force update
         if (m_NextRatingDiscardUpdate < diff)
@@ -1294,7 +1294,7 @@ void BattleGroundMgr::Update(uint32 diff)
         }
         else
             m_NextRatingDiscardUpdate -= diff;
-    }
+    }*/
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
         if (m_AutoDistributionTimeChecker < diff)
