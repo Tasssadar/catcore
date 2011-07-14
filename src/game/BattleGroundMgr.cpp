@@ -1057,7 +1057,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
 
                 for(uint32 j = BG_QUEUE_PREMADE_ALLIANCE; j <= BG_QUEUE_PREMADE_HORDE; j++)
                 {
-                    for(itr_team2[j] = m_QueuedGroups[bracket_id][j].begin(); itr_team2[j] != m_QueuedGroups[bracket_id][i].end(); ++(itr_team2[i]))
+                    for(itr_team2[j] = m_QueuedGroups[bracket_id][j].begin(); itr_team2[j] != m_QueuedGroups[bracket_id][j].end(); ++(itr_team2[j]))
                     {
                         GroupQueueInfo* ginfo2 = *itr_team2[j];
 
