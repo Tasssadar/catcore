@@ -74,8 +74,18 @@ BattleGroundQueue::~BattleGroundQueue()
         {
             for(GroupsQueueType::iterator itr = m_QueuedGroups[i][j].begin(); itr!= m_QueuedGroups[i][j].end(); ++itr)
                 delete (*itr);
+
             m_QueuedGroups[i][j].clear();
         }
+        for(GroupsQueueType::iterator itr = m_DiscartedGroups[i].begin(); itr!= m_DiscartedGroups[i].end(); ++itr)
+            delete (*itr);
+
+        m_DiscartedGroups[i].clear();
+
+        for(GroupsQueueType::iterator itr = m_QueuedArena[i].begin(); itr!= m_QueuedArena[i].end(); ++itr)
+            delete (*itr);
+
+        m_QueuedArena[i].clear();
     }
 }
 
@@ -263,7 +273,10 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
         }
 
         //add GroupInfo to m_QueuedGroups
-        m_QueuedGroups[bracketId][index].push_back(ginfo);
+        if (ArenaType && isRated)
+            s;
+        else
+            m_QueuedGroups[bracketId][index].push_back(ginfo);
 
         //announce to world, this code needs mutex
         if (!ArenaType && !isRated && !isPremade && sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_QUEUE_ANNOUNCER_JOIN))
@@ -2376,3 +2389,30 @@ uint32 GroupQueueInfo::GetMaxRating() const
 
     return rating;
 }
+
+float BattleGroundMgr::GetChanceForWin(uint16 ratA, uint16 ratB)
+{
+    return 1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
+}
+
+float BattleGroundMgr::GetKModifikator(uint16 rat)
+{
+    //return 96.f-0.043f*float(rat);
+    return (pow((float)limitedRating(rat), 2.f)-3000.f*rat+3375000.f)/35156.25;
+}
+
+float BattleGroundMgr::GetModRating(uint16 ratA, uint16 ratB, bool win)
+{
+    float chance = GetChanceForWin(ratA, ratB);
+    float K = GetKModifikator(ratA);
+    if (win)
+        return (int32)floor(K* (1.0f - chance));
+    else
+        return (int32)ceil(K * (0.0f - chance));
+}
+
+float BattleGroundMgr::GetWinChanceValue(uint16 ratA, uint16 ratB)
+{
+    return (pow((float)limitedRating(ratA),2.f)-3000.f*rat+6750000.f)/225000*1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
+}
+

@@ -96,15 +96,8 @@ struct ArenaTeamMember
     uint32 wins_season;
     uint32 personal_rating;
 
-    void ModifyPersonalRating(Player* plr, int32 mod, uint32 slot)
-    {
-        if (int32(personal_rating) + mod < 0)
-            personal_rating = 0;
-        else
-            personal_rating += mod;
-        if (plr)
-            plr->SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, personal_rating);
-    }
+    void ModifyPersonalRating(Player* plr, int32 mod, uint32 slot);
+
 };
 
 struct ArenaTeamStats
@@ -200,13 +193,8 @@ class ArenaTeam
         void InspectStats(WorldSession *session, uint64 guid);
 
         uint32 GetPoints(uint32 MemberRating);
-        float GetChanceAgainst(uint32 own_rating, uint32 enemy_rating);
-        int32 WonAgainst(uint32 againstRating);
-        int32 MemberWon(Player * plr, uint32 againstRating);
-        int32 LostAgainst(uint32 againstRating);
-        int32 MemberLost(Player * plr, uint32 againstRating);
-        int32 DrawAgainst(uint32 againstRating);
-        int32 MemberDraw(Player * plr, uint32 againstRating);
+        int32 TeamPlayed(uint16 oppRating, bool win);
+        int32 MemberPlayed(Player* plr, uint16 oppRating, bool win);
         int32 OfflineMemberLost(uint64 guid, uint32 againstRating);
 
         void UpdateArenaPointsHelper(std::map<uint32, uint32> & PlayerPoints);
@@ -214,7 +202,7 @@ class ArenaTeam
         void NotifyStatsChanged();
 
         void FinishWeek();
-        void FinishGame(int32 mod, bool CountMatch = true);
+        void FinishGame(int32 mod);
 
     protected:
 

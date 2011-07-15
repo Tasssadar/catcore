@@ -20,6 +20,7 @@
 #include "ObjectMgr.h"
 #include "ObjectGuid.h"
 #include "ArenaTeam.h"
+#include "BattleGroundMgr.h"
 #include "World.h"
 
 ArenaTeam::ArenaTeam()
@@ -544,195 +545,83 @@ uint32 ArenaTeam::GetPoints(uint32 MemberRating)
     return (uint32) points;
 }
 
-float ArenaTeam::GetChanceAgainst(uint32 own_rating, uint32 enemy_rating)
-{
-    // returns the chance to win against a team with the given rating, used in the rating adjustment calculation
-    // ELO system
-
-    if (sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID) >= 6)
-        if (enemy_rating < 1500)
-            enemy_rating = 1500;
-
-    return 1.0f/(1.0f+exp(log(10.0f)*(float)((float)enemy_rating - (float)own_rating)/400.0f));
-}
-
-void ArenaTeam::FinishGame(int32 mod, bool CountMatch)
+void ArenaTeam::FinishGame(int32 mod)
 {
     if (int32(m_stats.rating) + mod < 0)
         m_stats.rating = 0;
     else
         m_stats.rating += mod;
 
-    if (CountMatch)
+    m_stats.games_week += 1;
+    m_stats.games_season += 1;
+}
+
+int32 ArenaTeam::TeamPlayed(uint16 oppRating, bool win)
+{
+    // calculate mod for team rating
+    int32 mod = sBattleGroundMgr.GetModRating(m_stats.rating, oppRating, win);
+
+    // modify the team stats accordingly
+    FinishGame(mod);
+    if (win)
     {
-        m_stats.games_week += 1;
-        m_stats.games_season += 1;
+        m_stats.wins_week += 1;
+        m_stats.wins_season += 1;
     }
-}
-
-int32 ArenaTeam::WonAgainst(uint32 againstRating)
-{
-    // called when the team has won
-    // 'chance' calculation - to beat the opponent
-    float chance = GetChanceAgainst(m_stats.rating, againstRating);
-    float K = (m_stats.rating < 1500) ? 48.0f : 32.0f;
-    // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-    int32 mod = (int32)floor(K* (1.0f - chance));
-    // modify the team stats accordingly
-    FinishGame(mod);
-    m_stats.wins_week += 1;
-    m_stats.wins_season += 1;
 
     // return the rating change, used to display it on the results screen
     return mod;
 }
 
-int32 ArenaTeam::LostAgainst(uint32 againstRating)
+//called for each member when arena has finished
+int32 ArenaTeam::MemberPlayed(Player *plr, uint16 oppRating, bool win)
 {
-    // called when the team has lost
-    //'chance' calculation - to loose to the opponent
-    float chance = GetChanceAgainst(m_stats.rating, againstRating);
-    float K = (m_stats.rating < 1500) ? 48.0f : 32.0f;
-    // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-    int32 mod = (int32)ceil(K * (0.0f - chance));
-    
-    if (againstRating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE) || m_stats.rating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE))
-        mod = 0;
-    else if (m_stats.rating <= sWorld.getConfig(CONFIG_UINT32_LOSERHALFCHANGE))
-        mod /= 2;
+    ArenaTeamMember* mbr = GetMember(plr->GetGUID());
 
-    // modify the team stats accordingly
-    FinishGame(mod);
+    // player not found in team
+    if (!mbr)
+        return 0;
 
-    // return the rating change, used to display it on the results screen
-    return mod;
-}
+    // update personal rating
+    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, win);
+    mbr->ModifyPersonalRating(plr, personal_mod, GetSlot());
 
-int32 ArenaTeam::DrawAgainst(uint32 againstRating)
-{
-    // called when the team has lost
-    //'chance' calculation - to loose to the opponent
-    // chance is always 0.f;
-    float chance = 0.5f;
-    float K = (m_stats.rating < 1500) ? 48.0f : 32.0f;
-    // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-    int32 mod = (int32)ceil(K * (0.0f - chance));
-    
-    if (againstRating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE) || m_stats.rating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE))
-        mod = 0;
-    else if (m_stats.rating <= sWorld.getConfig(CONFIG_UINT32_LOSERHALFCHANGE))
-        mod /= 2;
+    // update matchmaker rating
+    int32 matchmaker_mod = sBattleGroundMgr.GetModRating(plr->GetMatchmakerRating(GetSlot()), oppRating, win);
+    plr->ModifyMatchmakerRating(matchmaker_mod, GetSlot());
 
-    // modify the team stats accordingly
-    FinishGame(mod, false);
-
-    // return the rating change, used to display it on the results screen
-    return mod;
-}
-
-int32 ArenaTeam::MemberLost(Player * plr, uint32 againstRating)
-{
-    // called for each participant of a match after losing
-    for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
+    // update personal stats
+    mbr->games_week += 1;
+    mbr->games_season += 1;
+    if (win)
     {
-        if (itr->guid == plr->GetGUID())
-        {
-            // update personal rating
-            float chance = GetChanceAgainst(itr->personal_rating, againstRating);
-            float K = (itr->personal_rating < 1500) ? 48.0f : 32.0f;
-            // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-            int32 mod = (int32)ceil(K * (0.0f - chance));
+        mbr->wins_season += 1;
+        mbr->wins_week += 1;
+    }
 
-            if (againstRating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE) || itr->personal_rating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE))
-                mod = 0;
-            else if (itr->personal_rating <= sWorld.getConfig(CONFIG_UINT32_LOSERHALFCHANGE))
-                mod /= 2;
+    // update unit fields
+    plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_WEEK, mbr->games_week);
+    plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_SEASON, mbr->games_season);
 
-            itr->ModifyPersonalRating(plr, mod, GetSlot());
-            // update personal played stats
-            itr->games_week += 1;
-            itr->games_season += 1;
-            // update the unit fields
-            plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_WEEK,  itr->games_week);
-            plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_SEASON,  itr->games_season);
-            return mod;
-        }
-    }return 0;
-}
-
-int32 ArenaTeam::MemberDraw(Player * plr, uint32 againstRating)
-{
-    // called for each participant of a match after losing
-    for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
-    {
-        if (itr->guid == plr->GetGUID())
-        {
-            // update personal rating
-            // chance is always 0.5
-            float chance = 0.5f;
-            float K = (itr->personal_rating < 1500) ? 48.0f : 32.0f;
-            // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-            int32 mod = (int32)ceil(K * (0.0f - chance));
-
-            if (againstRating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE) || itr->personal_rating <= sWorld.getConfig(CONFIG_UINT32_LOSERNOCHANGE))
-                mod = 0;
-            else if (itr->personal_rating <= sWorld.getConfig(CONFIG_UINT32_LOSERHALFCHANGE))
-                mod /= 2;
-
-            itr->ModifyPersonalRating(plr, mod, GetSlot());
-            return mod;
-        }
-    }return 0;
+    return personal_mod;
 }
 
 int32 ArenaTeam::OfflineMemberLost(uint64 guid, uint32 againstRating)
 {
-    // called for offline player after ending rated arena match!
-    for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
-    {
-        if (itr->guid == guid)
-        {
-            // update personal rating
-            float chance = GetChanceAgainst(itr->personal_rating, againstRating);
-            float K = (itr->personal_rating < 1000) ? 48.0f : 32.0f;
-            // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-            int32 mod = (int32)ceil(K * (0.0f - chance));
-            if (int32(itr->personal_rating) + mod < 0)
-                itr->personal_rating = 0;
-            else
-                itr->personal_rating += mod;
-            // update personal played stats
-            itr->games_week += 1;
-            itr->games_season += 1;
-            return mod;
-        }
-    }return 0;
-}
+    ArenaTeamMember* mbr = GetMember(plr->GetGUID());
 
-int32 ArenaTeam::MemberWon(Player * plr, uint32 againstRating)
-{
-    // called for each participant after winning a match
-    for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
-    {
-        if (itr->guid == plr->GetGUID())
-        {
-            // update personal rating
-            float chance = GetChanceAgainst(itr->personal_rating, againstRating);
-            float K = (itr->personal_rating < 1500) ? 48.0f : 32.0f;
-            // calculate the rating modification (ELO system with k=32 or k=48 if rating<1000)
-            int32 mod = (int32)floor(K* (1.0f - chance));
-            itr->ModifyPersonalRating(plr, mod, GetSlot());
-            // update personal stats
-            itr->games_week += 1;
-            itr->games_season += 1;
-            itr->wins_season += 1;
-            itr->wins_week += 1;
-            // update unit fields
-            plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_WEEK, itr->games_week);
-            plr->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_GAMES_SEASON, itr->games_season);
-            return mod;
-        }
-    }return 0;
+    // player not found in team
+    if (!mbr)
+        return 0;
+
+    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, false);
+    mbr->ModifyPersonalRating(plr, personal_mod, GetSlot());
+
+    // update personal played stats
+    mbr->games_week += 1;
+    mbr->games_season += 1;
+
+    return mod;
 }
 
 void ArenaTeam::UpdateArenaPointsHelper(std::map<uint32, uint32>& PlayerPoints)
@@ -771,9 +660,8 @@ void ArenaTeam::SaveToDB()
     CharacterDatabase.BeginTransaction();
     CharacterDatabase.PExecute("UPDATE arena_team_stats SET rating = '%u',games = '%u',played = '%u',rank = '%u',wins = '%u',wins2 = '%u' WHERE arenateamid = '%u'", m_stats.rating, m_stats.games_week, m_stats.games_season, m_stats.rank, m_stats.wins_week, m_stats.wins_season, GetId());
     for(MemberList::const_iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
-    {
         CharacterDatabase.PExecute("UPDATE arena_team_member SET played_week = '%u', wons_week = '%u', played_season = '%u', wons_season = '%u', personal_rating = '%u' WHERE arenateamid = '%u' AND guid = '%u'", itr->games_week, itr->wins_week, itr->games_season, itr->wins_season, itr->personal_rating, m_TeamId, GUID_LOPART(itr->guid));
-    }
+
     CharacterDatabase.CommitTransaction();
 }
 
@@ -807,7 +695,7 @@ void ArenaTeam::UpdateTeamRank(bool update_packet, bool save_to_db)
     for (ObjectMgr::ArenaTeamMap::const_iterator i = sObjectMgr.GetArenaTeamMapBegin(); i != sObjectMgr.GetArenaTeamMapEnd(); ++i)
     {
         if (GetType() == i->second->GetType() && GetStats().rating < i->second->GetRating())
-                ++rank;
+            ++rank;
     }
     SetRank(rank);
     if (update_packet)
@@ -829,4 +717,15 @@ void ArenaTeam::UpdateAllRanks()
         team->second->SetRank(rank);
         team->second->NotifyStatsChanged();
     }
+}
+
+void ArenaTeamMember::ModifyPersonalRating(Player *plr, int32 mod, uint32 slot)
+{
+    if (int32(personal_rating) + mod < 0)
+        personal_rating = 0;
+    else
+        personal_rating += mod;
+
+    if (plr)
+        plr->SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, personal_rating);
 }

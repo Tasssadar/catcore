@@ -334,6 +334,18 @@ class BattleGround
         uint32 GetBattlemasterEntry() const;
         uint32 GetBonusHonorFromKill(uint32 kills) const;
         bool IsRandom()                     { return m_IsRandom; }
+        uint8 GetSlot() const
+        {
+            uint8 slot = 0;
+            switch(m_ArenaType)
+            {
+                case ARENA_TYPE_2v2: slot = 0; break;
+                case ARENA_TYPE_3v3: slot = 1; break;
+                case ARENA_TYPE_5v5: slot = 2; break;
+                default: break;
+            }
+            return slot;
+        }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
@@ -651,6 +663,39 @@ class BattleGround
         float m_TeamStartLocO[BG_TEAMS_COUNT];
 
         uint32 m_uiPlayersJoined;
+};
+
+struct ArenaLog
+{
+    public:
+        ArenaLog(uint8 arenaType_m) : winnerCount(0), loserCount(0), arenaType(arenaType_m) {}
+
+        void writeTxtStart(uint8 type, uint8 winnerChange, uint8 loserChange);
+        void writeTxtStartSide(const char* name, uint8 originalRating, bool win);
+        void writeTxtEnd();
+
+        void writeMember(Player* plr, uint8 ratingChange, bool win);
+
+        void writeDb(const char* column, const char* value);
+        void writeDb(const char* column, int value);
+
+        void TxtExecute();
+        void DbExecute();
+
+    private:
+        // txt log
+        std::ostringstream TxtLog;
+        std::ostringstream TxtWinner;
+        std::ostringstream TxtLoser;
+
+        // db log
+        std::ostringstream DbColumn;
+        std::ostringstream DbData;
+
+        uint8 winnerCount;
+        uint8 loserCount;
+
+        uint8 arenaType;
 };
 
 // helper functions for world state list fill

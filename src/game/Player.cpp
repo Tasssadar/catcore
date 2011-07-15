@@ -615,6 +615,9 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     //TeamBG helpers
     m_isInTeamBG = false;
     m_fakeTeam = 0;
+
+    for(uint8 i = 0; i < MAX_ARENA_SLOT; ++i)
+        m_matchmaker_rating[i] = 1500;
 }
 
 Player::~Player ()
@@ -15605,8 +15608,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47               48              49
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk,"
-    // 50      51      52      53      54      55      56      57      58         59          60             61              62      63           64
-    //"health, power1, power2, power3, power4, power5, power6, power7, specCount, activeSpec, exploredZones, equipmentCache, ammoId, knownTitles, actionBars  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // 50      51      52      53      54      55      56      57      58         59          60             61              62      63           64          65
+    //"health, power1, power2, power3, power4, power5, power6, power7, specCount, activeSpec, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, matchmaker_rating FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult *result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
     if (!result)
@@ -16128,6 +16131,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         uint32 savedpower = fields[51+i].GetUInt32();
         SetPower(Powers(i),savedpower > GetMaxPower(Powers(i)) ? GetMaxPower(Powers(i)) : savedpower);
     }
+
+    _LoadMMR(fields[65].GetString());
 
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "The value of player %s after load item and aura is: ", m_name.c_str());
     outDebugStatsValues();
@@ -17274,6 +17279,7 @@ void Player::ConvertInstancesToGroup(Player *leader, Group *group)
             group->AddBind(itr->second);
 }
 
+
 uint32 Player::GetInstanceTimerId() const
 {
     return m_bindTimerSave ? m_bindTimerSave->GetGUID() : 0;
@@ -17472,7 +17478,7 @@ void Player::SaveToDB()
         "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
         "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
         "todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk, health, power1, power2, power3, "
-        "power4, power5, power6, power7, specCount, activeSpec, exploredZones, equipmentCache, ammoId, knownTitles, actionBars) VALUES ("
+        "power4, power5, power6, power7, specCount, activeSpec, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, matchmaker_rating) VALUES ("
         << GetGUIDLow() << ", "
         << GetSession()->GetAccountId() << ", '"
         << sql_name << "', "
@@ -17588,13 +17594,13 @@ void Player::SaveToDB()
 
     ss << "',";
     ss << GetUInt32Value(PLAYER_AMMO_ID) << ", '";
-    for(uint32 i = 0; i < KNOWN_TITLES_SIZE*2; ++i )
-    {
+    for(uint32 i = 0; i < KNOWN_TITLES_SIZE*2; ++i)
         ss << GetUInt32Value(PLAYER__FIELD_KNOWN_TITLES + i) << " ";
-    }
     ss << "',";
-    ss << uint32(GetByteValue(PLAYER_FIELD_BYTES, 2));
-    ss << ")";
+    ss << uint32(GetByteValue(PLAYER_FIELD_BYTES, 2)) << ",'";
+    for(uint8 i = 0; i < MAX_ARENA_SLOT; ++i)
+        ss << m_matchmaker_rating[i] << " ";
+    ss << "')";
 
     CharacterDatabase.Execute( ss.str().c_str() );
 
@@ -23310,4 +23316,33 @@ void Player::SetItem(Item* item, uint8 slot)
 {
     m_items[slot] = item;
     BuildAverageItemLevel();
+}
+
+void Player::_LoadMMR(const char *data)
+{
+    if (!data)
+        return;
+
+    Tokens tokens = StrSplit(data, " ");
+
+    if (tokens.size() != MAX_ARENA_SLOT)
+    {
+        sLog.outCatLog("_LoadMMR:: Could not load MMR rating for player %s (GUID: %u), cause mmr blob contains %u numbers", GetName(), GetGUIDLow(), tokens.size());
+        return;
+    }
+
+    Tokens::iterator iter;
+    uint32 index;
+    for (iter = tokens.begin(), index = 0; index < count; ++iter, ++index)
+    {
+        m_matchmaker_rating[index] = atol((*iter).c_str());
+    }
+}
+
+void Player::ModifyMatchmakerRating(int32 mod, uint8 slot)
+{
+    if (int32(m_matchmaker_rating[slot]) + mod < 1000)
+        m_matchmaker_rating[slot] = 1000;
+    else
+        m_matchmaker_rating[slot] += mod;
 }

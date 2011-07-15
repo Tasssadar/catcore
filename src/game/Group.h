@@ -360,6 +360,8 @@ class MANGOS_DLL_SPEC Group
         void UpdateAverageItemLevel();
         uint32 GetAverageItemLevel() const { return m_aitemlevel; }
 
+        uint32 GetAverageMMR(uint8 slot);
+
     protected:
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant=false);
         bool _addMember(const uint64 &guid, const char* name, bool isAssistant, uint8 group);

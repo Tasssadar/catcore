@@ -119,6 +119,7 @@ class BattleGroundQueue
         */
         GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
         GroupsQueueType m_DiscartedGroups[MAX_BATTLEGROUND_BRACKETS];
+        GroupsQueueType m_QueuedArena[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
         class SelectionPool
@@ -288,6 +289,13 @@ class BattleGroundMgr
         static HolidayIds BGTypeToWeekendHolidayId(BattleGroundTypeId bgTypeId);
         static BattleGroundTypeId WeekendHolidayIdToBGType(HolidayIds holiday);
         static bool IsBGWeekend(BattleGroundTypeId bgTypeId);
+
+        float GetChanceForWin(uint16 ratA, uint16 ratB);
+        float GetKModifikator(uint16 rat);
+        int32 GetModRating(uint16 ratA, uint16 ratB, bool win);
+        float GetWinChanceValue(uint16 ratA, uint16 ratB);
+        uint16 limitedRating(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
+
     private:
         ACE_Thread_Mutex    SchedulerLock;
         BattleMastersMap    mBattleMastersMap;

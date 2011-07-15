@@ -692,8 +692,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
         return;
     }
 
-    BattleGroundTypeId bgTypeId = bg->GetTypeID();
-    BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, arenatype);
+    BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(BATTLEGROUND_AA, arenatype);
     PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bg->GetMapId(),_player->getLevel());
     if (!bracketEntry)
         return;
@@ -735,25 +734,8 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             _player->GetSession()->SendNotInArenaTeamPacket(arenatype);
             return;
         }
-        // get the team rating for queue
-        arenaRating = at->GetRating();
-        // the arena team id must match for everyone in the group
-        // get the personal ratings for queue
-        uint32 avg_pers_rating = 0;
-        for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
-        {
-            Player *member = itr->getSource();
+        arenaRating = grp->GetAverageMMR(arenaslot);
 
-            // calc avg personal rating
-            avg_pers_rating += member->GetArenaPersonalRating(arenaslot);
-        }
-
-        if (arenatype)
-            avg_pers_rating /= arenatype;
-
-        // if avg personal rating is more than 150 points below the teams rating, the team will be queued against an opponent matching or similar to the average personal rating
-        if (avg_pers_rating + 150 < arenaRating)
-            arenaRating = avg_pers_rating;
     }
 
     BattleGroundQueue &bgQueue = sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId];
