@@ -273,9 +273,9 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
         }
 
         //add GroupInfo to m_QueuedGroups
-        if (ArenaType && isRated)
-            s;
-        else
+        //if (ArenaType && isRated)
+        //    s;
+        //else
             m_QueuedGroups[bracketId][index].push_back(ginfo);
 
         //announce to world, this code needs mutex
@@ -451,7 +451,7 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
             DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(guid), group->OpponentsTeamRating);
             Player *plr = sObjectMgr.GetPlayer(guid);
             if (plr)
-                at->MemberLost(plr, group->OpponentsTeamRating);
+                at->MemberPlayed(plr, group->OpponentsTeamRating, false);
             else
                 at->OfflineMemberLost(guid, group->OpponentsTeamRating);
             at->SaveToDB();
@@ -2401,7 +2401,7 @@ float BattleGroundMgr::GetKModifikator(uint16 rat)
     return (pow((float)limitedRating(rat), 2.f)-3000.f*rat+3375000.f)/35156.25;
 }
 
-float BattleGroundMgr::GetModRating(uint16 ratA, uint16 ratB, bool win)
+int32 BattleGroundMgr::GetModRating(uint16 ratA, uint16 ratB, bool win)
 {
     float chance = GetChanceForWin(ratA, ratB);
     float K = GetKModifikator(ratA);
@@ -2413,6 +2413,6 @@ float BattleGroundMgr::GetModRating(uint16 ratA, uint16 ratB, bool win)
 
 float BattleGroundMgr::GetWinChanceValue(uint16 ratA, uint16 ratB)
 {
-    return (pow((float)limitedRating(ratA),2.f)-3000.f*rat+6750000.f)/225000*1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
+    return (pow((float)limitedRating(ratA),2.f)-3000.f*ratA+6750000.f)/225000*1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
 }
 

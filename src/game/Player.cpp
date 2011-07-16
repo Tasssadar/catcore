@@ -23333,7 +23333,7 @@ void Player::_LoadMMR(const char *data)
 
     Tokens::iterator iter;
     uint32 index;
-    for (iter = tokens.begin(), index = 0; index < count; ++iter, ++index)
+    for (iter = tokens.begin(), index = 0; index < MAX_ARENA_SLOT; ++iter, ++index)
     {
         m_matchmaker_rating[index] = atol((*iter).c_str());
     }

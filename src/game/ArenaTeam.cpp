@@ -606,22 +606,22 @@ int32 ArenaTeam::MemberPlayed(Player *plr, uint16 oppRating, bool win)
     return personal_mod;
 }
 
-int32 ArenaTeam::OfflineMemberLost(uint64 guid, uint32 againstRating)
+int32 ArenaTeam::OfflineMemberLost(uint64 guid, uint32 oppRating)
 {
-    ArenaTeamMember* mbr = GetMember(plr->GetGUID());
+    ArenaTeamMember* mbr = GetMember(guid);
 
     // player not found in team
     if (!mbr)
         return 0;
 
     int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, false);
-    mbr->ModifyPersonalRating(plr, personal_mod, GetSlot());
+    mbr->ModifyPersonalRating(NULL, personal_mod, GetSlot());
 
     // update personal played stats
     mbr->games_week += 1;
     mbr->games_season += 1;
 
-    return mod;
+    return personal_mod;
 }
 
 void ArenaTeam::UpdateArenaPointsHelper(std::map<uint32, uint32>& PlayerPoints)

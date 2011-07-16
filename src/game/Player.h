@@ -39,6 +39,7 @@
 #include "DBCEnums.h"
 #include "LfgMgr.h"
 #include "LfgGroup.h"
+#include "ArenaTeam.h"
 
 #include<string>
 #include<vector>

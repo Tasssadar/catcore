@@ -1912,12 +1912,15 @@ uint32 Group::GetAverageMMR(uint8 slot)
 {
     uint32 total = 0;
     // take some member arena team id, must match with everyone else
-    uint16 arenateamid = m_memberSlots.first()->GetArenaTeamId(slot);
+    uint16 arenateamid = 0;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         if (Player* plr = sObjectMgr.GetPlayer(citr->guid))
         {
-            if (plr->GetArenaTeamId(slot) != arenateamid)
+            if (!arenateamid)
+                arenateamid = plr->GetArenaTeamId(slot);
+
+            else if (plr->GetArenaTeamId(slot) != arenateamid)
                 return 1500;
 
             total = plr->GetMatchmakerRating(slot);

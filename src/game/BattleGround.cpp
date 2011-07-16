@@ -809,7 +809,7 @@ void BattleGround::EndBattleGround(uint32 winner)
     // arena rating calculation
     if (isArena() && isRated() && m_Winner)
     {
-        winnerTeam = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(winner);
+        winnerTeam = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(winner));
         loserTeam = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(winner)));
 
         if (winnerTeam && loserTeam)
@@ -832,15 +832,15 @@ void BattleGround::EndBattleGround(uint32 winner)
                 loserChange = loserTeam->TeamPlayed(loserRating, false);
             }
 
-            SetArenaTeamRatingChangeForTeam(winner, winner_change);
-            SetArenaTeamRatingChangeForTeam(GetOtherTeam(winner), loser_change);
+            SetArenaTeamRatingChangeForTeam(winner, winnerChange);
+            SetArenaTeamRatingChangeForTeam(GetOtherTeam(winner), loserChange);
 
             // logging
             log.writeTxtStart(winnerTeam->GetType(), winnerChange, loserChange);
             log.writeTxtStartSide(winnerTeam->GetName().c_str(), winnerRating, true);
             log.writeTxtStartSide(loserTeam->GetName().c_str(), loserRating, false);
 
-            log.writeDb("rat_change", "'"+winnerChange+"/"+loserChange+"'");
+            //log.writeDb("rat_change", ("'"+winnerChange+"/"+loserChange+"'"));
             log.writeDb("winner", winnerTeam->GetName().c_str());
             log.writeDb("winner_orig_rat", winnerRating);
             log.writeDb("loser", loserTeam->GetName().c_str());
@@ -863,9 +863,9 @@ void BattleGround::EndBattleGround(uint32 winner)
             if (isArena() && isRated() && winnerTeam && loserTeam)
             {
                 if (team == winner)
-                    winnerTeam->OfflineMemberLost(itr->first, loser_rating);
+                    winnerTeam->OfflineMemberLost(itr->first, loserMMR);
                 else
-                    loserTeam->OfflineMemberLost(itr->first, winner_rating);
+                    loserTeam->OfflineMemberLost(itr->first, winnerMMR);
                 char const* a = (team == winner) ? "win" : "lose";
                 sLog.outArenaLog(" LEAVER:: Player (GUID: %u) %s arena match, but not in arena during EndBattleGround", GUID_LOPART(itr->first), a);
             }
@@ -903,13 +903,13 @@ void BattleGround::EndBattleGround(uint32 winner)
         }
 
         // per player calculation
-        if (isArena() && isRated() && winnerTeam && Team)
+        if (isArena() && isRated() && winnerTeam && loserTeam)
         {
             int32 ratingChange = 0;
 
             // update achievement BEFORE personal rating update
-            ArenaTeam& arenaTeam = isWinner ? winnerTeam : loserTeam;
-            uint16& correctMMR = isWinner ? winnerMMR : loserMMR;
+            ArenaTeam* arenaTeam = isWinner ? winnerTeam : loserTeam;
+            uint32& correctMMR = isWinner ? winnerMMR : loserMMR;
 
             ArenaTeamMember* member = arenaTeam->GetMember(plr->GetGUID());
 
@@ -960,7 +960,7 @@ void BattleGround::EndBattleGround(uint32 winner)
         winnerTeam->UpdateAllRanks();
 
         log.writeTxtEnd();
-        log.ArenaLog.writeDb("arena_duration", int(m_ArenaDuration));
+        log.writeDb("arena_duration", int(m_ArenaDuration));
 
         // logs filled, execute them
         log.DbExecute();
@@ -1197,7 +1197,7 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                     //left a rated match while the encounter was in progress, consider as loser
                     ArenaTeam * ownTeam = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
                     if (ownTeam)
-                        ownTeam->MemberPlayed(plr, GetBgRaid(GetOtherTeam(team))->GetAverageMMR(GetSlot()));
+                        ownTeam->MemberPlayed(plr, GetBgRaid(GetOtherTeam(team))->GetAverageMMR(GetSlot()), false);
                 }
             }
             if (SendPacket)
@@ -1326,26 +1326,19 @@ void BattleGround::AddPlayer(Player *plr)
     // --- TEAM BG ---
     if (!isArena())
     {
-        bool isAllowed = false;
+        eConfigBoolValues config = CONFIG_BOOL_VALUE_COUNT;
         switch(m_TypeID)
         {
-            case BATTLEGROUND_AB:
-                if (sWorld.getConfig(CONFIG_BOOL_TEAM_BG_ALLOW_AB))
-                    isAllowed = true;
-                break;
-            case BATTLEGROUND_AV:
-                if (sWorld.getConfig(CONFIG_BOOL_TEAM_BG_ALLOW_AV))
-                    isAllowed = true;
-                break;
-            case BATTLEGROUND_EY:
-                if (sWorld.getConfig(CONFIG_BOOL_TEAM_BG_ALLOW_EOS))
-                    isAllowed = true;
-                break;
-            case BATTLEGROUND_WS:
-                if (sWorld.getConfig(CONFIG_BOOL_TEAM_BG_ALLOW_WSG))
-                    isAllowed = true;
+            case BATTLEGROUND_AB: config = CONFIG_BOOL_TEAM_BG_ALLOW_AB;  break;
+            case BATTLEGROUND_AV: config = CONFIG_BOOL_TEAM_BG_ALLOW_AV;  break;
+            case BATTLEGROUND_EY: config = CONFIG_BOOL_TEAM_BG_ALLOW_EOS; break;
+            case BATTLEGROUND_WS: config = CONFIG_BOOL_TEAM_BG_ALLOW_WSG; break;
+            default:
                 break;
         }
+
+        bool isAllowed = config != CONFIG_BOOL_VALUE_COUNT && sWorld.getConfig(config);
+
         // for random battlegrounds
         if (IsRandom() && sWorld.getConfig(CONFIG_BOOL_TEAM_BG_ALLOW_RANDOM))
             isAllowed = true;
@@ -2092,9 +2085,9 @@ void BattleGround::SetBracket( PvPDifficultyEntry const* bracketEntry )
 **** ARENA LOG ****
 ******************/
 
-void ArenaLog::writeTxtStart(uint8 type, uint8 winnerChange, uint8 winnerChange)
+void ArenaLog::writeTxtStart(uint8 type, uint8 winnerChange, uint8 loserChange)
 {
-    TxtLog << "Bracket: " << type << " Rating change: " << winnerChange << "/" << winnerChange;
+    TxtLog << "Bracket: " << type << " Rating change: " << winnerChange << "/" << loserChange;
 }
 
 void ArenaLog::writeTxtStartSide(const char *name, uint8 originalRating, bool win)
@@ -2119,9 +2112,9 @@ void ArenaLog::writeDb(const char *column, int value)
     DbData << value << ", ";
 }
 
-void ArenaLog::writeMember(Player *plr, uint8 ratingChange, uint8 arenaType)
+void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
 {
-    int& count = win ? winnerCount : loserCount;
+    uint8& count = win ? winnerCount : loserCount;
 
     // increase count and compare it to arena type
     if (++count <= arenaType)
@@ -2136,11 +2129,11 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, uint8 arenaType)
         // Txt log part
         side << plr->GetName() << " ["      // name
              << ip << "] ("                 // ip
-             << change << "), ";            // change
+             << ratingChange << "), ";      // change
 
         // DB part
-        writeDb("winner_member_"+count, plr->GetName());
-        writeDb("winner_member_"+count+"_ip", ip);
+        //writeDb("winner_member_"+count, plr->GetName());
+        //writeDb("winner_member_"+count+"_ip", ip);
     }
 }
 
