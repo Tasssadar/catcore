@@ -483,8 +483,8 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
                 ArenaTeam * at = sObjectMgr.GetArenaTeamById(ginfo.Team);
                 if (at)
                 {
-                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u, because he has left queue!", GUID_LOPART(_player->GetGUID()), ginfo.OpponentsTeamRating);
-                    at->MemberPlayed(_player, ginfo.OpponentsTeamRating, false);
+                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u, because he has left queue!", GUID_LOPART(_player->GetGUID()), ginfo.OpponentsMMR);
+                    at->MemberPlayed(_player, ginfo.OpponentsMMR, false);
                     at->SaveToDB();
                 }
             }
@@ -656,6 +656,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
 
     uint8 arenatype = 0;
     uint32 arenaRating = 0;
+    uint32 arenaMMR = 0;
 
     switch(arenaslot)
     {
@@ -734,7 +735,8 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             _player->GetSession()->SendNotInArenaTeamPacket(arenatype);
             return;
         }
-        arenaRating = grp->GetAverageMMR(arenaslot);
+        arenaRating = at->GetRating();
+        arenaMMR = grp->GetAverageMMR(arenaslot);
 
     }
 
@@ -782,7 +784,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     }
     else
     {
-        GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, NULL, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId);
+        GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, NULL, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId, arenaMMR);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
         uint32 queueSlot = _player->AddBattleGroundQueueId(bgQueueTypeId);
 
