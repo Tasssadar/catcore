@@ -1005,7 +1005,7 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket & recv_data)
     recv_data.read_skip<uint64>();                          // guid
 
     DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY %u", itemid);
-    ItemSetNameEntry const *pName = ObjectMgr::GetItemSetNameEntry(itemid);
+    ItemSetNameEntry const *pName = sObjectMgr.GetItemSetNameEntry(itemid);
     if (pName)
     {
         std::string Name = pName->name;
@@ -1013,7 +1013,7 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket & recv_data)
         int loc_idx = GetSessionDbLocaleIndex();
         if (loc_idx >= 0)
         {
-            ItemSetNameLocale const *isnl = objmgr.GetItemSetNameLocale(itemid);
+            ItemSetNameLocale const *isnl = sObjectMgr.GetItemSetNameLocale(itemid);
             if (isnl)
                 if (isnl->Name.size() > size_t(loc_idx) && !isnl->Name[loc_idx].empty())
                     Name = isnl->Name[loc_idx];
