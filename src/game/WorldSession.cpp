@@ -29,6 +29,7 @@
 #include "WorldSession.h"
 #include "Player.h"
 #include "ObjectMgr.h"
+#include "WardenMgr.h"
 #include "Group.h"
 #include "Guild.h"
 #include "World.h"
@@ -90,7 +91,7 @@ LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mu
 _player(NULL), m_Socket(sock),_security(sec), _accountId(id), m_expansion(expansion),
 m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
 _logoutTime(0), m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
-m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
+m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_wardenStatus(WARD_STATE_UNREGISTERED), m_WardenClientChecks(NULL)
 {
     if (sock)
     {
@@ -118,6 +119,9 @@ WorldSession::~WorldSession()
     WorldPacket* packet;
     while(_recvQueue.next(packet))
         delete packet;
+
+    ///- inform Warden Manager
+    sWardenMgr.Unregister(this);
 }
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
@@ -323,6 +327,11 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
         if (!m_Socket)
             return false;                                       //Will remove this session from the world session map
     }
+
+    //Process Warden related update for this session
+    if (sWardenMgr.IsEnabled())
+        sWardenMgr.Update(this);                                //Called 2 times from Map::Update and World::UpdateSessions
+
 
     return true;
 }
