@@ -16877,6 +16877,11 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     if(maxElev == 0.0f)
         return true;
 
+    // actually when we use mmaps, they should handle most of it by themselves
+    PathInfo path(this, x, y, z, false);
+    if(!(path.getPathType() & PATHFIND_NOT_USING_PATH))
+        return true;
+    
     float distance = GetDistance2d(x, y);
     float lastCheckX = cx;
     float lastCheckY = cy;
