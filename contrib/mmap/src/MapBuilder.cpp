@@ -31,7 +31,7 @@ namespace MMAP
 {
     MapBuilder::MapBuilder(float maxWalkableAngle, bool skipLiquid,
                            bool skipContinents, bool skipJunkMaps, bool skipBattlegrounds,
-                           bool debugOutput, bool bigBaseUnit, const char* offMeshFilePath) :
+                           bool debugOutput, bool bigBaseUnit, float agentRadius, const char* offMeshFilePath) :
                            m_terrainBuilder(NULL),
                            m_debugOutput        (debugOutput),
                            m_skipContinents     (skipContinents),
@@ -40,6 +40,7 @@ namespace MMAP
                            m_maxWalkableAngle   (maxWalkableAngle),
                            m_bigBaseUnit        (bigBaseUnit),
                            m_rcContext          (NULL),
+                           m_agentRadius        (agentRadius),
                            m_offMeshFilePath    (offMeshFilePath)
     {
         m_terrainBuilder = new TerrainBuilder(skipLiquid);
@@ -490,11 +491,11 @@ namespace MMAP
         rcVcopy(config.bmax, bmax);
 
         config.maxVertsPerPoly = DT_VERTS_PER_POLYGON;
-        config.cs = BASE_UNIT_DIM;
+        config.cs = BASE_UNIT_DIM/2;
         config.ch = BASE_UNIT_DIM;
         config.walkableSlopeAngle = m_maxWalkableAngle;
         config.tileSize = VERTEX_PER_TILE;
-        config.walkableRadius = m_bigBaseUnit ? 1 : 2;
+        config.walkableRadius = m_bigBaseUnit ? 1 : m_agentRadius;
         config.borderSize = config.walkableRadius + 3;
         config.maxEdgeLen = VERTEX_PER_TILE + 1;        //anything bigger than tileSize
         config.walkableHeight = m_bigBaseUnit ? 3 : 6;
@@ -708,7 +709,7 @@ namespace MMAP
         params.offMeshConFlags = meshData.offMeshConnectionsFlags.getCArray();
 
         params.walkableHeight = BASE_UNIT_DIM*config.walkableHeight;    // agent height
-        params.walkableRadius = BASE_UNIT_DIM*config.walkableRadius;    // agent radius
+        params.walkableRadius = m_agentRadius; //BASE_UNIT_DIM*config.walkableRadius;    // agent radius
         params.walkableClimb = BASE_UNIT_DIM*config.walkableClimb;      // keep less that walkableHeight (aka agent height)!
         params.tileX = (((bmin[0] + bmax[0]) / 2) - navMesh->getParams()->orig[0]) / GRID_SIZE;
         params.tileY = (((bmin[2] + bmax[2]) / 2) - navMesh->getParams()->orig[2]) / GRID_SIZE;

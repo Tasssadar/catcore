@@ -67,6 +67,7 @@ namespace MMAP
                        bool skipBattlegrounds   = true,
                        bool debugOutput         = false,
                        bool bigBaseUnit         = false,
+                       float agentRadius        = 0.2666*2.0f,
                        const char* offMeshFilePath = NULL);
 
             ~MapBuilder();
@@ -115,6 +116,7 @@ namespace MMAP
             bool m_skipBattlegrounds;
 
             float m_maxWalkableAngle;
+            float m_agentRadius;
             bool m_bigBaseUnit;
 
             // build performance - not really used for now

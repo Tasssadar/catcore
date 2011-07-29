@@ -144,7 +144,8 @@ void WardenMgr::Update(WorldSession* const session)
                 return;
             case WARD_STATE_CHEAT_CHECK_OUT:            // timeout waiting for a cheat check reply
                 BASIC_LOG("Warden Manager: no Cheat-check reply received, kicking account %u", session->GetAccountId());
-                session->KickPlayer();
+                //session->KickPlayer();
+                session->m_wardenStatus = WARD_STATE_CHEAT_CHECK_IN;
                 return;
             case WARD_STATE_CHEAT_CHECK_IN:             // send cheat check
                 SendCheatCheck(session);
@@ -308,7 +309,7 @@ bool WardenMgr::LoadFromDB()
     {
         sLog.outString(">> Table warden_check_file is empty!");
         sLog.outString();
-        return false;
+        //return false;
     }
     else
     {
@@ -730,14 +731,14 @@ void WardenMgr::SendCheatCheck(WorldSession* const session)
             data.append((*checkList)[i].driver->String.c_str(), (*checkList)[i].driver->String.length());
             DEBUG_LOG("Driver str %s, len %u", (*checkList)[i].driver->String.c_str(), (*checkList)[i].driver->String.length());
         }
-        else if (mRand < WCHECK_FILE_RATIO)
+        /*else if (mRand < WCHECK_FILE_RATIO)
         {
             (*checkList)[i].check = WARD_CHECK_FILE;    // size 1 + string
             (*checkList)[i].file = GetRandFileCheck();
             data << uint8((*checkList)[i].file->String.length());
             data.append((*checkList)[i].file->String.c_str(), (*checkList)[i].file->String.length());
             DEBUG_LOG("File str %s, len %u", (*checkList)[i].file->String.c_str(), (*checkList)[i].file->String.length());
-        }
+        } */
         else
         {
             (*checkList)[i].check = WARD_CHECK_LUA;     // size 1 + string
@@ -1007,7 +1008,7 @@ bool WardenMgr::ValidateCheatCheckResult(WorldSession* const session, WorldPacke
                 clientPacket >> res; // should be 0
                 if (res)
                 {
-                    localCheck = false;
+                    //localCheck = false;
                     BASIC_LOG("Kicking account %u for failed check, MEM at Offset 0x%04X, lentgh %u could not be read by client", accountId, (*checkList)[i].mem->Offset, (*checkList)[i].mem->Length);
                 }
                 else
@@ -1095,7 +1096,7 @@ bool WardenMgr::ValidateCheatCheckResult(WorldSession* const session, WorldPacke
                         BASIC_LOG("Kicking account %u for failed driver check '%s'", accountId ,(*checkList)[i].driver->String.c_str());
                     else
                         BASIC_LOG("Kicking account %u for failed page check Offset 0x%08X, length %u", accountId, (*checkList)[i].page->Offset, (*checkList)[i].page->Length);
-                    localCheck = false;
+                    //localCheck = false;
                 }
                 DEBUG_LOG("Page or Driver %s",localCheck?"Ok":"Failed");
                 pktLen = pktLen - 1;
