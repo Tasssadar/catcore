@@ -573,7 +573,7 @@ void ArenaTeam::FinishGame(int32 mod)
 int32 ArenaTeam::TeamPlayed(uint16 oppRating, bool win)
 {
     // calculate mod for team rating
-    int32 mod = sBattleGroundMgr.GetModRating(m_stats.rating, oppRating, win);
+    int32 mod = sBattleGroundMgr.GetModRating(m_stats.rating, oppRating, m_stats.rating, win);
 
     // modify the team stats accordingly
     FinishGame(mod);
@@ -597,11 +597,11 @@ int32 ArenaTeam::MemberPlayed(Player *plr, uint16 oppRating, bool win)
         return 0;
 
     // update personal rating
-    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, win);
+    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, mbr->personal_rating, win);
     mbr->ModifyPersonalRating(plr, personal_mod, GetSlot());
 
     // update matchmaker rating
-    int32 matchmaker_mod = sBattleGroundMgr.GetModRating(plr->GetMatchmakerRating(GetSlot()), oppRating, win);
+    int32 matchmaker_mod = sBattleGroundMgr.GetModRating(plr->GetMatchmakerRating(GetSlot()), oppRating, mbr->personal_rating, win);
     plr->ModifyMatchmakerRating(matchmaker_mod, GetSlot());
 
     // update personal stats
@@ -628,7 +628,7 @@ int32 ArenaTeam::OfflineMemberLost(uint64 guid, uint32 oppRating)
     if (!mbr)
         return 0;
 
-    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, false);
+    int32 personal_mod = sBattleGroundMgr.GetModRating(mbr->personal_rating, oppRating, mbr->personal_rating, false);
     mbr->ModifyPersonalRating(NULL, personal_mod, GetSlot());
 
     // update personal played stats

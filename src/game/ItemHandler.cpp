@@ -1005,37 +1005,25 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket & recv_data)
     recv_data.read_skip<uint64>();                          // guid
 
     DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY %u", itemid);
-    ItemPrototype const *pProto = ObjectMgr::GetItemPrototype( itemid );
-    if ( pProto )
+    ItemSetNameEntry const *pName = sObjectMgr.GetItemSetNameEntry(itemid);
+    if (pName)
     {
-        std::string Name;
-        Name = pProto->Name1;
+        std::string Name = pName->name;
 
         int loc_idx = GetSessionDbLocaleIndex();
         if (loc_idx >= 0)
         {
-            ItemLocale const *il = sObjectMgr.GetItemLocale(pProto->ItemId);
-            if (il)
-            {
-                if (il->Name.size() > size_t(loc_idx) && !il->Name[loc_idx].empty())
-                    Name = il->Name[loc_idx];
-            }
+            ItemSetNameLocale const *isnl = sObjectMgr.GetItemSetNameLocale(itemid);
+            if (isnl)
+                if (isnl->Name.size() > size_t(loc_idx) && !isnl->Name[loc_idx].empty())
+                    Name = isnl->Name[loc_idx];
         }
-                                                            // guess size
-        WorldPacket data(SMSG_ITEM_NAME_QUERY_RESPONSE, (4+10));
-        data << uint32(pProto->ItemId);
+
+        WorldPacket data(SMSG_ITEM_NAME_QUERY_RESPONSE, (4+Name.size()+1+4));
+        data << uint32(itemid);
         data << Name;
-        data << uint32(pProto->InventoryType);
+        data << uint32(pName->InventoryType);
         SendPacket(&data);
-        return;
-    }
-    else
-    {
-        // listed in dbc or not expected to exist unknown item
-        if (sItemStore.LookupEntry(itemid))
-            DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (item listed in Item.dbc but not exist in DB)", itemid);
-        else
-            DEBUG_LOG("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (unknown item, not listed in Item.dbc)", itemid);
     }
 }
 

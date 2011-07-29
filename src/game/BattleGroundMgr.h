@@ -24,6 +24,7 @@
 #include "Utilities/EventProcessor.h"
 #include "DBCEnums.h"
 #include "BattleGround.h"
+#include "Chat.h"
 #include "ace/Recursive_Thread_Mutex.h"
 
 typedef std::map<uint32, BattleGround*> BattleGroundSet;
@@ -62,11 +63,11 @@ struct GroupQueueInfo                                       // stores informatio
     uint32  ArenaTeamMMR;                                   // if rated match, holds arena team mmr
     uint32  OpponentsMMR;                                   // for rated arena matches
 
-    uint32  CurrentMaxChanceDiff;                           // current difference to max rating
+    float   CurrentMaxChanceDiff;                           // current difference to max rating
     uint32  LastUpdatedTime;                                // time of last max rating update
 
-    uint32  GetMinChance() const;
-    uint32  GetMaxChance() const;
+    float   GetMinChance() const;
+    float   GetMaxChance() const;
     bool    IsAlreadySet() const { return OpponentTeamId && IsInvitedToBGInstanceGUID; }
     bool    IsInAllowedChanceRange(uint32 mmr) const;       // compares rating in parameter with min and max allowed rating
     float   GetWinChanceValue(uint16 ratA, uint16 ratB) const; 
@@ -103,6 +104,9 @@ class BattleGroundQueue
         void PlayerInvitedToBGUpdateAverageWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, PvPDifficultyEntry const* bracketEntry, uint8 arenaType);
+
+        GroupsQueueType RatArenaQueue(int32 bracket) const { return m_QueuedRatedArenas[bracket]; }
+
 
     private:
         //mutex that should not allow changing private data, nor allowing to update Queue during private data change.
@@ -298,12 +302,15 @@ class BattleGroundMgr
 
         float GetChanceForWin(uint16 ratA, uint16 ratB);
         float GetKModifikator(uint16 rat);
-        int32 GetModRating(uint16 ratA, uint16 ratB, bool win);
+        int32 GetModRating(uint16 ratA, uint16 ratB, uint16 Krat, bool win);
         uint16 limRat(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
 
         static uint8 GetSlotByType(uint32 type);
         static uint8 GetTypeBySlot(uint32 slot);
 
+        void SendQueueInfoToPlayer(ChatHandler* chat);
+
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
     private:
         ACE_Thread_Mutex    SchedulerLock;
         BattleMastersMap    mBattleMastersMap;

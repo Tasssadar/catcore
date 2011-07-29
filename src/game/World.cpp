@@ -1039,6 +1039,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadCreatureLocales();
     sObjectMgr.LoadGameObjectLocales();
     sObjectMgr.LoadItemLocales();
+    sObjectMgr.LoadItemSetNameLocales();
     sObjectMgr.LoadQuestLocales();
     sObjectMgr.LoadNpcTextLocales();
     sObjectMgr.LoadPageTextLocales();
@@ -1095,8 +1096,12 @@ void World::SetInitialWorldSettings()
     sLog.outString( "Loading Items..." );                   // must be after LoadRandomEnchantmentsTable and LoadPageTexts
     sObjectMgr.LoadItemPrototypes();
 
+    sLog.outString("Loading Item set names...");            // must be after LoadItemPrototypes
+    sObjectMgr.LoadItemSetNames();
+
     sLog.outString( "Loading Items Extended Cost..." );
     sObjectMgr.LoadItemExtendedCost();
+
     sLog.outString( "Loading Creature Model Based Info Data..." );
     sObjectMgr.LoadCreatureModelInfo();
 
