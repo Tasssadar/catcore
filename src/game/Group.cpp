@@ -1923,9 +1923,10 @@ uint32 Group::GetAverageMMR(uint8 slot)
             else if (plr->GetArenaTeamId(slot) != arenateamid)
                 return 1500;
 
-            total = plr->GetMatchmakerRating(slot);
+            total += plr->GetMatchmakerRating(slot);
         }
     }
 
     return total/GetMembersCount();
+    return uint32(float(total)/GetMembersCount());
 }

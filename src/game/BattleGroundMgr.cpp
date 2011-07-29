@@ -408,6 +408,15 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
                 }
             }
         }
+        for(group_itr_tmp = m_QueuedRatedArenas[bracket_id_tmp].begin(); group_itr_tmp != m_QueuedRatedArenas[bracket_id_tmp].end(); ++group_itr_tmp)
+        {
+            if ((*group_itr_tmp) == group)
+            {
+                bracket_id = bracket_id_tmp;
+                group_itr = group_itr_tmp;
+                break;
+            }
+        }
     }
     //player can't be in queue without group, but just in case
     if (bracket_id == -1)
@@ -2370,7 +2379,7 @@ uint8 BattleGroundMgr::GetTypeBySlot( uint32 slot )
     return 0xFF;
 }
 
-uint32 GroupQueueInfo::GetMinChance() const
+float GroupQueueInfo::GetMinChance()
 {
     if (EQUAL_CHANCE > CurrentMaxChanceDiff)
         return EQUAL_CHANCE - CurrentMaxChanceDiff;
@@ -2378,46 +2387,44 @@ uint32 GroupQueueInfo::GetMinChance() const
     return 0;
 }
 
-uint32 GroupQueueInfo::GetMaxChance() const
+float GroupQueueInfo::GetMaxChance()
 {
     return EQUAL_CHANCE + CurrentMaxChanceDiff;
 }
 
-bool GroupQueueInfo::IsInAllowedChanceRange(uint32 mmr) const
+bool GroupQueueInfo::IsInAllowedChanceRange(uint32 mmr)
 {
     float chance = GetWinChanceValue(ArenaTeamMMR, mmr);
     return chance >= GetMinChance() && chance <= GetMaxChance();
 }
 
-float GroupQueueInfo::GetWinChanceValue(uint16 ratA, uint16 ratB) const
+float GroupQueueInfo::GetWinChanceValue(uint16 ratA, uint16 ratB)
 {
     return (pow((float)limRat(ratA),2.f)-3000.f*limRat(ratA)+6750000.f)/225000*1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
 }
 
-void BattleGroundMgr::SendQueueInfoToPlayer(ChatHandler *chat)
+void BattleGroundMgr::SendQueueInfoToPlayer(Player* plr)
 {
     for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
     {
-        BattleGroundQueue& queue = m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2)];
-
-        GroupsQueueType& group = queue.RatArenaQueue(bracket_id);
+        GroupsQueueType group = m_BattleGroundQueues[BATTLEGROUND_QUEUE_2v2].RatArenaQueue(bracket_id);
 
         if (int32 size = group.size())
-            chat->PSendSysMessage("There are currently %i teams in queue for bracket %u", size, bracket_id);
+            ChatHandler(plr).PSendSysMessage("There are currently %i teams in queue for bracket %u", size, bracket_id);
         else
         {
-            chat->PSendSysMessage("There is no team for bracket %u, ending!", bracket_id);
-            return;
+            //ChatHandler(plr).PSendSysMessage("There is no team for bracket %u, ending!", bracket_id);
+            continue;
         }
 
         uint32 count = 0;
         for(GroupsQueueType::iterator itr_team = group.begin(); itr_team != group.end(); ++itr_team)
         {
             ++count;
-            chat->PSendSysMessage("Team %u (ID:%u): MMR rat = %u, min chance = %f, max chance = %f", (*itr_team)->ArenaTeamId, (*itr_team)->ArenaTeamMMR, (*itr_team)->GetMinChance(), (*itr_team)->GetMaxChance());
+            ChatHandler(plr).PSendSysMessage("Team %u (ID:%u): MMR rat = %u, min chance = %f, max chance = %f, time in queue %i", count, (*itr_team)->ArenaTeamId, (*itr_team)->ArenaTeamMMR, (*itr_team)->GetMinChance(), (*itr_team)->GetMaxChance(), getMSTimeDiff((*itr_team)->JoinTime, getMSTime()));
         }
 
-        chat->SendSysMessage("All teams written");
+        ChatHandler(plr).SendSysMessage("All teams written");
 
         for(GroupsQueueType::iterator itr_team1 = group.begin(); itr_team1 != group.end(); ++itr_team1)
         {
@@ -2427,12 +2434,18 @@ void BattleGroundMgr::SendQueueInfoToPlayer(ChatHandler *chat)
             {
                 GroupQueueInfo* ginfo2 = *itr_team2;
 
-                float chance = GetWinChanceValue(ginfo1->ArenaTeamMMR, ginfo2->ArenaTeamMMR);
-                chat->PSendSysMessage("Win chance for team %u is %f, but its min chance is %f and max chance is %f", ginfo1->ArenaTeamId, chance, ginfo1->GetMinChance(), ginfo1->GetMaxChance());
+                if (ginfo1->ArenaTeamId == ginfo2->ArenaTeamId)
+                    continue;
+
+
+                float chance = ginfo1->GetWinChanceValue(ginfo1->ArenaTeamMMR, ginfo2->ArenaTeamMMR);
+                ChatHandler(plr).PSendSysMessage("Win chance for team %u is %f, but its min chance is %f and max chance is %f", ginfo1->ArenaTeamId, chance, ginfo1->GetMinChance(), ginfo1->GetMaxChance());
             }
         }
-    }
 
-    chat->SendSysMessage("ALL SENT");
+        ChatHandler(plr).PSendSysMessage("ALL SENT for bracket %u", bracket_id);
+        ChatHandler(plr).PSendSysMessage("timers addstart %u discard %u", sBattleGroundMgr.GetStepAddStartTimer(), sBattleGroundMgr.GetRatingDiscardTimer() );
+
+    }
 
 }

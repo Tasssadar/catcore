@@ -6734,6 +6734,6 @@ bool ChatHandler::HandleMmapTestArea(const char* args)
 
 bool ChatHandler::HandleQueueInfoCommand(const char * /*args*/)
 {
-    sBattleGroundMgr.SendQueueInfoToPlayer(this);
+    sBattleGroundMgr.SendQueueInfoToPlayer(m_session->GetPlayer());
     return true;
 }

@@ -751,7 +751,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             if (isRated)
                 DEBUG_LOG("Battleground: arena team id %u, leader %s queued with rating %u for type %u",_player->GetArenaTeamId(arenaslot),_player->GetName(),arenaRating,arenatype);
 
-            GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, grp, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId);
+            GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, grp, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId, arenaMMR);
             avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
         }
 
@@ -784,7 +784,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     }
     else
     {
-        GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, NULL, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId, arenaMMR);
+        GroupQueueInfo * ginfo = bgQueue.AddGroup(_player, NULL, BATTLEGROUND_AA, bracketEntry, arenatype, isRated, false, arenaRating, ateamId);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
         uint32 queueSlot = _player->AddBattleGroundQueueId(bgQueueTypeId);
 
