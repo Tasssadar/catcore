@@ -2188,7 +2188,7 @@ void ArenaLog::writeTxtStart(uint8 type, uint8 winnerChange, uint8 loserChange)
 
 void ArenaLog::writeTxtStartSide(const char *name, uint8 originalRating, bool win)
 {
-    std::ostringstream& side = win ? TxtWinner : TxtLoser;
+    std::stringstream& side = win ? TxtWinner : TxtLoser;
     const char* w = win ? "Winner:" : "Loser:";
     side << w << " "
          << name << " ["
@@ -2230,7 +2230,7 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
         const char* ip = result ? result->Fetch()[0].GetString() : "IP not found";
         delete result;
 
-        std::ostringstream& side = win ? TxtWinner : TxtLoser;
+        std::stringstream& side = win ? TxtWinner : TxtLoser;
 
         // Txt log part
         side << plr->GetName() << " ["      // name
@@ -2239,7 +2239,7 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
 
         // DB part
         std::stringstream member;
-        member << win ? "winner_member_" : "loser_member_" << count;
+        member << (win ? "winner_member_" : "loser_member_") << count;
         std::stringstream memberip = member;
         memberip << "_ip";
 

@@ -688,13 +688,13 @@ struct ArenaLog
 
     private:
         // txt log
-        std::ostringstream TxtLog;
-        std::ostringstream TxtWinner;
-        std::ostringstream TxtLoser;
+        std::stringstream TxtLog;
+        std::stringstream TxtWinner;
+        std::stringstream TxtLoser;
 
         // db log
-        std::ostringstream DbColumn;
-        std::ostringstream DbData;
+        std::stringstream DbColumn;
+        std::stringstream DbData;
 
         uint8 winnerCount;
         uint8 loserCount;
