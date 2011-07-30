@@ -942,13 +942,10 @@ void BattleGround::EndArena(uint32 winner)
         log.writeTxtStartSide(loserTeam->GetName().c_str(), loserRating, false);
 
         // get string of change
-        std::string change = "'";
-        change += winnerChange;
-        change += "/";
-        change += loserChange;
-        change += "'";
+        std::stringstream change;
+        change << "+" << winnerChange << "/" << loserChange;
 
-        log.writeDb("rat_change", change.c_str());
+        log.writeDb("rat_change", change.str().c_str());
         log.writeDb("winner", winnerTeam->GetName().c_str());
         log.writeDb("winner_orig_rat", winnerRating);
         log.writeDb("loser", loserTeam->GetName().c_str());
@@ -1059,7 +1056,7 @@ void BattleGround::EndArena(uint32 winner)
         winnerTeam->UpdateAllRanks();
 
         log.writeTxtEnd();
-        log.writeDb("arena_duration", int(m_ArenaDuration));
+        log.writeDb("arena_duration", int(m_ArenaDuration), false);
 
         // logs filled, execute them
         log.DbExecute();
@@ -2199,16 +2196,26 @@ void ArenaLog::writeTxtStartSide(const char *name, uint8 originalRating, bool wi
          << " (";
 }
 
-void ArenaLog::writeDb(const char *column, const char *value)
+void ArenaLog::writeDb(const char *column, const char *value, bool cnt)
 {
-    DbColumn << "`" << column << "`, ";
-    DbData << "'" << value << "', ";
+    DbColumn << "`" << column << "`";
+    DbData << "'" << value << "'";
+    if (cnt)
+    {
+        DbColumn << ", ";
+        DbData << ", ";
+    }
 }
 
-void ArenaLog::writeDb(const char *column, int value)
+void ArenaLog::writeDb(const char *column, int value, bool cnt)
 {
-    DbColumn << "`" << column << "`, ";
-    DbData << value << ", ";
+    DbColumn << "`" << column << "`";
+    DbData << value;
+    if (cnt)
+    {
+        DbColumn << ", ";
+        DbData << ", ";
+    }
 }
 
 void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
@@ -2220,7 +2227,7 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
     {
         // get ip
         QueryResult *result = LoginDatabase.PQuery("SELECT last_ip FROM realmd.account WHERE id in (SELECT account FROM characters.characters WHERE guid = %u)", plr->GetGUIDLow());
-        const char* ip = result ? result->Fetch()[0].GetString() : "ERROR: ip not found";
+        const char* ip = result ? result->Fetch()[0].GetString() : "IP not found";
         delete result;
 
         std::ostringstream& side = win ? TxtWinner : TxtLoser;
@@ -2231,13 +2238,13 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
              << ratingChange << "), ";      // change
 
         // DB part
-        std::string member = win ? "winner_member_" : "loser_member_";
-        member += count;
-        std::string memberip = member;
-        memberip += "_ip";
+        std::stringstream member;
+        member << win ? "winner_member_" : "loser_member_" << count;
+        std::stringstream memberip = member;
+        memberip << "_ip";
 
-        writeDb(member.c_str(), plr->GetName());
-        writeDb(memberip.c_str(), ip);
+        writeDb(member.str().c_str(), plr->GetName());
+        writeDb(memberip.str().c_str(), ip);
     }
 }
 
@@ -2254,10 +2261,12 @@ void ArenaLog::TxtExecute()
 
 void ArenaLog::DbExecute()
 {
-    std::ostringstream ss;
+    /*std::ostringstream ss;
     ss << "INSERT INTO arena_log_" << arenaType << " ("
        << DbColumn.str().c_str() << ") VALUES ("
        << DbData.str().c_str() << " )";
 
-    CharacterDatabase.PExecute( ss.str().c_str() );
+    CharacterDatabase.PExecute( ss.str().c_str() );*/
+
+    CharacterDatabase.PExecute("INSERT INTO arena_log_%u (%s) VALUES (%s)", arenaType, DbColumn.str().c_str(), DbData.str().c_str());
 }

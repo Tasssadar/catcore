@@ -680,8 +680,8 @@ struct ArenaLog
 
         void writeMember(Player* plr, uint8 ratingChange, bool win);
 
-        void writeDb(const char* column, const char* value);
-        void writeDb(const char* column, int value);
+        void writeDb(const char* column, const char* value, bool cnt = true);
+        void writeDb(const char* column, int value, bool cnt = true);
 
         void TxtExecute();
         void DbExecute();
