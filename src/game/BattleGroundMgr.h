@@ -252,7 +252,7 @@ class BattleGroundMgr
         void ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id);
         uint32 GetStartMaxChanceDiff() const;
         uint32 GetStepAddStartTimer() const;
-        uint32 GetChanceAddOnStep() const;
+        float GetChanceAddOnStep() const;
         uint32 GetStepInterval() const;
         uint32 GetRatingDiscardTimer()  const;
         uint32 GetPrematureFinishTime() const;

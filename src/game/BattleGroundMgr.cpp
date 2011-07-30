@@ -417,6 +417,15 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
                 break;
             }
         }
+        for(group_itr_tmp = m_DiscartedGroups[bracket_id_tmp].begin(); group_itr_tmp != m_DiscartedGroups[bracket_id_tmp].end(); ++group_itr_tmp)
+        {
+            if ((*group_itr_tmp) == group)
+            {
+                bracket_id = bracket_id_tmp;
+                group_itr = group_itr_tmp;
+                break;
+            }
+        }
     }
     //player can't be in queue without group, but just in case
     if (bracket_id == -1)
@@ -1019,17 +1028,10 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
         }
         else if (timeInQueue > sBattleGroundMgr.GetStepAddStartTimer())
         {
-            // time from start just passed
-            if (!ginfo->LastUpdatedTime)
+            if (!ginfo->LastUpdatedTime || getMSTimeDiff(ginfo->LastUpdatedTime, now) > sBattleGroundMgr.GetStepInterval())
             {
                 ginfo->CurrentMaxChanceDiff += sBattleGroundMgr.GetChanceAddOnStep();
                 ginfo->LastUpdatedTime = now;
-            }
-            else
-            {
-                uint32 timeFromUpdate = getMSTimeDiff(ginfo->LastUpdatedTime, now);
-                if (timeFromUpdate > sBattleGroundMgr.GetStepInterval())
-                    ginfo->CurrentMaxChanceDiff += sBattleGroundMgr.GetChanceAddOnStep();
             }
         }
         ++itr_team;
@@ -1092,11 +1094,8 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
                 continue;
 
             // rating of team 2 is ok for team 1
-            if (ginfo1->IsInAllowedChanceRange(ginfo2->ArenaTeamMMR))
-                continue;
-
-            // rating of team 1 is ok for team 2
-            if (ginfo2->IsInAllowedChanceRange(ginfo1->ArenaTeamMMR))
+            if (!ginfo1->IsInAllowedChanceRange(ginfo2->ArenaTeamMMR) ||
+                !ginfo2->IsInAllowedChanceRange(ginfo1->ArenaTeamMMR))
                 continue;
 
             // everything ok, queue them together
@@ -1285,11 +1284,12 @@ void BattleGroundMgr::Update(uint32 diff)
             m_BattleGroundQueues[bgQueueTypeId].UpdateBattleGrounds(bgTypeId, bracket_id, arenaType);
         }
 
-        // update rated arenas
-        for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
-            for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
-                m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2+slot)].UpdateRatedArenas(BattleGroundBracketId (bracket_id), GetTypeBySlot(slot));
     }
+
+    // update rated arenas
+    for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
+        for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
+            m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2+slot)].UpdateRatedArenas(BattleGroundBracketId (bracket_id), GetTypeBySlot(slot));
 
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
@@ -2124,7 +2124,7 @@ uint32 BattleGroundMgr::GetStepAddStartTimer() const
     return sWorld.getConfig(CONFIG_UINT32_START_INCREASE_MAX_RATING_TIMER);
 }
 
-uint32 BattleGroundMgr::GetChanceAddOnStep() const
+float BattleGroundMgr::GetChanceAddOnStep() const
 {
     return sWorld.getConfig(CONFIG_FLOAT_STEP_ADD_CHANCE);
 }
