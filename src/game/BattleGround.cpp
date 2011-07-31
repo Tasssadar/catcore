@@ -937,7 +937,7 @@ void BattleGround::EndArena(uint32 winner)
         SetArenaTeamRatingChangeForTeam(teamB, loserChange);
 
         // logging
-        log.writeTxtStart(winnerTeam->GetType(), winnerChange, loserChange);
+        log.writeTxtStart(winnerChange, loserChange);
         log.writeTxtStartSide(winnerTeam->GetName().c_str(), winnerRating, true);
         log.writeTxtStartSide(loserTeam->GetName().c_str(), loserRating, false);
 
@@ -2181,19 +2181,16 @@ void BattleGround::SetBracket( PvPDifficultyEntry const* bracketEntry )
 **** ARENA LOG ****
 ******************/
 
-void ArenaLog::writeTxtStart(uint8 type, uint8 winnerChange, uint8 loserChange)
+void ArenaLog::writeTxtStart(uint8 winnerChange, uint8 loserChange)
 {
-    TxtLog << "Bracket: " << type << " Rating change: " << winnerChange << "/" << loserChange;
+    TxtLog << "Bracket: " << int(arenaType) << " Rating change: +" << int(winnerChange) << "/" << int(loserChange);
 }
 
 void ArenaLog::writeTxtStartSide(const char *name, uint8 originalRating, bool win)
 {
     std::stringstream& side = win ? TxtWinner : TxtLoser;
     const char* w = win ? "Winner:" : "Loser:";
-    side << w << " "
-         << name << " ["
-         << originalRating << "] "
-         << " (";
+    side << w << " " << name << " [" << int(originalRating) << "] " << " (";
 }
 
 void ArenaLog::writeDb(const char *column, const char *value, bool cnt)
@@ -2233,15 +2230,13 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
         std::stringstream& side = win ? TxtWinner : TxtLoser;
 
         // Txt log part
-        side << plr->GetName() << " ["      // name
-             << ip << "] ("                 // ip
-             << ratingChange << "), ";      // change
+        side << plr->GetName() << " [" << ip << "] (" << int(ratingChange) << "), ";
 
         // DB part
         std::stringstream member;
-        member << (win ? "winner_member_" : "loser_member_") << count;
-        std::stringstream memberip = member;
-        memberip << "_ip";
+        member << (win ? "winner_member_" : "loser_member_") << int(count);
+        std::stringstream memberip;
+        memberip << member.str().c_str() << "_ip";
 
         writeDb(member.str().c_str(), plr->GetName());
         writeDb(memberip.str().c_str(), ip);

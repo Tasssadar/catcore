@@ -674,7 +674,7 @@ struct ArenaLog
     public:
         ArenaLog(uint8 arenaType_m) : winnerCount(0), loserCount(0), arenaType(arenaType_m) {}
 
-        void writeTxtStart(uint8 type, uint8 winnerChange, uint8 loserChange);
+        void writeTxtStart(uint8 winnerChange, uint8 loserChange);
         void writeTxtStartSide(const char* name, uint8 originalRating, bool win);
         void writeTxtEnd();
 
