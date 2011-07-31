@@ -8236,7 +8236,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     uint32 pathSize = end - start;
 
     // normalize mmap Z result
-    if(m_caster->GetMap()->GetTerrain()->VmapLoaded(cx, cy))
+    if(m_caster->GetMap()->GetTerrain()->VmapLoaded(x, y))
     {
         float closeGround = 0.0f;
         uint8 closeGroundItr = 0;
