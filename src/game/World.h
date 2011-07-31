@@ -81,7 +81,8 @@ enum WorldTimers
     WUPDATE_DELETECHARS = 7,
     WUPDATE_BROADCAST   = 8,
     WUPDATE_INSTANCE_RESET=9,
-    WUPDATE_COUNT       = 10
+    WUPDATE_WARDEN      = 10,
+    WUPDATE_COUNT       = 11
 };
 
 /// Configuration elements
@@ -217,6 +218,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_START_INCREASE_MAX_RATING_TIMER,
     CONFIG_UINT32_STEP_INTERVAL,
     CONFIG_UINT32_GO_GUID_MIN,
+    CONFIG_UINT32_WARDEN_BAN_TIME,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -633,6 +635,7 @@ class World
 
         void KickAll();
         void KickAllLess(AccountTypes sec);
+        BanReturn BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author);
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, std::string duration, std::string reason, std::string author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 

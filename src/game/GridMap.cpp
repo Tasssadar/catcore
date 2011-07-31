@@ -1139,6 +1139,8 @@ float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= N
 
 bool TerrainInfo::VmapLoaded(float x, float y) const
 {
+    if(VMAP::VMapFactory::createOrGetVMapManager()->isVmapIgnored(m_mapId))
+        return false;
     GridPair p = MaNGOS::ComputeGridPair(x, y);
 
     int gx=63-p.x_coord;

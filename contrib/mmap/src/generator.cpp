@@ -70,6 +70,7 @@ bool handleArgs(int argc, char** argv,
                bool &debugOutput,
                bool &silent,
                bool &bigBaseUnit,
+               float &agentRadius,
                char* &offMeshInputPath)
 {
     char* param = NULL;
@@ -86,6 +87,17 @@ bool handleArgs(int argc, char** argv,
                 maxAngle = maxangle;
             else
                 printf("invalid option for '--maxAngle', using default\n");
+        }
+        else if (strcmp(argv[i], "--agentRadius") == 0)
+        {
+            param = argv[++i];
+            if(!param)
+                return false;
+            float agentradius_tmp = atof(param);
+            if(agentradius_tmp >= 0.0f && agentradius_tmp < 50.0f)
+                agentRadius = agentradius_tmp;
+            else
+                printf("invalid option for '--agentRadius', using default\n");
         }
         else if (strcmp(argv[i], "--tile") == 0)
         {
@@ -226,6 +238,7 @@ int main(int argc, char** argv)
 {
     int mapnum = -1;
     float maxAngle = 60.0f;
+    float agentRadius = 0.2666*2.0f;
     int tileX = -1, tileY = -1;
     bool skipLiquid = false,
          skipContinents = false,
@@ -239,7 +252,7 @@ int main(int argc, char** argv)
     bool validParam = handleArgs(argc, argv, mapnum,
                                  tileX, tileY, maxAngle,
                                  skipLiquid, skipContinents, skipJunkMaps, skipBattlegrounds,
-                                 debugOutput, silent, bigBaseUnit, offMeshInputPath);
+                                 debugOutput, silent, bigBaseUnit, agentRadius, offMeshInputPath);
 
     if (!validParam)
         return silent ? -1 : finish("You have specified invalid parameters", -1);
@@ -260,7 +273,7 @@ int main(int argc, char** argv)
         return silent ? -3 : finish("Press any key to close...", -3);
 
     MapBuilder builder(maxAngle, skipLiquid, skipContinents, skipJunkMaps,
-                       skipBattlegrounds, debugOutput, bigBaseUnit, offMeshInputPath);
+                       skipBattlegrounds, debugOutput, bigBaseUnit, agentRadius, offMeshInputPath);
 
     if (tileX > -1 && tileY > -1 && mapnum >= 0)
         builder.buildTile(mapnum, tileX, tileY);

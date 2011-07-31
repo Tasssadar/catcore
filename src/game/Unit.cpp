@@ -6405,6 +6405,16 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 case 63320:
                     triggered_spell_id = 63321;
                     break;
+                // Shiny Shard of the Scale - Equip Effect
+                case 69739:
+                    // Cauterizing Heal or Searing Flame
+                    triggered_spell_id = (procFlag & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) ? 69734 : 69730;
+                    break;
+                // Purified Shard of the Scale - Equip Effect
+                case 69755:
+                    // Cauterizing Heal or Searing Flame
+                    triggered_spell_id = (procFlag & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) ? 69733 : 69729;
+                    break;
                 // Item - Shadowmourne Legendary
                 case 71903:
                 {
@@ -16877,6 +16887,11 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     if(maxElev == 0.0f)
         return true;
 
+    // actually when we use mmaps, they should handle most of it by themselves
+    PathInfo path(this, x, y, z, false);
+    if(!(path.getPathType() & PATHFIND_NOT_USING_PATH))
+        return true;
+    
     float distance = GetDistance2d(x, y);
     float lastCheckX = cx;
     float lastCheckY = cy;

@@ -8190,18 +8190,37 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     //TODO: research more ContactPoint/attack distance.
     //3.666666 instead of ATTACK_DISTANCE(5.0f) in below seem to give more accurate result.
     float x, y, z;
-    unitTarget->GetContactPoint(m_caster, x, y, z, 3.6f);
-    float range = m_caster->GetDistance(x, y, z);
-    float tmpZ = z;
-    unitTarget->UpdateGroundPositionZ(x, y, z, range+5.0f);
-    // try to find higher
-    if(z == tmpZ)
+    bool correct = false;
+    float angle = unitTarget->GetAngle(m_caster);
+    for(uint8 i = 0; i < 4; ++i)
     {
-        z += 5.0f;
-        unitTarget->UpdateGroundPositionZ(x, y, z, range+10.0f);
+        unitTarget->GetNearPoint(m_caster, x, y, z, m_caster->GetObjectBoundingRadius(), 3.6f, angle);
+        float range = m_caster->GetDistance(x, y, z);
+        float tmpZ = z;
+        unitTarget->UpdateGroundPositionZ(x, y, z, range+5.0f);
+        // try to find higher
+        if(z == tmpZ)
+        {
+            z += 5.0f;
+            unitTarget->UpdateGroundPositionZ(x, y, z, range+10.0f);
+        }
+        m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetTerrain()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
+        z+= 0.5f;
+
+        // near enough
+        if(fabs(z - unitTarget->GetPositionZ()) < 5.0f)
+        {
+            correct = true;
+            break;
+        }
+
+        angle += M_PI_F/2;
+        angle = angle > 2*M_PI_F ? angle - 2*M_PI_F : angle;
     }
-    m_caster->UpdateGroundPositionZ(x, y, z, m_caster->GetTerrain()->IsOutdoors(x, y, z) ? 10.0f : 3.0f);
-    z+= 0.5f;
+    // use target position
+    if(!correct)
+        unitTarget->GetPosition(x, y, z);
+
 
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         ((Creature *)unitTarget)->StopMoving();
@@ -8215,6 +8234,36 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     uint32 start = 1;
     uint32 end = pointPath.size();
     uint32 pathSize = end - start;
+
+    // normalize mmap Z result
+    if(m_caster->GetMap()->GetTerrain()->VmapLoaded(cx, cy))
+    {
+        float closeGround = 0.0f;
+        uint8 closeGroundItr = 0;
+        std::vector<float> grounds;
+        for (uint32 i = start; i < end - 1; ++i)
+        {
+            grounds.clear();
+            m_caster->GetMap()->GetTerrain()->FindGroundLevels(&grounds, pointPath[i].x, pointPath[i].y);
+            float closeGround = -1.0f;
+            for(uint8 y = 0; y < grounds.size(); ++y)
+            {
+                float tmp = fabs(pointPath[i].z - grounds[y]);
+                if(closeGround == -1.0f || closeGround > tmp)
+                {
+                    closeGroundItr = y;
+                    closeGround = tmp;
+                }
+            }
+            if(closeGround < 15.0f)
+                pointPath[i].z = grounds[closeGroundItr];
+        }
+    }
+
+    // force the last point to be our precalculated position
+    pointPath[end-1].x = x;
+    pointPath[end-1].y = y;
+    pointPath[end-1].z = z;
 
     float cx,cy,cz;
     m_caster->GetPosition(cx,cy,cz);

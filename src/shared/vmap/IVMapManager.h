@@ -60,6 +60,8 @@ namespace VMAP
             virtual void unloadMap(unsigned int pMapId, int x, int y) = 0;
             virtual void unloadMap(unsigned int pMapId) = 0;
 
+            virtual bool isVmapIgnored(uint id) = 0;
+
             virtual bool isInLineOfSight(unsigned int pMapId, float x1, float y1, float z1, float x2, float y2, float z2) = 0;
             virtual float getHeight(unsigned int pMapId, float x, float y, float z, float maxSearchDist) = 0;
             /**
