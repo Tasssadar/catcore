@@ -45,6 +45,7 @@ struct PlayerQueueInfo                                      // stores informatio
     GroupQueueInfo * GroupInfo;                             // pointer to the associated groupqueueinfo
 };
 
+#define EQUAL_CHANCE 10
 struct GroupQueueInfo                                       // stores information about the group in queue (also used when joined as solo!)
 {
     std::map<uint64, PlayerQueueInfo*> Players;             // player queue info map
@@ -53,11 +54,24 @@ struct GroupQueueInfo                                       // stores informatio
     bool    IsRated;                                        // rated
     uint8   ArenaType;                                      // 2v2, 3v3, 5v5 or 0 when BG
     uint32  ArenaTeamId;                                    // team id if rated match
+    uint32  OpponentTeamId;                                 // opponent team id if rated match
     uint32  JoinTime;                                       // time when group was added
     uint32  RemoveInviteTime;                               // time when we will remove invite for players in group
     uint32  IsInvitedToBGInstanceGUID;                      // was invited to certain BG
     uint32  ArenaTeamRating;                                // if rated match, inited to the rating of the team
-    uint32  OpponentsTeamRating;                            // for rated arena matches
+    uint32  ArenaTeamMMR;                                   // if rated match, holds arena team mmr
+    uint32  OpponentsMMR;                                   // for rated arena matches
+
+    float   CurrentMaxChanceDiff;                           // current difference to max rating
+    uint32  LastUpdatedTime;                                // time of last max rating update
+    uint32  DiscartedTime;                                  // time of discart
+
+    float   GetMinChance();
+    float   GetMaxChance();
+    bool    IsAlreadySet() const { return OpponentTeamId && IsInvitedToBGInstanceGUID; }
+    bool    IsInAllowedChanceRange(uint32 mmr);       // compares rating in parameter with min and max allowed rating
+    float   GetWinChanceValue(uint16 ratA, uint16 ratB); 
+    uint16  limRat(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
 };
 
 enum BattleGroundQueueGroupTypes
@@ -76,18 +90,24 @@ class BattleGroundQueue
         BattleGroundQueue();
         ~BattleGroundQueue();
 
-        void Update(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType = 0, bool isRated = false, uint32 minRating = 0);
+        void UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType = 0);
+        void UpdateRatedArenas(BattleGroundBracketId bracket_id, uint8 arenaType = 0);
 
         void FillPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id);
         bool CheckPremadeMatch(BattleGroundBracketId bracket_id, uint32 MinPlayersPerTeam, uint32 MaxPlayersPerTeam);
         bool CheckNormalMatch(BattleGround* bg_template, BattleGroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers);
         bool CheckSkirmishForSameFaction(BattleGroundBracketId bracket_id, uint32 minPlayersPerTeam);
-        GroupQueueInfo * AddGroup(Player* leader, Group* group, BattleGroundTypeId bgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 ArenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 ArenaTeamId = 0);
+        GroupQueueInfo * AddGroup(Player* leader, Group* group, BattleGroundTypeId bgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 ArenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 ArenaTeamId = 0, uint32 ArenaMMR = 0);
         void RemovePlayer(const uint64& guid, bool decreaseInvitedCount);
         bool IsPlayerInvited(const uint64& pl_guid, const uint32 bgInstanceGuid, const uint32 removeTime);
         bool GetPlayerGroupInfoData(const uint64& guid, GroupQueueInfo* ginfo);
         void PlayerInvitedToBGUpdateAverageWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
+        void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, PvPDifficultyEntry const* bracketEntry, uint8 arenaType);
+
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
+
+        GroupsQueueType RatArenaQueue(int32 bracket) const { return m_QueuedRatedArenas[bracket]; }
 
     private:
         //mutex that should not allow changing private data, nor allowing to update Queue during private data change.
@@ -98,7 +118,7 @@ class BattleGroundQueue
         QueuedPlayersMap m_QueuedPlayers;
 
         //we need constant add to begin and constant remove / add from the end, therefore deque suits our problem well
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
+        
 
         /*
         This two dimensional array is used to store All queued groups
@@ -110,6 +130,8 @@ class BattleGroundQueue
              BG_QUEUE_NORMAL_HORDE      is used for normal (or small) horde groups or non-rated arena matches
         */
         GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
+        GroupsQueueType m_DiscartedGroups[MAX_BATTLEGROUND_BRACKETS];
+        GroupsQueueType m_QueuedRatedArenas[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
         class SelectionPool
@@ -208,7 +230,7 @@ class BattleGroundMgr
 
         uint32 CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsArena, uint32 MinPlayersPerTeam, uint32 MaxPlayersPerTeam, uint32 LevelMin, uint32 LevelMax, char const* BattleGroundName, uint32 MapID, float Team1StartLocX, float Team1StartLocY, float Team1StartLocZ, float Team1StartLocO, float Team2StartLocX, float Team2StartLocY, float Team2StartLocZ, float Team2StartLocO);
 
-        void AddBattleGround(uint32 InstanceID, BattleGroundTypeId bgTypeId, BattleGround* BG) { m_BattleGrounds[bgTypeId][InstanceID] = BG; };
+        void AddBattleGround(uint32 InstanceID, BattleGroundTypeId bgTypeId, BattleGround* BG) { m_BattleGrounds[bgTypeId][InstanceID] = BG; }
         void RemoveBattleGround(uint32 instanceID, BattleGroundTypeId bgTypeId) { m_BattleGrounds[bgTypeId].erase(instanceID); }
         uint32 CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id);
         void DeleteClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint32 clientInstanceID)
@@ -229,7 +251,10 @@ class BattleGroundMgr
         BGFreeSlotQueueType BGFreeSlotQueue[MAX_BATTLEGROUND_TYPE_ID];
 
         void ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id);
-        uint32 GetMaxRatingDifference() const;
+        uint32 GetStartMaxChanceDiff() const;
+        uint32 GetStepAddStartTimer() const;
+        float GetChanceAddOnStep() const;
+        uint32 GetStepInterval() const;
         uint32 GetRatingDiscardTimer()  const;
         uint32 GetPrematureFinishTime() const;
 
@@ -275,6 +300,18 @@ class BattleGroundMgr
         static HolidayIds BGTypeToWeekendHolidayId(BattleGroundTypeId bgTypeId);
         static BattleGroundTypeId WeekendHolidayIdToBGType(HolidayIds holiday);
         static bool IsBGWeekend(BattleGroundTypeId bgTypeId);
+
+        float GetChanceForWin(uint16 ratA, uint16 ratB);
+        float GetKModifikator(uint16 rat);
+        int32 GetModRating(uint16 ratA, uint16 ratB, uint16 Krat, bool win);
+        uint16 limRat(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
+
+        static uint8 GetSlotByType(uint32 type);
+        static uint8 GetTypeBySlot(uint32 slot);
+
+        void SendQueueInfoToPlayer(Player* plr);
+
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
     private:
         ACE_Thread_Mutex    SchedulerLock;
         BattleMastersMap    mBattleMastersMap;
@@ -285,7 +322,6 @@ class BattleGroundMgr
         BattleGroundSet m_BattleGrounds[MAX_BATTLEGROUND_TYPE_ID];
         std::vector<uint64> m_QueueUpdateScheduler;
         std::set<uint32> m_ClientBattleGroundIds[MAX_BATTLEGROUND_TYPE_ID][MAX_BATTLEGROUND_BRACKETS]; //the instanceids just visible for the client
-        uint32 m_NextRatingDiscardUpdate;
         time_t m_NextAutoDistributionTime;
         uint32 m_AutoDistributionTimeChecker;
         bool   m_ArenaTesting;

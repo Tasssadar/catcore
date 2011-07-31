@@ -334,6 +334,18 @@ class BattleGround
         uint32 GetBattlemasterEntry() const;
         uint32 GetBonusHonorFromKill(uint32 kills) const;
         bool IsRandom()                     { return m_IsRandom; }
+        uint8 GetSlot() const
+        {
+            uint8 slot = 0;
+            switch(m_ArenaType)
+            {
+                case ARENA_TYPE_2v2: slot = 0; break;
+                case ARENA_TYPE_3v3: slot = 1; break;
+                case ARENA_TYPE_5v5: slot = 2; break;
+                default: break;
+            }
+            return slot;
+        }
 
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
@@ -436,6 +448,7 @@ class BattleGround
         void UpdateWorldState(uint32 Field, uint32 Value);
         void UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player *Source);
         void EndBattleGround(uint32 winner);
+        void EndArena(uint32 winner);
         void BlockMovement(Player *plr);
 
         void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = NULL);
@@ -469,6 +482,8 @@ class BattleGround
         uint32 GetArenaTeamIdForTeam(uint32 Team) const             { return m_ArenaTeamIds[GetTeamIndexByTeamId(Team)]; }
         void SetArenaTeamRatingChangeForTeam(uint32 Team, int32 RatingChange) { m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)] = RatingChange; }
         int32 GetArenaTeamRatingChangeForTeam(uint32 Team) const    { return m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)]; }
+        void SetArenaMatchmakerRating(uint32 Team, uint32 MMR){ m_ArenaTeamMMR[GetTeamIndexByTeamId(Team)] = MMR; }
+        uint32 GetArenaMatchmakerRating(uint32 Team)                { return m_ArenaTeamMMR[GetTeamIndexByTeamId(Team)]; }
         void CheckArenaWinConditions();
         void UpdateArenaWorldState();
 
@@ -633,6 +648,7 @@ class BattleGround
         uint32 m_ArenaTeamIds[BG_TEAMS_COUNT];
 
         int32 m_ArenaTeamRatingChanges[BG_TEAMS_COUNT];
+        uint32 m_ArenaTeamMMR[BG_TEAMS_COUNT];
 
         /* Limits */
         uint32 m_LevelMin;
@@ -651,6 +667,39 @@ class BattleGround
         float m_TeamStartLocO[BG_TEAMS_COUNT];
 
         uint32 m_uiPlayersJoined;
+};
+
+struct ArenaLog
+{
+    public:
+        ArenaLog(uint8 arenaType_m) : winnerCount(0), loserCount(0), arenaType(arenaType_m) {}
+
+        void writeTxtStart(uint8 winnerChange, uint8 loserChange);
+        void writeTxtStartSide(const char* name, uint8 originalRating, bool win);
+        void writeTxtEnd();
+
+        void writeMember(Player* plr, uint8 ratingChange, bool win);
+
+        void writeDb(const char* column, const char* value, bool cnt = true);
+        void writeDb(const char* column, int value, bool cnt = true);
+
+        void TxtExecute();
+        void DbExecute();
+
+    private:
+        // txt log
+        std::stringstream TxtLog;
+        std::stringstream TxtWinner;
+        std::stringstream TxtLoser;
+
+        // db log
+        std::stringstream DbColumn;
+        std::stringstream DbData;
+
+        uint8 winnerCount;
+        uint8 loserCount;
+
+        uint8 arenaType;
 };
 
 // helper functions for world state list fill

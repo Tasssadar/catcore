@@ -1905,5 +1905,28 @@ void Group::UpdateAverageItemLevel()
         if (Player* player = sObjectMgr.GetPlayer(citr->guid))
             total_value += player->GetAverageItemLevel();
 
-    m_aitemlevel = total_value ? total_value/GetMembersCount() : total_value;
+    m_aitemlevel = total_value/GetMembersCount();
+}
+
+uint32 Group::GetAverageMMR(uint8 slot)
+{
+    uint32 total = 0;
+    // take some member arena team id, must match with everyone else
+    uint16 arenateamid = 0;
+    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+    {
+        if (Player* plr = sObjectMgr.GetPlayer(citr->guid))
+        {
+            if (!arenateamid)
+                arenateamid = plr->GetArenaTeamId(slot);
+
+            else if (plr->GetArenaTeamId(slot) != arenateamid)
+                return 1500;
+
+            total += plr->GetMatchmakerRating(slot);
+        }
+    }
+
+    return total/GetMembersCount();
+    return uint32(float(total)/GetMembersCount());
 }

@@ -39,6 +39,7 @@
 #include "DBCEnums.h"
 #include "LfgMgr.h"
 #include "LfgGroup.h"
+#include "ArenaTeam.h"
 
 #include<string>
 #include<vector>
@@ -2421,13 +2422,16 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool canSeeSpellClickOn(Creature const* creature) const;
 
         //TEAMBG helpers
-        bool isInTeamBG() { return m_isInTeamBG; };
-        void SetTeamBG(bool isIn, uint8 side) { m_isInTeamBG = isIn; m_fakeTeam = side; };
+        bool isInTeamBG() { return m_isInTeamBG; }
+        void SetTeamBG(bool isIn, uint8 side) { m_isInTeamBG = isIn; m_fakeTeam = side; }
 
         Player* LastDmgDealer;
-        uint8 getFakeTeam() { return m_fakeTeam; };
-        void SetFakeTeam(uint8 side) { m_fakeTeam = side; };
-        uint32 getOriginalTeam() { return TeamForRace(getRace()); };
+        uint8 getFakeTeam() { return m_fakeTeam; }
+        void SetFakeTeam(uint8 side) { m_fakeTeam = side; }
+        uint32 getOriginalTeam() { return TeamForRace(getRace()); }
+
+        void ModifyMatchmakerRating(int32 mod, uint8 slot);
+        uint32 GetMatchmakerRating(uint8 slot) const { return m_matchmaker_rating[slot]; }
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2485,6 +2489,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadBGData(QueryResult* result);
         void _LoadBGStatus(QueryResult* result);
         void _LoadGlyphs(QueryResult *result);
+        void _LoadMMR(const char* data);
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
         void AddLoginEquip();
         void LearnAviableSpells();
@@ -2746,6 +2751,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         // TEAMBG helpers
         bool m_isInTeamBG;
         uint8 m_fakeTeam; // 0 nothing, 1 blue(ali), 2 red(horde)
+
+        uint16 m_matchmaker_rating[MAX_ARENA_SLOT];
 };
 
 void AddItemsSetItem(Player*player,Item *item);
