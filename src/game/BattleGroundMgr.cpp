@@ -177,6 +177,7 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
     ginfo->OpponentsMMR              = 0;
     ginfo->CurrentMaxChanceDiff      = sBattleGroundMgr.GetStartMaxChanceDiff();
     ginfo->LastUpdatedTime           = 0;
+    ginfo->DiscartedTime             = 0;
 
     ginfo->Players.clear();
 
@@ -898,6 +899,8 @@ void BattleGroundQueue::UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleG
     // get the min. players per team, properly for larger arenas as well. (must have full teams for arena matches!)
     uint32 MinPlayersPerTeam = bg_template->GetMinPlayersPerTeam();
     uint32 MaxPlayersPerTeam = bg_template->GetMaxPlayersPerTeam();
+    if (sBattleGroundMgr.isTesting())
+        MinPlayersPerTeam = 1;
 
     if (bg_template->isArena())
     {
@@ -911,11 +914,6 @@ void BattleGroundQueue::UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleG
             MaxPlayersPerTeam = arenaType;
             MinPlayersPerTeam = arenaType;
         }
-    }
-    else if (bg_template->isBattleGround())
-    {
-        if (sBattleGroundMgr.isTesting())
-            MinPlayersPerTeam = 1;
     }
 
     m_SelectionPools[BG_TEAM_ALLIANCE].Init();
@@ -1017,12 +1015,16 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
     for(GroupsQueueType::iterator itr_team = m_QueuedRatedArenas[bracket_id].begin(); itr_team != m_QueuedRatedArenas[bracket_id].end(); )
     {
         GroupQueueInfo* ginfo = *itr_team;
+
+        if (ginfo->DiscartedTime)   // if discarted, dont update
+            continue;
+
         uint32 timeInQueue = getMSTimeDiff(ginfo->JoinTime, now);
         if (timeInQueue > sBattleGroundMgr.GetRatingDiscardTimer())
         {
             m_DiscartedGroups[bracket_id].push_back(ginfo);
             sLog.outCatLog("BGQ::Update:: Discarting arena team %u after %u of wait time", ginfo->ArenaTeamId, getMSTime()-ginfo->JoinTime);
-            m_QueuedRatedArenas[bracket_id].erase(itr_team);
+            ginfo->DiscartedTime = now;
             itr_team = m_QueuedRatedArenas[bracket_id].begin();
             continue;
         }
@@ -1052,17 +1054,13 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
             {
                 GroupQueueInfo* ginfo2 = *itr_disc2;
 
-                // team cannon play again itself
+                // team cannot play again itself
                 if (ginfo1->ArenaTeamId == ginfo2->ArenaTeamId)
                     continue;
 
                 // group already set
                 if (ginfo2->IsAlreadySet())
                     continue;
-
-                // everything ok, queue them together
-                ginfo1->OpponentTeamId = ginfo2->ArenaTeamId;
-                ginfo2->OpponentTeamId = ginfo1->ArenaTeamId;
 
                 m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
                 m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
@@ -1071,6 +1069,37 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
                 StartRatedArena(ginfo1, ginfo2, bracketEntry, arenaType);
             }
         }
+    }
+    else if (!m_DiscartedGroups[bracket_id].empty())
+    {
+        GroupQueueInfo* ginfo1 = m_DiscartedGroups[bracket_id].front() ;
+
+        // group already set
+        if (ginfo1->IsAlreadySet())
+            continue;
+
+        // if is discarted for less then 90sec, skip (TODO: value into config)
+        if (getMSTimeDiff(ginfo1->DiscartedTime, now) < 90000)
+            continue;
+
+        // now find second team
+        // search through regular teams, start from begining(longest in queue) and if team is avalible select it
+        GroupQueueInfo* ginfo2 = NULL;
+        for(GroupsQueueType::iterator itr_team = m_QueuedRatedArenas[bracket_id].begin(); itr_team != m_QueuedRatedArenas[bracket_id].end(); ++itr_team)
+        {
+            GroupQueueInfo* grp = *itr_team;
+            if (!grp->IsAlreadySet() && ginfo1->ArenaTeamId != grp->ArenaTeamId)
+            {
+                ginfo2 = grp;
+                break;
+            }
+        }
+
+        m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
+        m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
+
+        sLog.outCatLog("BGQ::Update:: Starting arena for discarted teams %u and %u after %u time in queue and %u time as discarted", ginfo1->ArenaTeamId, ginfo2->ArenaTeamId, getMSTimeDiff(ginfo1->JoinTime, now), getMSTimeDiff(ginfo1->DiscartedTime, now));
+        StartRatedArena(ginfo1, ginfo2, bracketEntry, arenaType);
     }
 
     for(GroupsQueueType::iterator itr_team1 = m_QueuedRatedArenas[bracket_id].begin(); itr_team1 != m_QueuedRatedArenas[bracket_id].end(); ++itr_team1)
@@ -1085,7 +1114,7 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
         {
             GroupQueueInfo* ginfo2 = *itr_team2;
 
-            // team cannon play again itself
+            // team cannot play again itself
             if (ginfo1->ArenaTeamId == ginfo2->ArenaTeamId)
                 continue;
 
@@ -1098,13 +1127,10 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
                 !ginfo2->IsInAllowedChanceRange(ginfo1->ArenaTeamMMR))
                 continue;
 
-            // everything ok, queue them together
-            ginfo1->OpponentTeamId = ginfo2->ArenaTeamId;
-            ginfo2->OpponentTeamId = ginfo1->ArenaTeamId;
-
             m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
             m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
 
+            sLog.outCatLog("BGQ::Update:: Starting arena for teams %u (MMR:%u) and %u (MMR:%u) after %u time in queue", ginfo1->ArenaTeamId, ginfo1->ArenaTeamMMR, ginfo2->ArenaTeamId, ginfo2->ArenaTeamMMR, getMSTimeDiff(ginfo1->JoinTime, now), getMSTimeDiff(ginfo1->DiscartedTime, now));
             StartRatedArena(ginfo1, ginfo2, bracketEntry, arenaType);
         }
     }
@@ -1119,7 +1145,10 @@ void BattleGroundQueue::StartRatedArena(GroupQueueInfo *ginfo1, GroupQueueInfo *
         return;
     }
 
+    ginfo1->OpponentTeamId = ginfo2->ArenaTeamId;
     ginfo1->OpponentsMMR = ginfo2->ArenaTeamMMR;
+
+    ginfo2->OpponentTeamId = ginfo1->ArenaTeamId;
     ginfo2->OpponentsMMR = ginfo1->ArenaTeamMMR;
 
     DEBUG_LOG("BattleGroundQueue:: Setting opposite team rating for team %u to %u", ginfo1->ArenaTeamId, ginfo1->OpponentsMMR);

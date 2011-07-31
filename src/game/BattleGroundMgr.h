@@ -64,6 +64,7 @@ struct GroupQueueInfo                                       // stores informatio
 
     float   CurrentMaxChanceDiff;                           // current difference to max rating
     uint32  LastUpdatedTime;                                // time of last max rating update
+    uint32  DiscartedTime;                                  // time of discart
 
     float   GetMinChance();
     float   GetMaxChance();
