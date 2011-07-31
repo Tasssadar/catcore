@@ -965,8 +965,8 @@ void BattleGround::EndArena(uint32 winner)
                     winnerTeam->OfflineMemberLost(itr->first, loserMMR);
                 else
                     loserTeam->OfflineMemberLost(itr->first, winnerMMR);
-                char const* a = (team == winner) ? "win" : "lose";
-                sLog.outArenaLog(" LEAVER:: Player (GUID: %u) %s arena match, but not in arena during EndBattleGround", GUID_LOPART(itr->first), a);
+
+                sLog.outArenaLog(" LEAVER:: Player (GUID: %u) %s arena match, but not in arena during EndBattleGround", GUID_LOPART(itr->first), (team == winner) ? "win" : "lose");
             }
             continue;
         }
