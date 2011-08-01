@@ -1,0 +1,1 @@
+ALTER TABLE `quest_lfg_relation` CHANGE `flags` `isDaily` TINYINT( 3 ) UNSIGNED NOT NULL DEFAULT '0';

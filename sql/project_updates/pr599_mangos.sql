@@ -1,0 +1,2 @@
+DELETE FROM command WHERE name="litak";
+INSERT INTO `command` (`name`, `security`, `help`) VALUES ('litak', '0', 'Shodi te z litaka, pokud napises .litak textura tak te i teleportuje na pocatectni letu nebo do mista HS.');

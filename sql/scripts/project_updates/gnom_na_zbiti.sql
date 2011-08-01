@@ -1,0 +1,1 @@
+UPDATE creature_template SET ScriptName = 'npc_gnom_na_zbiti' WHERE entry IN (58890,58891,58892,58893);

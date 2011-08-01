@@ -1,0 +1,1 @@
+insert into `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `comments`) values('56161','0','0','0','Priest - Glyph of Prayer of Healing');

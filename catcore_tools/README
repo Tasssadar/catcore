@@ -1,0 +1,16 @@
+Some tools of ours
+
+GUID OVERFLOW FIXER - guid.cpp
+==================================
+ - Changes biggest guids to lower which are free
+ - look at line 36 of guid.cpp file
+
+ For compile use:
+     g++ -o guid $(mysql_config --cflags) guid.cpp $(mysql_config --libs) -g
+
+WEB DUAL SPEC - dual_spec
+==================================
+ - Its imitation of in-game dual spec
+ - Player pay 1000g for activating and then he can reset his talents for free
+ - Czech only
+ - It is using design from old SPORA account manager

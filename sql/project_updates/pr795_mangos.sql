@@ -1,0 +1,1 @@
+ALTER TABLE `quest_lfg_relation` ADD `DungeonId` INT( 11 ) NOT NULL DEFAULT '0' COMMENT 'Only for event dungeons';

@@ -1,0 +1,1 @@
+update creature_template set faction_A = 16, faction_H = 16 where entry in (26627, 31344, 27597, 31348, 27598, 31873, 27600, 31356);
