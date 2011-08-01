@@ -10019,7 +10019,6 @@ bool Unit::RemoveAllAttackers(bool forced)
                         member->IsAtGroupRewardDistance(this) &&
                         member->isInCombat())
                     {
-                        sLog.outCatLog("RemoveAllAttackers:: Nearby player %s (GUID: %u) is in combat, returning false --> not removing combat", member->GetName(), member->GetGUIDLow());
                         if (GetMap()->IsBattleGroundOrArena())
                         {
                             removing_all = false;
@@ -10028,8 +10027,6 @@ bool Unit::RemoveAllAttackers(bool forced)
                         else
                             return false;
                     }
-                    else
-                        sLog.outCatLog("RemoveAllAttackers:: Player %s (GUID: %u) is not nearby or in combat", member->GetName(), member->GetGUIDLow());
                 }
             }
         }

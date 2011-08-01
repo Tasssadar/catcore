@@ -5484,7 +5484,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
         // set infinite cooldown if has flag
         if (m_spellInfo->AttributesEx7 & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
-            ((Player*)caster)->AddSpellAndCategoryCooldowns(m_spellProto, 0, NULL,true);
+            ((Player*)m_caster)->AddSpellAndCategoryCooldowns(m_spellInfo, 0, NULL,true);
     }
 }
 
