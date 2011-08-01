@@ -8245,7 +8245,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         {
             grounds.clear();
             m_caster->GetMap()->GetTerrain()->FindGroundLevels(&grounds, pointPath[i].x, pointPath[i].y);
-            float closeGround = -1.0f;
+            closeGround = -1.0f;
             for(uint8 y = 0; y < grounds.size(); ++y)
             {
                 float tmp = fabs(pointPath[i].z - grounds[y]);

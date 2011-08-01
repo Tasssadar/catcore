@@ -1604,7 +1604,7 @@ bool GOHello_go_focusing_iris(Player* pPlayer, GameObject* pGo)
     }
     Creature *pMalygos = ((Creature*)Unit::GetUnit(*pGo, pGo->GetInstanceData()->GetData64(NPC_MALYGOS)));
     if(!pMalygos)
-       Creature *pMalygos = GetClosestCreatureWithEntry(pGo, NPC_MALYGOS, 150.0f);
+       pMalygos = GetClosestCreatureWithEntry(pGo, NPC_MALYGOS, 150.0f);
     if(pMalygos)
     {
         ((boss_malygosAI*)pMalygos->AI())->m_uiSubPhase = SUBPHASE_FLY_DOWN1;

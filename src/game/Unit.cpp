@@ -450,6 +450,51 @@ void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, SplineTy
         SendMessageToSet( &data, true );
 }
 
+void Unit::SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...)
+{
+    va_list vargs;
+    va_start(vargs,type);
+    
+    WorldPacket data(SMSG_MONSTER_MOVE);
+    data << GetPackGUID();
+    data << uint8(0);
+    data << GetPositionX() << GetPositionY() << GetPositionZ();
+    data << uint32(getMSTime());
+    data << uint8(type);
+    switch(type)
+    {
+        case SPLINETYPE_NORMAL:                             // normal packet
+            break;
+        case SPLINETYPE_STOP:                               // stop packet (raw pos?)
+            va_end(vargs);
+            SendMessageToSet( &data, true );
+            return;
+        case SPLINETYPE_FACINGSPOT:                         // facing spot, not used currently
+        {
+            data << float(va_arg(vargs,double));
+            data << float(va_arg(vargs,double));
+            data << float(va_arg(vargs,double));
+            break;
+        }
+        case SPLINETYPE_FACINGTARGET:
+            data << uint64(va_arg(vargs,uint64));
+            break;
+        case SPLINETYPE_FACINGANGLE:                        // not used currently
+            data << float(va_arg(vargs,double));            // facing angle
+            break;
+    }
+    if(knockback)
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK);
+    else
+        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE);
+    data << uint32(time);
+    data << float(velocity);
+    data << uint32(0);
+    data << uint32(1);
+    data << x << y << z;
+    SendMessageToSet(&data, true);
+}
+
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
 {
     if (!transitTime)
@@ -16132,7 +16177,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
         ((Player*)this)->GetSession()->SendPacket(&data);
     }
     // World Bosses shouldn'be knockable
-    else if (!((Creature*)this)->isWorldBoss())
+    else if (target != this && !((Creature*)this)->isWorldBoss())
     {
         // All this is guessed, but looks cool
         float dis = horizontalSpeed;
@@ -16219,20 +16264,8 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
             velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f))*10.0f;
         }
 
-        WorldPacket data(SMSG_MONSTER_MOVE);
-        data << GetPackGUID();
-        data << uint8(0);
-        data << GetPositionX() << GetPositionY() << GetPositionZ();
-        data << uint32(getMSTime());
-        data << uint8(SPLINETYPE_NORMAL);
-        data << uint32(SPLINEFLAG_TRAJECTORY | SPLINEFLAG_WALKMODE | SPLINEFLAG_KNOCKBACK);
-        data << uint32(time);
-        data << float(velocity);
-        data << uint32(0);
-        data << uint32(1);
-        data << fx << fy << fz;
-        SendMessageToSet(&data, false);
-
+        SendTrajMonsterMove(fx, fy, fz, true, velocity, time, SPLINETYPE_NORMAL);
+        
         // Creature relocation
         PointPath path;
         path.resize(2);
