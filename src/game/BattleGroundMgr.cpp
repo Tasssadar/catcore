@@ -1017,7 +1017,10 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
         GroupQueueInfo* ginfo = *itr_team;
 
         if (ginfo->DiscartedTime)   // if discarted, dont update
+        {
+            ++itr_team;
             continue;
+        }
 
         uint32 timeInQueue = getMSTimeDiff(ginfo->JoinTime, now);
         if (timeInQueue > sBattleGroundMgr.GetRatingDiscardTimer())
@@ -1090,11 +1093,14 @@ void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint
                 }
             }
 
-            m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
-            m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
+            if (ginfo2)
+            {
+                m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
+                m_SelectionPools[BG_TEAM_HORDE].AddGroup(ginfo2, MaxPlayersPerTeam);
 
-            sLog.outCatLog("BGQ::Update:: Starting arena for discarted teams %u and %u after %u time in queue and %u time as discarted", ginfo1->ArenaTeamId, ginfo2->ArenaTeamId, getMSTimeDiff(ginfo1->JoinTime, now), getMSTimeDiff(ginfo1->DiscartedTime, now));
-            StartRatedArena(ginfo1, ginfo2, bracketEntry, arenaType);
+                sLog.outCatLog("BGQ::Update:: Starting arena for discarted teams %u and %u after %u time in queue and %u time as discarted", ginfo1->ArenaTeamId, ginfo2->ArenaTeamId, getMSTimeDiff(ginfo1->JoinTime, now), getMSTimeDiff(ginfo1->DiscartedTime, now));
+                StartRatedArena(ginfo1, ginfo2, bracketEntry, arenaType);
+            }
         }
     }
 
@@ -1287,7 +1293,7 @@ void BattleGroundMgr::DeleteAllBattleGrounds()
 void BattleGroundMgr::Update(uint32 diff)
 {
     // update scheduled queues
-    if (!m_QueueUpdateScheduler.empty())
+    /*if (!m_QueueUpdateScheduler.empty())
     {
         std::vector<uint64> scheduled;
         {
@@ -1309,12 +1315,19 @@ void BattleGroundMgr::Update(uint32 diff)
             m_BattleGroundQueues[bgQueueTypeId].UpdateBattleGrounds(bgTypeId, bracket_id, arenaType);
         }
 
-    }
+    }*/
+
+    // update battleground
+    for(uint8 bgQueue = BATTLEGROUND_QUEUE_NONE; bgQueue < MAX_BATTLEGROUND_QUEUE_TYPES; ++bgQueue)
+        for(uint8 bgTypeId= BATTLEGROUND_TYPE_NONE; bgTypeId< MAX_BATTLEGROUND_TYPE_ID; ++bgTypeId)
+            for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
+                for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
+                    m_BattleGroundQueues[BattleGroundQueueTypeId(bgQueue)].UpdateBattleGrounds(BattleGroundTypeId(bgTypeId), BattleGroundBracketId(bracket_id), GetTypeBySlot(slot));
 
     // update rated arenas
     for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
         for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
-            m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2+slot)].UpdateRatedArenas(BattleGroundBracketId (bracket_id), GetTypeBySlot(slot));
+            m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2+slot)].UpdateRatedArenas(BattleGroundBracketId(bracket_id), GetTypeBySlot(slot));
 
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {

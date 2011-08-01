@@ -1905,7 +1905,7 @@ void Group::UpdateAverageItemLevel()
         if (Player* player = sObjectMgr.GetPlayer(citr->guid))
             total_value += player->GetAverageItemLevel();
 
-    m_aitemlevel = total_value/GetMembersCount();
+    m_aitemlevel = GetMembersCount() ? total_value/GetMembersCount() : 0;
 }
 
 uint32 Group::GetAverageMMR(uint8 slot)
