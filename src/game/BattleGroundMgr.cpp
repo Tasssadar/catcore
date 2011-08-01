@@ -1078,6 +1078,7 @@ void BattleGroundQueue::UpdateRated(BattleGroundBracketId bracket_id, uint8 aren
 
         if (ginfo1 && !ginfo1->IsAlreadySet() &&                // group1 already set
             ginfo2 && !ginfo2->IsAlreadySet() &&                // group2 already set
+            ginfo1->ArenaTeamId != ginfo2->ArenaTeamId &&       // cannot play against same team
             getMSTimeDiff(ginfo1->DiscartedTime, now) > 90000)  // if is discarted for less then 90sec, skip (TODO: value into config)
         {
             m_SelectionPools[BG_TEAM_ALLIANCE].AddGroup(ginfo1, MaxPlayersPerTeam);
@@ -2366,7 +2367,7 @@ float BattleGroundMgr::GetChanceForWin(uint16 ratA, uint16 ratB)
 float BattleGroundMgr::GetKModifikator(uint16 rat)
 {
     //return 96.f-0.043f*float(rat);
-    return (pow((float)limRat(rat), 2.f)-3000.f*rat+3375000.f)/35156.25;
+    return (pow((float)limRat(rat), 2.f)-3000.f*limRat(rat)+3375000.f)/35156.25;
 }
 
 int32 BattleGroundMgr::GetModRating(uint16 ratA, uint16 ratB, uint16 Krat, bool win)
