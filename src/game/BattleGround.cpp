@@ -1005,7 +1005,7 @@ void BattleGround::EndArena(uint32 winner)
 
             // update achievement BEFORE personal rating update
             ArenaTeam* arenaTeam = isWinner ? winnerTeam : loserTeam;
-            uint32& correctMMR = isWinner ? winnerMMR : loserMMR;
+            uint32& againstMMR = isWinner ? loserMMR : winnerMMR;
 
             ArenaTeamMember* member = arenaTeam->GetMember(plr->GetGUID());
 
@@ -1015,7 +1015,7 @@ void BattleGround::EndArena(uint32 winner)
             if (isWinner)
                 plr->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_WIN_RATED_ARENA, member->personal_rating);
 
-            ratingChange = arenaTeam->MemberPlayed(plr, correctMMR, isWinner && !isDraw);
+            ratingChange = arenaTeam->MemberPlayed(plr, againstMMR, isWinner && !isDraw);
 
             if (isWinner)
             {
