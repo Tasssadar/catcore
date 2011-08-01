@@ -147,9 +147,6 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
         if(m_uiIntroTimer < uiDiff)
         {
             if(m_bIsIntroNow)
@@ -199,6 +196,9 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
         }else m_uiIntroTimer -= uiDiff;
 
         if(m_bIsIntroNow)
+            return;
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         if (m_uiBurnCheckTimer < uiDiff)

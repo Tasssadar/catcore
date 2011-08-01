@@ -919,8 +919,8 @@ void BattleGround::EndArena(uint32 winner)
         winnerRating = winnerTeam->GetRating();
         loserRating = loserTeam->GetRating();
 
-        winnerMMR = GetBgRaid(teamA)->GetAverageMMR(GetSlot());
-        loserMMR = GetBgRaid(teamB)->GetAverageMMR(GetSlot());
+        winnerMMR = GetArenaMatchmakerRating(teamA);
+        loserMMR = GetArenaMatchmakerRating(teamB);
 
         if (!isDraw)
         {

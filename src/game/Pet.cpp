@@ -491,6 +491,11 @@ void Pet::setDeathState(DeathState s)                       // overwrite virtual
 
             SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         }
+
+        // reset cooldown on spell if its needed
+        SpellEntry const *createdBySpell = sSpellStore.LookupEntry(GetUInt32Value(UNIT_CREATED_BY_SPELL));
+        if (createdBySpell && createdBySpell->AttributesEx7 & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
+            ((Player*)caster)->SendCooldownEvent(GetSpellProto());
     }
     else if (getDeathState()==ALIVE)
     {
