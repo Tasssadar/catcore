@@ -701,12 +701,18 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                             m_creature->FixOrientation(m_creature->GetAngle(plr));
                         //emote
                         m_chargeTargetPos = new PathNode(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
-                        m_uiChargeStepTimer = 1500;
+                        m_uiChargeStepTimer = 2500;
                         break;
                     }
                     case 2:
                     {
-                        m_creature->KnockBackFrom(m_creature, 35.0f, 10.0f);
+                        float x, y, z, ang;
+                        m_creature->GetPosition(x, y, z);
+                        ang = m_creature->GetFixedOrientation();
+                        ang = ang > M_PI_F*2 ? ang - M_PI_F*2 : ang;
+                        x += cos(ang)*35.0f;
+                        y += sin(ang)*35.0f;
+                        m_creature->SendTrajMonsterMove(x, y, z, true, 100.0f, 1000, SPLINETYPE_NORMAL);
                         m_uiChargeStepTimer = 3000;
                         break;
                     }
