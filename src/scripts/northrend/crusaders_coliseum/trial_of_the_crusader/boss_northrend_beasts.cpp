@@ -612,7 +612,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
     Difficulty m_dDifficulty;
 
     uint32 m_uiChargeStepTimer;
-    uint32 m_uiChargeStepCount;
+    int8 m_uiChargeStepCount;
     uint32 m_uiFerociousButtTimer;
     uint32 m_uiArcticBreathTimer;
     uint32 m_uiWhirlTimer;
@@ -620,11 +620,19 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 
     uint32 m_uiArcticBreathDefixTimer;
 
+    PathNode *m_chargeTargetPos;
+    bool m_trample;
+    bool m_sombodyDied;
+    uint32 m_trampleTimer;
+    std::set<uint32> m_hitPlayers;
+
     void Reset()
     {
         setInitTimers();
 
         m_uiArcticBreathDefixTimer = 0;
+        m_uiChargeStepCount = -1;
+        m_trample = false;
     }
 
     void setInitTimers()
@@ -633,89 +641,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_uiArcticBreathTimer = 20000;
         m_uiWhirlTimer = 15000;
         m_uiMassiveCrashTimer = 35000;
-
-
-
-    }
-
-    uint32 FindProperRange()
-    {
-        float ori = m_creature->GetOrientation();
-        float cz = m_creature->GetPositionZ();
-        float x = m_creature->GetPositionX();
-        float y = m_creature->GetPositionY();
-        uint32 pr_range = 0;
-        while (!pr_range)
-        {
-            x += cos(ori);
-            y += sin(ori);
-            //float z = m_creature->GetTerrain()->GetHeigth(x,y,cz+50, true, 50);
-            float z = m_creature->GetTerrain()->GetHeight(x, y, MAX_HEIGHT, true, 50.f);
-            if (fabs(z-cz) > 5)
-                pr_range = m_creature->GetDistance2d(x,y);
-        }
-        pr_range -= 2;
-        pr_range -= m_creature->GetObjectBoundingRadius();
-        return pr_range;
-    }
-
-    void Charge()
-    {
-        float c_range = FindProperRange();
-        error_log("Counted range to wall is %f", c_range);
-        c_range = 70.0f;
-        float x = m_creature->GetPositionX() + cos(m_creature->GetOrientation())*c_range;
-        float y = m_creature->GetPositionY() + sin(m_creature->GetOrientation())*c_range;
-        float z = m_creature->GetTerrain()->GetHeight(x, y, MAX_HEIGHT, true, 50.f);
-
-        PathInfo path(m_creature, x, y, z, false);
-        PointPath pointPath = path.getFullPath();
-        uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
-        uint32 start = 1;
-        uint32 end = pointPath.size();
-        uint32 pathSize = end - start;
-
-        x = pointPath[start].x;
-        y = pointPath[start].y;
-        z = pointPath[start].z;
-        m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, traveltime);
-        m_creature->GetMotionMaster()->MoveCharge(pointPath, traveltime, start, (end > 1) ? end-1 : end);
-    }
-
-    void FinishCharge()
-    {
-        float dist_to_wall = FindProperRange();
-        error_log("Range to wall iiiis %f", dist_to_wall);
-        dist_to_wall = 50.0f;
-        float angle = m_creature->GetOrientation();
-        float x_per_i = cos(angle);
-        float y_per_i = sin(angle);
-        float x = m_creature->GetPositionX();
-        float y = m_creature->GetPositionY();
-        PlrList pList = GetAttackingPlayers();
-        float b_rad = m_creature->GetObjectBoundingRadius();
-
-        for (uint8 i = 0; i < dist_to_wall; ++i)
-        {
-            x += x_per_i;
-            y += y_per_i;
-            for (PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
-            {
-                float boundings = b_rad + (*itr)->GetObjectBoundingRadius();
-                if ((*itr)->GetDistance2d(x,y) < boundings)
-                {
-                    m_creature->CastSpell(m_creature, SPELL_ENRAGE_ICE, false);
-                    m_creature->CastSpell(*itr, SPELL_TRAMPLE, true);
-                    break;
-                }
-            }
-        }
-
-        if (!m_creature->HasAura(SPELL_ENRAGE_ICE))
-            m_creature->CastSpell(m_creature, SPELL_STAGGERED_DAZE, false);
-
-        m_creature->FixOrientation();
-        setInitTimers();
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -723,6 +648,28 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_creature->hasUnitState(UNIT_STAT_STUNNED))
             return;
 
+        if(m_trample)
+        {
+            if(m_trampleTimer <= uiDiff)
+            {
+                PlrList pList = GetAttackingPlayers();
+                for (PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+                {
+                    if(!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
+                        continue;
+
+                    if(m_hitPlayers.find((*itr)->GetGUIDLow()) == m_hitPlayers.end() &&
+                        (*itr)->IsWithinDist2d(m_creature->GetPositionX(), m_creature->GetPositionY(), 12.0f))
+                    {
+                        m_hitPlayers.insert((*itr)->GetGUIDLow());
+                        m_sombodyDied = true;
+                        m_creature->DealDamage(*itr, 50000, NULL, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NATURE, NULL, false);
+                    }
+                }
+                m_trampleTimer = 200;
+            }else m_trampleTimer -= uiDiff;
+        }
+        
         // remove target fix from arctic breath
         if (m_uiArcticBreathDefixTimer)
         {
@@ -735,42 +682,66 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         }
 
         // handling steps of charge
-        if (m_uiChargeStepCount)
+        if (m_uiChargeStepCount != -1)
         {
             if (m_uiChargeStepTimer < uiDiff)
             {
                 switch (m_uiChargeStepCount)
                 {
+                    case 0:
+                    {
+                        m_creature->CastSpell(m_creature, m_idMassiveCrash[m_dDifficulty], false);
+                        m_uiChargeStepTimer = 2500;
+                        break;
+                    }
                     case 1:
                     {
                         Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
                         if (plr)
                             m_creature->FixOrientation(m_creature->GetAngle(plr));
                         //emote
-                        m_uiChargeStepTimer = 2500;
+                        m_chargeTargetPos = new PathNode(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
+                        m_uiChargeStepTimer = 1500;
                         break;
                     }
                     case 2:
                     {
-                        m_creature->KnockBackFrom(m_creature, 20.0f, 5.0f);
-                        m_uiChargeStepTimer = 1500;
+                        m_creature->KnockBackFrom(m_creature, 35.0f, 10.0f);
+                        m_uiChargeStepTimer = 3000;
                         break;
                     }
                     case 3:
                     {
-                        Charge();
+                        PointPath pointPath;
+                        pointPath.resize(2);
+                        m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+                        pointPath[1] = m_chargeTargetPos;
+                        m_creature->SendMonsterMove(m_chargeTargetPos.x, m_chargeTargetPos.y, m_chargeTargetPos.z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
+                        m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
                         m_uiChargeStepTimer = 1000;
+                        m_hitPlayers.clear();
+                        m_trample = true;
+                        m_sombodyDied = false;
+                        m_trampleTimer = 100;
                         break;
                     }
                     case 4:
                     {
-                        FinishCharge();
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        SetCombatMovement(true);
+                        m_creature->CastSpell(m_creature, SPELL_TRAMPLE, true);
+                        if(m_sombodyDied)
+                            m_creature->CastSpell(m_creature, SPELL_ENRAGE_ICE, false);
+                        else
+                            m_creature->CastSpell(m_creature, SPELL_STAGGERED_DAZE, false);
+                        m_creature->FixOrientation();
+                        setInitTimers();
                         break;
                     }
                 }
                 ++m_uiChargeStepCount;
                 if (m_uiChargeStepCount == 5)
-                    m_uiChargeStepCount = 0;
+                    m_uiChargeStepCount = -1;
 
             }else m_uiChargeStepTimer -= uiDiff;
 
@@ -807,13 +778,20 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         // Massive Crash
         if (HandleTimer(m_uiMassiveCrashTimer, uiDiff, true))
         {
-            m_creature->GetMap()->CreatureRelocation(m_creature, center[0], center[1], center[2], m_creature->GetOrientation());
-            m_creature->SendMonsterMove(center[0], center[1], center[2], SPLINETYPE_NORMAL, SPLINEFLAG_NONE, 0);
+            PointPath pointPath;
+            pointPath.resize(2);
+            m_creature->StopMoving();
+            SetCombatMovement(false);
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+            pointPath[1].x = SpawnLoc[1].x;
+            pointPath[1].y = SpawnLoc[1].y;
+            pointPath[1].z = SpawnLoc[1].z;
+            m_creature->SendMonsterMove(SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
+            m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
 
-            m_creature->CastSpell(m_creature, m_idMassiveCrash[m_dDifficulty], false);
-
-            m_uiChargeStepTimer = 5000;
-            ++m_uiChargeStepCount;
+            m_uiChargeStepTimer = 1000;
+            m_uiChargeStepCount = 0;
 
             m_uiMassiveCrashTimer = 35000;
         }
