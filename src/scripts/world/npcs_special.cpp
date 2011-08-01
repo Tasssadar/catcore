@@ -2225,19 +2225,19 @@ struct MANGOS_DLL_DECL npc_ebon_gargoyleAI : public ScriptedAI
             Unit* target;
             Unit* creator = m_creature->GetCreator();
 
-            if (fixedTarget && fixedTarget->isTargetableForAttack() && fixedTarget->IsWithinDist(m_creature, 40.0f))
+            if (fixedTarget && fixedTarget->IsInWorld() && fixedTarget->isTargetableForAttack() && fixedTarget->IsWithinDist(m_creature, 40.0f))
             {
                 target = fixedTarget;
             }
             else if (Unit* ownersTarget = creator ? creator->getVictim() : 0)
             {
-                if (ownersTarget->IsHostileTo(creator) && ownersTarget->isTargetableForAttack() &&
+                if (ownersTarget->IsInWorld() && ownersTarget->IsHostileTo(creator) && ownersTarget->isTargetableForAttack() &&
                     ownersTarget->IsWithinDist(m_creature, 40.0f) && !ownersTarget->hasUnitState(UNIT_STAT_STUNNED))
                     target = ownersTarget;
             }
             else if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                if (pTarget->isTargetableForAttack() && pTarget->IsWithinDist(m_creature, 40.0f))
+                if (pTarget->IsInWorld() && pTarget->isTargetableForAttack() && pTarget->IsWithinDist(m_creature, 40.0f))
                     target = pTarget;
             }
             else
