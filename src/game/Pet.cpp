@@ -494,8 +494,9 @@ void Pet::setDeathState(DeathState s)                       // overwrite virtual
 
         // reset cooldown on spell if its needed
         SpellEntry const *createdBySpell = sSpellStore.LookupEntry(GetUInt32Value(UNIT_CREATED_BY_SPELL));
-        if (createdBySpell && createdBySpell->AttributesEx7 & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
-            ((Player*)caster)->SendCooldownEvent(GetSpellProto());
+        if (GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER &&
+            createdBySpell && createdBySpell->AttributesEx7 & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
+            ((Player*)GetOwner())->SendCooldownEvent(createdBySpell);
     }
     else if (getDeathState()==ALIVE)
     {
