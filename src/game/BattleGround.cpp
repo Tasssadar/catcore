@@ -948,8 +948,10 @@ void BattleGround::EndArena(uint32 winner)
         log.writeDb("rat_change", change.str().c_str());
         log.writeDb("winner", winnerTeam->GetName().c_str());
         log.writeDb("winner_orig_rat", winnerRating);
+        log.writeDb("winner_orig_mmr", winnerMMR);
         log.writeDb("loser", loserTeam->GetName().c_str());
         log.writeDb("loser_orig_rat", loserRating);
+        log.writeDb("loser_orig_mmr", loserMMR);
     }
 
     for(BattleGroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
