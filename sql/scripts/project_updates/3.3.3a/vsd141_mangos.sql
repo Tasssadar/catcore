@@ -1,0 +1,1 @@
+UPDATE `creature_template` SET `unit_flags` = 512, `ScriptName` = 'npc_galen' WHERE `entry` = 5391;

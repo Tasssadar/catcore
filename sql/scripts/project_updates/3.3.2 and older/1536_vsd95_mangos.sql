@@ -1,0 +1,57 @@
+-- Soul Weaver
+UPDATE creature_template SET minlevel = 80, maxlevel = 80, minhealth = 56700, maxhealth = 56700 WHERE entry = 16429;
+-- Guardian of Icecrown 10 men
+UPDATE creature_template SET minlevel = 80, maxlevel = 80, minhealth = 2520000, maxhealth = 2520000, dmg_multiplier = 1.5, mechanic_immune_mask = 1073741823 WHERE entry = 16441;
+-- Guardian of Icecrown 25 men
+UPDATE creature_template SET minlevel = 80, maxlevel = 80, minhealth = 6300000, maxhealth = 6300000, armor = 7369, dmg_multiplier = 1.8, mechanic_immune_mask = 1073741823 WHERE entry = 30057;
+-- Shadow Fissure
+UPDATE creature_template SET faction_A = 35, faction_H = 35, flags_extra = 130 WHERE entry = 16129;
+
+UPDATE `gameobject_template` SET `flags` = 0 WHERE `entry` = 193426;
+
+DELETE FROM gameobject WHERE guid=21640;
+INSERT INTO `gameobject` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`position_x`,`position_y`,`position_z`,`orientation`,`rotation0`,`rotation1`,`rotation2`,`rotation3`,`spawntimesecs`, `animprogress`,`state`) VALUES
+(21640,193426, 533, 2, 1, 2511.51, -2943.93, 245.552, 5.48707, 0, 0, 0.387631, -0.921815, -604800, 100, 1);
+
+DELETE FROM spell_script_target WHERE entry=55479;
+INSERT INTO spell_script_target (`entry`, `type`, `targetEntry`) VALUES (55479, 1, 16803);               
+
+DELETE FROM npc_gossip WHERE npc_guid IN (128352, 128353);
+DELETE FROM npc_text WHERE ID=100;
+INSERT INTO `npc_gossip` (`npc_guid`, `textid`) VALUES (128352, 100);
+INSERT INTO `npc_gossip` (`npc_guid`, `textid`) VALUES (128353, 100);
+INSERT INTO `npc_text` (`ID`, `text0_0`, `text0_1`, `lang0`, `prob0`, `em0_0`, `em0_1`, `em0_2`, `em0_3`, `em0_4`, `em0_5`, `text1_0`, `text1_1`, `lang1`, `prob1`, `em1_0`, `em1_1`, `em1_2`, `em1_3`, `em1_4`, `em1_5`, `text2_0`, `text2_1`, `lang2`, `prob2`, `em2_0`, `em2_1`, `em2_2`, `em2_3`, `em2_4`, `em2_5`, `text3_0`, `text3_1`, `lang3`, `prob3`, `em3_0`, `em3_1`, `em3_2`, `em3_3`, `em3_4`, `em3_5`, `text4_0`, `text4_1`, `lang4`, `prob4`, `em4_0`, `em4_1`, `em4_2`, `em4_3`, `em4_4`, `em4_5`, `text5_0`, `text5_1`, `lang5`, `prob5`, `em5_0`, `em5_1`, `em5_2`, `em5_3`, `em5_4`, `em5_5`, `text6_0`, `text6_1`, `lang6`, `prob6`, `em6_0`, `em6_1`, `em6_2`, `em6_3`, `em6_4`, `em6_5`, `text7_0`, `text7_1`, `lang7`, `prob7`, `em7_0`, `em7_1`, `em7_2`, `em7_3`, `em7_4`, `em7_5`) VALUES (100, 'Hi. In front of you is standing a Instructor Razuvious. To defeat this boss, you ll need to use Mind Control. If you don t have any priest in your group, press button below.', '', 0, 1, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0, 0, 0, 0);
+
+update creature set spawnMask = 1 where id = 29912;
+
+DELETE FROM `creature_template` WHERE (`entry`=16803);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES (16803, 29941, 0, 0, 0, 0, 16539, 0, 16539, 0, 'Death Knight Understudy', '', '', 0, 82, 82, 404430, 404430, 0, 0, 49905, 21, 21, 0, 1, 1, 1, 488, 642, 0, 782, 7.5, 2000, 0, 1, 32832, 0, 0, 0, 0, 0, 0, 363, 521, 121, 7, 72, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61696, 29060, 29061, 0, 0, 0, 0, 'EventAI', 0, 3, 30, 2, 0, 22708, 0, 0, 0, 0, 0, 144, 1, 1728, 0, 0, '');
+
+DELETE FROM `creature_template` WHERE (`entry`=29941);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES (29941, 0, 0, 0, 0, 0, 16539, 0, 16539, 0, 'Death Knight Understudy (1)', '', '', 0, 82, 82, 404430, 404430, 0, 0, 49905, 14, 14, 0, 1.5, 1, 1, 488, 642, 0, 782, 13, 2000, 0, 1, 32832, 0, 0, 0, 0, 0, 0, 363, 521, 121, 7, 72, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 3, 30, 2, 0, 22708, 0, 0, 0, 0, 0, 144, 1, 0, 0, 0, '');
+
+DELETE FROM `creature_template` WHERE (`entry`=16061);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES (16061, 29940, 0, 0, 0, 0, 16582, 0, 16582, 0, 'Instructor Razuvious', '', '', 0, 83, 83, 3346800, 3346800, 0, 0, 10673, 21, 21, 0, 1.6, 1, 3, 1000, 1200, 0, 800, 70, 3500, 0, 1, 32832, 0, 0, 0, 0, 0, 0, 371, 535, 135, 6, 76, 16061, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1253602, 1532181, '', 0, 3, 240, 2, 0, 0, 0, 0, 0, 0, 0, 167, 1, 1718, 617299803, 1, 'boss_razuvious');
+
+DELETE FROM `creature_template` WHERE (`entry`=29940);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES (29940, 0, 0, 0, 0, 0, 16582, 0, 16582, 0, 'Instructor Razuvious (1)', '', '', 0, 83, 83, 10110125, 10110125, 0, 0, 10673, 21, 21, 0, 2, 1, 3, 1000, 1200, 0, 800, 70, 3500, 0, 1, 32832, 0, 0, 0, 0, 0, 0, 371, 535, 135, 6, 76, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2507204, 3064362, '', 0, 3, 725, 2, 0, 0, 0, 0, 0, 0, 0, 167, 1, 0, 617299803, 1, '');
+
+DELETE FROM `creature_template` WHERE (`entry`=29912);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid_A`, `modelid_A2`, `modelid_H`, `modelid_H2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `minhealth`, `maxhealth`, `minmana`, `maxmana`, `armor`, `faction_A`, `faction_H`, `npcflag`, `speed`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `PetSpellDataId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `unk16`, `unk17`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`) VALUES (29912, 0, 0, 0, 0, 0, 26620, 0, 26620, 0, 'Obedience Crystal', '', 'Interact', 0, 80, 80, 12600, 12600, 0, 0, 9729, 35, 35, 1, 1, 1, 0, 422, 586, 0, 642, 1, 2000, 0, 1, 64, 0, 0, 0, 0, 0, 0, 345, 509, 103, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 'npc_obedience_crystal');
+
+update creature set id = 29956 where guid = 128353;
+
+UPDATE creature SET MovementType = 2 WHERE guid = 128312;
+DELETE FROM creature_movement WHERE id = 128312;
+INSERT INTO creature_movement (id,POINT,position_x,position_y,position_z) VALUES
+(128312,1,2777.138672,-3110.880859,267.684509),
+(128312,2,2781.611328,-3106.903076,267.684509),
+(128312,3,2784.291748,-3098.885254,267.684509),
+(128312,4,2781.093018,-3090.532959,267.684509),
+(128312,5,2773.239014,-3085.609619,267.684509),
+(128312,6,2765.775146,-3086.021240,267.684509),
+(128312,7,2758.100586,-3091.694824,267.684509),
+(128312,8,2755.643555,-3097.803467,267.684509),
+(128312,9,2756.769775,-3104.073975,267.684509),
+(128312,10,2760.447021,-3109.536621,267.684509),
+(128312,11,2766.769531,-3112.940918,267.684509);

@@ -1,0 +1,1 @@
+UPDATE creature_template SET `faction_A` = '16',`faction_H` = '16',`minlevel` = '80',`maxlevel` = '80',`minhealth` = '9000',`maxhealth` = '9000',`minmana` = '1000',`maxmana` = '1000', ScriptName="mob_flame_orb" WHERE entry=30702;
