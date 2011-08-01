@@ -919,6 +919,7 @@ void BattleGroundQueue::UpdateNonrated(BattleGroundTypeId bgTypeId, BattleGround
     m_SelectionPools[BG_TEAM_ALLIANCE].Init();
     m_SelectionPools[BG_TEAM_HORDE].Init();
 
+    // PREMADE
     if (bg_template->isBattleGround())
     {
         //check if there is premade against premade match
@@ -945,34 +946,27 @@ void BattleGroundQueue::UpdateNonrated(BattleGroundTypeId bgTypeId, BattleGround
         }
     }
 
-    /*****************
-    ***** ARENAS *****
-    *****************/
-
     // now check if there are in queues enough players to start new game of (normal battleground, or non-rated arena)
-    // SKIRMISH
-    else
+    // SKIRMISH AND NONPREMADES
+    // if there are enough players in pools, start new battleground or non rated arena
+    if (CheckNormalMatch(bg_template, bracket_id, MinPlayersPerTeam, MaxPlayersPerTeam) ||
+       (bg_template->isArena() && CheckSkirmishForSameFaction(bracket_id, MinPlayersPerTeam)) )
     {
-        // if there are enough players in pools, start new battleground or non rated arena
-        if (CheckNormalMatch(bg_template, bracket_id, MinPlayersPerTeam, MaxPlayersPerTeam)
-            || (bg_template->isArena() && CheckSkirmishForSameFaction(bracket_id, MinPlayersPerTeam)) )
+        // we successfully created a pool
+        BattleGround * bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketEntry, arenaType, false);
+        if (!bg2)
         {
-            // we successfully created a pool
-            BattleGround * bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketEntry, arenaType, false);
-            if (!bg2)
-            {
-                sLog.outError("BattleGroundQueue::Update - Cannot create battleground: %u", bgTypeId);
-                return;
-            }
-
-            // invite those selection pools
-            for(uint32 i = 0; i < BG_TEAMS_COUNT; i++)
-                for(GroupsQueueType::const_iterator citr = m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.begin(); citr != m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.end(); ++citr)
-                    InviteGroupToBG((*citr), bg2, (*citr)->Team);
-
-            // start bg
-            bg2->StartBattleGround();
+            sLog.outError("BattleGroundQueue::Update - Cannot create battleground: %u", bgTypeId);
+            return;
         }
+
+        // invite those selection pools
+        for(uint32 i = 0; i < BG_TEAMS_COUNT; i++)
+            for(GroupsQueueType::const_iterator citr = m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.begin(); citr != m_SelectionPools[BG_TEAM_ALLIANCE + i].SelectedGroups.end(); ++citr)
+                InviteGroupToBG((*citr), bg2, (*citr)->Team);
+
+        // start bg
+        bg2->StartBattleGround();
     }
 }
 
