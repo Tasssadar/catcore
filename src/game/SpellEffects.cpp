@@ -5481,6 +5481,10 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     {
         NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
         ((Player*)m_caster)->PetSpellInitialize();
+
+        // set infinite cooldown if has flag
+        if (m_spellInfo->AttributesEx7 & SPELL_ATTR_DISABLED_WHILE_ACTIVE)
+            ((Player*)caster)->AddSpellAndCategoryCooldowns(m_spellProto, 0, NULL,true);
     }
 }
 
