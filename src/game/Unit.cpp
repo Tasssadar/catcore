@@ -452,6 +452,9 @@ void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, SplineTy
 
 void Unit::SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...)
 {
+    va_list vargs;
+    va_start(vargs,type);
+    
     WorldPacket data(SMSG_MONSTER_MOVE);
     data << GetPackGUID();
     data << uint8(0);

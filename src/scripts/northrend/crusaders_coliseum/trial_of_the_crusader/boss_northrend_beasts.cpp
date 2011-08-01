@@ -633,6 +633,8 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_uiArcticBreathDefixTimer = 0;
         m_uiChargeStepCount = -1;
         m_trample = false;
+        m_creature->GetMotionMaster()->Clear(false, true);
+        SetCombatMovement(true);
     }
 
     void setInitTimers()
@@ -699,6 +701,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
                         if (plr)
                             m_creature->FixOrientation(m_creature->GetAngle(plr));
+                        m_creature->SetUInt64Value(UNIT_FIELD_TARGET, plr->GetGUID());
                         //emote
                         m_chargeTargetPos = new PathNode(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
                         m_uiChargeStepTimer = 2500;
@@ -708,12 +711,14 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     {
                         float x, y, z, ang;
                         m_creature->GetPosition(x, y, z);
-                        ang = m_creature->GetFixedOrientation();
+                        ang = m_creature->GetFixedOrientation() + M_PI_F;
                         ang = ang > M_PI_F*2 ? ang - M_PI_F*2 : ang;
                         x += cos(ang)*35.0f;
                         y += sin(ang)*35.0f;
-                        m_creature->SendTrajMonsterMove(x, y, z, true, 100.0f, 1000, SPLINETYPE_NORMAL);
-                        m_uiChargeStepTimer = 3000;
+                        m_chargeTargetPos->x += cos(ang)*8;
+                        m_chargeTargetPos->y += sin(ang)*8;
+                        m_creature->SendTrajMonsterMove(x, y, z, true, 100.0f, 1000, SPLINETYPE_FACINGANGLE, m_creature->GetFixedOrientation());
+                        m_uiChargeStepTimer = 4500;
                         break;
                     }
                     case 3:
@@ -724,7 +729,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         pointPath.set(1, *m_chargeTargetPos);
                         m_creature->SendMonsterMove(m_chargeTargetPos->x, m_chargeTargetPos->y, m_chargeTargetPos->z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
                         m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
-                        m_uiChargeStepTimer = 1000;
+                        m_uiChargeStepTimer = 1200;
                         m_hitPlayers.clear();
                         m_trample = true;
                         m_sombodyDied = false;
@@ -736,6 +741,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         delete m_chargeTargetPos;
                         m_chargeTargetPos = NULL;
                         m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        m_creature->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->getVictim()->GetGUID());
                         SetCombatMovement(true);
                         m_creature->CastSpell(m_creature, SPELL_TRAMPLE, true);
                         if(m_sombodyDied)
@@ -788,7 +794,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         {
             PointPath pointPath;
             pointPath.resize(2);
-            m_creature->StopMoving();
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
             m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);

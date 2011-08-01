@@ -1984,7 +1984,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanCharge(Unit *target, float x, float y, float z, float maxElev, float maxDiff);
 
         void AddAndLinkAura(uint32 auraId, bool apply);
-    WorldPacket uint32(int arg1);
         Unit* m_attacking;
         
     protected:
