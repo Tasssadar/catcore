@@ -23325,6 +23325,9 @@ void Player::_LoadMMR(const char *data)
 
     Tokens tokens = StrSplit(data, " ");
 
+    if (tokens.empty())
+        return;
+
     if (tokens.size() != MAX_ARENA_SLOT)
     {
         sLog.outCatLog("_LoadMMR:: Could not load MMR rating for player %s (GUID: %u), cause mmr blob contains %u numbers", GetName(), GetGUIDLow(), tokens.size());
