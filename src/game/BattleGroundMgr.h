@@ -90,8 +90,8 @@ class BattleGroundQueue
         BattleGroundQueue();
         ~BattleGroundQueue();
 
-        void UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType = 0);
-        void UpdateRatedArenas(BattleGroundBracketId bracket_id, uint8 arenaType = 0);
+        void UpdateNonrated(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType = 0);
+        void UpdateRated(BattleGroundBracketId bracket_id, uint8 arenaType = 0);
 
         void FillPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id);
         bool CheckPremadeMatch(BattleGroundBracketId bracket_id, uint32 MinPlayersPerTeam, uint32 MaxPlayersPerTeam);
