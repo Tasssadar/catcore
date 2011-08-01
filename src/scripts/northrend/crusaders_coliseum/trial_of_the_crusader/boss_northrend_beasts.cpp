@@ -715,8 +715,8 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         PointPath pointPath;
                         pointPath.resize(2);
                         m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-                        pointPath[1] = m_chargeTargetPos;
-                        m_creature->SendMonsterMove(m_chargeTargetPos.x, m_chargeTargetPos.y, m_chargeTargetPos.z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
+                        pointPath.set(1, *m_chargeTargetPos);
+                        m_creature->SendMonsterMove(m_chargeTargetPos->x, m_chargeTargetPos->y, m_chargeTargetPos->z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
                         m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
                         m_uiChargeStepTimer = 1000;
                         m_hitPlayers.clear();
@@ -727,6 +727,8 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     }
                     case 4:
                     {
+                        delete m_chargeTargetPos;
+                        m_chargeTargetPos = NULL;
                         m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                         SetCombatMovement(true);
                         m_creature->CastSpell(m_creature, SPELL_TRAMPLE, true);
