@@ -835,7 +835,7 @@ this method is called when group is inserted, or player / group is removed from 
 it must be called after fully adding the members of a group to ensure group joining
 should be called from BattleGround::RemovePlayer function in some cases
 */
-void BattleGroundQueue::UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType)
+void BattleGroundQueue::UpdateNonrated(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType)
 {
     //ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_Lock);
     //if no players in queue - do nothing
@@ -976,7 +976,7 @@ void BattleGroundQueue::UpdateBattleGrounds(BattleGroundTypeId bgTypeId, BattleG
     }
 }
 
-void BattleGroundQueue::UpdateRatedArenas(BattleGroundBracketId bracket_id, uint8 arenaType)
+void BattleGroundQueue::UpdateRated(BattleGroundBracketId bracket_id, uint8 arenaType)
 {
     //ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_Lock);
     //if no players in queue - do nothing
@@ -1319,15 +1319,19 @@ void BattleGroundMgr::Update(uint32 diff)
 
     // update battleground
     for(uint8 bgQueue = BATTLEGROUND_QUEUE_NONE; bgQueue < MAX_BATTLEGROUND_QUEUE_TYPES; ++bgQueue)
-        for(uint8 bgTypeId= BATTLEGROUND_TYPE_NONE; bgTypeId< MAX_BATTLEGROUND_TYPE_ID; ++bgTypeId)
-            for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
-                for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
-                    m_BattleGroundQueues[BattleGroundQueueTypeId(bgQueue)].UpdateBattleGrounds(BattleGroundTypeId(bgTypeId), BattleGroundBracketId(bracket_id), GetTypeBySlot(slot));
-
-    // update rated arenas
-    for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
-        for(uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
-            m_BattleGroundQueues[BattleGroundQueueTypeId(BATTLEGROUND_QUEUE_2v2+slot)].UpdateRatedArenas(BattleGroundBracketId(bracket_id), GetTypeBySlot(slot));
+    {
+        for(uint8 bracket_id = BG_BRACKET_ID_FIRST; bracket_id < MAX_BATTLEGROUND_BRACKETS; ++ bracket_id)
+        {
+            BattleGroundQueueTypeId bgQueueId = BattleGroundQueueTypeId(bgQueue);
+            BattleGroundTypeId bgType = BGTemplateId(bgQueueId);
+            uint8 arenaType = BGArenaType(bgQueueId);
+            // update battlegrounds and skirmish
+            m_BattleGroundQueues[bgQueueId].UpdateNonrated(bgType, BattleGroundBracketId(bracket_id), arenaType);
+            // update rated arenas
+            if (arenaType)
+                m_BattleGroundQueues[bgQueueId].UpdateRated(BattleGroundBracketId(bracket_id), arenaType);
+        }
+    }
 
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
