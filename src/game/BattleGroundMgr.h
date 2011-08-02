@@ -69,7 +69,7 @@ struct GroupQueueInfo                                       // stores informatio
     float   GetMinChance();
     float   GetMaxChance();
     bool    IsAlreadySet() const { return OpponentTeamId && IsInvitedToBGInstanceGUID; }
-    bool    IsInAllowedChanceRange(uint32 mmr);       // compares rating in parameter with min and max allowed rating
+    bool    ChanceOK(uint32 mmr);       // compares rating in parameter with min and max allowed rating
     float   GetWinChanceValue(uint16 ratA, uint16 ratB); 
     uint16  limRat(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
 };
@@ -105,32 +105,26 @@ class BattleGroundQueue
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, PvPDifficultyEntry const* bracketEntry, uint8 arenaType);
 
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
-
-        GroupsQueueType RatArenaQueue(int32 bracket) const { return m_QueuedRatedArenas[bracket]; }
-
     private:
         //mutex that should not allow changing private data, nor allowing to update Queue during private data change.
         ACE_Recursive_Thread_Mutex  m_Lock;
-
 
         typedef std::map<uint64, PlayerQueueInfo> QueuedPlayersMap;
         QueuedPlayersMap m_QueuedPlayers;
 
         //we need constant add to begin and constant remove / add from the end, therefore deque suits our problem well
-        
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
 
         /*
         This two dimensional array is used to store All queued groups
         First dimension specifies the bgTypeId
         Second dimension specifies the player's group types -
-             BG_QUEUE_PREMADE_ALLIANCE  is used for premade alliance groups and alliance rated arena teams
-             BG_QUEUE_PREMADE_HORDE     is used for premade horde groups and horde rated arena teams
+             BG_QUEUE_PREMADE_ALLIANCE  is used for premade alliance groups
+             BG_QUEUE_PREMADE_HORDE     is used for premade horde groups
              BG_QUEUE_NORMAL_ALLIANCE   is used for normal (or small) alliance groups or non-rated arena matches
              BG_QUEUE_NORMAL_HORDE      is used for normal (or small) horde groups or non-rated arena matches
         */
         GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
-        GroupsQueueType m_DiscartedGroups[MAX_BATTLEGROUND_BRACKETS];
         GroupsQueueType m_QueuedRatedArenas[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
@@ -166,8 +160,8 @@ class BGQueueInviteEvent : public BasicEvent
         BGQueueInviteEvent(const uint64& pl_guid, uint32 BgInstanceGUID, BattleGroundTypeId BgTypeId, uint8 arenaType, uint32 removeTime) :
           m_PlayerGuid(pl_guid), m_BgInstanceGUID(BgInstanceGUID), m_BgTypeId(BgTypeId), m_ArenaType(arenaType), m_RemoveTime(removeTime)
           {
-          };
-        virtual ~BGQueueInviteEvent() {};
+          }
+        virtual ~BGQueueInviteEvent() {}
 
         virtual bool Execute(uint64 e_time, uint32 p_time);
         virtual void Abort(uint64 e_time);
@@ -309,9 +303,6 @@ class BattleGroundMgr
         static uint8 GetSlotByType(uint32 type);
         static uint8 GetTypeBySlot(uint32 slot);
 
-        void SendQueueInfoToPlayer(Player* plr);
-
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
     private:
         ACE_Thread_Mutex    SchedulerLock;
         BattleMastersMap    mBattleMastersMap;

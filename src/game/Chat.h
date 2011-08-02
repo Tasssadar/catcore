@@ -262,7 +262,6 @@ class ChatHandler
         bool HandleTestCommand(const char * args);
         bool HandleArenaInfoCommand(const char * args);
         bool HandleCurrSpellsCommand(const char * args);
-        bool HandleQueueInfoCommand(const char * args);
 
         bool HandleModifyHPCommand(const char* args);
         bool HandleModifyManaCommand(const char* args);
