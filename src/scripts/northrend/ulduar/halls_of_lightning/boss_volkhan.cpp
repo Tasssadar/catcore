@@ -233,7 +233,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
 
     void DoTemper()
     {
-        Creature *pAnvil = GetClosestCreatureWithEntry(m_creature, NPC_VOLKHAN_ANVIL, 50.0f); 
+        Creature *pAnvil = GetClosestCreatureWithEntry(m_creature, NPC_VOLKHAN_ANVIL, 500.0f);
 
         if(!pAnvil)
             return;
