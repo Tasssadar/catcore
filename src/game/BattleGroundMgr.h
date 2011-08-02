@@ -69,7 +69,7 @@ struct GroupQueueInfo                                       // stores informatio
     float   GetMinChance();
     float   GetMaxChance();
     bool    IsAlreadySet() const { return OpponentTeamId && IsInvitedToBGInstanceGUID; }
-    bool    IsInAllowedChanceRange(uint32 mmr);       // compares rating in parameter with min and max allowed rating
+    bool    ChanceOK(uint32 mmr);       // compares rating in parameter with min and max allowed rating
     float   GetWinChanceValue(uint16 ratA, uint16 ratB); 
     uint16  limRat(uint16 rat) const { return rat > 1500 ? 1500 : rat; }
 };
@@ -125,7 +125,6 @@ class BattleGroundQueue
              BG_QUEUE_NORMAL_HORDE      is used for normal (or small) horde groups or non-rated arena matches
         */
         GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
-        GroupsQueueType m_DiscartedGroups[MAX_BATTLEGROUND_BRACKETS];
         GroupsQueueType m_QueuedRatedArenas[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
