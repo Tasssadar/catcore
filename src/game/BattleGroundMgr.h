@@ -105,20 +105,15 @@ class BattleGroundQueue
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, PvPDifficultyEntry const* bracketEntry, uint8 arenaType);
 
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
-
-        GroupsQueueType RatArenaQueue(int32 bracket) const { return m_QueuedRatedArenas[bracket]; }
-
     private:
         //mutex that should not allow changing private data, nor allowing to update Queue during private data change.
         ACE_Recursive_Thread_Mutex  m_Lock;
-
 
         typedef std::map<uint64, PlayerQueueInfo> QueuedPlayersMap;
         QueuedPlayersMap m_QueuedPlayers;
 
         //we need constant add to begin and constant remove / add from the end, therefore deque suits our problem well
-        
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
 
         /*
         This two dimensional array is used to store All queued groups
@@ -309,9 +304,6 @@ class BattleGroundMgr
         static uint8 GetSlotByType(uint32 type);
         static uint8 GetTypeBySlot(uint32 slot);
 
-        void SendQueueInfoToPlayer(Player* plr);
-
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
     private:
         ACE_Thread_Mutex    SchedulerLock;
         BattleMastersMap    mBattleMastersMap;
