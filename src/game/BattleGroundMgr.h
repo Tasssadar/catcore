@@ -119,8 +119,8 @@ class BattleGroundQueue
         This two dimensional array is used to store All queued groups
         First dimension specifies the bgTypeId
         Second dimension specifies the player's group types -
-             BG_QUEUE_PREMADE_ALLIANCE  is used for premade alliance groups and alliance rated arena teams
-             BG_QUEUE_PREMADE_HORDE     is used for premade horde groups and horde rated arena teams
+             BG_QUEUE_PREMADE_ALLIANCE  is used for premade alliance groups
+             BG_QUEUE_PREMADE_HORDE     is used for premade horde groups
              BG_QUEUE_NORMAL_ALLIANCE   is used for normal (or small) alliance groups or non-rated arena matches
              BG_QUEUE_NORMAL_HORDE      is used for normal (or small) horde groups or non-rated arena matches
         */
@@ -161,8 +161,8 @@ class BGQueueInviteEvent : public BasicEvent
         BGQueueInviteEvent(const uint64& pl_guid, uint32 BgInstanceGUID, BattleGroundTypeId BgTypeId, uint8 arenaType, uint32 removeTime) :
           m_PlayerGuid(pl_guid), m_BgInstanceGUID(BgInstanceGUID), m_BgTypeId(BgTypeId), m_ArenaType(arenaType), m_RemoveTime(removeTime)
           {
-          };
-        virtual ~BGQueueInviteEvent() {};
+          }
+        virtual ~BGQueueInviteEvent() {}
 
         virtual bool Execute(uint64 e_time, uint32 p_time);
         virtual void Abort(uint64 e_time);
