@@ -5547,7 +5547,7 @@ Aura* Unit::GetLinkedDummyAura(uint32 spell_id) const
 {
     for(AuraList::const_iterator itr = m_dummyAuraLink.begin(); itr != m_dummyAuraLink.end(); ++itr)
     {
-        if ((*itr)->GetId() == spell_id)
+        if ((*itr) && (*itr)->GetId() == spell_id)
             return (*itr);
     }
     return NULL;
