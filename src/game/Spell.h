@@ -630,7 +630,7 @@ class Spell
             bool   processed:1;
             bool   deleted:1;
         };
-        tbb::concurrent_vector<GOTargetInfo> m_UniqueGOTargetInfo;
+        std::list<GOTargetInfo> m_UniqueGOTargetInfo;
 
         struct ItemTargetInfo
         {
@@ -639,7 +639,7 @@ class Spell
             bool   processed:1;
             bool   deleted:1;
         };
-        tbb::concurrent_vector<ItemTargetInfo> m_UniqueItemInfo;
+        std::list<ItemTargetInfo> m_UniqueItemInfo;
 
         void AddUnitTarget(Unit* target, SpellEffectIndex effIndex);
         void AddUnitTarget(uint64 unitGUID, SpellEffectIndex effIndex);
