@@ -27,7 +27,7 @@
 #include "Unit.h"
 #include "Player.h"
 
-#include "../../dep/tbb/include/tbb/concurrent_vector.h"
+//#include "../../dep/tbb/include/tbb/concurrent_vector.h"
 #include <memory>
 
 #define MAX_SPELL_ID  100000
@@ -618,7 +618,7 @@ class Spell
             bool   processed:1;
             bool   deleted:1;
         };
-        tbb::concurrent_vector<TargetInfo> m_UniqueTargetInfo;
+        std::list<TargetInfo> m_UniqueTargetInfo;
         uint8 m_needAliveTargetMask;                        // Mask req. alive targets
         bool m_destroyed;
 
