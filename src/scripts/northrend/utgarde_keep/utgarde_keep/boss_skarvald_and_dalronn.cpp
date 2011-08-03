@@ -161,7 +161,7 @@ struct MANGOS_DLL_DECL boss_s_and_d_dummyAI : public ScriptedAI
                     pGhost->ForcedDespawn();
 
                 pBuddy->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
-                ((InstanceMap*)m_instance->instance)->KilledCreature("Skarvold & Dalronn");
+                ((InstanceMap*)m_pInstance->instance)->KilledCreature("Skarvold & Dalronn");
             }
         }
     }

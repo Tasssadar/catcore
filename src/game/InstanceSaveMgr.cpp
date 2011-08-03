@@ -284,7 +284,7 @@ void InstanceSaveManager::LoadSavesFromDb()
     sLog.outString( ">> Loaded %u instance saves.", count );
 }
 
-void InstanceSaveMgr::LoadInstanceEncounters()
+void InstanceSaveManager::LoadInstanceEncounters()
 {
     m_encounters.clear();
     

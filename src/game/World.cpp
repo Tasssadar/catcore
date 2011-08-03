@@ -1014,7 +1014,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadInstanceTemplate();
 
     sLog.outString( "Loading Instance Encounters...");
-    sInstanceMgr.LoadInstanceEncounters();
+    sInstanceSaveMgr.LoadInstanceEncounters();
 
     sLog.outString( "Loading SkillLineAbilityMultiMap Data..." );
     sSpellMgr.LoadSkillLineAbilityMap();
