@@ -284,6 +284,48 @@ void InstanceSaveManager::LoadSavesFromDb()
     sLog.outString( ">> Loaded %u instance saves.", count );
 }
 
+void InstanceSaveMgr::LoadInstanceEncounters()
+{
+    m_encounters.clear();
+    
+    uint32 count = 0;
+    //                                                0      1
+    QueryResult *result = WorldDatabase.Query("SELECT entry, encounter_name FROM instance_encounter_name");
+
+    if ( !result )
+    {
+        barGoLink bar( 1 );
+        bar.step();
+        sLog.outString();
+        sLog.outString( ">> Loaded %u instance encounters", count );
+        return;
+    }
+    barGoLink bar( (int)result->GetRowCount() );
+    do
+    {
+        Field *fields = result->Fetch();
+        uint32 entry = fields[0].GetUInt32();
+        const char *encounter  = fields[1].GetCppString().c_str();
+        m_encounters.insert(std::make_pair<uint32, const char*>(entry, encounter));
+        bar.step();
+        ++count;
+    } while( result->NextRow() );
+
+    delete result;
+
+    sLog.outString();
+    sLog.outString( ">> Loaded %u instance encounters.", count );
+}
+
+const char *InstanceSaveManager::GetEncounterName(Creature *creature)
+{
+    InstanceEncounterMap::iterator itr = m_encounters.find(creature->GetEntry());
+    if(itr != m_encounters.end())
+        return itr->second;
+    else
+        return creature->GetName();
+}
+
 void InstanceSaveManager::PackInstances()
 {
     // this routine renumbers player instance associations in such a way so they start from 1 and go up

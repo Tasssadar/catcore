@@ -1135,6 +1135,10 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
         case BOSS_DEAD:
             PortalSpawnTimer=35000;
             isBoss=false;
+            if(PortalCounter <= 6)
+                ((InstanceMap*)m_instance->instance)->KilledCreature("First Prisoner");
+            else if(PortalCounter <= 12)
+                ((InstanceMap*)m_instance->instance)->KilledCreature("Second Prisoner");
             break;
         case EVENT_START: //start event
             m_instance->SetData(DATA_CANWIPEAGAIN,0);

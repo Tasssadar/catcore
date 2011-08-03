@@ -361,6 +361,7 @@ class MANGOS_DLL_SPEC InstanceMap : public Map
         uint32 GetScriptId() { return i_script_id; }
         InstanceData* GetInstanceData() { return i_data; }
         void PermBindAllPlayers(Player *player);
+        void KilledCreature(Creature *creature);
         void KilledCreature(const char* name);
         void UnloadAll(bool pForce);
         bool CanEnter(Player* player);
@@ -369,6 +370,8 @@ class MANGOS_DLL_SPEC InstanceMap : public Map
 
         virtual void InitVisibilityDistance();
     private:
+        int32 GetEncounterMask(const char* name);
+
         bool m_resetAfterUnload;
         bool m_unloadWhenEmpty;
         InstanceData* i_data;

@@ -298,8 +298,9 @@ void LfgGroup::KilledCreature(Creature *creature)
     if ((creature->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND) &&
         m_instanceStatus == INSTANCE_NOT_SAVED)
     {
-            m_instanceStatus = INSTANCE_SAVED;
+        m_instanceStatus = INSTANCE_SAVED;
     }
+    
     if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
     {
         //Last boss
