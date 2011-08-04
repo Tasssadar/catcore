@@ -37,6 +37,8 @@ enum
     SPELL_UNLEASHED_SOULS   = 68939,
 
     SPELL_MIRRORED_SOULS    = 69051,
+
+    NPC_WELL_OF_SOULS       = 36536,
 };
 
 /*######
@@ -164,9 +166,13 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
             {
                 float x, y, z;
                 plr->GetPosition(x, y, z);
+
+                Creature *well = m_creature->SummonCreature(NPC_WELL_OF_SOULS, x, y, z, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000);
+                if(well)
+                    well->CastSpell(m_creature, SPELL_WELL_OF_SOULS, true);
+                
                 plr->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 1.0f, M_PI_F);
                 m_creature->NearTeleportTo(x, y, z, 0);
-                DoCast(m_creature, SPELL_WELL_OF_SOULS, true);
             }
             m_uiWellOfSoulsTimer = 6000;
         }else m_uiWellOfSoulsTimer -= uiDiff;

@@ -80,7 +80,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
     void Reset()
     {
         m_uiMagicsBaneTimer = 8000;
-        m_uiShadowBoltTimer = 0;
+        m_uiShadowBoltTimer = 10000;
         m_uiCorruptSoulTimer = 15000;
         m_uiSoulstormTimer = 3000;
         m_uiFearTimer = 4000;
@@ -155,12 +155,14 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
         if(m_creature->GetHealthPercent() <= 35.0f)
         {
             phase2 = true;
-            DoCast(m_creature, SPELL_TELEPORT);
             SetCombatMovement(false);
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveIdle();
+            DoCast(m_creature, SPELL_TELEPORT);
             DespawnSouls();
         }
         
-        if(!m_creature->IsWithinDistInMap(m_creature->getVictim(), 3.66f))
+        if(!m_creature->IsWithinDistInMap(m_creature->getVictim(), 6.66f))
         {
             if(m_uiShadowBoltTimer <= uiDiff)
             {
@@ -205,12 +207,12 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
 
 CreatureAI* GetAI_boss_bronjahm(Creature* pCreature)
 {
-    return new boss_bronjahmhAI(pCreature);
+    return new boss_bronjahmAI(pCreature);
 }
 
 void AddSC_boss_bronjahm()
 {
-    Script* newscript;
+    Script* newscript;boss_bronjahmhAI
 
     newscript = new Script;
     newscript->Name = "boss_bronjahm";

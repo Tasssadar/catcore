@@ -418,6 +418,16 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                                 damage = 15000;
                         }
                         break;
+                    // Soulstorm
+                    case 68921:
+                    case 69049:
+                    {
+                        float x,y,z;
+                        m_caster->GetPosition(x, y, z);
+                        if(unitTarget->IsWithinDist2d(x, y, 10.0f))
+                            return;
+                        break;
+                    }
                 }
                 break;
             }

@@ -52,7 +52,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
 {
     &Aura::HandleNULL,                                      //  0 SPELL_AURA_NONE
     &Aura::HandleBindSight,                                 //  1 SPELL_AURA_BIND_SIGHT
-    &Aura::HandleModPossess,                                //  2 SPELL_AURA_MOD_POSSESS
+//     &Aura::HandleModPossess,                                //  2 SPELL_AURA_MOD_POSSESS
     &Aura::HandlePeriodicDamage,                            //  3 SPELL_AURA_PERIODIC_DAMAGE
     &Aura::HandleAuraDummy,                                 //  4 SPELL_AURA_DUMMY
     &Aura::HandleModConfuse,                                //  5 SPELL_AURA_MOD_CONFUSE
@@ -1920,17 +1920,6 @@ void Aura::TriggerSpell()
                     // Tear of Azzinoth Summon Channel - it's not really supposed to do anything,and this only prevents the console spam
                     case 39857: trigger_spell_id = 39856; break;
                     case 46736: trigger_spell_id = 46737; break;
-                    // Soulstorm
-                    case 68872:
-                    {
-                        if (Unit* caster = GetCaster())
-                        {
-                            float x,y,z;
-                            caster->GetPosition(x, y, z);
-                            if(target->IsWithinDist2d(x, y, 10.0f))
-                                return;
-                        }else return;
-                    }
 
                     default:
                         break;
@@ -5310,11 +5299,27 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
 
     if (apply)
     {
-        // Gronn Lord's Grasp, becomes stoned
-        if (GetId() == 33572)
+        switch(GetId())
         {
-            if (GetStackAmount() >= 5 && !target->HasAura(33652))
-                target->CastSpell(target, 33652, true);
+            // Gronn Lord's Grasp, becomes stoned
+            case 33572:
+                if (GetStackAmount() >= 5 && !target->HasAura(33652))
+                    target->CastSpell(target, 33652, true);
+                break;
+            // Soulstorm
+            case 69049:
+            case 68921:
+            {
+                Unit* caster = GetCaster();
+                if(caster)
+                {
+                    float x,y,z;
+                    caster->GetPosition(x, y, z);
+                    if(m_target->IsWithinDist2d(x, y, 10.0f))
+                        return;
+                }else  return;
+                break;
+            }
         }
     }
 
