@@ -107,7 +107,10 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
 
         Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
         if(plr)
+        {
             pSummoned->AI()->AttackStart(plr);
+            pSummoned->AddThreat(plr, 1000.0f);
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)

@@ -119,6 +119,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
     {
         m_souls.insert(pSummoned);
         pSummoned->GetMotionMaster()->MoveChase(m_creature, 0.0f);
+        pSummoned->CastSpell(pSummoned, 55845, true);
     }
 
     void SummonedCreatureDespawn(Creature* pDespawned)
@@ -212,7 +213,7 @@ CreatureAI* GetAI_boss_bronjahm(Creature* pCreature)
 
 void AddSC_boss_bronjahm()
 {
-    Script* newscript;boss_bronjahmhAI
+    Script* newscript;
 
     newscript = new Script;
     newscript->Name = "boss_bronjahm";
