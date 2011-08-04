@@ -25,11 +25,15 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO               = -1574000,
-    SAY_FROSTTOMB           = -1574001,
-    SAY_SKELETONS           = -1574002,
-    SAY_KILL                = -1574003,
-    SAY_DEATH               = -1574004,
+    SAY_AGGRO               = -1632006,
+    SAY_WAILING_SOULS       = -1632007,
+    SAY_UNLEASH_SOULS       = -1632008,
+    SAY_KILL1               = -1632009,
+    SAY_KILL2               = -1632010,
+    SAY_DEATH               = -1632011,
+
+    EMOTE_MIRRORED_SOULS    = -1632012,
+    EMOTE_UNLEASH_SOULS     = -1632013,
 
     SPELL_WELL_OF_SOULS     = 68854,
     SPELL_PHANTOM_BLAST     = 68982,
@@ -87,7 +91,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(SAY_KILL, m_creature);
+        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
@@ -120,9 +124,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
 
         if(m_uiPhantomBlastTimer <= uiDiff)
         {
-            Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-            if(plr)
-                DoCastSpellIfCan(plr, m_bIsRegularMode ? SPELL_PHANTOM_BLAST : SPELL_PHANTOM_BLAST_H);
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_PHANTOM_BLAST : SPELL_PHANTOM_BLAST_H);
             m_uiPhantomBlastTimer = 3000;
         }else m_uiPhantomBlastTimer -= uiDiff;
 
@@ -135,6 +137,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
                     Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
                     if(plr)
                     {
+                        DoScriptText(EMOTE_MIRRORED_SOULS, m_creature);
                         DoCast(plr, SPELL_MIRRORED_SOULS);
                         mirrorPlr = plr;
                     }
@@ -159,6 +162,8 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
         if(m_uiUnleashedSoulsTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_UNLEASHED_SOULS);
+            DoScriptText(EMOTE_UNLEASH_SOULS, m_creature);
+            DoScriptText(SAY_UNLEASH_SOULS, m_creature);
             m_uiUnleashedSoulsTimer = 17000;
         }else m_uiUnleashedSoulsTimer -= uiDiff;
 

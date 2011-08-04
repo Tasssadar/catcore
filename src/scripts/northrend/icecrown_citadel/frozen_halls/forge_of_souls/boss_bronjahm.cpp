@@ -25,12 +25,12 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO               = -1574000,
-    SAY_FROSTTOMB           = -1574001,
-    SAY_SKELETONS           = -1574002,
-    SAY_KILL                = -1574003,
-    SAY_DEATH               = -1574004,
-    EMOTE_FROST_TOMB        = -1574021,
+    SAY_AGGRO               = -1632000,
+    SAY_SOULSTORM           = -1632001,
+    SAY_CORRUPT_SOUL        = -1632002,
+    SAY_KILL1               = -1632003,
+    SAY_KILL2               = -1632004,
+    SAY_DEATH               = -1632005,
 
     // Boss Spells
     SPELL_MAGICS_BANE       = 68793,
@@ -112,7 +112,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(SAY_KILL, m_creature);
+        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void JustSummoned(Creature* pSummoned)
@@ -139,6 +139,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 DoCast(m_creature, SPELL_SOULSTORM_VISUAL1, true);
                 DoCast(m_creature, SPELL_SOULSTORM_VISUAL2, true);
                 DoCast(m_creature, SPELL_SOULSTORM);
+                DoScriptText(SAY_SOULSTORM, m_creature);
                 m_uiSoulstormTimer = 600000;
             }else m_uiSoulstormTimer -= uiDiff;
 
@@ -183,6 +184,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
             if(plr)
                 DoCast(plr, SPELL_CORRUPT_SOUL);
+            DoScriptText(SAY_CORRUPT_SOUL, m_creature);
             m_uiCorruptSoulTimer = 15000;
         }else m_uiCorruptSoulTimer -= uiDiff;
 
