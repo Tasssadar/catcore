@@ -406,6 +406,18 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     case 51963:
                         damage+= m_caster->GetTotalAttackPowerValue(BASE_ATTACK)+120;
                         break;
+                    // Magic's Bane
+                    case 69050:
+                    case 68793:
+                        if(unitTarget->getPowerType() == POWER_MANA)
+                        {
+                            damage += unitTarget->GetPower(POWER_MANA)/2;
+                            if(m_spellInfo->Id == 68793 && damage > 10000)
+                                damage = 10000;
+                            else if(m_spellInfo->Id == 69050 && damage > 15000)
+                                damage = 15000;
+                        }
+                        break;
                 }
                 break;
             }

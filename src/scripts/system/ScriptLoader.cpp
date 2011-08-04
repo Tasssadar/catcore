@@ -3,6 +3,7 @@
 * Please see the included DOCS/LICENSE.TXT for more information */
 
 #include "precompiled.h"
+#include "../../../dep/recastnavigation/RecastDemo/Contrib/stb_image.h"
 
 //battlegrounds
 extern void AddSC_battleground();
@@ -377,6 +378,8 @@ extern void AddSC_boss_xevozz();
 extern void AddSC_boss_erekem();
 extern void AddSC_boss_ichoron();
 extern void AddSC_boss_cyanigosa();
+extern void AddSC_boss_bronjahm();                         // Forge of souls
+extern void AddSC_boss_devourer_of_souls();
 
 extern void AddSC_borean_tundra();
 extern void AddSC_dalaran();
@@ -841,6 +844,8 @@ void AddScripts()
     AddSC_boss_erekem();
     AddSC_boss_ichoron();
     AddSC_boss_cyanigosa();
+    AddSC_boss_bronjahm();                                  // Forge of souls
+    AddSC_boss_devourer_of_souls();
 
     AddSC_borean_tundra();
     AddSC_dalaran();
