@@ -82,7 +82,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
         m_uiMagicsBaneTimer = 8000;
         m_uiShadowBoltTimer = 10000;
         m_uiCorruptSoulTimer = 15000;
-        m_uiSoulstormTimer = 3000;
+        m_uiSoulstormTimer = 2000;
         m_uiFearTimer = 4000;
         DespawnSouls();
         m_souls.clear();
