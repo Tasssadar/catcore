@@ -52,7 +52,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
 {
     &Aura::HandleNULL,                                      //  0 SPELL_AURA_NONE
     &Aura::HandleBindSight,                                 //  1 SPELL_AURA_BIND_SIGHT
-//     &Aura::HandleModPossess,                                //  2 SPELL_AURA_MOD_POSSESS
+    &Aura::HandleModPossess,                                //  2 SPELL_AURA_MOD_POSSESS
     &Aura::HandlePeriodicDamage,                            //  3 SPELL_AURA_PERIODIC_DAMAGE
     &Aura::HandleAuraDummy,                                 //  4 SPELL_AURA_DUMMY
     &Aura::HandleModConfuse,                                //  5 SPELL_AURA_MOD_CONFUSE
