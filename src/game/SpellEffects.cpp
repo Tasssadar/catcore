@@ -4503,6 +4503,9 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     else
         delete spawnCreature;
 
+    WorldPacket data(SMSG_PET_GUIDS, 12);
+    data << uint32(amount);
+
     for (int32 count = 0; count < amount; ++count)
     {
         Pet* creature = new Pet(SUMMON_PET);
@@ -4603,7 +4606,11 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         summoner = creature;
 
         CreatureSummoned(creature);
+
+        data << uint64(creature->GetGUID());
     }
+    if(amount > 1 && m_caster->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)m_caster)->GetSession()->SendPacket(&data);
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)

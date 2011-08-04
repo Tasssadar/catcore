@@ -863,6 +863,18 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if (pVictim->GetTypeId() == TYPEID_UNIT && !((Creature*)pVictim)->isPet() && !((Creature*)pVictim)->HasLootRecipient())
         ((Creature*)pVictim)->SetLootRecipient(this);
 
+    // Spirit Hunt - feral spirit wolves
+    if(GetTypeId() == TYPEID_UNIT && GetEntry() == 29264)
+    {
+        Unit *owner = GetCreator();
+        if(owner && owner->IsInWorld() && owner->isAlive())
+        {
+            Aura *spirit_hunt = this->GetAura(58877, SpellEffectIndex(0));
+            int32 basepoints[3] = { (damage+absorb)*1.5f, 0, 0 };
+            CastCustomSpell(owner, 58879, &basepoints[0], &basepoints[1], &basepoints[2], false, NULL, spirit_hunt);
+        }
+    }
+
     if (health <= damage)
     {
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamage: victim just died");
