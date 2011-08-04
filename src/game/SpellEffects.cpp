@@ -4503,7 +4503,8 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     else
         delete spawnCreature;
 
-    std::vector<uint64> petGuids;
+    WorldPacket data(SMSG_PET_GUIDS, 12);
+    data << uint32(amount);
 
     for (int32 count = 0; count < amount; ++count)
     {
@@ -4553,7 +4554,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         if (duration > 0)
             creature->SetDuration(duration);
 
-        creature->SetOwnerGUID(m_caster->GetGUID());
+        creature->SetOwnerGUID(summoner->GetGUID());
         creature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
         creature->setPowerType(POWER_MANA);
         creature->setFaction(m_caster->getFaction());
@@ -4606,16 +4607,10 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
 
         CreatureSummoned(creature);
 
-        petGuids.push_back(creature->GetGUID());
+        data << uint64(creature->GetGUID());
     }
     if(amount > 1 && m_caster->GetTypeId() == TYPEID_PLAYER)
-    {
-        WorldPacket data(SMSG_PET_GUIDS, 12);
-        data << uint32(amount);                      // count
-        for(uint16 i = 0; i < amount; ++i)
-            data << uint64(petGuids[i]);
         ((Player*)m_caster)->GetSession()->SendPacket(&data);
-    }
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)
