@@ -142,6 +142,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
                         mirrorPlr = plr;
                     }
                     m_uiMirroredSoulsTimer = 2000;
+                    m_uiWellOfSoulsTimer = 6000;
                     ++mirrorStage;
                     break;
                 }
@@ -165,6 +166,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
             DoScriptText(EMOTE_UNLEASH_SOULS, m_creature);
             DoScriptText(SAY_UNLEASH_SOULS, m_creature);
             m_uiUnleashedSoulsTimer = 17000;
+            m_uiWellOfSoulsTimer = 6000;
         }else m_uiUnleashedSoulsTimer -= uiDiff;
 
         if(m_uiWellOfSoulsTimer <= uiDiff)

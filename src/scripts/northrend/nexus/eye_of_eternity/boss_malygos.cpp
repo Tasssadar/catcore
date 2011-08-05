@@ -678,7 +678,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                     if (pTemp->isAlive())
                     {
                         if(action == 2)
-                            pTemp->GetMotionMaster()->MoveChase(m_creature);
+                            pTemp->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
                         else
                         {
                             pTemp->GetMotionMaster()->Clear(false, true);
@@ -1389,7 +1389,7 @@ struct MANGOS_DLL_DECL mob_power_sparkAI : public ScriptedAI
         {
             if(pMalygos && pMalygos->isAlive() && m_creature->GetVisibility() == VISIBILITY_ON && !isDead)
             {
-                if(m_creature->IsWithinDist(pMalygos, 3.0f, false))
+                if(m_creature->IsWithinDist(pMalygos, 4.0f, false))
                 {
                     ((boss_malygosAI*)pMalygos->AI())->m_lSparkGUIDList.clear();
                     m_creature->CastSpell(pMalygos, SPELL_POWER_SPARK, true);

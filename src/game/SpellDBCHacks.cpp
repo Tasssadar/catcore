@@ -217,4 +217,8 @@ void SpellMgr::ApplySpellHacks()
     // in DBC wrong mechanic immune since 3.0.x
     SpellEntry *sfix34 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(25771));
     sfix34->EffectMiscValue[0] = MECHANIC_IMMUNE_SHIELD;
+
+    // Soulstorm - remove root effect, it does not work and causes trouble
+    SpellEntry *sfix35 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68872));
+    sfix35->Effect[2] = 0;
 }
