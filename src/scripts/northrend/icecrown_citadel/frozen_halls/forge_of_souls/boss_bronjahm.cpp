@@ -74,6 +74,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
     uint32 m_uiFearTimer;
 
     bool phase2;
+    bool shouldHaveSoulStorm;
 
     std::set<Creature*> m_souls;
 
@@ -83,10 +84,11 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
         m_uiShadowBoltTimer = 10000;
         m_uiCorruptSoulTimer = 15000;
         m_uiSoulstormTimer = 2000;
-        m_uiFearTimer = 4000;
+        m_uiFearTimer = 7000;
         DespawnSouls();
         m_souls.clear();
         phase2 = false;
+        shouldHaveSoulStorm = false;
         SetCombatMovement(true);
     }
 
@@ -118,7 +120,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned)
     {
         m_souls.insert(pSummoned);
-        pSummoned->GetMotionMaster()->MoveChase(m_creature, 0.0f);
+        pSummoned->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
         pSummoned->CastSpell(pSummoned, 55845, true);
     }
 
@@ -143,8 +145,12 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 m_uiSoulstormTimer = 600000;
             }else m_uiSoulstormTimer -= uiDiff;
 
+            if(shouldHaveSoulStorm && !m_creature->HasAura(SPELL_SOULSTORM))
+                DoCast(m_creature, SPELL_SOULSTORM, true);
+
             if(m_uiFearTimer <= uiDiff)
             {
+                shouldHaveSoulStorm = true;
                 Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
                 if(plr)
                     DoCast(plr, SPELL_FEAR);
@@ -196,7 +202,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 if(!(*itr) || !(*itr)->IsInWorld())
                     continue;
                 
-                if((*itr)->IsWithinDistInMap(m_creature, 1.0f))
+                if((*itr)->IsWithinDistInMap(m_creature, 2.0f))
                 {
                     (*itr)->ForcedDespawn();
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_CONSUME_SOUL : SPELL_CONSUME_SOUL_H, true);
