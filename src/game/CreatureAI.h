@@ -24,6 +24,7 @@
 #include "Policies/Singleton.h"
 #include "Dynamic/ObjectRegistry.h"
 #include "Dynamic/FactoryHolder.h"
+#include "SpellTimer.h"
 
 class WorldObject;
 class Unit;
@@ -59,7 +60,7 @@ enum CastFlags
 class MANGOS_DLL_SPEC CreatureAI
 {
     public:
-        explicit CreatureAI(Creature* creature) : m_creature(creature) {}
+        explicit CreatureAI(Creature* creature) : m_creature(creature), m_TimerMgr(new SpellTimerMgr()) {}
 
         virtual ~CreatureAI();
 
@@ -157,6 +158,9 @@ class MANGOS_DLL_SPEC CreatureAI
 
         // Pointer to controlled by AI creature
         Creature* const m_creature;
+
+        // Pointer to spell timer manager of creature
+        SpellTimerMgr* const m_TimerMgr;
 };
 
 struct SelectableAI : public FactoryHolder<CreatureAI>, public Permissible<Creature>

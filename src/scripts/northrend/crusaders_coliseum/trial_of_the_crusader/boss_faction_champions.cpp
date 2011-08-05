@@ -85,6 +85,14 @@ const uint32 FChampIDs[CHAMPION_COUNT][FACTION_COUNT] =
     {34475, 34453},     // CHAMPION_WARRIOR
 };
 
+enum Timers
+{
+    // 1-100 reserved for mutual
+    TIMER_GCD       = 1,
+    TIMER_HEAL      = 2, // 2-6
+    TIMER_DISPEL    = 7
+};
+
 struct FactionedChampionAI : public ScriptedAI
 {
     FactionedChampionAI(Creature* pCreature, RoleFCH pRole, Champion pChamp) : ScriptedAI(pCreature),
@@ -106,12 +114,11 @@ struct FactionedChampionAI : public ScriptedAI
     CreatureList        m_cAliveChampions;
 
     bool                m_bHasMagicalCC;
-    SpellTimer          m_tGCD;
 
     void Reset()
     {
         m_bHasMagicalCC = false;
-        m_tGCD = SpellTimer(0, 0, 1500, false);
+        m_TimerMgr->Add(TIMER_GCD, 0, 0, 1500, false);
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)
@@ -202,6 +209,12 @@ struct FactionedChampionAI : public ScriptedAI
         m_creature->RemoveSpellsCausingAura(SPELL_AURA_MOD_CONFUSE);
         //DoCast(m_creature, SPELL_PVP_TRINKET);
     }
+
+    void FactionedCast(Unit* target, uint32 spellId, bool triggered)
+    {
+        m_creature->CastSpell(target, spellId, triggered);
+        m_TimerMgr->AddCooldown(TIMER_GCD);
+    }
 };
 
 typedef std::list<FactionedChampionAI*> FChampList;
@@ -220,7 +233,7 @@ struct factioned_healerAI : public FactionedChampionAI
         Reset();
     }
 
-    SpellTimer m_heals[HEAL_COUNT];
+    //SpellTimer m_heals[HEAL_COUNT];
 
     void Reset()
     {
@@ -256,14 +269,16 @@ struct factioned_healerAI : public FactionedChampionAI
             return HEAL_LIFESAVING;
     }
 
-    SpellTimer& SelectActualHealPower(HealPower appropHealPower)
+    SpellTimer* SelectActualHealPower(HealPower appropHealPower)
     {
         for (uint8 healpower = appropHealPower; healpower > 0; --healpower)
         {
-            SpellTimer& heal = m_heals[healpower];
-            if (heal.IsReady())
+            SpellTimer* heal = m_TimerMgr->Get(TIMER_HEAL+healpower);
+            if (heal && heal.IsReady())
                 return heal;
         }
+
+        return NULL;
     }
 
     bool DoHeal()
@@ -273,11 +288,11 @@ struct factioned_healerAI : public FactionedChampionAI
         if (appropHealPower == HEAL_NOHEAL)
             return false;
 
-        SpellTimer& healtimer = SelectActualHealPower(appropHealPower);
-        if (!healtimer.GetSpellId())
+        SpellTimer* healtimer = SelectActualHealPower(appropHealPower);
+        if (healtimer)
             return false;
 
-        m_creature->CastSpell(target, healtimer.GetSpellId(), false);
+        FactionedCast(target, healtimer->GetSpellId(), false);
         return true;
     }
 
@@ -285,6 +300,11 @@ struct factioned_healerAI : public FactionedChampionAI
     {
         for(uint8 i = HEAL_NOHEAL; i < HEAL_COUNT; ++i)
             m_heals[i].Update(uiDiff);
+    }
+
+    uint32 timer(HealPower healpower)
+    {
+        return TIMER_HEAL+healpower;
     }
 
 };
@@ -306,22 +326,23 @@ struct champ_rdruidAI : public factioned_healerAI
 {
     champ_rdruidAI(Creature* pCreature) : factioned_healerAI(pCreature, CHAMPION_R_DRUID)
     {
-        m_heals[HEAL_MINOR] = SpellTimer(RD_REJUVENATION);
-        m_heals[HEAL_MIDDLE] = SpellTimer(RD_LIFEBLOOM);
-        m_heals[HEAL_MAJOR] = SpellTimer(RD_REGROWTH);
-        m_heals[HEAL_LIFESAVING] = SpellTimer(RD_NOURISH);
-
         Reset();
     }
-
-    SpellTimer m_tNaturesGrasp;
-    SpellTimer m_tBarskin;
-    SpellTimer m_tThorns;
-    SpellTimer m_tTranquility;
 
     void Reset()
     {
         factioned_healerAI::Reset();
+
+        // healer timers
+        m_TimerMgr->Add(timer(HEAL_MINOR), RD_REJUVENATION, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MIDDLE), RD_LIFEBLOOM, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MAJOR), RD_REGROWTH, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_LIFESAVING), RD_NOURISH, 0, 2000);
+
+        m_TimerMgr->Add(RD_TRANQUILITY, RD_TRANQUILITY, 15000, 600000);
+        m_TimerMgr->Add(RD_NATURES_GRASP, RD_NATURES_GRASP, 2000, 60000);
+        m_TimerMgr->Add(RD_THORNS, RD_THORNS, 0, 2000);
+        m_TimerMgr->Add(RD_BARSKIN, RD_BARSKIN, 2000, 60000);
     }
 
     bool CanCastTranquility()
@@ -342,29 +363,25 @@ struct champ_rdruidAI : public factioned_healerAI
             return;
 
         // update all timers
-        UpdateHealTimers(uiDiff);
-        m_tNaturesGrasp.Update(uiDiff);
-        m_tBarskin.Update(uiDiff);
-        m_tThorns.Update(uiDiff);
-        m_tTranquility.Update(uiDiff);
+        m_TimerMgr->Update(uiDiff);
+
+        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
 
         // GCD check
-        if (!m_tGCD.CheckAndUpdate(uiDiff, false))
+        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
             return;
 
         // Tranquility
-        if (m_tTranquility.IsReady() && CanCastTranquility())
+        if (m_TimerMgr->IsReady(RD_TRANQUILITY, isCasting) && CanCastTranquility())
         {
-            m_creature->CastSpell(m_creature, m_tTranquility.GetSpellId(), false);
-            m_tTranquility.AddCooldown();
+            FactionedCast(m_creature, m_tTranquility.GetSpellId(), false);
+            m_TimerMgr->AddCooldown(RD_TRANQUILITY);
         }
 
         // cast heal if it suits situation, if does, return function
         if (DoHeal())
             return;
-
     }
-
 };
 
 enum Holy_Paladin
@@ -372,7 +389,7 @@ enum Holy_Paladin
     HP_HOLY_LIGHT       = 66112,
     HP_HOLY_SHOCK       = 66114,
     HP_FLASH_OF_LIGHT   = 66113,
-    HP_HAND_OF_PROTECTION=66609,
+    HP_HAND_OF_PROTECTION=66009,
 
     HP_CLEANSE          = 66116,
     HP_DIVINE_SHIELD    = 66010,
@@ -384,17 +401,22 @@ struct champ_hpalaAI : public factioned_healerAI
 {
     champ_hpalaAI(Creature* pCreature) : factioned_healerAI(pCreature, CHAMPION_H_PALADIN)
     {
-        m_heals[HEAL_MINOR] = SpellTimer(HP_HOLY_LIGHT);
-        m_heals[HEAL_MIDDLE] = SpellTimer(HP_HOLY_SHOCK);
-        m_heals[HEAL_MAJOR] = SpellTimer(HP_FLASH_OF_LIGHT);
-        m_heals[HEAL_LIFESAVING] = SpellTimer(HP_HAND_OF_PROTECTION);
-
         Reset();
     }
 
     void Reset()
     {
         factioned_healerAI::Reset();
+
+        m_TimerMgr->Add(timer(HEAL_MINOR), HP_HOLY_LIGHT, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MIDDLE), HP_HOLY_SHOCK, 0, 6000);
+        m_TimerMgr->Add(timer(HEAL_MAJOR), HP_FLASH_OF_LIGHT, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_LIFESAVING), HP_HAND_OF_PROTECTION, 2000, 300000);
+
+        m_TimerMgr->Add(TIMER_DISPEL, HP_CLEANSE, 15000, 2000);
+        m_TimerMgr->Add(HP_DIVINE_SHIELD, HP_DIVINE_SHIELD, 2000, 300000);
+        m_TimerMgr->Add(HP_HAMMER_OF_JUSTICE, HP_HAMMER_OF_JUSTICE, 0, 40000);
+        m_TimerMgr->Add(HP_HAND_OF_FREEDOM, HP_HAND_OF_FREEDOM, 2000, 25000);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -402,15 +424,27 @@ struct champ_hpalaAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-    }
+        // update all timers
+        m_TimerMgr->Update(uiDiff);
 
+        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+
+        // GCD check
+        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+            return;
+
+        // cast heal if it suits situation, if does, return function
+        if (DoHeal())
+            return;
+    }
 };
 
 enum Disco_Priest
 {
     DP_RENEW            = 66177,
     DP_FLASH_HEAL       = 66104,
-    DP_PENANCE          = 66098,
+    //DP_PENANCE          = 66098,
+    DP_PENANCE          = 66097,
     DP_POWER_WORD_SHIELD= 66099,
 
     DP_DISPEL_MAGIC     = 65546,
@@ -423,17 +457,21 @@ struct champ_dpriestAI : public factioned_healerAI
 {
     champ_dpriestAI(Creature* pCreature) : factioned_healerAI(pCreature, CHAMPION_D_PRIEST)
     {
-        m_heals[HEAL_MINOR] = SpellTimer(DP_RENEW);
-        m_heals[HEAL_MIDDLE] = SpellTimer(DP_FLASH_HEAL);
-        m_heals[HEAL_MAJOR] = SpellTimer(DP_PENANCE);
-        m_heals[HEAL_LIFESAVING] = SpellTimer(DP_POWER_WORD_SHIELD);
-
         Reset();
     }
 
     void Reset()
     {
         factioned_healerAI::Reset();
+
+        m_TimerMgr->Add(timer(HEAL_MINOR), DP_RENEW, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MIDDLE), DP_FLASH_HEAL, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MAJOR), DP_PENANCE, 0, 10000);
+        m_TimerMgr->Add(timer(HEAL_LIFESAVING), DP_POWER_WORD_SHIELD, 0000, 15000);
+
+        m_TimerMgr->Add(TIMER_DISPEL, DP_DISPEL_MAGIC, 2000, 2000);
+        m_TimerMgr->Add(DP_MANA_BURN, DP_MANA_BURN, 2000, 2000);
+        m_TimerMgr->Add(DP_PSYCHIC_SCREAM, DP_PSYCHIC_SCREAM, 2000, 30000);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -441,8 +479,19 @@ struct champ_dpriestAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-    }
+        // update all timers
+        m_TimerMgr->Update(uiDiff);
 
+        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+
+        // GCD check
+        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+            return;
+
+        // cast heal if it suits situation, if does, return function
+        if (DoHeal())
+            return;
+    }
 };
 
 enum Resto_Shaman
@@ -473,6 +522,16 @@ struct champ_rshamAI : public factioned_healerAI
     void Reset()
     {
         factioned_healerAI::Reset();
+
+        m_TimerMgr->Add(timer(HEAL_MINOR), RS_EARTH_SHIELD, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MIDDLE), RS_LESSER_HEALING_W, 0, 2000);
+        m_TimerMgr->Add(timer(HEAL_MAJOR), RS_RIPTIDE, 0, 6000);
+        //m_TimerMgr->Add(timer(HEAL_LIFESAVING), DP_POWER_WORD_SHIELD, 0000, 15000);
+
+        m_TimerMgr->Add(TIMER_DISPEL, RS_CLEANSE_SPIRIT, 2000, 2000);
+        m_TimerMgr->Add(RS_EARH_SHOCK, RS_EARH_SHOCK, 2000, 6000);
+        m_TimerMgr->Add(RS_HEROISM, RS_HEROISM, 0, 300000);
+        m_TimerMgr->Add(RS_HEX, RS_HEX, 2000, 45000);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -480,8 +539,19 @@ struct champ_rshamAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-    }
+        // update all timers
+        m_TimerMgr->Update(uiDiff);
 
+        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+
+        // GCD check
+        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+            return;
+
+        // cast heal if it suits situation, if does, return function
+        if (DoHeal())
+            return;
+    }
 };
 
 //////////////////

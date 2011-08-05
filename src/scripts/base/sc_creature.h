@@ -39,87 +39,6 @@ enum SCEquip
     EQUIP_UNEQUIP   = 0
 };
 
-/*struct SpellCastTimer
-{
-    SpellCastTimer(Creature* m_creature, Unit* m_target, uint32 m_uiSpellId, uint32 m_uiSpellInterval, uint32 m_uiSpellIntervalFirst, bool m_bIsForcedCast) :
-    caster(m_creature), target(m_target), SpellInterval(m_uiSpellInterval), SpellIntervalFirst(m_uiSpellIntervalFirst), SpellId(m_uiSpellId), IsForcedCast(m_bIsForcedCast), SpellTimer(0),  IsFirstCast(true) {}
-    
-    public:
-        uint32 SpellId, SpellInterval, SpellIntervalFirst;
-        bool IsFirstCast, IsForcedCast;
-        Unit* target;
-
-        void UpdateTimer(uint32 uiDiff) { SpellTimer += uiDiff; }
-        uint32 GetCurrentTimer() { return SpellTimer; }
-        bool CheckAndUpdate(uint32 const uiDiff);
-        Creature* GetCaster() { return caster; }
-        uint32 GetCurrentInterval()
-        {
-            return (SpellIntervalFirst && IsFirstCast) ? SpellIntervalFirst : SpellInterval;
-        }		
-        void ResetTimer()
-        {
-            SpellTimer = 0;
-            if (IsFirstCast)
-                IsFirstCast = false;
-        }
-    private:
-        uint32 SpellTimer;
-        Creature* caster;
-};
-
-typedef std::list<SpellCastTimer*> SpellCastTimerList;*/
-
-#define DBC_COOLDOWN -1
-
-struct SpellTimer
-{
-    SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 cooldown, bool check_cast = true) :
-            initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), check_cast_m(check_cast)
-    {
-        SetInitialCooldown(cooldown);
-        ResetTimerToInitialValue();
-        ResetSpellId();
-    }
-    SpellTimer() :
-            initialSpellId_m(0), initialTimer_m(0), cooldown_m(0), check_cast_m(0) {}
-
-    SpellTimer(uint32 initialSpellId) { SpellTimer(initialSpellId, 0, DBC_COOLDOWN, true); }
-    /*SpellTimer(uint32 initialSpellId) :
-        initialSpellId_m(initialSpellId), initialTimer_m(0), check_cast_m(true)
-    {
-        SetInitialCooldown(DBC_COOLDOWN);
-        ResetTimerToInitialValue();
-        ResetSpellId();
-    }*/
-
-    public:
-        void SetInitialCooldown(int32 cooldown);
-        void ResetTimerToInitialValue() { currentTimer = initialTimer_m; }
-        void ResetSpellId() { spellId_m = initialSpellId_m; }
-
-        void SetTimer(uint32 newTimer) { currentTimer = newTimer; }
-        void ChangeSpellId(uint32 newId) { spellId_m = newId; }
-
-        void Update(uint32 diff);
-        void AddCooldown() { currentTimer = cooldown_m; }
-
-        bool CheckAndUpdate(uint32 diff, bool is_casting);
-        bool IsReady() const { return currentTimer == 0; }
-        uint32 GetSpellId() const { return spellId_m; }
-
-    private:
-        uint32  currentTimer;
-
-        uint32  spellId_m;
-        uint32  cooldown_m;
-
-        uint32  initialTimer_m;
-        uint32  initialSpellId_m;
-
-        bool    check_cast_m;
-};
-
 struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
 {
     explicit ScriptedAI(Creature* pCreature);
@@ -268,17 +187,6 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
 
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
-
-    // called when timed spell is casted
-    void HandleTimedSpellCast(Unit* target, uint32 SpellId);
-
-    // called after a successfull cast through periodic cast handler
-    void TimedSpellCasted(Unit* target, uint32 spellId) {}
-
-    // called to insert spell into automatic timed casting system
-    void InsertTimedCast(uint32 m_uiSpellId, uint32 m_uiSpellInterval, Unit* target = NULL, uint32 m_uiSpellInvervalFirst = NULL, bool m_bForceCast = false);
-
-    //SpellCastTimerList m_lCastTimerList;
 
     private:
         bool   m_bCombatMovement;
