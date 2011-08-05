@@ -20,9 +20,11 @@
 #include "Creature.h"
 #include "DBCStores.h"
 #include "Spell.h"
+#include "SpellTimer.h"
 
 CreatureAI::~CreatureAI()
 {
+    delete m_TimerMgr;
 }
 
 void CreatureAI::AttackedBy( Unit* attacker )

@@ -612,7 +612,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool IsVisibleInGridForPlayer(Player* pl) const;
 
         void RemoveCorpse();
-        bool isDeadByDefault() const { return m_isDeadByDefault; };
+        bool isDeadByDefault() const { return m_isDeadByDefault; }
 
         void ForcedDespawn(uint32 timeMSToDespawn = 0);
 

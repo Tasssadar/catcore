@@ -547,22 +547,6 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 uiDiff)
     return true;
 }
 
-void ScriptedAI::InsertTimedCast(uint32 m_uiSpellId, uint32 m_uiSpellInterval, Unit* target, uint32 m_uiSpellInvervalFirst, bool m_bForceCast)
-{
-    /*if (!m_uiSpellId)
-        return;
-    
-    Unit* SpellTarget = target ? target : m_creature;
-
-    // TODO: Select spell by difficulty
-    uint32 SpellId = m_uiSpellId;
-
-    SpellCastTimer* castTimer = new SpellCastTimer(m_creature, SpellTarget, SpellId, m_uiSpellInterval, m_uiSpellInvervalFirst, m_bForceCast);
-    m_lCastTimerList.push_back(castTimer);
-    */
-    return;
-}
-
 bool ScriptedAI::HandleTimer(uint32 &timer, const uint32 diff, bool force)
 {
     if (timer < diff)
@@ -580,27 +564,6 @@ bool ScriptedAI::HandleTimer(uint32 &timer, const uint32 diff, bool force)
     }
 }
 
-void ScriptedAI::HandleTimedSpellCast(Unit* target, uint32 SpellId)
-{
-    m_creature->CastSpell(target, SpellId, true);
-    TimedSpellCasted(target, SpellId);
-}
-
-/*bool SpellCastTimer::CheckAndUpdate(uint32 const uiDiff)
-{
-    if((GetCurrentTimer() + uiDiff) < GetCurrentInterval())          // update
-    {
-        UpdateTimer(uiDiff);
-        return false;
-    }
-    else                                                             // check
-    {
-        if (GetCaster()->IsNonMeleeSpellCasted(false) && !IsForcedCast)
-            return false;
-        
-        return true;
-    }
-}*/
 void Scripted_NoMovementAI::AttackStart(Unit* pWho)
 {
     if (!pWho)
@@ -669,48 +632,4 @@ PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, f
 Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim)
 {
     return *(GetRandomPlayersPreferRanged(1, min_ranged_count, min_range, not_select_current_victim).begin());
-}
-
-bool SpellTimer::CheckAndUpdate(uint32 diff, bool isCreatureCurrentlyCasting)
-{
-    if (currentTimer < diff)
-    {
-        currentTimer = 0;
-        if (check_cast_m && isCreatureCurrentlyCasting)
-            return false;
-
-        return true;
-    }
-    else
-    {
-        currentTimer -= diff;
-        return false;
-    }
-}
-
-void SpellTimer::Update(uint32 diff)
-{
-    if (currentTimer < diff)
-        currentTimer = 0;
-    else
-        currentTimer -= diff;
-}
-
-void SpellTimer::SetInitialCooldown(int32 cooldown)
-{
-    if (cooldown == DBC_COOLDOWN)
-    {
-        SpellEntry const* spellEntry = sSpellStore.LookupEntry(GetSpellId());
-        if (spellEntry)
-            cooldown_m = spellEntry->RecoveryTime;
-        else
-            cooldown_m = 0;
-    }
-    else if (cooldown < 0)
-    {
-        cooldown_m = 0;
-        return;
-    }
-    else
-        cooldown_m = cooldown;
 }
