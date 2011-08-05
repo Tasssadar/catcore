@@ -53,7 +53,7 @@ bool SpellTimer::IsReady(bool isCreatureCurrentlyCasting)
     return timer == 0;
 }
 
-SpellTimerMgr::~SpellTimer()
+SpellTimerMgr::~SpellTimerMgr()
 {
     for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
         delete itr->second;
@@ -76,7 +76,7 @@ void SpellTimerMgr::Remove(uint32 name)
     delete m_TimerMap[name];
 }
 
-void SpellTimerMgr::Get(uint32 name)
+SpellTimer* SpellTimerMgr::Get(uint32 name)
 {
     return m_TimerMap[name];
 }
@@ -89,12 +89,12 @@ void SpellTimerMgr::Update(const uint32 uiDiff)
                 timer->Update(uiDiff);
 }
 
-bool SpellTimerMgr::IsReady(uint32 name, bool isCreatureCurrentlyCasting) const
+bool SpellTimerMgr::IsReady(uint32 name, bool isCreatureCurrentlyCasting)
 {
     return m_TimerMap[name] && m_TimerMap[name]->IsReady(isCreatureCurrentlyCasting);
 }
 
-uint32 SpellTimerMgr::GetSpellId(uint32 name) const
+uint32 SpellTimerMgr::GetSpellId(uint32 name)
 {
     return m_TimerMap[name] ? m_TimerMap[name]->GetSpellId() : 0;
 }

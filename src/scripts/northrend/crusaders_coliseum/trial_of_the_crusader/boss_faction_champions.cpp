@@ -274,7 +274,7 @@ struct factioned_healerAI : public FactionedChampionAI
         for (uint8 healpower = appropHealPower; healpower > 0; --healpower)
         {
             SpellTimer* heal = m_TimerMgr->Get(TIMER_HEAL+healpower);
-            if (heal && heal.IsReady())
+            if (heal && heal->IsReady(m_creature->IsNonMeleeSpellCasted(false)))
                 return heal;
         }
 
@@ -294,12 +294,6 @@ struct factioned_healerAI : public FactionedChampionAI
 
         FactionedCast(target, healtimer->GetSpellId(), false);
         return true;
-    }
-
-    void UpdateHealTimers(const uint32 uiDiff)
-    {
-        for(uint8 i = HEAL_NOHEAL; i < HEAL_COUNT; ++i)
-            m_heals[i].Update(uiDiff);
     }
 
     uint32 timer(HealPower healpower)
@@ -365,7 +359,7 @@ struct champ_rdruidAI : public factioned_healerAI
         // update all timers
         m_TimerMgr->Update(uiDiff);
 
-        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
@@ -374,7 +368,7 @@ struct champ_rdruidAI : public factioned_healerAI
         // Tranquility
         if (m_TimerMgr->IsReady(RD_TRANQUILITY, isCasting) && CanCastTranquility())
         {
-            FactionedCast(m_creature, m_tTranquility.GetSpellId(), false);
+            FactionedCast(m_creature, m_TimerMgr->GetSpellId(RD_TRANQUILITY), false);
             m_TimerMgr->AddCooldown(RD_TRANQUILITY);
         }
 
@@ -427,7 +421,7 @@ struct champ_hpalaAI : public factioned_healerAI
         // update all timers
         m_TimerMgr->Update(uiDiff);
 
-        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
@@ -482,7 +476,7 @@ struct champ_dpriestAI : public factioned_healerAI
         // update all timers
         m_TimerMgr->Update(uiDiff);
 
-        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
@@ -511,11 +505,6 @@ struct champ_rshamAI : public factioned_healerAI
 {
     champ_rshamAI(Creature* pCreature) : factioned_healerAI(pCreature, CHAMPION_R_SHAMAN)
     {
-        m_heals[HEAL_MINOR] = SpellTimer(RS_EARTH_SHIELD);
-        m_heals[HEAL_MIDDLE] = SpellTimer(RS_LESSER_HEALING_W);
-        m_heals[HEAL_MAJOR] = SpellTimer(RS_RIPTIDE);
-        //m_heals[HEAL_LIFESAVING] = ;
-
         Reset();
     }
 
@@ -542,7 +531,7 @@ struct champ_rshamAI : public factioned_healerAI
         // update all timers
         m_TimerMgr->Update(uiDiff);
 
-        bool isCasting = m_creature->InterruptNonMeleeSpells(false);
+        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))

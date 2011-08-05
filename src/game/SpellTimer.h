@@ -47,19 +47,19 @@ typedef std::map<uint32, SpellTimer*> SpellTimerMap;
 
 struct SpellTimerMgr
 {
-    SpellTimerMgr() : {}
+    SpellTimerMgr() {}
 
 
     public:
-        ~SpellTimer();
+        ~SpellTimerMgr();
 
         void Add(uint32 name, uint32 initialSpellId, uint32 initialTimer, int32 cooldown, bool check_cast = true, bool auto_updateable = true);
         void Remove(uint32 name); // not safe to use right now
-        void Get(uint32 name);
+        SpellTimer* Get(uint32 name);
         void Update(uint32 const uiDiff);
 
-        bool IsReady(uint32 name, bool isCreatureCurrentlyCasting) const;
-        uint32 GetSpellId(uint32 name) const;
+        bool IsReady(uint32 name, bool isCreatureCurrentlyCasting);
+        uint32 GetSpellId(uint32 name);
         void AddCooldown(uint32 name);
 
     private:
