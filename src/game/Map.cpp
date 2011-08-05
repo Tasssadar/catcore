@@ -1549,11 +1549,30 @@ void InstanceMap::PermBindAllPlayers(Player *player)
     }
 }
 
+void InstanceMap::KilledCreature(Creature *creature)
+{
+    if(!GetInstanceSave())
+        return;
+
+    const char* name = sInstanceSaveMgr.GetEncounterName(creature);
+    KilledCreature(name);
+}
+
 void InstanceMap::KilledCreature(const char* name)
 {
     if(!GetInstanceSave())
         return;
 
+    int32 mask = GetEncounterMask(name);
+    if(mask != -1)
+    {
+         GetInstanceSave()->AddEncounter(mask);
+         return;
+    }
+}
+
+int32 InstanceMap::GetEncounterMask(const char* name)
+{
     DungeonEncounterEntry const *cur = NULL;
     for (uint32 i = 0; i < sDungeonEncounterStore.GetNumRows(); ++i)
     {
@@ -1564,11 +1583,12 @@ void InstanceMap::KilledCreature(const char* name)
         if(cur->Map == GetId() && Difficulty(cur->difficulty) == GetDifficulty() &&
             *(cur->Name[0]) == *(name))
         {
-            GetInstanceSave()->AddEncounter(1 << cur->order);
-            break;
+            return (1 << cur->order);
         }
     }
+    return -1;
 }
+
 
 void InstanceMap::UnloadAll(bool pForce)
 {

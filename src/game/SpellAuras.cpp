@@ -2779,6 +2779,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 target->CastSpell(target, 64622, false);
                 return;
             }
+            case 68839:
+            {
+                if (Unit* pCaster = GetCaster())
+                {
+                    float x, y, z;
+                    target->GetPosition(x, y, z);
+                    pCaster->SummonCreature(36535, x, y, z, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+                }
+                return;
+            }
         }
 
         // Living Bomb
@@ -5289,11 +5299,27 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
 
     if (apply)
     {
-        // Gronn Lord's Grasp, becomes stoned
-        if (GetId() == 33572)
+        switch(GetId())
         {
-            if (GetStackAmount() >= 5 && !target->HasAura(33652))
-                target->CastSpell(target, 33652, true);
+            // Gronn Lord's Grasp, becomes stoned
+            case 33572:
+                if (GetStackAmount() >= 5 && !target->HasAura(33652))
+                    target->CastSpell(target, 33652, true);
+                break;
+            // Soulstorm
+            case 69049:
+            case 68921:
+            {
+                Unit* caster = GetCaster();
+                if(caster)
+                {
+                    float x,y,z;
+                    caster->GetPosition(x, y, z);
+                    if(m_target->IsWithinDist2d(x, y, 10.0f))
+                        return;
+                }else  return;
+                break;
+            }
         }
     }
 

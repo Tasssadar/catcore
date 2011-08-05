@@ -406,6 +406,28 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     case 51963:
                         damage+= m_caster->GetTotalAttackPowerValue(BASE_ATTACK)+120;
                         break;
+                    // Magic's Bane
+                    case 69050:
+                    case 68793:
+                        if(unitTarget->getPowerType() == POWER_MANA)
+                        {
+                            damage += unitTarget->GetPower(POWER_MANA)/2;
+                            if(m_spellInfo->Id == 68793 && damage > 10000)
+                                damage = 10000;
+                            else if(m_spellInfo->Id == 69050 && damage > 15000)
+                                damage = 15000;
+                        }
+                        break;
+                    // Soulstorm
+                    case 68921:
+                    case 69049:
+                    {
+                        float x,y,z;
+                        m_caster->GetPosition(x, y, z);
+                        if(unitTarget->IsWithinDist2d(x, y, 10.0f))
+                            return;
+                        break;
+                    }
                 }
                 break;
             }
@@ -4481,6 +4503,9 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     else
         delete spawnCreature;
 
+    WorldPacket data(SMSG_PET_GUIDS, 12);
+    data << uint32(amount);
+
     for (int32 count = 0; count < amount; ++count)
     {
         Pet* creature = new Pet(SUMMON_PET);
@@ -4581,7 +4606,11 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         summoner = creature;
 
         CreatureSummoned(creature);
+
+        data << uint64(creature->GetGUID());
     }
+    if(amount > 1 && m_caster->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)m_caster)->GetSession()->SendPacket(&data);
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)
