@@ -284,22 +284,13 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             return;
 
         // Shivan Slash
-        if (m_TimerMgr->IsReady(TIMER_SHIVAN_SLASH, isCasting))
-        {
-            m_creature->CastSpell(m_creature->getVictim(), m_TimerMgr->GetSpellId(TIMER_SHIVAN_SLASH), false);
-            m_TimerMgr->AddCooldown(TIMER_SHIVAN_SLASH);
-        }
+        m_TimerMgr->CheckTimer(TIMER_SHIVAN_SLASH);
 
         // Spinning Pain Spike
-        if (m_TimerMgr->IsReady(TIMER_SPINNING_PAIN_SPIKE, isCasting))
-        {
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                m_creature->CastSpell(plr, m_TimerMgr->GetSpellId(TIMER_SPINNING_PAIN_SPIKE), false);
-            m_TimerMgr->AddCooldown(TIMER_SPINNING_PAIN_SPIKE);
-        }
+        m_TimerMgr->CheckTimer(TIMER_SPINNING_PAIN_SPIKE);
 
         // Mistress's Kiss
-        if (m_TimerMgr->IsReady(TIMER_MISTRESS_KISS, isCasting))
+        if (m_TimerMgr->IsReady(TIMER_MISTRESS_KISS))
         {
             PlrList fullList = GetAttackingPlayers(false);
 
