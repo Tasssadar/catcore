@@ -53,7 +53,6 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
         {
             timer->Finish();
             m_CastList.erase(itr);
-            delete timer;
         }
     }
 }
