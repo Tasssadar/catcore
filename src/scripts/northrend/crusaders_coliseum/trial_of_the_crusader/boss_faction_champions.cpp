@@ -356,8 +356,6 @@ struct champ_rdruidAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // update all timers
-        m_TimerMgr->Update(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
@@ -473,8 +471,6 @@ struct champ_dpriestAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // update all timers
-        m_TimerMgr->Update(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
@@ -528,8 +524,6 @@ struct champ_rshamAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        // update all timers
-        m_TimerMgr->Update(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 

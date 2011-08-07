@@ -154,6 +154,9 @@ class MANGOS_DLL_SPEC CreatureAI
         
         virtual void DoAction(uint32 action) { }
 
+        // update all timers
+        void UpdateTimers(uint32 const uiDiff);
+
         ///== Fields =======================================
 
         // Pointer to controlled by AI creature
