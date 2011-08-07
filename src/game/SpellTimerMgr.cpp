@@ -1,6 +1,6 @@
-#include "CreatureCastMgr.h"
 #include "Unit.h"
 #include "SpellTimer.h"
+#include "SpellTimerMgr.h"
 
 CreatureCastMgr::CreatureCastMgr()
 {
@@ -42,6 +42,20 @@ void CreatureCastMgr::UpdateTimers(const uint32 uiDiff)
     for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
         if (itr->second->isUpdateable())
             itr->second->Update(uiDiff);
+
+    if (m_CastList.empty())
+        return;
+
+    for(SpellTimerList::iterator itr = m_CastList.begin(); itr != m_CastList.end(); ++itr)
+    {
+        SpellTimer* timer = *itr;
+        if (timer && !timer->isCasterCasting())
+        {
+            timer->Finish();
+            m_CastList.erase(itr);
+            delete timer;
+        }
+    }
 }
 
 bool CreatureCastMgr::IsReady(uint32 timerId)
