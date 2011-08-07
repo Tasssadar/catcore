@@ -163,13 +163,13 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->Add(TIMER_FEL_FIRABALL, SPELL_FEL_FIREBALL, urand(4000,8000), urand(10000,15000));
-        m_TimerMgr->Add(TIMER_FEL_LIGHTNING, SPELL_FEL_LIGHTNING, urand(6000,10000), urand(13000,17000));
-        m_TimerMgr->Add(TIMER_INCINERATE_FLESH, SPELL_INCINERATE_FLESH, urand(13000,15000), urand(18000,22000));
-        m_TimerMgr->Add(TIMER_LEGION_FLAME, SPELL_LEGION_FLAME, urand(10000,15000), urand(25000,30000));
-        m_TimerMgr->Add(TIMER_INFERNAL_ERUPTION, SPELL_INFERNAL_ERUPTION, urand(70000,90000), urand(110000,120000));
-        m_TimerMgr->Add(TIMER_NETHER_PORTAL, SPELL_NETHER_PORTAL, urand(15000,25000), urand(110000,120000));
-        m_TimerMgr->Add(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, 42000);
+        m_TimerMgr->AddTimer(TIMER_FEL_FIRABALL, m_creature, SPELL_FEL_FIREBALL, urand(4000,8000), urand(10000,15000), UNIT_SELECT_VICTIM);
+        m_TimerMgr->AddTimer(TIMER_FEL_LIGHTNING, m_creature, SPELL_FEL_LIGHTNING, urand(6000,10000), urand(13000,17000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        m_TimerMgr->AddTimer(TIMER_INCINERATE_FLESH, m_creature, SPELL_INCINERATE_FLESH, urand(13000,15000), urand(18000,22000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        m_TimerMgr->AddTimer(TIMER_LEGION_FLAME, m_creature, SPELL_LEGION_FLAME, urand(10000,15000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        m_TimerMgr->AddTimer(TIMER_INFERNAL_ERUPTION, m_creature, SPELL_INFERNAL_ERUPTION, urand(70000,90000), urand(110000,120000), UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(TIMER_NETHER_PORTAL, m_creature, SPELL_NETHER_PORTAL, urand(15000,25000), urand(110000,120000), UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(TIMER_NETHER_POWER, m_creature, SPELL_NETHER_POWER, 2000, 42000, UNIT_SELECT_SELF);
     }
 
     void JustDied(Unit* pKiller)
@@ -199,61 +199,26 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        m_TimerMgr->UpdateTimers(uiDiff);
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
-
         // Fel Fireball
-        if (m_TimerMgr->IsReady(TIMER_FEL_FIRABALL, isCasting))
-        {
-            m_creature->CastSpell(m_creature->getVictim(), m_TimerMgr->GetSpellId(TIMER_FEL_FIRABALL), false);
-            m_TimerMgr->AddCooldown(TIMER_FEL_FIRABALL);
-        }
+        m_TimerMgr->CheckTimer(TIMER_FEL_FIRABALL);
 
         // Fel Lightning
-        if (m_TimerMgr->IsReady(TIMER_FEL_LIGHTNING, isCasting))
-        {
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                m_creature->CastSpell(plr, m_TimerMgr->GetSpellId(TIMER_FEL_LIGHTNING), false);
-            m_TimerMgr->AddCooldown(TIMER_FEL_LIGHTNING);
-        }
+        m_TimerMgr->CheckTimer(TIMER_FEL_LIGHTNING);
 
         // Incinerate Flesh
-        if (m_TimerMgr->IsReady(TIMER_INCINERATE_FLESH, isCasting))
-        {
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                m_creature->CastSpell(plr, m_TimerMgr->GetSpellId(TIMER_INCINERATE_FLESH), false);
-            m_TimerMgr->AddCooldown(TIMER_INCINERATE_FLESH);
-        }
+        m_TimerMgr->CheckTimer(TIMER_INCINERATE_FLESH);
 
         // Legion Flame
-        if (m_TimerMgr->IsReady(TIMER_LEGION_FLAME, isCasting))
-        {
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                m_creature->CastSpell(plr, m_TimerMgr->GetSpellId(TIMER_LEGION_FLAME), false);
-            m_TimerMgr->AddCooldown(TIMER_LEGION_FLAME);
-        }
+        m_TimerMgr->CheckTimer(TIMER_LEGION_FLAME);
 
         // Infernal Eruption
-        if (m_TimerMgr->IsReady(TIMER_INFERNAL_ERUPTION, isCasting))
-        {
-            m_creature->CastSpell(m_creature, m_TimerMgr->GetSpellId(TIMER_INFERNAL_ERUPTION), false);
-            m_TimerMgr->AddCooldown(TIMER_INFERNAL_ERUPTION);
-        }
+        m_TimerMgr->CheckTimer(TIMER_INFERNAL_ERUPTION);
 
         // Nether Portal
-        if (m_TimerMgr->IsReady(TIMER_NETHER_PORTAL, isCasting))
-        {
-            m_creature->CastSpell(m_creature, m_TimerMgr->GetSpellId(TIMER_NETHER_PORTAL), false);
-            m_TimerMgr->AddCooldown(TIMER_NETHER_PORTAL);
-        }
+        m_TimerMgr->CheckTimer(TIMER_NETHER_PORTAL);
 
         // Nether Power
-        if (m_TimerMgr->IsReady(TIMER_NETHER_POWER, isCasting))
-        {
-            m_creature->CastSpell(m_creature, m_TimerMgr->GetSpellId(TIMER_NETHER_POWER), false);
-            m_TimerMgr->AddCooldown(TIMER_NETHER_POWER);
-        }
+        m_TimerMgr->CheckTimer(TIMER_NETHER_POWER);
 
         DoMeleeAttackIfReady();
     }
@@ -273,8 +238,8 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->Add(TIMER_FEL_STREAK, SPELL_FEL_STREAK, urand(8000,10000), urand(25000,30000));
-        m_TimerMgr->Add(TIMER_FEL_INFERNO, SPELL_FEL_INFERNO, urand(10000,20000), urand(15000,25000));
+        m_TimerMgr->AddTimer(TIMER_FEL_STREAK, m_creature, SPELL_FEL_STREAK, urand(8000,10000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
+        m_TimerMgr->AddTimer(TIMER_FEL_INFERNO, m_creature, SPELL_FEL_INFERNO, urand(10000,20000), urand(15000,25000), UNIT_SELECT_SELF);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -282,25 +247,12 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        m_TimerMgr->UpdateTimers(uiDiff);
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
-
         // Fel Streak
-        if (m_TimerMgr->IsReady(TIMER_FEL_STREAK, isCasting))
-        {
+        if (m_TimerMgr->CheckTimer(TIMER_FEL_STREAK))
             m_creature->CastSpell(m_creature, SPELL_FEL_STREAK_M, false);
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
-                m_creature->CastSpell(plr, m_TimerMgr->GetSpellId(TIMER_FEL_STREAK), true);
-            m_TimerMgr->AddCooldown(TIMER_FEL_STREAK);
-        }
 
         // Fel Inferno
-        if (m_TimerMgr->IsReady(TIMER_FEL_INFERNO, isCasting))
-        {
-            m_creature->CastSpell(m_creature, m_TimerMgr->GetSpellId(TIMER_FEL_INFERNO), false);
-            m_TimerMgr->AddCooldown(TIMER_FEL_INFERNO);
-        }
+        m_TimerMgr->CheckTimer(TIMER_FEL_INFERNO);
 
         DoMeleeAttackIfReady();
     }
@@ -320,20 +272,16 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->Add(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000);
-        m_TimerMgr->Add(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000);
+        m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, m_creature, SPELL_SHIVAN_SLASH, 15000, 15000, UNIT_SELECT_VICTIM);
+        m_TimerMgr->AddTimer(TIMER_SPINNING_PAIN_SPIKE, m_creature, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
         if (m_dDifficulty == RAID_DIFFICULTY_10MAN_HEROIC || m_dDifficulty == RAID_DIFFICULTY_25MAN_HEROIC)
-            m_TimerMgr->Add(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000);
+            m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, m_creature, SPELL_SHIVAN_SLASH, 15000, 15000);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        m_TimerMgr->UpdateTimers(uiDiff);
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // Shivan Slash
         if (m_TimerMgr->IsReady(TIMER_SHIVAN_SLASH, isCasting))
@@ -363,11 +311,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             PlrList::iterator itr = manaList.begin();
             std::advance(itr, urand(0, manaList.size()-1));
 
-            if (Unit* target = *itr)
-            {
-                m_creature->CastSpell(target, m_TimerMgr->GetSpellId(TIMER_MISTRESS_KISS), false);
-                m_TimerMgr->AddCooldown(TIMER_MISTRESS_KISS);
-            }
+            m_TimerMgr->GetTimer(TIMER_MISTRESS_KISS)->Finish(*itr);
         }
 
         DoMeleeAttackIfReady();
