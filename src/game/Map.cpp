@@ -2539,6 +2539,20 @@ Creature* Map::GetCreature(ObjectGuid guid)
     return m_objectsStore.find<Creature>(guid.GetRawValue(), (Creature*)NULL);
 }
 
+Unit* Map::GetUnit(ObjectGuid guid)
+{
+    switch(guid.GetHigh())
+    {
+        case HIGHGUID_PLAYER:       return ObjectAccessor::FindPlayer(guid);
+        case HIGHGUID_UNIT:         return GetCreature(guid);
+        case HIGHGUID_PET:          return GetPet(guid);
+        case HIGHGUID_VEHICLE:      return GetVehicle(guid);
+        default:                    break;
+    }
+
+    return NULL;
+}
+
 Vehicle* Map::GetVehicle(ObjectGuid guid)
 {
     return m_objectsStore.find<Vehicle>(guid.GetRawValue(), (Vehicle*)NULL);

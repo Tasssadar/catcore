@@ -218,6 +218,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         Creature* GetCreature(ObjectGuid guid);
         Vehicle* GetVehicle(ObjectGuid guid);
         Pet* GetPet(ObjectGuid guid);
+        Unit* GetUnit(ObjectGuid guid);
         Creature* GetCreatureOrPetOrVehicle(ObjectGuid guid);
         GameObject* GetGameObject(ObjectGuid guid);
         DynamicObject* GetDynamicObject(ObjectGuid guid);
