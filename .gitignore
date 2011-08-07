@@ -17,6 +17,7 @@
 *.so.dbg
 *.bin
 *.gz
+*.user
 
 #
 # Top-level generic files
