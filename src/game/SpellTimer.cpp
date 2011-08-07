@@ -1,12 +1,52 @@
 #include "SpellTimer.h"
 #include "DBCStores.h"
+#include "Map.h"
 
-void SpellTimer::Update(uint32 diff)
+void SpellTimer::Reset(TimerValues value)
 {
-    if (timer < diff)
-        timer = 0;
-    else
-        timer -= diff;
+    switch (value)
+    {
+        case TIMER_VALUE_ALL:
+            cooldown_m = initialCooldown_m;
+            spellId_m = initialSpellId_m;
+            timer_m = initialTimer_m;
+            updateAllowed_m = true;
+            break;
+        case TIMER_VALUE_COOLDOWN:
+            cooldown_m = initialCooldown_m;
+            break;
+        case TIMER_VALUE_SPELLID:
+            spellId_m = initialSpellId_m;
+            break;
+        case TIMER_VALUE_TIMER:
+            timer_m = initialTimer_m;
+            break;
+        case TIMER_VALUE_UPDATEABLE:
+            updateAllowed_m = true;
+        default:
+            break;
+    }
+}
+
+void SpellTimer::SetValue(TimerValues value, uint32 newValue)
+{
+    switch (value)
+    {
+        case TIMER_VALUE_COOLDOWN:
+            cooldown_m = newValue;
+            break;
+        case TIMER_VALUE_SPELLID:
+            spellId_m = newValue;
+            break;
+        case TIMER_VALUE_TIMER:
+            timer_m = newValue;
+            break;
+        case TIMER_VALUE_UPDATEABLE:
+            updateAllowed_m = bool(newValue);
+            break;
+        default:
+            break;
+    }
 }
 
 void SpellTimer::SetInitialCooldown(int32 cooldown)
@@ -15,93 +55,72 @@ void SpellTimer::SetInitialCooldown(int32 cooldown)
     {
         SpellEntry const* spellEntry = sSpellStore.LookupEntry(GetSpellId());
         if (spellEntry)
-            cooldown_m = spellEntry->RecoveryTime;
+            initialCooldown_m = spellEntry->RecoveryTime;
         else
-            cooldown_m = 0;
+            initialCooldown_m = 0;
     }
     else if (cooldown < 0)
     {
-        cooldown_m = 0;
+        initialCooldown_m = 0;
         return;
     }
     else
-        cooldown_m = cooldown;
+        initialCooldown_m = cooldown;
 }
 
-bool SpellTimer::CheckAndUpdate(uint32 diff, bool isCreatureCurrentlyCasting)
+void SpellTimer::Update(uint32 diff)
 {
-    if (timer < diff)
-    {
-        timer = 0;
-        if (check_cast_m && isCreatureCurrentlyCasting)
-            return false;
-
-        return true;
-    }
+    if (timer_m < diff)
+        timer_m = 0;
     else
+        timer_m -= diff;
+}
+
+bool SpellTimer::IsReady()
+{
+    if (castType_m == CAST_TYPE_NONCAST && isCasterCasting())
+        return false;
+
+    return timer_m == 0;
+}
+
+bool SpellTimer::Finish(Unit* target)
+{
+    target_m = target ? target : getTarget();
+    if (!target_m)
+        return false;
+
+    caster_m->CastSpell(target, GetSpellId(), false);
+    Cooldown();
+    target_m = NULL;
+    return true;
+}
+
+Unit* SpellTimer::getTarget()
+{
+    if (!caster_m || !caster_m->IsInWorld())
+        return NULL;
+
+    switch(targetType_m)
     {
-        timer -= diff;
-        return false;
+        case UNIT_SELECT_SELF:      return caster_m;
+        case UNIT_SELECT_VICTIM:    return caster_m->getVictim();
+        case UNIT_SELECT_GUID:      return caster_m->GetMap()->GetUnit(ObjectGuid(targetInfo_m));
+        case UNIT_SELECT_RANDOM_PLAYER:
+            if (caster_m->GetTypeId() == TYPEID_UNIT)
+                return ((Creature*)caster_m)->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, targetInfo_m);
+        case UNIT_SELECT_RANDOM_UNIT:
+            if (caster_m->GetTypeId() == TYPEID_UNIT)
+                return ((Creature*)caster_m)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, targetInfo_m);
+        default:
+            break;
     }
+
+    return target;
 }
 
-bool SpellTimer::IsReady(bool isCreatureCurrentlyCasting)
+void SpellTimer::InterruptCastedSpells()
 {
-    if (check_cast_m && isCreatureCurrentlyCasting)
-        return false;
-
-    return timer == 0;
+    if (caster_m)
+        caster_m->InterruptNonMeleeSpells(false);
 }
-
-SpellTimerMgr::~SpellTimerMgr()
-{
-    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
-        delete itr->second;
-
-    m_TimerMap.clear();
-}
-
-void SpellTimerMgr::Add(uint32 name, uint32 initialSpellId, uint32 initialTimer, int32 cooldown, bool check_cast, bool auto_updateable)
-{
-    // is already set, delete
-    if (m_TimerMap[name])
-        delete m_TimerMap[name];
-
-    SpellTimer* timer = new SpellTimer(initialSpellId, initialTimer, cooldown, check_cast, auto_updateable);
-    m_TimerMap[name] = timer;
-}
-
-void SpellTimerMgr::Remove(uint32 name)
-{
-    delete m_TimerMap[name];
-}
-
-SpellTimer* SpellTimerMgr::Get(uint32 name)
-{
-    return m_TimerMap[name];
-}
-
-void SpellTimerMgr::Update(const uint32 uiDiff)
-{
-    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
-        if (SpellTimer* timer = itr->second)
-            if (timer->isUpdateable())
-                timer->Update(uiDiff);
-}
-
-bool SpellTimerMgr::IsReady(uint32 name, bool isCreatureCurrentlyCasting)
-{
-    return m_TimerMap[name] && m_TimerMap[name]->IsReady(isCreatureCurrentlyCasting);
-}
-
-uint32 SpellTimerMgr::GetSpellId(uint32 name)
-{
-    return m_TimerMap[name] ? m_TimerMap[name]->GetSpellId() : 0;
-}
-
-void SpellTimerMgr::AddCooldown(uint32 name)
-{
-    if (m_TimerMap[name])
-        m_TimerMap[name]->AddCooldown();
-}
-
