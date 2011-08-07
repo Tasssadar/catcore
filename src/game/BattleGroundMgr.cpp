@@ -1174,8 +1174,8 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
             plr->RemoveBattleGroundQueueId(m_BgQueueTypeId);
             bgQueue.RemovePlayer(m_PlayerGuid, true);
             //update queues if battleground isn't ended
-            if (bg && bg->isBattleGround() && bg->GetStatus() != STATUS_WAIT_LEAVE)
-                sBattleGroundMgr.ScheduleQueueUpdate(0, 0, m_BgQueueTypeId, m_BgTypeId, bg->GetBracketId());
+            //if (bg && bg->isBattleGround() && bg->GetStatus() != STATUS_WAIT_LEAVE)
+            //    sBattleGroundMgr.ScheduleQueueUpdate(0, 0, m_BgQueueTypeId, m_BgTypeId, bg->GetBracketId());
 
             WorldPacket data;
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_NONE, 0, 0, 0);
@@ -2065,6 +2065,8 @@ void BattleGroundMgr::ToggleArenaTesting()
 
 void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id)
 {
+    return;
+
     //ACE_Guard<ACE_Thread_Mutex> guard(SchedulerLock);
     //we will use only 1 number created of bgTypeId and bracket_id
     uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;

@@ -244,7 +244,7 @@ void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
         SendPacket(&data);
         DEBUG_LOG("Battleground: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s",bgQueueTypeId,bgTypeId,_player->GetGUIDLow(), _player->GetName());
     }
-    sBattleGroundMgr.ScheduleQueueUpdate(0, 0, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
+    //sBattleGroundMgr.ScheduleQueueUpdate(0, 0, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
 }
 
 void WorldSession::HandleBattleGroundPlayerPositionsOpcode( WorldPacket & /*recv_data*/ )
@@ -492,8 +492,8 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_NONE, 0, 0, 0);
             bgQueue.RemovePlayer(_player->GetGUID(), true);
             // player left queue, we should update it - do not update Arena Queue
-            if (!ginfo.ArenaType)
-                sBattleGroundMgr.ScheduleQueueUpdate(ginfo.ArenaTeamRating, ginfo.ArenaType, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
+            //if (!ginfo.ArenaType)
+            //    sBattleGroundMgr.ScheduleQueueUpdate(ginfo.ArenaTeamRating, ginfo.ArenaType, bgQueueTypeId, bgTypeId, bracketEntry->GetBracketId());
             SendPacket(&data);
             DEBUG_LOG("Battleground: player %s (%u) left queue for bgtype %u, queue type %u.", _player->GetName(), _player->GetGUIDLow(), bg->GetTypeID(), bgQueueTypeId);
             break;
@@ -794,7 +794,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
         SendPacket(&data);
         DEBUG_LOG("Battleground: player joined queue for arena, skirmish, bg queue type %u bg type %u: GUID %u, NAME %s",bgQueueTypeId,BATTLEGROUND_AA,_player->GetGUIDLow(), _player->GetName());
     }
-    sBattleGroundMgr.ScheduleQueueUpdate(arenaRating, arenatype, bgQueueTypeId, BATTLEGROUND_AA, bracketEntry->GetBracketId());
+    //sBattleGroundMgr.ScheduleQueueUpdate(arenaRating, arenatype, bgQueueTypeId, BATTLEGROUND_AA, bracketEntry->GetBracketId());
 }
 
 void WorldSession::HandleReportPvPAFK( WorldPacket & recv_data )
