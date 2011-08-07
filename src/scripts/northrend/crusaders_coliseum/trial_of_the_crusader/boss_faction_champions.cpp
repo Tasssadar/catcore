@@ -118,7 +118,7 @@ struct FactionedChampionAI : public ScriptedAI
     void Reset()
     {
         m_bHasMagicalCC = false;
-        m_TimerMgr->Add(TIMER_GCD, 0, 0, 1500, false);
+        m_TimerMgr->AddTimer(TIMER_GCD, NULL, 0, 0, 1500, UNIT_SELECT_NONE);
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)
@@ -273,7 +273,7 @@ struct factioned_healerAI : public FactionedChampionAI
     {
         for (uint8 healpower = appropHealPower; healpower > 0; --healpower)
         {
-            SpellTimer* heal = m_TimerMgr->Get(TIMER_HEAL+healpower);
+            SpellTimer* heal = m_TimerMgr->GetTimer(TIMER_HEAL+healpower);
             if (heal && heal->IsReady(m_creature->IsNonMeleeSpellCasted(false)))
                 return heal;
         }
@@ -328,15 +328,15 @@ struct champ_rdruidAI : public factioned_healerAI
         factioned_healerAI::Reset();
 
         // healer timers
-        m_TimerMgr->Add(timer(HEAL_MINOR), RD_REJUVENATION, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MIDDLE), RD_LIFEBLOOM, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MAJOR), RD_REGROWTH, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_LIFESAVING), RD_NOURISH, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MINOR), m_creature, RD_REJUVENATION, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MIDDLE), m_creature, RD_LIFEBLOOM, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MAJOR), m_creature, RD_REGROWTH, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_LIFESAVING), m_creature, RD_NOURISH, 0, 2000);
 
-        m_TimerMgr->Add(RD_TRANQUILITY, RD_TRANQUILITY, 15000, 600000);
-        m_TimerMgr->Add(RD_NATURES_GRASP, RD_NATURES_GRASP, 2000, 60000);
-        m_TimerMgr->Add(RD_THORNS, RD_THORNS, 0, 2000);
-        m_TimerMgr->Add(RD_BARSKIN, RD_BARSKIN, 2000, 60000);
+        m_TimerMgr->AddTimer(RD_TRANQUILITY, m_creature, RD_TRANQUILITY, 15000, 600000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        m_TimerMgr->AddTimer(RD_NATURES_GRASP, m_creature, RD_NATURES_GRASP, 2000, 60000, UNIT_SELECT_SELF, CAST_TYPE_QUEUE);
+        m_TimerMgr->AddTimer(RD_THORNS, m_creature, RD_THORNS, 0, 2000);
+        m_TimerMgr->AddTimer(RD_BARSKIN, m_creature, RD_BARSKIN, 2000, 60000, UNIT_SELECT_SELF, CAST_TYPE_QUEUE);
     }
 
     bool CanCastTranquility()
@@ -356,19 +356,13 @@ struct champ_rdruidAI : public factioned_healerAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
-
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
             return;
 
         // Tranquility
-        if (m_TimerMgr->IsReady(RD_TRANQUILITY, isCasting) && CanCastTranquility())
-        {
-            FactionedCast(m_creature, m_TimerMgr->GetSpellId(RD_TRANQUILITY), false);
-            m_TimerMgr->AddCooldown(RD_TRANQUILITY);
-        }
+        if (CanCastTranquility())
+            m_TimerMgr->CheckTimer(RD_TRANQUILITY);
 
         // cast heal if it suits situation, if does, return function
         if (DoHeal())
@@ -400,26 +394,21 @@ struct champ_hpalaAI : public factioned_healerAI
     {
         factioned_healerAI::Reset();
 
-        m_TimerMgr->Add(timer(HEAL_MINOR), HP_HOLY_LIGHT, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MIDDLE), HP_HOLY_SHOCK, 0, 6000);
-        m_TimerMgr->Add(timer(HEAL_MAJOR), HP_FLASH_OF_LIGHT, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_LIFESAVING), HP_HAND_OF_PROTECTION, 2000, 300000);
+        m_TimerMgr->AddTimer(timer(HEAL_MINOR), m_creature, HP_HOLY_LIGHT, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MIDDLE), m_creature, HP_HOLY_SHOCK, 0, 6000);
+        m_TimerMgr->AddTimer(timer(HEAL_MAJOR), m_creature, HP_FLASH_OF_LIGHT, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_LIFESAVING), m_creature, HP_HAND_OF_PROTECTION, 2000, 300000);
 
-        m_TimerMgr->Add(TIMER_DISPEL, HP_CLEANSE, 15000, 2000);
-        m_TimerMgr->Add(HP_DIVINE_SHIELD, HP_DIVINE_SHIELD, 2000, 300000);
-        m_TimerMgr->Add(HP_HAMMER_OF_JUSTICE, HP_HAMMER_OF_JUSTICE, 0, 40000);
-        m_TimerMgr->Add(HP_HAND_OF_FREEDOM, HP_HAND_OF_FREEDOM, 2000, 25000);
+        m_TimerMgr->AddTimer(TIMER_DISPEL, m_creature, HP_CLEANSE, 15000, 2000);
+        m_TimerMgr->AddTimer(HP_DIVINE_SHIELD, m_creature, HP_DIVINE_SHIELD, 2000, 300000, UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(HP_HAMMER_OF_JUSTICE, m_creature, HP_HAMMER_OF_JUSTICE, 0, 40000);
+        m_TimerMgr->AddTimer(HP_HAND_OF_FREEDOM, m_creature, HP_HAND_OF_FREEDOM, 2000, 25000);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        // update all timers
-        m_TimerMgr->Update(uiDiff);
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
@@ -456,23 +445,20 @@ struct champ_dpriestAI : public factioned_healerAI
     {
         factioned_healerAI::Reset();
 
-        m_TimerMgr->Add(timer(HEAL_MINOR), DP_RENEW, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MIDDLE), DP_FLASH_HEAL, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MAJOR), DP_PENANCE, 0, 10000);
-        m_TimerMgr->Add(timer(HEAL_LIFESAVING), DP_POWER_WORD_SHIELD, 0000, 15000);
+        m_TimerMgr->AddTimer(timer(HEAL_MINOR), m_creature, DP_RENEW, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MIDDLE), m_creature, DP_FLASH_HEAL, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MAJOR), m_creature, DP_PENANCE, 0, 10000);
+        m_TimerMgr->AddTimer(timer(HEAL_LIFESAVING), m_creature, DP_POWER_WORD_SHIELD, 0000, 15000);
 
-        m_TimerMgr->Add(TIMER_DISPEL, DP_DISPEL_MAGIC, 2000, 2000);
-        m_TimerMgr->Add(DP_MANA_BURN, DP_MANA_BURN, 2000, 2000);
-        m_TimerMgr->Add(DP_PSYCHIC_SCREAM, DP_PSYCHIC_SCREAM, 2000, 30000);
+        m_TimerMgr->AddTimer(TIMER_DISPEL, m_creature, DP_DISPEL_MAGIC, 2000, 2000);
+        m_TimerMgr->AddTimer(DP_MANA_BURN, m_creature, DP_MANA_BURN, 2000, 2000);
+        m_TimerMgr->AddTimer(DP_PSYCHIC_SCREAM, m_creature, DP_PSYCHIC_SCREAM, 2000, 30000, UNIT_SELECT_SELF);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))
@@ -494,6 +480,7 @@ enum Resto_Shaman
 
     RS_EARH_SHOCK       = 65973,
     RS_HEROISM          = 65983,
+    RS_BLOODLUST        = 65980,
     RS_HEX              = 66054
 };
 
@@ -508,24 +495,20 @@ struct champ_rshamAI : public factioned_healerAI
     {
         factioned_healerAI::Reset();
 
-        m_TimerMgr->Add(timer(HEAL_MINOR), RS_EARTH_SHIELD, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MIDDLE), RS_LESSER_HEALING_W, 0, 2000);
-        m_TimerMgr->Add(timer(HEAL_MAJOR), RS_RIPTIDE, 0, 6000);
-        //m_TimerMgr->Add(timer(HEAL_LIFESAVING), DP_POWER_WORD_SHIELD, 0000, 15000);
+        m_TimerMgr->AddTimer(timer(HEAL_MINOR), m_creature, RS_EARTH_SHIELD, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MIDDLE), m_creature, RS_LESSER_HEALING_W, 0, 2000);
+        m_TimerMgr->AddTimer(timer(HEAL_MAJOR), m_creature, RS_RIPTIDE, 0, 6000);
 
-        m_TimerMgr->Add(TIMER_DISPEL, RS_CLEANSE_SPIRIT, 2000, 2000);
-        m_TimerMgr->Add(RS_EARH_SHOCK, RS_EARH_SHOCK, 2000, 6000);
-        m_TimerMgr->Add(RS_HEROISM, RS_HEROISM, 0, 300000);
-        m_TimerMgr->Add(RS_HEX, RS_HEX, 2000, 45000);
+        m_TimerMgr->AddTimer(TIMER_DISPEL, m_creature, RS_CLEANSE_SPIRIT, 2000, 2000);
+        m_TimerMgr->AddTimer(RS_EARH_SHOCK, m_creature, RS_EARH_SHOCK, 2000, 6000);
+        m_TimerMgr->AddTimer(RS_HEROISM, m_creature, m_creature->GetEntry() == 34444 ? RS_BLOODLUST : RS_HEROISM, 0, 300000, UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(RS_HEX, m_creature, RS_HEX, 2000, 45000);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-
-        bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
         // GCD check
         if (!m_TimerMgr->IsReady(TIMER_GCD, false))

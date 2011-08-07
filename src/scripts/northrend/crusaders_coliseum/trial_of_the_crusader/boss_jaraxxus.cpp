@@ -199,7 +199,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        m_TimerMgr->Update(uiDiff);
+        m_TimerMgr->UpdateTimers(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
@@ -282,7 +282,7 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        m_TimerMgr->Update(uiDiff);
+        m_TimerMgr->UpdateTimers(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
@@ -331,7 +331,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        m_TimerMgr->Update(uiDiff);
+        m_TimerMgr->UpdateTimers(uiDiff);
 
         bool isCasting = m_creature->IsNonMeleeSpellCasted(false);
 
