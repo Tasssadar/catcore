@@ -2,11 +2,11 @@
 #include "SpellTimer.h"
 #include "SpellTimerMgr.h"
 
-CreatureCastMgr::CreatureCastMgr()
+SpellTimerMgr::SpellTimerMgr()
 {
 }
 
-CreatureCastMgr::~CreatureCastMgr()
+SpellTimerMgr::~SpellTimerMgr()
 {
     for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
         delete itr->second;
@@ -14,7 +14,7 @@ CreatureCastMgr::~CreatureCastMgr()
     m_TimerMap.clear();
 }
 
-void CreatureCastMgr::AddTimer(uint32 timerId, Unit* caster, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo)
+void SpellTimerMgr::AddTimer(uint32 timerId, Unit* caster, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo)
 {
     // is already set, delete
     if (m_TimerMap[timerId])
@@ -23,18 +23,18 @@ void CreatureCastMgr::AddTimer(uint32 timerId, Unit* caster, uint32 initialSpell
     m_TimerMap[timerId] = new SpellTimer(caster, initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo);
 }
 
-void CreatureCastMgr::RemoveTimer(uint32 timerId)
+void SpellTimerMgr::RemoveTimer(uint32 timerId)
 {
     delete m_TimerMap[timerId];
     m_TimerMap.erase(timerId);
 }
 
-SpellTimer* CreatureCastMgr::GetTimer(uint32 timerId)
+SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
     return m_TimerMap[timerId];
 }
 
-void CreatureCastMgr::UpdateTimers(const uint32 uiDiff)
+void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 {
     if (m_TimerMap.empty())
         return;
@@ -58,22 +58,22 @@ void CreatureCastMgr::UpdateTimers(const uint32 uiDiff)
     }
 }
 
-bool CreatureCastMgr::IsReady(uint32 timerId)
+bool SpellTimerMgr::IsReady(uint32 timerId)
 {
     return m_TimerMap[timerId]->IsReady();
 }
 
-uint32 CreatureCastMgr::GetSpellId(uint32 timerId)
+uint32 SpellTimerMgr::GetSpellId(uint32 timerId)
 {
     return m_TimerMap[timerId]->GetSpellId();
 }
 
-void CreatureCastMgr::Cooldown(uint32 timerId)
+void SpellTimerMgr::Cooldown(uint32 timerId)
 {
     m_TimerMap[timerId]->Cooldown();
 }
 
-bool CreatureCastMgr::CheckTimer(uint32 timerId, Unit *target)
+bool SpellTimerMgr::CheckTimer(uint32 timerId, Unit *target)
 {
     // lets find timer
     SpellTimer* timer = m_TimerMap[timerId];

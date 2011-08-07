@@ -116,7 +116,7 @@ Unit* SpellTimer::getTarget()
             break;
     }
 
-    return target;
+    return NULL;
 }
 
 void SpellTimer::InterruptCastedSpells()

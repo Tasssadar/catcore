@@ -7,11 +7,11 @@
 typedef std::map<uint32, SpellTimer*> SpellTimerMap;
 typedef std::list<SpellTimer*> SpellTimerList;
 
-struct CreatureCastMgr
+struct SpellTimerMgr
 {
     public:
-        CreatureCastMgr();
-        ~CreatureCastMgr();
+        SpellTimerMgr();
+        ~SpellTimerMgr();
 
         void AddTimer(uint32 timerId, Unit* caster, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0);
         void RemoveTimer(uint32 timerId);               // not safe to use right now
