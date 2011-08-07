@@ -20,7 +20,6 @@
 #include "Creature.h"
 #include "DBCStores.h"
 #include "Spell.h"
-#include "SpellTimer.h"
 
 CreatureAI::~CreatureAI()
 {

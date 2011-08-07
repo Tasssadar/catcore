@@ -24,7 +24,7 @@
 #include "Policies/Singleton.h"
 #include "Dynamic/ObjectRegistry.h"
 #include "Dynamic/FactoryHolder.h"
-#include "SpellTimer.h"
+#include "SpellTimerMgr.h"
 
 class WorldObject;
 class Unit;
