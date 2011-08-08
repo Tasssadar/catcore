@@ -223,8 +223,6 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
             DoCast(m_creature, m_bIsRegularMode ? SPELL_SHOCKWAVE : SPELL_SHOCKWAVE_H);
             m_uiShockwave_Timer = 17000;
         }else m_uiShockwave_Timer -= diff;
-
-        //DoMeleeAttackIfReady();
     }
 };
 
@@ -270,10 +268,10 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
     {
         if (m_pInstance)
         {
-            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_LEFT_ARM)))
+            if (Creature* pTemp = m_pInstance->GetCreature(NPC_LEFT_ARM))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
-            if (Creature* pTemp = (m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
+            if (Creature* pTemp = m_pInstance->GetCreature(NPC_KOLOGARN))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
         }
@@ -360,8 +358,6 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
             }
             m_uiStone_Grip_Timer = 30000;
         }else m_uiStone_Grip_Timer -= diff;
-
-        //DoMeleeAttackIfReady();
     }
 };
 
