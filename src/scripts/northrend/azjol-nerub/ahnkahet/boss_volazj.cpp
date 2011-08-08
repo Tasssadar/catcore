@@ -172,16 +172,16 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
         m_uiPhase = PHASE_FIGHT;
         
         Map* pMap = m_creature->GetMap();
-        if(pMap)
+        if (pMap)
         {
             Map::PlayerList const &lPlayers = pMap->GetPlayers();
-            if(lPlayers.getSize() == 1)
+            if (lPlayers.getSize() == 1)
                 m_bIsDebugMode = true;
         }
     }
     void EnterEvadeMode()
     {
-        if(m_uiPhase != PHASE_FIGHT)
+        if (m_uiPhase != PHASE_FIGHT)
             return;
 
         m_creature->GetMotionMaster()->MoveTargetedHome();
@@ -204,38 +204,38 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
     }
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiPhase == PHASE_FIGHT)
+        if (m_uiPhase == PHASE_FIGHT)
         {
             if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
                 return;
 
             //Spells
             //Mind Flay
-            if(m_uiMindFlayTimer <= uiDiff)
+            if (m_uiMindFlayTimer <= uiDiff)
             {
                 DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_MIND_FLAY : SPELL_MIND_FLAY_H);
                 m_uiMindFlayTimer = 10000 + rand()%10000;
             }else m_uiMindFlayTimer -= uiDiff;
 
             //Shadowbolt voley
-            if(m_uiShadowBoltTimer <= uiDiff)
+            if (m_uiShadowBoltTimer <= uiDiff)
             {
                 DoCast(m_creature, m_bIsRegularMode ? SPELL_SHADOW_BOLT : SPELL_SHADOW_BOLT_H);
                 m_uiShadowBoltTimer = 8000 + rand()%5000;
             }else m_uiShadowBoltTimer -= uiDiff;
 
             //Shiver
-            if(m_uiShiverTimer <= uiDiff)
+            if (m_uiShiverTimer <= uiDiff)
             {
                 DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), m_bIsRegularMode ? SPELL_SHIVER : SPELL_SHIVER_H);
                 m_uiShiverTimer = 30000;
             }else m_uiShiverTimer -= uiDiff;
 
             //Health check
-            if(m_uiCheckTimer <= uiDiff)
+            if (m_uiCheckTimer <= uiDiff)
             {
                 uint8 health = m_creature->GetHealth()*100 / m_creature->GetMaxHealth();                    
-                if(m_uiLastSacrifaceHP == 0 && health <= 50)
+                if (m_uiLastSacrifaceHP == 0 && health <= 50)
                 {
                     m_creature->InterruptNonMeleeSpells(true);
                     SetCombatMovement(false);    
@@ -248,10 +248,10 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
             }else m_uiCheckTimer -= uiDiff;  
     
             DoMeleeAttackIfReady();
-        }else if(m_uiPhase == PHASE_INSANITY_1)
+        }else if (m_uiPhase == PHASE_INSANITY_1)
         {
             //Wait until cast is complete
-            if(m_uiInsanityCastTimer <= uiDiff)
+            if (m_uiInsanityCastTimer <= uiDiff)
             {
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 DoCast(m_creature, SPELL_INSANITY_CHANNEL);
@@ -263,18 +263,18 @@ struct MANGOS_DLL_DECL boss_volazjAI : public ScriptedAI
                 m_creature->GetMotionMaster()->MovementExpired(false);
                 DoScriptText(SAY_ANCIENT_VOID, m_creature);
             }else m_uiInsanityCastTimer -= uiDiff;
-        }else if(m_uiPhase == PHASE_INSANITY_2)
+        }else if (m_uiPhase == PHASE_INSANITY_2)
         {
-            if(m_uiCheckTimer <= uiDiff)
+            if (m_uiCheckTimer <= uiDiff)
             {
-                if(Creature *pTemp = GetClosestCreatureWithEntry(m_creature, NPC_ANCIENT_VOID, 150.0f))
+                if (Creature *pTemp = GetClosestCreatureWithEntry(m_creature, NPC_ANCIENT_VOID, 150.0f))
                 {
-                    if(!pTemp->isAlive())
+                    if (!pTemp->isAlive())
                        m_uiPhase = PHASE_INSANITY_3;
                 }else m_uiPhase = PHASE_INSANITY_3;
                 m_uiCheckTimer = 1000;
             }else m_uiCheckTimer -= uiDiff; 
-        }else if(m_uiPhase == PHASE_INSANITY_3)
+        }else if (m_uiPhase == PHASE_INSANITY_3)
         {
             m_creature->RemoveAurasDueToSpell(SPELL_INSANITY_CHANNEL);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -319,13 +319,13 @@ struct MANGOS_DLL_DECL mob_twisted_visageAI : public ScriptedAI
     }
     void MovementInform(uint32 uiType, uint32 uiPointId)
     {
-        if(uiType != POINT_MOTION_TYPE)
+        if (uiType != POINT_MOTION_TYPE)
                 return;
 
         switch(uiPointId)
         {
             case 0:
-                if(Creature *pVoid = GetClosestCreatureWithEntry(m_creature, NPC_ANCIENT_VOID, 30.0f))
+                if (Creature *pVoid = GetClosestCreatureWithEntry(m_creature, NPC_ANCIENT_VOID, 30.0f))
                 {
                     float newsize = pVoid->GetFloatValue(OBJECT_FIELD_SCALE_X) + 0.25f;
                     uint32 health = pVoid->GetHealth() + 20000;
@@ -382,7 +382,7 @@ struct MANGOS_DLL_DECL mob_ancient_voidAI : public ScriptedAI
 
         m_uiPhysicScreamTimer = 0;
         m_uiShadowBoltTimer = 8000;
-        if(m_bIsRegularMode)
+        if (m_bIsRegularMode)
             m_creature->SetHealth(200000);
         else
             m_creature->SetHealth(300000);
@@ -413,7 +413,7 @@ struct MANGOS_DLL_DECL mob_ancient_voidAI : public ScriptedAI
                 DoScriptText(SAY_VOID_AGGRO, m_creature);
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 SetCombatMovement(true);
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_uiPhase = 3;
                 break;
@@ -421,30 +421,30 @@ struct MANGOS_DLL_DECL mob_ancient_voidAI : public ScriptedAI
     }
     void SetPhysicScreamTimer()
     {
-        if(m_fVisages < 3)
+        if (m_fVisages < 3)
             m_uiPhysicScreamTimer = 23000;
-        else if(m_fVisages < 5)
+        else if (m_fVisages < 5)
             m_uiPhysicScreamTimer = 17000;
-        else if(m_fVisages < 7)
+        else if (m_fVisages < 7)
             m_uiPhysicScreamTimer = 11000;
-        else if(m_fVisages < 9)
+        else if (m_fVisages < 9)
             m_uiPhysicScreamTimer = 5000;
     }
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiPhase == 1)
+        if (m_uiPhase == 1)
         {
-            if(m_uiDelayTimer <= uiDiff)
+            if (m_uiDelayTimer <= uiDiff)
             {
-                if(!GetClosestCreatureWithEntry(m_creature, NPC_TWISTED_VISAGE, 150.0f))
+                if (!GetClosestCreatureWithEntry(m_creature, NPC_TWISTED_VISAGE, 150.0f))
                     m_uiPhase = 2;
                 m_uiDelayTimer = 1000;
             }else m_uiDelayTimer -= uiDiff;
             return;
         }
-        if(m_uiPhase == 2)
+        if (m_uiPhase == 2)
         {
-            if(m_uiDelayTimer <= uiDiff)
+            if (m_uiDelayTimer <= uiDiff)
             {
                 DoTransform(m_uiTransformPhase);
                 m_uiTransformPhase++;
@@ -452,25 +452,25 @@ struct MANGOS_DLL_DECL mob_ancient_voidAI : public ScriptedAI
             }else m_uiDelayTimer -= uiDiff;
         }
         
-        if(m_uiPhase != 3)
+        if (m_uiPhase != 3)
             return;
-        if(!m_creature->isInCombat())
+        if (!m_creature->isInCombat())
         {
-            if(m_uiOutOfCombatTimer <= uiDiff)
+            if (m_uiOutOfCombatTimer <= uiDiff)
                 m_creature->ForcedDespawn();
             else m_uiOutOfCombatTimer -= uiDiff;
 
             return;
         }
 
-        if(m_uiPhysicScreamTimer <= uiDiff)
+        if (m_uiPhysicScreamTimer <= uiDiff)
         {
             DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0),SPELL_PSYCHIC_SCREAM);
             SetPhysicScreamTimer();
         }else m_uiPhysicScreamTimer -= uiDiff;
 
         //Shadowbolt voley
-        if(m_uiShadowBoltTimer <= uiDiff)
+        if (m_uiShadowBoltTimer <= uiDiff)
         {
             DoCast(m_creature, m_bIsRegularMode ? SPELL_SHADOW_BOLT : SPELL_SHADOW_BOLT_H);
             m_uiShadowBoltTimer = 8000;

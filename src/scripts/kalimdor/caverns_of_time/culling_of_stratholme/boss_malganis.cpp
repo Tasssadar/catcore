@@ -86,11 +86,11 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
    void AttackStart(Unit* who)
    {
-        if(m_pInstance->GetData(TYPE_PHASE) > 9) return;
+        if (m_pInstance->GetData(TYPE_PHASE) > 9) return;
 
-        if(m_pInstance->GetData(TYPE_MALGANIS) != IN_PROGRESS) return;
+        if (m_pInstance->GetData(TYPE_MALGANIS) != IN_PROGRESS) return;
 
-        if(!who || who == m_creature)
+        if (!who || who == m_creature)
             return;
 
         ScriptedAI::AttackStart(who);
@@ -104,12 +104,12 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
          {
            // Lfg expansion
            Group *group = players.begin()->getSource()->GetGroup();
-           if(group && group->isLfgGroup())
+           if (group && group->isLfgGroup())
                ((LfgGroup*)group)->KilledCreature(m_creature);
 
            for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
            {
-             if(Player* pPlayer = itr->getSource()) 
+             if (Player* pPlayer = itr->getSource()) 
                pPlayer->KilledMonsterCredit(31006, m_creature->GetGUID());
            }
          }
@@ -122,7 +122,7 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
       m_creature->CombatStop(true);
       m_creature->LoadCreaturesAddon();
 
-      if(m_pInstance->GetData(TYPE_PHASE) > 9)
+      if (m_pInstance->GetData(TYPE_PHASE) > 9)
       {
         KillCreditMalganis();
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -137,7 +137,7 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
    void Aggro(Unit* who)
    {
-     if(m_pInstance->GetData(TYPE_PHASE) > 9) return;
+     if (m_pInstance->GetData(TYPE_PHASE) > 9) return;
 
      DoScriptText(SAY_MALGANIS_AGGRO, m_creature);
    }
@@ -158,7 +158,7 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
    void UpdateAI(const uint32 diff)
    {
-        if(m_pInstance->GetData(TYPE_PHASE) > 9) return;
+        if (m_pInstance->GetData(TYPE_PHASE) > 9) return;
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -181,9 +181,9 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
             MindBlast_Timer = 11300;
         }else MindBlast_Timer -= diff;
 
-   if(m_creature->GetHealthPercent() < 40.0f)
+   if (m_creature->GetHealthPercent() < 40.0f)
    {
-      if(Sleep == false)
+      if (Sleep == false)
       {
         Sleep = true;
         DoScriptText(SAY_MALGANIS_Sleep, m_creature); 
@@ -203,9 +203,9 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
         }else Sleep_Timer -= diff;
    }
 
-   if(m_creature->GetHealthPercent() < 25.0f)
+   if (m_creature->GetHealthPercent() < 25.0f)
    {
-        if(Vampire == false)
+        if (Vampire == false)
         {
            Vampire = true;
            DoScriptText(SAY_MALGANIS_15HP, m_creature); 
@@ -221,7 +221,7 @@ struct MANGOS_DLL_DECL boss_malganisAI : public ScriptedAI
 
    }
 
-   if(m_creature->GetHealthPercent() < 5.0f)
+   if (m_creature->GetHealthPercent() < 5.0f)
    { 
       m_pInstance->SetData(TYPE_PHASE, 10);
       m_pInstance->SetData(TYPE_MALGANIS, DONE);

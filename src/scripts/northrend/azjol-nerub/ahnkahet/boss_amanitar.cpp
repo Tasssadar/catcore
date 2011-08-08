@@ -80,7 +80,7 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
     {
         ShowMushrooms();
 
-        if(m_bIsRegularMode == true)
+        if (m_bIsRegularMode == true)
             m_creature->ForcedDespawn();
 
         m_pInstance->SetData(TYPE_AMANITAR, IN_PROGRESS);
@@ -104,7 +104,7 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lMushroomsHealthy, m_creature, NPC_HEALTHY_MUSHROOM, 150.0f);
         for(CreatureList::iterator itr1 = lMushroomsHealthy.begin(); itr1 != lMushroomsHealthy.end(); ++itr1)
         {
-            if(show)
+            if (show)
                 (*itr1)->SetVisibility(VISIBILITY_ON);
             else
                 (*itr1)->SetVisibility(VISIBILITY_OFF);
@@ -113,7 +113,7 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lMushroomsPoison, m_creature, NPC_POISONOUS_MUSHROOM, 150.0f);
         for(CreatureList::iterator itr2 = lMushroomsPoison.begin(); itr2 != lMushroomsPoison.end(); ++itr2)
         {
-            if(show)
+            if (show)
                 (*itr2)->SetVisibility(VISIBILITY_ON);
             else
                 (*itr2)->SetVisibility(VISIBILITY_OFF);
@@ -126,28 +126,28 @@ struct MANGOS_DLL_DECL boss_amanitarAI : public ScriptedAI
             return;
         
         //Bash
-        if(m_uiBashTimer <= uiDiff)
+        if (m_uiBashTimer <= uiDiff)
         {
             DoCast(m_creature->getVictim(), SPELL_BASH);
             m_uiBashTimer = 8000 + rand()%5000;
         }else m_uiBashTimer -= uiDiff;
 
         //Venom bolt volley
-        if(m_uiVenomBoltTimer <= uiDiff)
+        if (m_uiVenomBoltTimer <= uiDiff)
         {
             DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_VENOM_BOLT);
             m_uiVenomBoltTimer = 15000 + rand()%5000;
         }else m_uiVenomBoltTimer -= uiDiff;
 
         //Entangling Roots
-        if(m_uiRootsTimer <= uiDiff)
+        if (m_uiRootsTimer <= uiDiff)
         {
             DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_ENTANGLING_ROOTS);
             m_uiRootsTimer = 18000 + rand()%5000;
         }else m_uiRootsTimer -= uiDiff;
 
         //Mini
-        if(m_uiMiniTimer <= uiDiff)
+        if (m_uiMiniTimer <= uiDiff)
         {
             DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_MINI);
             m_uiMiniTimer = 30000;
@@ -194,7 +194,7 @@ struct MANGOS_DLL_DECL npc_amanitar_mushroomAI : public ScriptedAI
     void ResetMushroom()
     {
         m_uiMushroomType = urand(0, 1);
-        if(m_uiMushroomType == 1)
+        if (m_uiMushroomType == 1)
         {
             m_creature->UpdateEntry(NPC_POISONOUS_MUSHROOM);
             m_creature->CastSpell(m_creature, SPELL_POISONOUS_MUSHROOM_VISUAL, true);
@@ -203,7 +203,7 @@ struct MANGOS_DLL_DECL npc_amanitar_mushroomAI : public ScriptedAI
             m_creature->UpdateEntry(NPC_HEALTHY_MUSHROOM);
         }
         DoCast(m_creature,SPELL_PUTRID_MUSHROOM,true);
-        if(m_bIsDead)
+        if (m_bIsDead)
             m_creature->SetVisibility(VISIBILITY_OFF);
     }
     void AttackStart(Unit *pWho)
@@ -222,7 +222,7 @@ struct MANGOS_DLL_DECL npc_amanitar_mushroomAI : public ScriptedAI
         {
             m_bIsDead = true;
             uiDamage = 0;
-            if(m_uiMushroomType == 0)
+            if (m_uiMushroomType == 0)
                 m_creature->CastSpell(m_creature, SPELL_POTENT_FUNGUS, true);
             else
                 m_creature->CastSpell(m_creature, SPELL_POISON_CLOUD, true);
@@ -237,9 +237,9 @@ struct MANGOS_DLL_DECL npc_amanitar_mushroomAI : public ScriptedAI
     }
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_bIsDead)
+        if (m_bIsDead)
         {
-            if(m_uiRespawnTimer <= uiDiff)
+            if (m_uiRespawnTimer <= uiDiff)
             {
                 m_bIsDead = false;
                 ResetMushroom();

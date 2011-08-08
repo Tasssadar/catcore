@@ -101,10 +101,10 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
         m_bIsIntroNow = true;
         m_uiIntroCount = 0;
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(DATA_BRUTALLUS_EVENT, NOT_STARTED);
 
-        if(!m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+        if (!m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
@@ -147,9 +147,9 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiIntroTimer < uiDiff)
+        if (m_uiIntroTimer < uiDiff)
         {
-            if(m_bIsIntroNow)
+            if (m_bIsIntroNow)
             {
                 m_creature->StopMoving();
                 m_creature->GetMotionMaster()->Clear();
@@ -195,7 +195,7 @@ struct MANGOS_DLL_DECL boss_brutallusAI : public ScriptedAI
             }
         }else m_uiIntroTimer -= uiDiff;
 
-        if(m_bIsIntroNow)
+        if (m_bIsIntroNow)
             return;
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())

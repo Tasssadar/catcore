@@ -362,13 +362,13 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_HODIR, FAIL);
     }
 
     void Aggro(Unit* /*who*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_HODIR, IN_PROGRESS);
 
         DoScriptText(SAY_AGGRO, m_creature);
@@ -432,13 +432,13 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
 
     void DoOutro()
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_HODIR, DONE);
             // spawn loot chest
             m_creature->SummonGameobject(m_bIsRegularMode ? LOOT_HODIR : LOOT_HODIR_H,
                 m_fLootHodir[0], m_fLootHodir[1], m_fLootHodir[2], m_fLootHodir[3], 604800);
-            if(m_uiSpeedKillTimer < 180000)
+            if (m_uiSpeedKillTimer < 180000)
             {
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_RARE_CACHE : ACHIEV_RARE_CACHE_H);
@@ -462,17 +462,17 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     // for debug only
     void JustDied(Unit* pKiller)
     {
-        if(m_pInstance)
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_HODIR, DONE);
-            if(m_uiSpeedKillTimer > 0)
+            if (m_uiSpeedKillTimer > 0)
                 m_pInstance->SetData(TYPE_HODIR_HARD, DONE);
         }
     }
 
     void DamageTaken(Unit *done_by, uint32 &uiDamage)
     {
-        if(m_creature->GetHealthPercent() < 1.0f || uiDamage > m_creature->GetHealth())
+        if (m_creature->GetHealthPercent() < 1.0f || uiDamage > m_creature->GetHealth())
         {
             uiDamage = 0;
             m_bIsOutro = true;
@@ -485,7 +485,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
 
     void KilledUnit(Unit* /*who*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY01, m_creature);
         else
             DoScriptText(SAY_SLAY02, m_creature);
@@ -555,7 +555,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     }
     void UpdateAI(const uint32 uiDiff)
     {
-        if(!m_bIsOutro)
+        if (!m_bIsOutro)
         {
             if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
                 return;
@@ -564,9 +564,9 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             m_uiSpeedKillTimer += uiDiff;
 
             // Freeze
-            if(m_uiFreezeTimer < uiDiff && !m_creature->IsNonMeleeSpellCasted(false))
+            if (m_uiFreezeTimer < uiDiff && !m_creature->IsNonMeleeSpellCasted(false))
             {
-                if(Unit *target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit *target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                     DoCast(target, SPELL_FREEZE);
                 if (m_uiFlashFreezeTimer < 10000)
                     m_uiFreezeTimer = m_uiFlashFreezeTimer - 500;
@@ -575,7 +575,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             } else m_uiFreezeTimer -= uiDiff;
 
             // Flash Freeze
-            if(m_uiFlashFreezeTimer < uiDiff)
+            if (m_uiFlashFreezeTimer < uiDiff)
             {
                 DoScriptText(EMOTE_FLASH_FREEZE, m_creature);
                 DoScriptText(SAY_FLASH_FREEZE, m_creature);
@@ -587,7 +587,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             else m_uiFlashFreezeTimer -= uiDiff;
 
             // Icicles
-            if(m_uiIcicleTimer < uiDiff)
+            if (m_uiIcicleTimer < uiDiff)
             {
                 uint32 spellId = m_bIsCastingFlashFreeze ? 62462 : 62234;
                 if (m_bIsCastingFlashFreeze)
@@ -610,7 +610,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             else m_uiIcicleTimer -= uiDiff;
 
             // Frozen Blows
-            if(m_uiFrozenBlowsTimer < uiDiff && !m_creature->IsNonMeleeSpellCasted(false))
+            if (m_uiFrozenBlowsTimer < uiDiff && !m_creature->IsNonMeleeSpellCasted(false))
             {
                 DoScriptText(SAY_FROZEN_BLOWS, m_creature);
                 DoScriptText(EMOTE_FROZEN_BLOWS, m_creature);
@@ -620,7 +620,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             else m_uiFrozenBlowsTimer -= uiDiff;
 
             // Enrage
-            if(m_uiEnrageTimer < uiDiff)
+            if (m_uiEnrageTimer < uiDiff)
             {
                 DoScriptText(SAY_BERSERK, m_creature);
                 DoCast(m_creature, SPELL_ENRAGE);
@@ -631,7 +631,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             DoMeleeAttackIfReady();
         }
         // outro
-        if(m_bIsOutro)
+        if (m_bIsOutro)
         {
             switch(m_uiStep)
             {
@@ -698,7 +698,7 @@ struct MANGOS_DLL_DECL npc_hodir_druidAI : public npc_hodir_friendlyAI
         // Starlight
         if (HandleTimer(m_uiStarlightTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
                 pHodir->CastSpell(pHodir, SPELL_STARLIGHT, true);
                 m_uiStarlightTimer = 30000;
         }
@@ -706,7 +706,7 @@ struct MANGOS_DLL_DECL npc_hodir_druidAI : public npc_hodir_friendlyAI
         // Wrath
         if (HandleTimer(m_uiWrathTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
                 DoCast(pHodir, SPELL_WRATH);
             m_uiWrathTimer = 1500;
         }
@@ -759,7 +759,7 @@ struct MANGOS_DLL_DECL npc_hodir_shamanAI : public npc_hodir_friendlyAI
         // Lava Burst
         if (HandleTimer(m_uiLavaTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
                 DoCast(pHodir, SPELL_LAVA_BURST);
             m_uiLavaTimer = 2500;
         }
@@ -817,7 +817,7 @@ struct MANGOS_DLL_DECL npc_hodir_mageAI : public npc_hodir_friendlyAI
                 for(GuidList::iterator itr = friendly.begin(); itr != friendly.end(); ++itr)
                     if (Unit* pFriend = Unit::GetUnit(*m_creature, *itr))
                         if (Aura* pAura = pFriend->GetAura(61990, EFFECT_INDEX_0))
-                            if(target = pAura->GetCaster())
+                            if (target = pAura->GetCaster())
                                 break;
             }
             else
@@ -833,7 +833,7 @@ struct MANGOS_DLL_DECL npc_hodir_mageAI : public npc_hodir_friendlyAI
         //HandleSimpleCast(m_uiFireballTimer, SPELL_FIREBALL, 3000, uiDiff);
         if (HandleTimer(m_uiFireballTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
                 DoCast(pHodir, SPELL_FIREBALL);
             m_uiFireballTimer = 3000;
         }
@@ -876,7 +876,7 @@ struct MANGOS_DLL_DECL npc_hodir_priestAI : public npc_hodir_friendlyAI
         // Dispel Magic
         if (HandleTimer(m_uiDispelTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
             {
                 ThreatList tList = pHodir->getThreatManager().getPlayerThreatList();
                 for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
@@ -899,7 +899,7 @@ struct MANGOS_DLL_DECL npc_hodir_priestAI : public npc_hodir_friendlyAI
         // Smite
         if (HandleTimer(m_uiSmiteTimer, uiDiff))
         {
-            if(Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
+            if (Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f))
                 DoCast(pHodir, SPELL_SMITE);
             m_uiSmiteTimer = 2000;
         }

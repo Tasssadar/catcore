@@ -233,7 +233,7 @@ struct MANGOS_DLL_DECL mob_thorim_trap_bunnyAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiAuraExpireTimer < uiDiff && m_bHasStunAura)
+        if (m_uiAuraExpireTimer < uiDiff && m_bHasStunAura)
             m_bHasStunAura = false;
         else m_uiAuraExpireTimer -= uiDiff;
     }
@@ -660,7 +660,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         SpawnPrePhaseAdds();
         m_uiPhase   = PHASE_PREADDS;
 
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             // respawn runic colossus
             if (Creature* pColossus = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RUNIC_COLOSSUS)))
@@ -679,7 +679,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pSpellTarget, const SpellEntry* pSpell)
     {
-        if(pSpell->Id == SPELL_STORMHAMMER)
+        if (pSpell->Id == SPELL_STORMHAMMER)
             pSpellTarget->CastSpell(pSpellTarget, SPELL_DEAFENING_THUNDER, false);
     }
     
@@ -730,13 +730,13 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         
     void JustReachedHome()
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_THORIM, FAIL);
     }
 
     void KilledUnit(Unit* /*pVictim*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
         else
             DoScriptText(SAY_SLAY2, m_creature);
@@ -744,13 +744,13 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
     void DoOutro()
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_THORIM, DONE);
             // spawn loot chest
             m_creature->SummonGameobject(m_bIsRegularMode ? LOOT_THORIM : LOOT_THORIM_H,
                 m_fLootThorim[0], m_fLootThorim[1], m_fLootThorim[2], m_fLootThorim[3], 604800);
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
             {
                 m_pInstance->SetData(TYPE_THORIM_HARD, DONE);
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_LOSE_ILLUSION : ACHIEV_LOSE_ILLUSION_H);
@@ -768,9 +768,9 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     // for debug only
     void JustDied(Unit* /*pKiller*/)
     {
-       if(m_pInstance) 
+       if (m_pInstance)
         {
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
                 m_pInstance->SetData(TYPE_THORIM_HARD, DONE);
             m_pInstance->SetData(TYPE_THORIM, DONE);
         }
@@ -779,9 +779,9 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     void DamageTaken(Unit* done_by, uint32 &uiDamage)
     {
         // phase 2
-        if(uiDamage > 0 && m_uiPhase == PHASE_BALCONY && !m_bIsPhaseEnd)
+        if (uiDamage > 0 && m_uiPhase == PHASE_BALCONY && !m_bIsPhaseEnd)
         {
-            if(m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE && m_pInstance->GetData(TYPE_RUNE_GIANT) == DONE)
+            if (m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE && m_pInstance->GetData(TYPE_RUNE_GIANT) == DONE)
             {
                 // say
                 DoScriptText(SAY_JUMP, m_creature);
@@ -795,7 +795,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         }
 
         // outro
-        if((m_creature->GetHealthPercent() < 1.0f || uiDamage > m_creature->GetHealth()) && m_uiPhase == PHASE_ARENA)
+        if ((m_creature->GetHealthPercent() < 1.0f || uiDamage > m_creature->GetHealth()) && m_uiPhase == PHASE_ARENA)
         {
             uiDamage = 0;
             m_uiPhase = PHASE_OUTRO;
@@ -878,7 +878,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
             case PHASE_INTRO:
             {
                 // intro
-                if(m_bIsIntro)
+                if (m_bIsIntro)
                 {
                     switch(m_uiIntroStep)
                     {
@@ -899,7 +899,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                             break;
                         case 5:
                             DoScriptText(SAY_AGGRO2, m_creature);
-                            if(Creature* pSif = m_creature->SummonCreature(NPC_SIF, m_creature->GetPositionX() + 10, m_creature->GetPositionY(), m_creature->GetPositionZ(), m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 700000))
+                            if (Creature* pSif = m_creature->SummonCreature(NPC_SIF, m_creature->GetPositionX() + 10, m_creature->GetPositionY(), m_creature->GetPositionZ(), m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 700000))
                             {
                                 pSif->setFaction(35);
                                 m_uiSifGUID = pSif->GetGUID();
@@ -908,7 +908,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                             m_uiIntroTimer = 9000;
                             break;
                         case 7:
-                            if(Creature* pSif = m_pInstance->instance->GetCreature(m_uiSifGUID))
+                            if (Creature* pSif = m_pInstance->instance->GetCreature(m_uiSifGUID))
                                 DoScriptText(SAY_SIF_INTRO, pSif);
                             m_uiPhase = PHASE_BALCONY;
                             m_bIsIntro = false;
@@ -934,16 +934,16 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     return;
 
                 // phase 2 prepared
-                if(m_uiPhase2Timer < uiDiff && m_bIsPhaseEnd)
+                if (m_uiPhase2Timer < uiDiff && m_bIsPhaseEnd)
                 {
                     m_creature->RemoveSplineFlag(SPLINEFLAG_FALLING);
                     m_creature->RemoveAurasDueToSpell(SPELL_SHEAT_OF_LIGHTNING);
                     m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    if(!m_bIsHardMode)
+                    if (!m_bIsHardMode)
                         DoCast(m_creature, SPELL_TOUTCH_OF_DOMINION);
-                    if(m_bIsHardMode)
+                    if (m_bIsHardMode)
                     {
-                        if(Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
+                        if (Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
                         {
                             Sif->setFaction(14);
                             DoScriptText(SAY_SIF_EVENT, Sif);
@@ -961,16 +961,16 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiPhase2Timer -= uiDiff;
 
                 // return if jumping to second phase
-                if(m_bIsPhaseEnd)
+                if (m_bIsPhaseEnd)
                     return;
 
                 // hard mode check
                 if (m_uiHardModeTimer <= uiDiff && m_bIsHardMode)
                 {
                     m_bIsHardMode = false;
-                    if(Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
+                    if (Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
                     {
-                        if(Sif && Sif->isAlive())
+                        if (Sif && Sif->isAlive())
                         {
                             DoScriptText(SAY_SIF_DESPAWN, Sif);
                             Sif->ForcedDespawn();
@@ -980,7 +980,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 } m_uiHardModeTimer -= uiDiff;
 
                 // spawn adds in arena
-                if(m_uiSummonWavesTimer < uiDiff)
+                if (m_uiSummonWavesTimer < uiDiff)
                 {
                     // 1-2 warbringer
                     // 1 evoker
@@ -993,10 +993,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     {
                     case 0:
                         i = urand(0, 5);
-                        if(Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_CHAMPION, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                        if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_CHAMPION, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                         {
                             pTemp->GetMotionMaster()->MovePoint(0, 2134.72f, -263.148f, 419.846f);
-                            if(pTemp->IsWithinLOSInMap(m_creature->getVictim()))
+                            if (pTemp->IsWithinLOSInMap(m_creature->getVictim()))
                             {
                                 pTemp->AI()->AttackStart(m_creature->getVictim());
                                 pTemp->AddThreat(m_creature->getVictim(), 100.0f);
@@ -1005,10 +1005,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                         break;
                     case 1:
                         i = urand(0, 5);
-                        if(Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_EVOKER, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                        if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_EVOKER, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                         {
                             pTemp->GetMotionMaster()->MovePoint(0, 2134.72f, -263.148f, 419.846f);
-                            if(pTemp->IsWithinLOSInMap(m_creature->getVictim()))
+                            if (pTemp->IsWithinLOSInMap(m_creature->getVictim()))
                             {
                                 pTemp->AI()->AttackStart(m_creature->getVictim());
                                 pTemp->AddThreat(m_creature->getVictim(), 100.0f);
@@ -1019,10 +1019,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                         i = urand(5, 6);
                         for(uint8 j = 0; j < i; j++)
                         {
-                            if(Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_COMMONER, ArenaLoc[j].x, ArenaLoc[j].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                            if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_COMMONER, ArenaLoc[j].x, ArenaLoc[j].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                             {
                                 pTemp->GetMotionMaster()->MovePoint(0, 2134.72f, -263.148f, 419.846f);
-                                if(pTemp->IsWithinLOSInMap(m_creature->getVictim()))
+                                if (pTemp->IsWithinLOSInMap(m_creature->getVictim()))
                                 {
                                     pTemp->AI()->AttackStart(m_creature->getVictim());
                                     pTemp->AddThreat(m_creature->getVictim(), 100.0f);
@@ -1035,10 +1035,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                         i = urand(k + 1, k + 2);
                         for(uint8 j = k; j < i; j++)
                         {
-                            if(Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_WARBRINGER, ArenaLoc[j].x, ArenaLoc[j].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                            if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_WARBRINGER, ArenaLoc[j].x, ArenaLoc[j].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                             {
                                 pTemp->GetMotionMaster()->MovePoint(0, 2134.72f, -263.148f, 419.846f);
-                                if(pTemp->IsWithinLOSInMap(m_creature->getVictim()))
+                                if (pTemp->IsWithinLOSInMap(m_creature->getVictim()))
                                 {
                                     pTemp->AI()->AttackStart(m_creature->getVictim());
                                     pTemp->AddThreat(m_creature->getVictim(), 100.0f);
@@ -1048,10 +1048,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                         break;
                     case 4:
                         i = urand(0, 5);
-                        if(Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_ACOLYTE, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                        if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_ACOLYTE, ArenaLoc[i].x, ArenaLoc[i].y, LOC_Z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                         {
                             pTemp->GetMotionMaster()->MovePoint(0, 2134.72f, -263.148f, 419.846f);
-                            if(pTemp->IsWithinLOSInMap(m_creature->getVictim()))
+                            if (pTemp->IsWithinLOSInMap(m_creature->getVictim()))
                             {
                                 pTemp->AI()->AttackStart(m_creature->getVictim());
                                 pTemp->AddThreat(m_creature->getVictim(), 100.0f);
@@ -1065,7 +1065,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
                 // phase 1 spells
                 // charge orb
-                if(m_uiChargeOrbTimer < uiDiff)
+                if (m_uiChargeOrbTimer < uiDiff)
                 {
                     if (Creature* pOrb = SelectRandomOrb())
                         DoCast(pOrb, SPELL_CHARGE_ORB);
@@ -1074,11 +1074,11 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiChargeOrbTimer -= uiDiff; 
 
                 // storm hammer
-                if(m_uiStormHammerTimer < uiDiff)
+                if (m_uiStormHammerTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                     {
-                        //if(pTarget->IsWithinLOSInMap(m_creature))
+                        //if (pTarget->IsWithinLOSInMap(m_creature))
                         {
                             DoCast(pTarget, SPELL_STORMHAMMER);
                             m_uiStormHammerTimer = 15000;
@@ -1087,7 +1087,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 }
                 else m_uiStormHammerTimer -= uiDiff; 
 
-                if(m_uiArenaYellTimer < uiDiff)
+                if (m_uiArenaYellTimer < uiDiff)
                 {
                     switch(urand(0, 2))
                     {
@@ -1100,7 +1100,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiArenaYellTimer -= uiDiff;
 
                 // phase 1 berserk
-                if(m_uiArenaBerserkTimer < uiDiff)
+                if (m_uiArenaBerserkTimer < uiDiff)
                 {
                     DoScriptText(SAY_ARENA_WIPE, m_creature);
                     //DoCast(m_creature, SPELL_BERSERK_ADDS);
@@ -1121,7 +1121,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
                 // all spells
                 // chain lightning
-                if(m_uiChainLightningTimer < uiDiff)
+                if (m_uiChainLightningTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         DoCast(pTarget, m_bIsRegularMode ? SPELL_CHAIN_LIGHTNING : SPELL_CHAIN_LIGHTNING_H);
@@ -1130,7 +1130,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiChainLightningTimer -= uiDiff; 
 
                 // lightning charge
-                if(m_uiLightningChargeTimer < uiDiff)
+                if (m_uiLightningChargeTimer < uiDiff)
                 {
                     DoCast(m_creature, SPELL_LIGHTNING_CHARGE);
                     m_uiLightningChargeTimer = 15000;
@@ -1138,7 +1138,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 }
                 else m_uiLightningChargeTimer -= uiDiff; 
 
-                if(m_uiOrbChargeTimer < uiDiff)
+                if (m_uiOrbChargeTimer < uiDiff)
                 {
                     if (Creature* pOrb = SelectRandomOrb())
                         DoCast(pOrb, SPELL_LIGHTNING_CHARGE_ORB);
@@ -1147,7 +1147,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiOrbChargeTimer -= uiDiff;
 
                 // unbalancing strike
-                if(m_uiUnbalancingStrikeTimer < uiDiff)
+                if (m_uiUnbalancingStrikeTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_TOPAGGRO, 0))
                         DoCast(pTarget, SPELL_UNBALANCING_STRIKE);
@@ -1156,7 +1156,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                 else m_uiUnbalancingStrikeTimer -= uiDiff; 
 
                 // phase 2 berserk
-                if(m_uiBerserkTimer < uiDiff)
+                if (m_uiBerserkTimer < uiDiff)
                 {
                     m_creature->InterruptNonMeleeSpells(true);
                     DoScriptText(SAY_BERSERK, m_creature);
@@ -1193,10 +1193,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     m_uiOutroTimer = 3000;
                     break;
                 case 5:
-                    if(m_bIsHardMode)
+                    if (m_bIsHardMode)
                     {
                         DoScriptText(SAY_OUTRO_HARD1, m_creature);
-                        if(Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
+                        if (Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
                             DoCast(Sif, SPELL_STORMHAMMER);
                     }
                     else
@@ -1205,12 +1205,12 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     m_uiOutroTimer = 1000;
                     break;
                 case 7:
-                    if(m_bIsHardMode)
+                    if (m_bIsHardMode)
                     {
-                        if(Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
+                        if (Creature* Sif = m_pInstance->instance->GetCreature(m_uiSifGUID))
                         {
                             //summon a tentacule
-                            if(Creature* pTentacule = m_creature->SummonCreature(34266, Sif->GetPositionX(), Sif->GetPositionY(), Sif->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 7000))
+                            if (Creature* pTentacule = m_creature->SummonCreature(34266, Sif->GetPositionX(), Sif->GetPositionY(), Sif->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 7000))
                             {
                                 pTentacule->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                                 pTentacule->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -1222,7 +1222,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     m_uiOutroTimer = 7000;
                     break;
                 case 9:
-                    if(m_bIsHardMode)
+                    if (m_bIsHardMode)
                         DoScriptText(SAY_OUTRO_HARD2, m_creature);
                     else
                         DoScriptText(SAY_OUTRO2, m_creature);
@@ -1230,7 +1230,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
                     m_uiOutroTimer = 13000;
                     break;
                 case 11:
-                    if(m_bIsHardMode)
+                    if (m_bIsHardMode)
                         DoScriptText(SAY_OUTRO_HARD3, m_creature);
                     else
                         DoScriptText(SAY_OUTRO3, m_creature);
@@ -1308,13 +1308,13 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
 
     void JustDied(Unit* /*killer*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, DONE);
     }
 
     void JustRespawned()
     {
-        if(m_pInstance) 
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, NOT_STARTED);
     }
 
@@ -1329,7 +1329,7 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
     
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiSmashTimer < uiDiff && !m_bAttacked)
+        if (m_uiSmashTimer < uiDiff && !m_bAttacked)
         {
             if (!m_bTargetsLoaded)
             {
@@ -1478,16 +1478,16 @@ struct MANGOS_DLL_DECL boss_ancient_rune_giantAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE && !m_bIsSummoning && !m_bSummonStop)
+        if (m_pInstance->GetData(TYPE_RUNIC_COLOSSUS) == DONE && !m_bIsSummoning && !m_bSummonStop)
             m_bIsSummoning = true;
 
-        if(m_uiSummonTimer < uiDiff && m_bIsSummoning)
+        if (m_uiSummonTimer < uiDiff && m_bIsSummoning)
         {
             switch(urand(0, 1))
             {
             case 0:
                 // ring guard
-                if(Creature* pTemp = m_creature->SummonCreature(32874, OrbLoc[0].x + 30, OrbLoc[0].y, OrbLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                if (Creature* pTemp = m_creature->SummonCreature(32874, OrbLoc[0].x + 30, OrbLoc[0].y, OrbLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                 {
                     pTemp->GetMotionMaster()->MovePoint(0, OrbLoc[1].x, OrbLoc[1].y, OrbLoc[1].z);
                     pTemp->SetInCombatWithZone();
@@ -1495,7 +1495,7 @@ struct MANGOS_DLL_DECL boss_ancient_rune_giantAI : public ScriptedAI
                 break;
             case 1:
                 // honor guard
-                if(Creature* pTemp = m_creature->SummonCreature(33125, OrbLoc[0].x + 30, OrbLoc[0].y, OrbLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+                if (Creature* pTemp = m_creature->SummonCreature(33125, OrbLoc[0].x + 30, OrbLoc[0].y, OrbLoc[0].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                 {
                     pTemp->GetMotionMaster()->MovePoint(0, OrbLoc[1].x, OrbLoc[1].y, OrbLoc[1].z);
                     pTemp->SetInCombatWithZone();
@@ -1583,14 +1583,14 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
         {
             case NPC_JORMUNGAR_BEHEMOTH:
             {
-                if(m_uiAcidBreathTimer < uiDiff)
+                if (m_uiAcidBreathTimer < uiDiff)
                 {
                     DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_ACID_BREATH : SPELL_ACID_BREATH_H);
                     m_uiAcidBreathTimer = urand(7000, 14000);
                 }
                 else m_uiAcidBreathTimer -= uiDiff;
 
-                if(m_uiSweepTimer < uiDiff)
+                if (m_uiSweepTimer < uiDiff)
                 {
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_SWEEP : SPELL_SWEEP_H);
                     m_uiSweepTimer = urand(15000, 23000);
@@ -1602,7 +1602,7 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
             case NPC_CAPTAIN_ALY:
             case NPC_CAPTAIN_HORDE:
             {
-                if(m_uiDevastateTimer < uiDiff)
+                if (m_uiDevastateTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_TOPAGGRO, 0))
                         DoCast(pTarget, SPELL_DEVASTATE);
@@ -1610,7 +1610,7 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
                 }
                 else m_uiDevastateTimer -= uiDiff;
 
-                if(m_uiHeroicStrikeTimer < uiDiff)
+                if (m_uiHeroicStrikeTimer < uiDiff)
                 {
                     DoCast(m_creature->getVictim(), SPELL_HEROIC_STRIKE);
                     m_uiHeroicStrikeTimer = urand(10000, 15000);
@@ -1622,7 +1622,7 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
             case NPC_MERCENARY_ALY:
             case NPC_MERCENARY_HORDE:
             {
-                if(m_uiShootTimer < uiDiff)
+                if (m_uiShootTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         DoCast(pTarget, SPELL_SHOOT);
@@ -1630,7 +1630,7 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
                 }
                 else m_uiShootTimer -= uiDiff;
 
-                if(m_uiBarbedShotTimer < uiDiff)
+                if (m_uiBarbedShotTimer < uiDiff)
                 {
                     if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         DoCast(pTarget, SPELL_BARBED_SHOT);
@@ -1638,7 +1638,7 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
                 }
                 else m_uiBarbedShotTimer -= uiDiff;
 
-                if(m_uiWingClipTimer < uiDiff)
+                if (m_uiWingClipTimer < uiDiff)
                 {
                     DoCast(m_creature->getVictim(), SPELL_WING_CLIP);
                     m_uiWingClipTimer = urand(10000, 15000);
@@ -1723,7 +1723,7 @@ struct MANGOS_DLL_DECL npc_sifAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_sif(Creature* pCreature)
+CreatureAI* GetAI_npc_sif (Creature* pCreature)
 {
     return new npc_sifAI(pCreature);
 }

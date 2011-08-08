@@ -94,7 +94,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
 
     void DespawnSouls()
     {
-        if(!m_souls.empty())
+        if (!m_souls.empty())
         {
             std::set<Creature*> tmp = m_souls;
             for(std::set<Creature*>::iterator itr = tmp.begin(); itr != tmp.end(); ++itr)
@@ -134,9 +134,9 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(phase2)
+        if (phase2)
         {
-            if(m_uiSoulstormTimer <= uiDiff)
+            if (m_uiSoulstormTimer <= uiDiff)
             {
                 DoCast(m_creature, SPELL_SOULSTORM_VISUAL1, true);
                 DoCast(m_creature, SPELL_SOULSTORM_VISUAL2, true);
@@ -145,14 +145,14 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 m_uiSoulstormTimer = 600000;
             }else m_uiSoulstormTimer -= uiDiff;
 
-            if(shouldHaveSoulStorm && !m_creature->HasAura(SPELL_SOULSTORM))
+            if (shouldHaveSoulStorm && !m_creature->HasAura(SPELL_SOULSTORM))
                 DoCast(m_creature, SPELL_SOULSTORM, true);
 
-            if(m_uiFearTimer <= uiDiff)
+            if (m_uiFearTimer <= uiDiff)
             {
                 shouldHaveSoulStorm = true;
                 Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-                if(plr)
+                if (plr)
                     DoCast(plr, SPELL_FEAR);
                 m_uiFearTimer = 6000;
             }else m_uiFearTimer -= uiDiff;
@@ -160,7 +160,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
             return;
         }
 
-        if(m_creature->GetHealthPercent() <= 35.0f)
+        if (m_creature->GetHealthPercent() <= 35.0f)
         {
             phase2 = true;
             SetCombatMovement(false);
@@ -170,39 +170,39 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
             DespawnSouls();
         }
         
-        if(!m_creature->IsWithinDistInMap(m_creature->getVictim(), 6.66f))
+        if (!m_creature->IsWithinDistInMap(m_creature->getVictim(), 6.66f))
         {
-            if(m_uiShadowBoltTimer <= uiDiff)
+            if (m_uiShadowBoltTimer <= uiDiff)
             {
                 DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT);
                 m_uiShadowBoltTimer = 1000;
             }else m_uiShadowBoltTimer -= uiDiff;
         }
         
-        if(m_uiMagicsBaneTimer <= uiDiff)
+        if (m_uiMagicsBaneTimer <= uiDiff)
         {
             DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_MAGICS_BANE : SPELL_MAGICS_BANE_H);
             m_uiMagicsBaneTimer = 8000;
         }else m_uiMagicsBaneTimer -= uiDiff;
 
-        if(m_uiCorruptSoulTimer <= uiDiff)
+        if (m_uiCorruptSoulTimer <= uiDiff)
         {
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
-            if(plr)
+            if (plr)
                 DoCast(plr, SPELL_CORRUPT_SOUL);
             DoScriptText(SAY_CORRUPT_SOUL, m_creature);
             m_uiCorruptSoulTimer = 15000;
         }else m_uiCorruptSoulTimer -= uiDiff;
 
-        if(!m_souls.empty())
+        if (!m_souls.empty())
         {
             std::set<Creature*> tmp = m_souls;
             for(std::set<Creature*>::iterator itr = tmp.begin(); itr != tmp.end(); ++itr)
             {
-                if(!(*itr) || !(*itr)->IsInWorld())
+                if (!(*itr) || !(*itr)->IsInWorld())
                     continue;
                 
-                if((*itr)->IsWithinDistInMap(m_creature, 2.0f))
+                if ((*itr)->IsWithinDistInMap(m_creature, 2.0f))
                 {
                     (*itr)->ForcedDespawn();
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_CONSUME_SOUL : SPELL_CONSUME_SOUL_H, true);

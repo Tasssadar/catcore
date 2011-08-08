@@ -112,7 +112,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
                 m_uiCurrentLight = uiData;
                 //Send packet to all players
                 const Map::PlayerList &players = instance->GetPlayers();
-                if(players.isEmpty())
+                if (players.isEmpty())
                     break;
                 for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
                     SendLightOverride(itr->getSource());
@@ -180,7 +180,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
     }
     void SendLightOverride(Player *target)
     {
-        if(!target || !target->GetSession())
+        if (!target || !target->GetSession())
             return;
 
         WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);

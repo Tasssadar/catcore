@@ -248,7 +248,7 @@ struct MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
                 break; 
             case TYPE_CRATES_COUNT:
                 m_uiCratesCount = m_uiCratesCount + uiData;
-                if(m_uiCratesCount == 5)
+                if (m_uiCratesCount == 5)
                 {
                    m_auiEncounter[0] = DONE;
                    ChromiWhispers();
@@ -269,9 +269,9 @@ struct MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
                 break;
             case TYPE_BONUS:
                 m_auiEncounter[5] = uiData;
-                if(uiData == IN_PROGRESS)
+                if (uiData == IN_PROGRESS)
                 {
-                  if(Creature* Corruptor = instance->GetCreature(m_uiCorruptorGUID))
+                  if (Creature* Corruptor = instance->GetCreature(m_uiCorruptorGUID))
                      Corruptor->SetPhaseMask(1, true);
                   DoUpdateWorldState(WORLD_STATE_COS_TIME_ON, 1);
                   DoUpdateWorldState(WORLD_STATE_COS_TIME_COUNT, 25);  
@@ -375,18 +375,18 @@ struct MANGOS_DLL_DECL instance_culling_of_stratholme : public ScriptedInstance
 
     void Update(uint32 uiDiff)
     {
-       if(m_auiEncounter[5] == IN_PROGRESS)
+       if (m_auiEncounter[5] == IN_PROGRESS)
        {
-         if(m_uiHeroicTimer < uiDiff)
+         if (m_uiHeroicTimer < uiDiff)
          {
              m_auiEncounter[5] = FAIL;
              DoUpdateWorldState(WORLD_STATE_COS_TIME_ON, 0);
-             if(Creature* Corruptor = instance->GetCreature(m_uiCorruptorGUID))
+             if (Creature* Corruptor = instance->GetCreature(m_uiCorruptorGUID))
                Corruptor->SetPhaseMask(0, true);
 
          }else m_uiHeroicTimer -= uiDiff;
 
-         if(m_uiHeroicTimer < m_uiLastTimer - 60000)
+         if (m_uiHeroicTimer < m_uiLastTimer - 60000)
          {
             m_uiLastTimer = m_uiHeroicTimer;
             uint32 tMinutes = m_uiHeroicTimer / 60000;

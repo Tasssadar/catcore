@@ -74,7 +74,7 @@ struct MANGOS_DLL_DECL boss_salrammAI : public ScriptedAI
      FleshTimer = (urand(7000, 9000));
      StealTimer = (urand(9000, 17000));
      SummonTimer = (urand(12000, 17000));
-     if(m_pInstance)
+     if (m_pInstance)
         m_pInstance->SetData64(NPC_SALRAMM, m_creature->GetGUID());
    }
 
@@ -86,7 +86,7 @@ struct MANGOS_DLL_DECL boss_salrammAI : public ScriptedAI
    void JustDied(Unit *killer)
    {
        DoScriptText(SAY_SALRAMM_DEATH, m_creature);
-       if(m_pInstance)
+       if (m_pInstance)
           m_pInstance->SetData(TYPE_ENCOUNTER, DONE);
    }
 
@@ -102,8 +102,8 @@ struct MANGOS_DLL_DECL boss_salrammAI : public ScriptedAI
 
    void SpellHitTarget(Unit *target, const SpellEntry *spell)
    {
-        if(spell->Id == SPELL_GNOUL_BLOW)
-          if(target->GetTypeId() != TYPEID_PLAYER && target->GetEntry() == NPC_GNOUL)
+        if (spell->Id == SPELL_GNOUL_BLOW)
+          if (target->GetTypeId() != TYPEID_PLAYER && target->GetEntry() == NPC_GNOUL)
             target->SetDisplayId(11686);
    }
 
@@ -218,11 +218,11 @@ struct MANGOS_DLL_DECL npc_salramm_gnoulAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiBlowTimer < uiDiff)
+        if (m_uiBlowTimer < uiDiff)
         {
-            if(Creature* pSalramm = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_SALRAMM)))
+            if (Creature* pSalramm = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_SALRAMM)))
             {
-               if(pSalramm->isDead()) return;
+               if (pSalramm->isDead()) return;
 
                switch(rand()%2)
                {

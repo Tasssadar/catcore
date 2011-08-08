@@ -131,9 +131,9 @@ struct MANGOS_DLL_DECL npc_cs_gnoulAI : public ScriptedAI
    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() && m_creature->isTemporarySummon())
         {
-          if(MoveTimer < uiDiff)
+          if (MoveTimer < uiDiff)
           {   
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if (m_pInstance->GetData(TYPE_WING) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -164,7 +164,7 @@ struct MANGOS_DLL_DECL npc_cs_gnoulAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if (m_pInstance->GetData(TYPE_WING) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -189,7 +189,7 @@ struct MANGOS_DLL_DECL npc_cs_gnoulAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiFleshTimer < uiDiff)
+        if (m_uiFleshTimer < uiDiff)
         {
            DoCast(m_creature->getVictim(), SPELL_FLESH);
            m_uiFleshTimer = (urand(3000, 10000));
@@ -318,9 +318,9 @@ struct MANGOS_DLL_DECL npc_cs_necromancerAI : public ScriptedAI
    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() && m_creature->isTemporarySummon())
         {
-          if(MoveTimer < uiDiff)
+          if (MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if (m_pInstance->GetData(TYPE_WING) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -351,7 +351,7 @@ struct MANGOS_DLL_DECL npc_cs_necromancerAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if (m_pInstance->GetData(TYPE_WING) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -376,17 +376,17 @@ struct MANGOS_DLL_DECL npc_cs_necromancerAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiShadowBoltTimer < uiDiff)
+        if (m_uiShadowBoltTimer < uiDiff)
         {
            DoCast(m_creature->getVictim(), SPELL_SHADOW_BOLT);
            m_uiShadowBoltTimer  = (urand(3000, 5000));
         }
         else m_uiShadowBoltTimer -= uiDiff;
 
-        if(m_uiCourseTimer < uiDiff)
+        if (m_uiCourseTimer < uiDiff)
         {
            m_creature->InterruptNonMeleeSpells(false);
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
               DoCast(target, SPELL_COURSE);
            m_uiCourseTimer  = (urand(7000, 17000));
         }
@@ -508,9 +508,9 @@ struct MANGOS_DLL_DECL npc_cs_fieldAI : public ScriptedAI
    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() && m_creature->isTemporarySummon())
         {
-          if(MoveTimer < uiDiff)
+          if (MoveTimer < uiDiff)
           {   
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if (m_pInstance->GetData(TYPE_WING) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -541,7 +541,7 @@ struct MANGOS_DLL_DECL npc_cs_fieldAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if (m_pInstance->GetData(TYPE_WING) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -566,18 +566,18 @@ struct MANGOS_DLL_DECL npc_cs_fieldAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiScarabTimer < uiDiff)
+        if (m_uiScarabTimer < uiDiff)
         {
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
               DoCast(target, SPELL_SCARAB);
            m_uiScarabTimer  = (urand(3000, 5000));
         }
         else m_uiScarabTimer -= uiDiff;
 
-        if(m_uiBlowTimer < uiDiff)
+        if (m_uiBlowTimer < uiDiff)
         {
            m_creature->InterruptNonMeleeSpells(false);
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))   
               DoCast(target, SPELL_BLOW);
            m_uiBlowTimer  = (urand(7000, 17000));
         }
@@ -712,9 +712,9 @@ struct MANGOS_DLL_DECL npc_cs_acolyteAI : public ScriptedAI
    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() && m_creature->isTemporarySummon())
         {
-          if(MoveTimer < uiDiff)
+          if (MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if (m_pInstance->GetData(TYPE_WING) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -745,7 +745,7 @@ struct MANGOS_DLL_DECL npc_cs_acolyteAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if (m_pInstance->GetData(TYPE_WING) == LEFT)
              {
                 switch(WaypointId)
                 {
@@ -770,32 +770,32 @@ struct MANGOS_DLL_DECL npc_cs_acolyteAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiShadowTimer < uiDiff)
+        if (m_uiShadowTimer < uiDiff)
         {
            DoCast(m_creature->getVictim(), SPELL_SHADOW);
            m_uiShadowTimer  = (urand(3000, 8000));
         }
         else m_uiShadowTimer -= uiDiff;
 
-        if(m_uiCourseTimer < uiDiff)
+        if (m_uiCourseTimer < uiDiff)
         {
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
               DoCast(target, SPELL_COURSEA);
            m_uiCourseTimer  = (urand(7000, 13000));
         }
         else m_uiCourseTimer -= uiDiff;
 
-        if(m_uiColdTimer < uiDiff)
+        if (m_uiColdTimer < uiDiff)
         {
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
               DoCast(target, SPELL_COLD);
            m_uiColdTimer  = (urand(13000, 17000));
         }
         else m_uiColdTimer -= uiDiff;
 
-        if(m_uiFireTimer < uiDiff)
+        if (m_uiFireTimer < uiDiff)
         {
-           if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
+           if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0))
               DoCast(target, SPELL_FIRE);
            m_uiFireTimer  = (urand(6000, 11000));
         }
@@ -911,9 +911,9 @@ struct MANGOS_DLL_DECL npc_cs_butcherAI : public ScriptedAI
    {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() && m_creature->isTemporarySummon())
         {
-          if(MoveTimer < uiDiff)
+          if (MoveTimer < uiDiff)
           {
-             if(m_pInstance->GetData(TYPE_WING) == RIGHT)
+             if (m_pInstance->GetData(TYPE_WING) == RIGHT)
              {
                 switch(WaypointId)
                 {
@@ -944,7 +944,7 @@ struct MANGOS_DLL_DECL npc_cs_butcherAI : public ScriptedAI
                 }
              }
 
-             if(m_pInstance->GetData(TYPE_WING) == LEFT)
+             if (m_pInstance->GetData(TYPE_WING) == LEFT)
              {
                 switch(WaypointId)
                 {

@@ -315,7 +315,7 @@ struct MANGOS_DLL_DECL boss_drakkari_elementalAI : public ScriptedAI
         }
         
         //Return since we have no target
-        if(m_creature->GetVisibility() == VISIBILITY_OFF || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (m_creature->GetVisibility() == VISIBILITY_OFF || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         if (!m_creature->HasAura(SPELL_MOJO_VOLLEY))
@@ -323,7 +323,7 @@ struct MANGOS_DLL_DECL boss_drakkari_elementalAI : public ScriptedAI
             DoCast(m_creature,SPELL_MOJO_VOLLEY);
         }
 
-        if(!m_bMergedOnce && m_creature->GetHealth()*100 / m_creature->GetMaxHealth() <= 50)
+        if (!m_bMergedOnce && m_creature->GetHealth()*100 / m_creature->GetMaxHealth() <= 50)
         {
             m_bMergedOnce = true;
 
