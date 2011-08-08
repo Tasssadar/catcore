@@ -85,7 +85,7 @@ enum
     ACHIEV_SUPERMASSIVE_H           = 3002,
 
     UI_STATE_ALGALON_TIMER_ON       = 4132,
-    UI_STATE_ALGALON_TIMER_COUNT    = 4131,
+    UI_STATE_ALGALON_TIMER_COUNT    = 4131
 };
 
 //Positional defines 
@@ -322,7 +322,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* /*done_by*/, uint32 &uiDamage)
     {
         if(m_creature->GetHealthPercent() < 1.0f)
         {
@@ -344,7 +344,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         // set combat phase
         m_uiCombatPhase = 2;
@@ -463,10 +463,10 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
                 if(m_uiTriggerCosmicSmash_Timer < uiDiff && m_bTriggerCosmicSmash)
                 {
-                    std::list<Creature*> lTriggers;
+                    CreatureList lTriggers;
                     GetCreatureListWithEntryInGrid(lTriggers, m_creature, NPC_COSMIC_SMASH, 200.0f);
                     if (!lTriggers.empty())
-                        for(std::list<Creature*>::iterator itr = lTriggers.begin(); itr != lTriggers.end(); ++itr)
+                        for(CreatureList::iterator itr = lTriggers.begin(); itr != lTriggers.end(); ++itr)
                             if (Creature* pTrigger = (*itr))
                             {
                                 m_creature->CastSpell(pTrigger, m_bIsRegularMode ? SPELL_COSMIC_SMASH_KNOCK : SPELL_COSMIC_SMASH_KNOCK_H, true);
@@ -549,13 +549,13 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     DoScriptText(SAY_PHASE2, m_creature);
                     m_bIsPhase2 = true;
 
-                    std::list<Creature*> lAdds;
+                    CreatureList lAdds;
                     GetCreatureListWithEntryInGrid(lAdds, m_creature, NPC_COLLAPSING_STAR, DEFAULT_VISIBILITY_INSTANCE);
                     GetCreatureListWithEntryInGrid(lAdds, m_creature, NPC_BLACK_HOLE, DEFAULT_VISIBILITY_INSTANCE);
 
                     if (!lAdds.empty())
                     {
-                        for(std::list<Creature*>::iterator iter = lAdds.begin(); iter != lAdds.end(); ++iter)
+                        for(CreatureList::iterator iter = lAdds.begin(); iter != lAdds.end(); ++iter)
                         {
                             if ((*iter) && (*iter)->isAlive())
                                 (*iter)->ForcedDespawn();

@@ -121,12 +121,12 @@ struct MANGOS_DLL_DECL npc_hodir_friendlyAI : public ScriptedAI
         m_uiUpdateCheck = 2000;
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_bCoolestFriend = false;
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit* /*pWho*/)
     {
         if (m_bIsFrozen)
             return;
@@ -193,7 +193,7 @@ struct MANGOS_DLL_DECL mob_icicleAI : public ScriptedAI
         m_uiIcicleFallTimer = 2500;
         m_uiIcicleDamageTimer = 4500;
     }
-    void AttackStart(Unit* pWho) { return; }
+    void AttackStart(Unit* /*pWho*/) { return; }
     void UpdateAI(const uint32 diff)
     { 
         if (m_uiIcicleFallTimer < diff)
@@ -207,16 +207,16 @@ struct MANGOS_DLL_DECL mob_icicleAI : public ScriptedAI
         {
             // despawn toasty fire
             uint32 distance = m_bIsWithSnow ? 7 : 4;
-            std::list<GameObject*> l_GoFire;
+            GameObjectList l_GoFire;
             GetGameObjectListWithEntryInGrid(l_GoFire, m_creature, 194300, distance);
             if (!l_GoFire.empty())
-                for(std::list<GameObject*>::iterator i = l_GoFire.begin(); i != l_GoFire.end(); ++i)
+                for(GameObjectList::iterator i = l_GoFire.begin(); i != l_GoFire.end(); ++i)
                     (*i)->Delete();
             
-            std::list<Creature*> l_NpcFire;
+            CreatureList l_NpcFire;
             GetCreatureListWithEntryInGrid(l_NpcFire, m_creature, 33342, distance);
             if (!l_NpcFire.empty())
-                for(std::list<Creature*>::iterator i = l_NpcFire.begin(); i != l_NpcFire.end(); ++i)
+                for(CreatureList::iterator i = l_NpcFire.begin(); i != l_NpcFire.end(); ++i)
                     (*i)->ForcedDespawn();
 
             m_uiIcicleDamageTimer = 30000;
@@ -273,7 +273,7 @@ struct MANGOS_DLL_DECL mob_npc_flashFreezeAI : public ScriptedAI
         m_bAttacked = false;
     }
 
-    void AttackStart(Unit* pWho) { return; }
+    void AttackStart(Unit* /*pWho*/) { return; }
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
         if (!m_bAttacked && pDoneBy->GetTypeId() == TYPEID_PLAYER)
@@ -326,8 +326,8 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     uint32 m_uiStep;
     bool m_bIsCastingFlashFreeze;
 
-    std::list<uint64> lFriendsGUIDs;
-    std::list<uint64> lFreezeGUIDs;
+    GuidList lFriendsGUIDs;
+    GuidList lFreezeGUIDs;
 
     Player* m_pKiller;
 
@@ -369,7 +369,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             m_pInstance->SetData(TYPE_HODIR, FAIL);
     }
 
-    void Aggro(Unit *who) 
+    void Aggro(Unit* /*who*/)
     {
         if(m_pInstance) 
             m_pInstance->SetData(TYPE_HODIR, IN_PROGRESS);
@@ -382,12 +382,12 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
     void DespawnNpc()
     {
         if (!lFriendsGUIDs.empty())
-            for(std::list<uint64>::iterator itr = lFriendsGUIDs.begin(); itr != lFriendsGUIDs.end(); ++itr)
+            for(GuidList::iterator itr = lFriendsGUIDs.begin(); itr != lFriendsGUIDs.end(); ++itr)
                 if (Creature* pTemp = (Creature*)Unit::GetUnit((*m_creature), *itr))
                     pTemp->ForcedDespawn();
 
         if (!lFreezeGUIDs.empty())
-            for(std::list<uint64>::iterator itr = lFreezeGUIDs.begin(); itr != lFreezeGUIDs.end(); ++itr)
+            for(GuidList::iterator itr = lFreezeGUIDs.begin(); itr != lFreezeGUIDs.end(); ++itr)
                 if (Creature* pTemp = (Creature*)Unit::GetUnit((*m_creature), *itr))
                     pTemp->ForcedDespawn();
 
@@ -486,7 +486,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
         }
     }
 
-    void KilledUnit(Unit *who)
+    void KilledUnit(Unit* /*who*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_SLAY01, m_creature);
@@ -494,24 +494,24 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
             DoScriptText(SAY_SLAY02, m_creature);
     }
 
-    void CastFinished(/*Unit* target,*/ const SpellEntry * spellInfo)
+    void CastFinished(const SpellEntry* spellInfo)
     {
         if (spellInfo->Id == SPELL_FLASH_FREEZE && m_bIsCastingFlashFreeze)
         {
             // despawn toasty fire
-            std::list<GameObject*> l_GoFire;
+            GameObjectList l_GoFire;
             GetGameObjectListWithEntryInGrid(l_GoFire, m_creature, 194300, DEFAULT_VISIBILITY_INSTANCE);
             if (!l_GoFire.empty())
-                for(std::list<GameObject*>::iterator i = l_GoFire.begin(); i != l_GoFire.end(); ++i)
+                for(GameObjectList::iterator i = l_GoFire.begin(); i != l_GoFire.end(); ++i)
                     (*i)->Delete();
             
-            std::list<Creature*> l_NpcFire;
+            CreatureList l_NpcFire;
             GetCreatureListWithEntryInGrid(l_NpcFire, m_creature, 33342, DEFAULT_VISIBILITY_INSTANCE);
             if (!l_NpcFire.empty())
-                for(std::list<Creature*>::iterator i = l_NpcFire.begin(); i != l_NpcFire.end(); ++i)
+                for(CreatureList::iterator i = l_NpcFire.begin(); i != l_NpcFire.end(); ++i)
                     (*i)->ForcedDespawn();
 
-            std::list<GameObject*> lSnowdrift;
+            GameObjectList lSnowdrift;
             GetGameObjectListWithEntryInGrid(lSnowdrift, m_creature, 194173, DEFAULT_VISIBILITY_INSTANCE);
 
             ThreatList tList = m_creature->getThreatManager().getThreatList();
@@ -526,7 +526,7 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
 
                 // is within bounding radius of Snowdrift
                 bool m_bIsWithinRadius = false;
-                for(std::list<GameObject*>::iterator i = lSnowdrift.begin(); i != lSnowdrift.end(); ++i)
+                for(GameObjectList::iterator i = lSnowdrift.begin(); i != lSnowdrift.end(); ++i)
                     if ((*i)->IsWithinBoundingRadius(unit->GetPositionX(), unit->GetPositionY()))
                         m_bIsWithinRadius = true;
 
@@ -536,13 +536,13 @@ struct MANGOS_DLL_DECL boss_hodirAI : public ScriptedAI
                 FreezeTarget(unit);
             }
             // Npc part
-            for(std::list<uint64>::iterator itr = lFriendsGUIDs.begin(); itr != lFriendsGUIDs.end(); ++itr)
+            for(GuidList::iterator itr = lFriendsGUIDs.begin(); itr != lFriendsGUIDs.end(); ++itr)
             {
                 if (Unit* pFriend = Unit::GetUnit(*m_creature, *itr))
                 {
                     // is within bounding radius of Snowdrift
                     bool m_bIsWithinRadius = false;
-                    for(std::list<GameObject*>::iterator i = lSnowdrift.begin(); i != lSnowdrift.end(); ++i)
+                    for(GameObjectList::iterator i = lSnowdrift.begin(); i != lSnowdrift.end(); ++i)
                         if ((*i)->IsWithinBoundingRadius(pFriend->GetPositionX(), pFriend->GetPositionY()))
                             m_bIsWithinRadius = true;
 
@@ -816,8 +816,8 @@ struct MANGOS_DLL_DECL npc_hodir_mageAI : public npc_hodir_friendlyAI
             Creature *pHodir = GetClosestCreatureWithEntry(m_creature, NPC_HODIR, 100.0f);
             if (pHodir)
             {
-                std::list<uint64> friendly = ((boss_hodirAI*)pHodir->AI())->lFriendsGUIDs;
-                for(std::list<uint64>::iterator itr = friendly.begin(); itr != friendly.end(); ++itr)
+                GuidList friendly = ((boss_hodirAI*)pHodir->AI())->lFriendsGUIDs;
+                for(GuidList::iterator itr = friendly.begin(); itr != friendly.end(); ++itr)
                     if (Unit* pFriend = Unit::GetUnit(*m_creature, *itr))
                         if (Aura* pAura = pFriend->GetAura(61990, EFFECT_INDEX_0))
                             if(target = pAura->GetCaster())

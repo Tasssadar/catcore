@@ -23,54 +23,54 @@ enum
     EMOTE_GROUNDED          = -1603354,
 
     //razorscale air phase
-    SPELL_FIREBALL			    = 62796,
-    SPELL_FIREBALL_H			= 63815,
-    SPELL_WING_BUFFET			= 62666,
-    SPELL_STUN				    = 62794,
-    SPELL_SUMMON_DWARF          = 62916,
+    SPELL_FIREBALL                      = 62796,
+    SPELL_FIREBALL_H                    = 63815,
+    SPELL_WING_BUFFET                   = 62666,
+    SPELL_STUN                          = 62794,
+    SPELL_SUMMON_DWARF                  = 62916,
     //both
-    SPELL_BERSERK			    = 47008,
-    DEVOURING_FLAME_VISUAL		= 63236,
-    SPELL_FLAME_BREATH			= 63317,
-    SPELL_FLAME_BREATH_H		= 64021,
+    SPELL_BERSERK                       = 47008,
+    DEVOURING_FLAME_VISUAL              = 63236,
+    SPELL_FLAME_BREATH                  = 63317,
+    SPELL_FLAME_BREATH_H                = 64021,
     //ground
-    SPELL_FLAME_BUFFET			= 64016,
-    SPELL_FLAME_BUFFET_H		= 64023,
-    SPELL_FUSE_ARMOR			= 64771,
+    SPELL_FLAME_BUFFET                  = 64016,
+    SPELL_FLAME_BUFFET_H                = 64023,
+    SPELL_FUSE_ARMOR                    = 64771,
 
     //devouring flame target
-    AURA_DEVOURING_FLAME		= 64709,
-    AURA_DEVOURING_FLAME_H		= 64734,
+    AURA_DEVOURING_FLAME                = 64709,
+    AURA_DEVOURING_FLAME_H              = 64734,
 
     // mole machine
-    NPC_MOLE_MACHINE            = 33245,    // used to summon adds in phase 1
-    NPC_HARPOONS_DUMMY          = 33282,    // used to cast spells for harpoons
-    SPELL_SUMMON_MOLE_MACHINE   = 73071,
+    NPC_MOLE_MACHINE                    = 33245,    // used to summon adds in phase 1
+    NPC_HARPOONS_DUMMY                  = 33282,    // used to cast spells for harpoons
+    SPELL_SUMMON_MOLE_MACHINE           = 73071,
 
     // harpoons
-    SPELL_HARPOON_SHOT          = 63659,
-    GO_HARPOON                  = 194543, // 41, 42, 194519
+    SPELL_HARPOON_SHOT                  = 63659,
+    GO_HARPOON                          = 194543, // 41, 42, 194519
 
     //dark rune watcher
-    SPELL_LIGHTNING_BOLT		= 63809,
-    SPELL_LIGHTNING_BOLT_H		= 64696,
-    SPELL_CHAIN_LIGHTNING		= 64758,
-    SPELL_CHAIN_LIGHTNING_H		= 64759,
+    SPELL_LIGHTNING_BOLT                = 63809,
+    SPELL_LIGHTNING_BOLT_H              = 64696,
+    SPELL_CHAIN_LIGHTNING               = 64758,
+    SPELL_CHAIN_LIGHTNING_H             = 64759,
 
     //dark rune sentinel
-    SPELL_BATTLE_SHOUT			= 46763,
-    SPELL_BATTLE_SHOUT_H		= 64062,
-    SPELL_WHIRLWIND			    = 63808,
+    SPELL_BATTLE_SHOUT                  = 46763,
+    SPELL_BATTLE_SHOUT_H                = 64062,
+    SPELL_WHIRLWIND                     = 63808,
 
     //dark rune guardian
-    SPELL_STORMSTRIKE			= 64757,
+    SPELL_STORMSTRIKE                   = 64757,
 
     //NPC ids
-    MOB_DARK_RUNE_WATCHER		= 33453,
-    MOB_DARK_RUNE_SENTINEL		= 33846,
-    MOB_DARK_RUNE_GUARDIAN		= 33388, 
+    MOB_DARK_RUNE_WATCHER               = 33453,
+    MOB_DARK_RUNE_SENTINEL              = 33846,
+    MOB_DARK_RUNE_GUARDIAN              = 33388,
  
-    NPC_EXP_ENGINEER            = 33287,
+    NPC_EXP_ENGINEER                    = 33287,
 
     // harpoons
     GO_HARPOON_1                = 194519,
@@ -82,7 +82,7 @@ enum
     ACHIEV_QUICK_SHAVE          = 2919,
     ACHIEV_QUICK_SHAVE_H        = 2921,
     ACHIEV_MEDIUM_RARE          = 2923,
-    ACHIEV_MEDIUM_RARE_H        = 2924,
+    ACHIEV_MEDIUM_RARE_H        = 2924
 };
 
 uint32 const harpoons[4] = {GO_HARPOON_1, GO_HARPOON_2, GO_HARPOON_3, GO_HARPOON_4};
@@ -148,10 +148,10 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     void GetRazorDown()
     {
-        if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_RAZORSCALE))))
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RAZORSCALE)))
         {
             pTemp->SetInCombatWithZone();
-            if(Unit* pPlayer = Unit::GetUnit((*m_creature), m_uiPlayerGUID))
+            if (Unit* pPlayer = m_creature->GetMap()->GetUnit(m_uiPlayerGUID))
             {
                 pTemp->AddThreat(pPlayer,0.0f);
                 pTemp->AI()->AttackStart(pPlayer);
@@ -412,7 +412,7 @@ CreatureAI* GetAI_mob_dark_rune_guardian(Creature* pCreature)
     return new mob_dark_rune_guardianAI(pCreature);
 }
 
-/// mole machine
+// mole machine
 // used to summon dwarfes
 struct MANGOS_DLL_DECL mob_mole_machineAI : public ScriptedAI
 {
@@ -515,9 +515,9 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
     bool m_bJustHitByHarpoon;
     uint32 m_uiJustHitByHarpoonTimer;
 
-    std::list<GameObject*> lHarpoons;
-    std::list<Creature*> lNpcHarpoons;
-    std::list<Creature*> lEngineer;
+    GameObjectList lHarpoons;
+    CreatureList lNpcHarpoons;
+    CreatureList lEngineer;
 
     void Reset()
     {
@@ -563,7 +563,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
         m_creature->GetMotionMaster()->MoveConfused();
 
-        if (Creature* pCommander = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_COMMANDER))))
+        if (Creature* pCommander = m_creature->GetMap()->GetCreature( m_pInstance->GetData64(NPC_COMMANDER)))
             pCommander->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -572,7 +572,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             m_pInstance->SetData(TYPE_RAZORSCALE, FAIL);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_RAZORSCALE, DONE);
@@ -584,7 +584,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_RAZORSCALE, IN_PROGRESS);
@@ -629,7 +629,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         // reset harpoons
         if (!lHarpoons.empty())
         {
-            for(std::list<GameObject*>::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
+            for(GameObjectList::iterator iter = lHarpoons.begin(); iter != lHarpoons.end(); ++iter)
             {
                 if (GameObject* pHarpoon = (*iter))
                 {
@@ -643,7 +643,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         lNpcHarpoons.clear();
         GetCreatureListWithEntryInGrid(lNpcHarpoons, m_creature, NPC_HARPOON, 200.0f);
         if (!lNpcHarpoons.empty())
-            for(std::list<Creature*>::iterator itr = lNpcHarpoons.begin(); itr != lNpcHarpoons.end(); ++itr)
+            for(CreatureList::iterator itr = lNpcHarpoons.begin(); itr != lNpcHarpoons.end(); ++itr)
                 if (Creature* pHarpoon = (*itr))
                     pHarpoon->ForcedDespawn();
     }
@@ -657,7 +657,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             lEngineer.clear();
             GetCreatureListWithEntryInGrid(lEngineer, m_creature, NPC_EXP_ENGINEER, 200.0f);
             if (!lEngineer.empty())
-                for(std::list<Creature*>::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
+                for(CreatureList::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
                 {
                     transitTime = 0;
                     Creature* pEngineer = (*itr);
@@ -707,7 +707,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         lEngineer.clear();
         GetCreatureListWithEntryInGrid(lEngineer, m_creature, NPC_EXP_ENGINEER, 200.0f);
         if (!lEngineer.empty())
-            for(std::list<Creature*>::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
+            for(CreatureList::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
                 if (Creature* pEngineer = (*itr))
                     pEngineer->ForcedDespawn();
 
@@ -737,7 +737,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lEngineer, m_creature, NPC_EXP_ENGINEER, 200.0f);
         if (!lEngineer.empty())
         {
-            for(std::list<Creature*>::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
+            for(CreatureList::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
             {
                 Creature* pEngineer = (*itr);
                 if (!pEngineer)
@@ -786,7 +786,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             GetCreatureListWithEntryInGrid(lEngineer, m_creature, NPC_EXP_ENGINEER, 200.0f);
             if (!lEngineer.empty())
             {
-                for(std::list<Creature*>::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
+                for(CreatureList::iterator itr = lEngineer.begin(); itr != lEngineer.end(); ++itr)
                 {
                     if (Creature* pEngineer = (*itr))
                     {
@@ -886,7 +886,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiHarpoonsUsed == m_uiMaxHarpoons && m_bAirphase)
         {
-            if(Creature* pCommander = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_COMMANDER))))
+            if(Creature* pCommander = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
                 DoScriptText(SAY_GROUND, pCommander);
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, 1.5);
             m_creature->SendMonsterMove(PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, SPLINETYPE_FACINGSPOT, m_creature->GetSplineFlags(), 1);
@@ -910,7 +910,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiGround_Cast < uiDiff && m_bIsGrounded)
         {
-            if (Creature* pCommander = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_COMMANDER))))
+            if (Creature* pCommander = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
                 m_creature->SetUInt64Value(UNIT_FIELD_TARGET, pCommander->GetGUID());
             m_creature->RemoveAurasDueToSpell(SPELL_STUN);
             DoScriptText(EMOTE_DEEP_BREATH, m_creature);
@@ -976,7 +976,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
             lNpcHarpoons.clear();
             GetCreatureListWithEntryInGrid(lNpcHarpoons, m_creature, NPC_HARPOON, 200.0f);
             if (!lNpcHarpoons.empty())
-                for(std::list<Creature*>::iterator itr = lNpcHarpoons.begin(); itr != lNpcHarpoons.end(); ++itr)
+                for(CreatureList::iterator itr = lNpcHarpoons.begin(); itr != lNpcHarpoons.end(); ++itr)
                     if (Creature* pHarpoon = (*itr))
                         //pHarpoon->DealDamage(pHarpoon, pHarpoon->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                         pHarpoon->ForcedDespawn();
@@ -1026,18 +1026,18 @@ CreatureAI* GetAI_boss_razorscale(Creature* pCreature)
 
 bool GOHello_go_razorscale_harpoon(Player* pPlayer, GameObject* pGo)
 {
-    ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData();
+    ScriptedInstance* m_pInstance = (ScriptedInstance*)pGo->GetInstanceData();
 
-    if (!pInstance)
+    if (!m_pInstance)
         return false;
 
-    
-    if (Creature* pRazor = ((Creature*)Unit::GetUnit((*pGo), pInstance->GetData64(NPC_RAZORSCALE))))
+    if (Creature* pRazor = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RAZORSCALE)))
     {
-        if (((boss_razorscaleAI*)pRazor->AI())->m_bJustHitByHarpoon)
+        boss_razorscaleAI* razorAI = (boss_razorscaleAI*)pRazor->AI();
+        if (razorAI->m_bJustHitByHarpoon)
             return false;
 
-        ((boss_razorscaleAI*)pRazor->AI())->HarpoonHit();
+        razorAI->HarpoonHit();
         pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
 
         if (Creature* pCreature = pGo->SummonCreature(NPC_HARPOON, pGo->GetPositionX(), pGo->GetPositionY(), pGo->GetPositionZ(), pGo->GetOrientation(),TEMPSUMMON_DEAD_DESPAWN, 0))

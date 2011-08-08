@@ -3400,7 +3400,6 @@ src/scripts/northrend/ulduar/halls_of_stone/halls_of_stone.cpp
 src/scripts/northrend/ulduar/halls_of_stone/halls_of_stone.h
 src/scripts/northrend/ulduar/halls_of_stone/instance_halls_of_stone.cpp
 src/scripts/northrend/ulduar/ulduar/boss_algalon.cpp
-src/scripts/northrend/ulduar/ulduar/boss_assemblyofiron.cpp
 src/scripts/northrend/ulduar/ulduar/boss_auriaya.cpp
 src/scripts/northrend/ulduar/ulduar/boss_flameleviathan.cpp
 src/scripts/northrend/ulduar/ulduar/boss_freya.cpp

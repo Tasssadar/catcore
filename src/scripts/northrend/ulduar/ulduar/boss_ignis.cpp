@@ -148,7 +148,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         DoCast(m_creature, SPELL_FREEZE_ANIM);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (!m_pInstance)
             return;
@@ -169,7 +169,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* /*done_by*/, uint32 &uiDamage)
     {
         if (m_bIsBrittle)
         {
@@ -185,7 +185,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if(!m_bIsInCombat)
+        if(!m_bIsInCombat || !pWho)
             return;
 
         if (m_creature->Attack(pWho, true)) 
@@ -297,7 +297,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> m_lIronConstructGUIDList;
+    GuidList m_lIronConstructGUIDList;
 
     uint32 m_uiFlame_Jets_Timer;
     uint32 m_uiSlag_Pot_Timer;
@@ -308,7 +308,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
     uint32 m_uiEnrageTimer;
 
     //uint64 m_uiPotTargetGUID;
-    std::list<Creature*> lConstructs;
+    CreatureList lConstructs;
 
     uint32 m_uiEncounterTimer;
     bool m_bHasSlagPotCasted;
@@ -334,7 +334,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             m_pInstance->SetData(TYPE_IGNIS, FAIL);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_IGNIS, DONE);
@@ -350,7 +350,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
     Creature* SelectRandomConstruct(float fRange)
     {
-        std::list<Creature* > lConstructList;
+        CreatureList lConstructList;
         GetCreatureListWithEntryInGrid(lConstructList, m_creature, MOB_IRON_CONSTRUCT, fRange);
 
         //This should not appear!
@@ -359,7 +359,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             return NULL;
         }
 
-        std::list<Creature* >::iterator iter = lConstructList.begin();
+        CreatureList::iterator iter = lConstructList.begin();
         advance(iter, urand(0, lConstructList.size()-1));
 
         if((*iter)->isAlive())
@@ -371,7 +371,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
@@ -379,7 +379,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
             DoScriptText(SAY_SLAY2, m_creature);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_IGNIS, IN_PROGRESS);
@@ -396,7 +396,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lConstructs, m_creature, MOB_IRON_CONSTRUCT, DEFAULT_VISIBILITY_INSTANCE);
         if (!lConstructs.empty())
         {
-            for(std::list<Creature*>::iterator iter = lConstructs.begin(); iter != lConstructs.end(); ++iter)
+            for(CreatureList::iterator iter = lConstructs.begin(); iter != lConstructs.end(); ++iter)
             {
                 if ((*iter) && !(*iter)->isAlive())
                     (*iter)->Respawn();
