@@ -149,8 +149,8 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
     uint32 fire_breath_timer;
 
-    std::list<uint64> m_lBombsGUIDList;
-    std::list<Creature*> m_lEggsRemainingList;
+    GuidList m_lBombsGUIDList;
+    CreatureList m_lEggsRemainingList;
 
     uint32 m_uiBombTimer;
     uint32 m_uiBombSequenzeTimer;
@@ -332,7 +332,7 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
         if (m_lBombsGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lBombsGUIDList.begin(); itr != m_lBombsGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lBombsGUIDList.begin(); itr != m_lBombsGUIDList.end(); ++itr)
         {
             if (Unit* pUnit = Unit::GetUnit(*m_creature,*itr))
             {
@@ -351,7 +351,7 @@ struct MANGOS_DLL_DECL boss_janalaiAI : public ScriptedAI
 
         if (!m_lEggsRemainingList.empty())
         {
-            for(std::list<Creature*>::iterator itr = m_lEggsRemainingList.begin(); itr != m_lEggsRemainingList.end(); ++itr)
+            for(CreatureList::iterator itr = m_lEggsRemainingList.begin(); itr != m_lEggsRemainingList.end(); ++itr)
             {
                 if ((*itr)->isAlive())
                     (*itr)->CastSpell((*itr), SPELL_SUMMON_DRAGONHAWK, true);

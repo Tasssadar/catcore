@@ -434,9 +434,9 @@ Unit* ScriptedAI::DoSelectLowestHpFriendly(float fRange, uint32 uiMinHPDiff)
     return pUnit;
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float fRange)
+CreatureList ScriptedAI::DoFindFriendlyCC(float fRange)
 {
-    std::list<Creature*> pList;
+    CreatureList pList;
 
     MaNGOS::FriendlyCCedInRange u_check(m_creature, fRange);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyCCedInRange> searcher(m_creature, pList, u_check);
@@ -446,9 +446,9 @@ std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float fRange)
     return pList;
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId)
+CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId)
 {
-    std::list<Creature*> pList;
+    CreatureList pList;
 
     MaNGOS::FriendlyMissingBuffInRange u_check(m_creature, fRange, uiSpellId);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRange> searcher(m_creature, pList, u_check);

@@ -95,13 +95,13 @@ struct MANGOS_DLL_DECL boss_marliAI : public ScriptedAI
         m_bIsInPhaseTwo = false;
         m_bHasWebbed = false;
 
-        std::list<GameObject*> lSpiderEggs;
+        GameObjectList lSpiderEggs;
         GetGameObjectListWithEntryInGrid(lSpiderEggs, m_creature, GO_EGG, DEFAULT_VISIBILITY_INSTANCE);
         if (lSpiderEggs.empty())
             debug_log("SD2: boss_marli, no Eggs with the entry %u were found", GO_EGG);
         else
         {
-            for(std::list<GameObject*>::iterator iter = lSpiderEggs.begin(); iter != lSpiderEggs.end(); ++iter)
+            for(GameObjectList::iterator iter = lSpiderEggs.begin(); iter != lSpiderEggs.end(); ++iter)
             {
                 if ((*iter)->GetGoState() == GO_STATE_ACTIVE)
                     (*iter)->SetGoState(GO_STATE_READY);
@@ -133,14 +133,14 @@ struct MANGOS_DLL_DECL boss_marliAI : public ScriptedAI
 
     GameObject* SelectNextEgg()
     {
-        std::list<GameObject*> lEggs;
+        GameObjectList lEggs;
         GetGameObjectListWithEntryInGrid(lEggs, m_creature, GO_EGG, DEFAULT_VISIBILITY_INSTANCE);
         if (lEggs.empty())
             debug_log("SD2: boss_marli, no Eggs with the entry %i were found", GO_EGG);
         else
         {
             lEggs.sort(ObjectDistanceOrder(m_creature));
-            for(std::list<GameObject*>::iterator iter = lEggs.begin(); iter != lEggs.end(); ++iter)
+            for(GameObjectList::iterator iter = lEggs.begin(); iter != lEggs.end(); ++iter)
             {
                 if ((*iter)->GetGoState() == (GO_STATE_READY))
                     return (*iter);

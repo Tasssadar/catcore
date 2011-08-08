@@ -138,7 +138,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
     bool SummonPhase;
     bool BlinkPhase;
 
-    std::list<uint64> SummonsList;
+    GuidList SummonsList;
 
     uint32 waveCount;
     uint32 Summon_Timer;
@@ -269,7 +269,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
         {
             if (!SummonsList.empty())
             {
-                for(std::list<uint64>::iterator itr = SummonsList.begin(); itr != SummonsList.end(); ++itr)
+                for(GuidList::iterator itr = SummonsList.begin(); itr != SummonsList.end(); ++itr)
                 {
                     if (Creature* pTemp = ((Creature*)Unit::GetUnit(*m_creature, *itr)))
                     {

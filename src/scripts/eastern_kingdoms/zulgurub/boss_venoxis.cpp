@@ -94,14 +94,14 @@ struct MANGOS_DLL_DECL boss_venoxisAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        std::list<Creature*> m_lCobras;
+        CreatureList m_lCobras;
         GetCreatureListWithEntryInGrid(m_lCobras, m_creature, NPC_RAZZASHI_COBRA, DEFAULT_VISIBILITY_INSTANCE);
 
         if (m_lCobras.empty())
             debug_log("SD2: boss_venoxis, no Cobras with the entry %u were found", NPC_RAZZASHI_COBRA);
         else
         {
-            for(std::list<Creature*>::iterator iter = m_lCobras.begin(); iter != m_lCobras.end(); ++iter)
+            for(CreatureList::iterator iter = m_lCobras.begin(); iter != m_lCobras.end(); ++iter)
             {
                 if ((*iter) && !(*iter)->isAlive())
                     (*iter)->Respawn();

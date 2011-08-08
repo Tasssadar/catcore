@@ -327,12 +327,12 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JEDOGA, NOT_STARTED);
 
-        std::list<Creature*> lInitiates;                      //respawn Twilight initiates
+        CreatureList lInitiates;                      //respawn Twilight initiates
         GetCreatureListWithEntryInGrid(lInitiates, m_creature, NPC_TWILIGHT_INITIATE, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!lInitiates.empty())
         {
-            for(std::list<Creature*>::iterator iter = lInitiates.begin(); iter != lInitiates.end(); ++iter)
+            for(CreatureList::iterator iter = lInitiates.begin(); iter != lInitiates.end(); ++iter)
             {
                 if ((*iter) && !(*iter)->isAlive())
                     (*iter)->Respawn();
@@ -349,7 +349,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
    
     Creature* SelectRandomVolunteer(float fRange)
     {
-        std::list<Creature* > lVolunteerList;
+        CreatureList lVolunteerList;
         GetCreatureListWithEntryInGrid(lVolunteerList, m_creature, NPC_TWILIGHT_VOLUNTEER, fRange);
 
         //This should not appear!
@@ -360,7 +360,7 @@ struct MANGOS_DLL_DECL boss_jedogaAI : public ScriptedAI
         }
             
 
-        std::list<Creature* >::iterator iter = lVolunteerList.begin();
+        CreatureList::iterator iter = lVolunteerList.begin();
         advance(iter, urand(0, lVolunteerList.size()-1));
 
         return *iter;

@@ -145,10 +145,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     Unit* DoSelectLowestHpFriendly(float fRange, uint32 uiMinHPDiff = 1);
 
     //Returns a list of friendly CC'd units within range
-    std::list<Creature*> DoFindFriendlyCC(float fRange);
+    CreatureList DoFindFriendlyCC(float fRange);
 
     //Returns a list of all friendly units missing a specific buff within range
-    std::list<Creature*> DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId);
+    CreatureList DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId);
 
     //Return a player with at least minimumRange from m_creature
     Player* GetPlayerAtMinimumRange(float fMinimumRange);

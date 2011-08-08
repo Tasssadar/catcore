@@ -237,11 +237,11 @@ struct MANGOS_DLL_DECL boss_kelesethAI : public ScriptedAI
 
     void DespawnAdds()
     {
-        std::list<Creature*> lAddsList;
+        CreatureList lAddsList;
         GetCreatureListWithEntryInGrid(lAddsList, m_creature, NPC_VRYKUL_SKELETON, 100.0f);
 
         if (!lAddsList.empty())
-            for(std::list<Creature*>::iterator itr = lAddsList.begin(); itr != lAddsList.end(); ++itr)
+            for(CreatureList::iterator itr = lAddsList.begin(); itr != lAddsList.end(); ++itr)
                 (*itr)->ForcedDespawn();
     }
 

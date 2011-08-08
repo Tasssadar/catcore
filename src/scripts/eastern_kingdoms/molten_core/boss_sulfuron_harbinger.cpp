@@ -75,10 +75,10 @@ struct MANGOS_DLL_DECL boss_sulfuronAI : public ScriptedAI
         if (Inspire_Timer < diff)
         {
             Creature* target = NULL;
-            std::list<Creature*> pList = DoFindFriendlyMissingBuff(45.0f,SPELL_INSPIRE);
+            CreatureList pList = DoFindFriendlyMissingBuff(45.0f,SPELL_INSPIRE);
             if (!pList.empty())
             {
-                std::list<Creature*>::iterator i = pList.begin();
+                CreatureList::iterator i = pList.begin();
                 advance(i, (rand()%pList.size()));
                 target = (*i);
             }

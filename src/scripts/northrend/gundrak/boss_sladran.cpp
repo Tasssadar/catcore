@@ -150,13 +150,13 @@ struct MANGOS_DLL_DECL boss_sladranAI : public ScriptedAI
 
     Creature* SelectRandomCreatureOfEntryInRange(uint32 uiEntry, float fRange)
     {
-        std::list<Creature* > lCreatureList;
+        CreatureList lCreatureList;
         GetCreatureListWithEntryInGrid(lCreatureList, m_creature, uiEntry, fRange);
 
         if (lCreatureList.empty())
             return NULL;
 
-        std::list<Creature* >::iterator iter = lCreatureList.begin();
+        CreatureList::iterator iter = lCreatureList.begin();
         advance(iter, urand(0, lCreatureList.size()-1));
 
         return *iter;

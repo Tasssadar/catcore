@@ -58,7 +58,7 @@ struct MANGOS_DLL_DECL boss_ichoronAI : public npc_escortAI
     	Reset();
     }
     ScriptedInstance *m_instance;
-    std::list<uint64> m_lWaterElementsGUIDList;
+    GuidList m_lWaterElementsGUIDList;
 
     bool m_bIsRegularMode;
     bool m_bIsExploded;
@@ -115,7 +115,7 @@ struct MANGOS_DLL_DECL boss_ichoronAI : public npc_escortAI
         if (m_lWaterElementsGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lWaterElementsGUIDList.begin(); itr != m_lWaterElementsGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lWaterElementsGUIDList.begin(); itr != m_lWaterElementsGUIDList.end(); ++itr)
         {
             if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
             {
@@ -209,7 +209,7 @@ struct MANGOS_DLL_DECL boss_ichoronAI : public npc_escortAI
                     bool bIsWaterElementsAlive = false;
                     if (!m_lWaterElementsGUIDList.empty())
                     {
-                        for(std::list<uint64>::iterator itr = m_lWaterElementsGUIDList.begin(); itr != m_lWaterElementsGUIDList.end(); ++itr)
+                        for(GuidList::iterator itr = m_lWaterElementsGUIDList.begin(); itr != m_lWaterElementsGUIDList.end(); ++itr)
                             if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                                 if (pTemp->isAlive())
                                     bIsWaterElementsAlive = true;

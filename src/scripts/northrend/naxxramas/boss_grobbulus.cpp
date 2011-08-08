@@ -74,20 +74,20 @@ struct MANGOS_DLL_DECL boss_grobbulusAI : public ScriptedAI
     
     void Despawnall()
     {
-     /*   std::list<Creature*> m_pCloud;
+     /*   CreatureList m_pCloud;
         GetCreatureListWithEntryInGrid(m_pCloud, m_creature, MOB_GROBBOLUS_CLOUD, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pCloud.empty())
-            for(std::list<Creature*>::iterator itr = m_pCloud.begin(); itr != m_pCloud.end(); ++itr)
+            for(CreatureList::iterator itr = m_pCloud.begin(); itr != m_pCloud.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }
 
-        std::list<Creature*> m_pSpray;
+        CreatureList m_pSpray;
         GetCreatureListWithEntryInGrid(m_pSpray, m_creature, MOB_FALLOUT_SLIME, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pSpray.empty())
-            for(std::list<Creature*>::iterator iter = m_pSpray.begin(); iter != m_pSpray.end(); ++iter)
+            for(CreatureList::iterator iter = m_pSpray.begin(); iter != m_pSpray.end(); ++iter)
             {
                 (*iter)->ForcedDespawn();
             } */

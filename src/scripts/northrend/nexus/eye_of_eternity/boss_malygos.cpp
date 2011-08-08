@@ -307,8 +307,8 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
     uint8 m_uiSubPhase; //Subphase if needed
     uint8 m_uiSpeechCount;
     uint8 m_uiVortexPhase;
-    std::list<uint64> m_lSparkGUIDList;
-    std::list<uint64> m_lDiscGUIDList;
+    GuidList m_lSparkGUIDList;
+    GuidList m_lDiscGUIDList;
 
     uint32 m_uiEnrageTimer;
     uint32 m_uiSpeechTimer[5];
@@ -671,7 +671,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             if (m_lSparkGUIDList.empty())
                 return;
 
-            for(std::list<uint64>::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
             {
                 if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                 {
@@ -781,7 +781,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             if(!pMap)
                 return;
 
-            for(std::list<uint64>::iterator itr = m_lDiscGUIDList.begin(); itr != m_lDiscGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lDiscGUIDList.begin(); itr != m_lDiscGUIDList.end(); ++itr)
                 if(Vehicle *pVehicle = pMap->GetVehicle(*itr))
                     pVehicle->Dismiss();
 
@@ -789,13 +789,13 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             return;
         }
 
-        std::list<Creature*> m_pCreatures;
+        CreatureList m_pCreatures;
         GetCreatureListWithEntryInGrid(m_pCreatures, m_creature, entry, distance);
 
         if (m_pCreatures.empty())
             return;
 
-        for(std::list<Creature*>::iterator iter = m_pCreatures.begin(); iter != m_pCreatures.end(); ++iter)
+        for(CreatureList::iterator iter = m_pCreatures.begin(); iter != m_pCreatures.end(); ++iter)
             (*iter)->ForcedDespawn();
 
     }
@@ -1368,7 +1368,7 @@ struct MANGOS_DLL_DECL mob_power_sparkAI : public ScriptedAI
                 bool delete_itr = false;
                 if(!((boss_malygosAI*)pMalygos->AI())->m_lSparkGUIDList.empty())	
                 {
-                    std::list<uint64>::iterator itr; 
+                    GuidList::iterator itr; 
                     for(itr = ((boss_malygosAI*)pMalygos->AI())->m_lSparkGUIDList.begin(); itr != ((boss_malygosAI*)pMalygos->AI())->m_lSparkGUIDList.end(); ++itr)
                     {
                         if((*itr) == m_creature->GetGUID())
