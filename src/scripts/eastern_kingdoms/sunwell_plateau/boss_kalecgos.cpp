@@ -173,7 +173,7 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
     {
         SpellEntry* pSpellInfo = (SpellEntry*)GetSpellStore()->LookupEntry(WildMagic[urand(1,6)]);
         if (pSpellInfo)
-            if(Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
         {
                 if (pTarget && pTarget->IsWithinDistInMap(m_creature, 50))
                 {
@@ -237,7 +237,7 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
                 }
 
         Unit* pWho = m_creature->getVictim();
-        if(pWho && !pWho->IsInRange(m_creature, 0.0f, 50.0f, true))
+        if (pWho && !pWho->IsInRange(m_creature, 0.0f, 50.0f, true))
         {
             m_creature->AddThreat(pWho, -100000.0f);
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
@@ -325,9 +325,9 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
 
             std::list<Unit*> targetList;
             for(ThreatList::const_iterator itr = m_threatlist.begin(); itr!= m_threatlist.end(); ++itr)
-                if((*itr)->getTarget() && (*itr)->getTarget()->GetTypeId() == TYPEID_PLAYER && (*itr)->getTarget()->GetGUID() && !(*itr)->getTarget()->HasAura(SPELL_SPECTRAL_EXHAUSTION) && (*itr)->getTarget()->IsInRange(m_creature, 0.0f, 50.0f, true))
+                if ((*itr)->getTarget() && (*itr)->getTarget()->GetTypeId() == TYPEID_PLAYER && (*itr)->getTarget()->GetGUID() && !(*itr)->getTarget()->HasAura(SPELL_SPECTRAL_EXHAUSTION) && (*itr)->getTarget()->IsInRange(m_creature, 0.0f, 50.0f, true))
                     targetList.push_back((*itr)->getTarget());
-            if(targetList.empty())
+            if (targetList.empty())
             {
                 m_uiSpectralBlastTimer = 1000;
                 return;
@@ -335,9 +335,9 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
         
             std::list<Unit*>::iterator i = targetList.begin();
             advance(i, rand()%targetList.size());
-            if((*i))
+            if ((*i))
             {
-                if(m_pInstance && m_pInstance->GetData(DATA_KALECGOS_EVENT) == SPECIAL)
+                if (m_pInstance && m_pInstance->GetData(DATA_KALECGOS_EVENT) == SPECIAL)
                 {
                     m_uiSpectralBlastTimer = urand(20000, 25000);
                 }
@@ -364,7 +364,7 @@ struct MANGOS_DLL_DECL boss_kalecgosAI : public ScriptedAI
                 pSath->SetVisibility(VISIBILITY_ON);
                 pSath->setFaction(14);
                 bSathrospawnd = true;
-                if(pSath->AI())
+                if (pSath->AI())
                     pSath->AI()->AttackStart(m_creature->getVictim());
             }
         }else m_uiSathrovarrTimer -= uiDiff;
@@ -444,7 +444,7 @@ struct MANGOS_DLL_DECL boss_sathrovarrAI : public ScriptedAI
     {
         DoScriptText(SAY_SATH_DEATH, m_creature);   
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(DATA_SATHROVARR_EVENT,DONE);
     }
 
@@ -514,10 +514,10 @@ struct MANGOS_DLL_DECL boss_sathrovarrAI : public ScriptedAI
 
         //If high Aggro teleported to normal realm attack Kalec or  next target
         Unit* pWho = m_creature->getVictim();
-        if(pWho && !pWho->IsInRange(m_creature, 0.0f, 50.0f, true))
+        if (pWho && !pWho->IsInRange(m_creature, 0.0f, 50.0f, true))
         {
             m_creature->AddThreat(pWho, -100000.0f);
-            if(Unit* pKalec = Unit::GetUnit(*m_creature, m_uiKalecGUID))
+            if (Unit* pKalec = Unit::GetUnit(*m_creature, m_uiKalecGUID))
             {
                 m_creature->AI()->AttackStart(pKalec);
                 m_creature->AddThreat(pKalec, 100000.0f);

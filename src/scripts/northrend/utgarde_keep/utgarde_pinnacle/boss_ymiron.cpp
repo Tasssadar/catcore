@@ -159,50 +159,50 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_bIsPause)
+        if (m_bIsPause)
         {
             m_creature->StopMoving();
             m_creature->GetMotionMaster()->Clear();
             m_creature->GetMotionMaster()->MoveIdle();
 
-            if(m_uiPauseTimer < uiDiff)
+            if (m_uiPauseTimer < uiDiff)
             {
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_bIsPause = false;
             }else m_uiPauseTimer -= uiDiff;
             return;
         }
 
-        if(m_uiOrbTargetChanger < uiDiff)
+        if (m_uiOrbTargetChanger < uiDiff)
         {
             Creature* pSpirit = (Creature*)Unit::GetUnit(*m_creature, m_uiOrbGUID);
-            if(pSpirit && pSpirit->isAlive())
-                if(Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (pSpirit && pSpirit->isAlive())
+                if (Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pSpirit->GetMotionMaster()->MoveChase(pPlayer);
             m_uiOrbTargetChanger = 15000;
         }else m_uiOrbTargetChanger -= uiDiff;
 
-        if(m_uiBaneTimer < uiDiff)
+        if (m_uiBaneTimer < uiDiff)
         {
             DoCast(m_creature, m_bIsRegularMode ? SPELL_BANE : H_SPELL_BANE, true);
             m_uiBaneTimer = 20000;
         }else m_uiBaneTimer -= uiDiff;
 
-        if(m_uiFetidRotTimer < uiDiff)
+        if (m_uiFetidRotTimer < uiDiff)
         {
-            if(Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 m_creature->CastSpell(pPlayer, m_bIsRegularMode ? SPELL_FETID_ROT : H_SPELL_FETID_ROT, true);
             m_uiFetidRotTimer = urand(10000,15000);
         }else m_uiFetidRotTimer -= uiDiff;
 
         //need to hack this
-        if(m_uiDarkSlashTimer < uiDiff)
+        if (m_uiDarkSlashTimer < uiDiff)
         {
-            if(Unit* pPlayer = m_creature->getVictim())
+            if (Unit* pPlayer = m_creature->getVictim())
             {
                 //m_creature->DealDamage(target, target->GetMaxHealth()*((rand() % 15+70)*0.01), NULL, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NATURE, NULL, false);
                 m_creature->DealDamage(m_creature->getVictim(),pPlayer->GetMaxHealth()*0.5, NULL, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -211,20 +211,20 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
             m_uiDarkSlashTimer = urand(30000,35000);
         }else m_uiDarkSlashTimer -= uiDiff;
 
-        if(m_uiAncestorsVengeanceTimer < uiDiff)
+        if (m_uiAncestorsVengeanceTimer < uiDiff)
         {
             DoCast(m_creature, SPELL_ANCESTORS_VENGEANCE);
             m_uiAncestorsVengeanceTimer =  (m_bIsRegularMode ? urand(60000,65000) : urand(45000,50000));
         }else m_uiAncestorsVengeanceTimer -= uiDiff;
 
-        if(m_bIsHaldor && m_uiAbilityHALDORTimer < uiDiff)
+        if (m_bIsHaldor && m_uiAbilityHALDORTimer < uiDiff)
         {
-            if(m_creature->getVictim())
+            if (m_creature->getVictim())
                 m_creature->CastSpell(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SPIRIT_STRIKE : H_SPELL_SPIRIT_STRIKE, true);
             m_uiAbilityHALDORTimer = 5000; // overtime
         } else m_uiAbilityHALDORTimer -= uiDiff;
 
-        if(m_bIsTorgyn && m_uiAbilityTORGYNTimer < uiDiff)
+        if (m_bIsTorgyn && m_uiAbilityTORGYNTimer < uiDiff)
         {
             for (uint8 i = 0; i < 4; ++i)
                 if (Creature* pSpirit = m_creature->SummonCreature(CREATURE_AVENGING_SPIRIT, m_creature->GetPositionX()+urand(1,10), m_creature->GetPositionY()+urand(1,10), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
@@ -233,13 +233,13 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
             m_uiAbilityTORGYNTimer = 10000;
         }else m_uiAbilityTORGYNTimer -= uiDiff;
 
-        if(m_bIsRanulf && m_uiAbilityRANULFTimer < uiDiff)
+        if (m_bIsRanulf && m_uiAbilityRANULFTimer < uiDiff)
         {
             m_creature->CastSpell(m_creature, m_bIsRegularMode ? SPELL_SPIRIT_BURST : H_SPELL_SPIRIT_BURST, true);
             m_uiAbilityRANULFTimer = 10000;
         } else m_uiAbilityRANULFTimer -= uiDiff;
 
-        if(m_bIsBjorn && m_uiAbilityBJORNTimer < uiDiff)
+        if (m_bIsBjorn && m_uiAbilityBJORNTimer < uiDiff)
         {
             if (Creature* pSpirit = m_creature->SummonCreature(CREATURE_SPIRIT_FOUNT, m_creature->GetPositionX()+urand(1,10), m_creature->GetPositionY()+urand(1,10), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
             {
@@ -250,24 +250,24 @@ struct MANGOS_DLL_DECL boss_ymironAI : public ScriptedAI
             m_bIsBjorn = false;
         } else m_uiAbilityBJORNTimer -= uiDiff;
 
-        if((m_creature->GetHealth()*100 / m_creature->GetMaxHealth()) < (100-((m_bIsRegularMode ? 33 : 20) * m_uiHealthAmountModifier)))
+        if ((m_creature->GetHealth()*100 / m_creature->GetMaxHealth()) < (100-((m_bIsRegularMode ? 33 : 20) * m_uiHealthAmountModifier)))
         {
-            if(Creature* pSpirit = (Creature*)Unit::GetUnit(*m_creature, m_uiOrbGUID))
+            if (Creature* pSpirit = (Creature*)Unit::GetUnit(*m_creature, m_uiOrbGUID))
             {
                 pSpirit->setFaction(35);
                 pSpirit->ForcedDespawn();
             }
 
-            if(m_creature->getVictim())
+            if (m_creature->getVictim())
                 m_creature->CastSpell(m_creature->getVictim(), SPELL_SCREAMS_OF_THE_DEAD, true);
 
             m_creature->CastSpell(m_creature, SPELL_CHANNEL_YMIRON_TO_SPIRIT, true);
 
-            if(m_uiCurentBoat == 0)
+            if (m_uiCurentBoat == 0)
                 m_uiCurentBoat = urand(1,4);
             else 
             {
-                if(m_uiCurentBoat == 4)
+                if (m_uiCurentBoat == 4)
                     m_uiCurentBoat = 1;
                 else
                     ++m_uiCurentBoat;

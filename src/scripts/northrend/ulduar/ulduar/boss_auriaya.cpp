@@ -242,9 +242,9 @@ struct MANGOS_DLL_DECL mob_feral_defenderAI : public ScriptedAI
             if (m_creature->HasAura(SPELL_FERAL_ESSENCE))
             {
                 // remove 1 stack of the aura
-                if(Aura* strenght = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
+                if (Aura* strenght = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
                 {
-                    if(strenght->modStackAmount(-1))
+                    if (strenght->modStackAmount(-1))
                         m_creature->RemoveAurasDueToSpell(SPELL_FERAL_ESSENCE);
                 }
 
@@ -263,9 +263,9 @@ struct MANGOS_DLL_DECL mob_feral_defenderAI : public ScriptedAI
             return;
 
         // hacky way of stacking aura, needs fixing
-        if(Aura* essence = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
+        if (Aura* essence = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
         {
-            if(essence->GetStackAmount() < 9 && !m_bHasAura)
+            if (essence->GetStackAmount() < 9 && !m_bHasAura)
             {
                 m_bHasAura = true;
                 essence->SetStackAmount(9);
@@ -390,13 +390,13 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         /* hacky way to complete achievements; use only if you have this function
         if (m_bCrazyCatLady)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_CRAZY_CAT_LADY : ACHIEV_CRAZY_CAT_LADY_H);
         }
 
         if (m_bNineLives)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_NINE_LIVES : ACHIEV_NINE_LIVES_H);
         }
         */
@@ -422,7 +422,7 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
 
     void KilledUnit(Unit* /*pVictim*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
         else
             DoScriptText(SAY_SLAY2, m_creature);

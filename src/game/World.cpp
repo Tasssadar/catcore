@@ -2567,7 +2567,7 @@ void World::SpocitejRepkyCommand()
     {
         uint16* faction = i ? factionA : factionH;
 
-        for(std::list<uint32>::iterator itr = guidy.begin(); itr != guidy.end(); ++itr)
+        for(std::list<uint32>::iterator itr = lowGuids.begin(); itr != lowGuids.end(); ++itr)
         {
             int32 values[4];
             bool error = false;

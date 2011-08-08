@@ -102,7 +102,7 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_DRAKOS, DONE);
-            if(Creature *Varos = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_VAROS)))
+            if (Creature *Varos = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_VAROS)))
                 DoScriptText(SAY_VAROS_TAUNT, Varos);
         }
     }
@@ -127,7 +127,7 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiStompTimer <= uiDiff)
+        if (m_uiStompTimer <= uiDiff)
         {
             DoCast(m_creature, m_bIsRegularMode ? SPELL_STOMP : SPELL_STOMP);
             uint8 tmp = urand(0, 2);
@@ -135,7 +135,7 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
             m_uiStompTimer = urand(25000, 35000);
         }else m_uiStompTimer -= uiDiff;
 
-        if(m_uiPullTimer <= uiDiff)
+        if (m_uiPullTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_PULL);
             uint8 tmp = urand(0, 3);
@@ -143,7 +143,7 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
             m_uiPullTimer = urand(15000, 25000);
         }else m_uiPullTimer -= uiDiff;
 
-        if(m_uiPullCastTimer <= uiDiff)
+        if (m_uiPullCastTimer <= uiDiff)
         {
             float x,y,z;
             m_creature->GetPosition(x,y,z);
@@ -160,7 +160,7 @@ struct MANGOS_DLL_DECL boss_drakosAI : public ScriptedAI
             m_uiPullCastTimer = m_uiPullTimer+2000;
         }else m_uiPullCastTimer -= uiDiff;
 
-        if(m_uiSphereTimer <= uiDiff)
+        if (m_uiSphereTimer <= uiDiff)
         {
             SummonSphere();
             m_uiSphereTimer = urand(10000, 18000);
@@ -219,13 +219,13 @@ struct MANGOS_DLL_DECL npc_unstable_sphereAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_uiPulseTimer <= uiDiff)
+        if (m_uiPulseTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_SPHERE_PULSE);
             m_uiPulseTimer = 1000;
         }else m_uiPulseTimer -= uiDiff;
 
-        if(m_uiDetonateTimer <= uiDiff)
+        if (m_uiDetonateTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_SPHERE_EXPLODE);
             m_creature->ForcedDespawn(500);
@@ -251,7 +251,7 @@ enum
 
 bool ItemUse_item_dragon_essence(Player* pPlayer, Item* pItem, const SpellCastTargets &pTargets)
 {
-    if(pPlayer->isInCombat())
+    if (pPlayer->isInCombat())
         return false;
 
     uint32 entry = 0;
@@ -273,7 +273,7 @@ bool ItemUse_item_dragon_essence(Player* pPlayer, Item* pItem, const SpellCastTa
     pPlayer->GetPosition(x,y,z);
     z += 1.5f;
     Vehicle *pDrake = pPlayer->SummonVehicle(entry, x, y, z, 0);
-    if(!pDrake)
+    if (!pDrake)
         return false;
     pPlayer->EnterVehicle(pDrake, -1, true);
     return false;

@@ -125,7 +125,7 @@ struct MANGOS_DLL_DECL boss_tharonjaAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
  
-        if(pKiller->GetTypeId() == TYPEID_PLAYER)
+        if (pKiller->GetTypeId() == TYPEID_PLAYER)
             m_pInstance->CompleteAchievement(m_bIsRegularMode ? ACHIEVEMENT_NORMAL : ACHIEVEMENT_HEROIC, (Player*)pKiller, true);
     }
 

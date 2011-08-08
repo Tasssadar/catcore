@@ -510,10 +510,10 @@ struct MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
         {
             SetData(TYPE_FOUR_HORSEMEN, DONE);
     
-            //if(pKiller->GetTypeId() == TYPEID_PLAYER)
+            //if (pKiller->GetTypeId() == TYPEID_PLAYER)
             //	m_pInstance->CompleteAchievement(m_bIsRegularMode ? ACHIEVEMENT_NORMAL : ACHIEVEMENT_HEROIC, (Player*)pKiller, true);
             
-            if(!instance->IsRegularDifficulty())
+            if (!instance->IsRegularDifficulty())
             {
                 Map::PlayerList const &lPlayers = instance->GetPlayers();
                 Map::PlayerList::const_iterator itr = lPlayers.begin();
@@ -646,7 +646,7 @@ struct MANGOS_DLL_DECL instance_naxxramas : public ScriptedInstance
             {
                 if (BlaumeuxDead && RivendareDead && ZeliekDead && KorthazzDead)
                 {
-                    //if(pKiller->GetTypeId() == TYPEID_PLAYER)
+                    //if (pKiller->GetTypeId() == TYPEID_PLAYER)
                     //	m_pInstance->CompleteAchievement(m_bIsRegularMode ? ACHIEVEMENT_NORMAL : ACHIEVEMENT_HEROIC, (Player*)pKiller, true);
                     UpdateCheck = false;
                 }

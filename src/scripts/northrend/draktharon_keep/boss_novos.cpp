@@ -172,7 +172,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
             //Summon Minions (Heroic) 
             if (SummonMinion_Timer < uiDiff)
             {    
-                if(m_bIsRegularMode)
+                if (m_bIsRegularMode)
                     return;
 
                 uint8 SummonLoc = rand()%POS;
@@ -202,7 +202,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
         if (Handler_Spawn < uiDiff && Phase1 == true)
         {    
             Handler_Count ++;
-            if(Handler_Count < 5)
+            if (Handler_Count < 5)
             {
                 uint8 SummonLoc = rand()%POS;
                 m_creature->SummonCreature(NPC_CRYSTAL_HANDLER, PosSummonHandler[SummonLoc][0],PosSummonHandler[SummonLoc][1],PosSummonHandler[SummonLoc][2],0, TEMPSUMMON_TIMED_DESPAWN, 120000);
@@ -216,7 +216,7 @@ struct MANGOS_DLL_DECL boss_novosAI : public ScriptedAI
                     pAdd4->AI()->AttackStart(m_creature->getVictim());
                 Handler_Spawn = 17500;
             }
-            if(Handler_Count == 5)
+            if (Handler_Count == 5)
             {            
                 EnterPhase2();
                 if (Creature* pTrigger = GetClosestCreatureWithEntry(m_creature, NPC_CRYSTAL_CHANNEL, 85.0f))

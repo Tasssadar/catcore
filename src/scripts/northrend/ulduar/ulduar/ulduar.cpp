@@ -62,39 +62,39 @@ bool GoHello_ulduar_teleporter( Player *pPlayer, GameObject *pGO )
     pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Expedition Base Camp", GOSSIP_SENDER_MAIN, BASE_CAMP);
 
     // formation grounds
-    if(pInstance->GetData(TYPE_LEVIATHAN_TP) == DONE)
+    if (pInstance->GetData(TYPE_LEVIATHAN_TP) == DONE)
        pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Formation Grounds", GOSSIP_SENDER_MAIN, GROUNDS);
 
     // colossal forge -> disabled check because of the missing leviathan
-    //if(pInstance->GetData(TYPE_LEVIATHAN) == DONE)
+    //if (pInstance->GetData(TYPE_LEVIATHAN) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Colossal Forge", GOSSIP_SENDER_MAIN, FORGE);
 
     // remove this after leviathan implemented; now ignis & razor = mandatory
-    if(pInstance->GetData(TYPE_IGNIS) == DONE && pInstance->GetData(TYPE_RAZORSCALE) == DONE)
+    if (pInstance->GetData(TYPE_IGNIS) == DONE && pInstance->GetData(TYPE_RAZORSCALE) == DONE)
     {
         // scrapyard
-        if(pInstance->GetData(TYPE_XT002_TP) == DONE)
+        if (pInstance->GetData(TYPE_XT002_TP) == DONE)
             pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Scrapyard", GOSSIP_SENDER_MAIN, SCRAPYARD);
 
         // antechamber
-        if(pInstance->GetData(TYPE_XT002) == DONE)
+        if (pInstance->GetData(TYPE_XT002) == DONE)
             pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Antechamber of Ulduar", GOSSIP_SENDER_MAIN, ANTECHAMBER);
     }
 
     // shattered walkway
-    if(pInstance->GetData(TYPE_KOLOGARN) == DONE)
+    if (pInstance->GetData(TYPE_KOLOGARN) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Shattered Walkway", GOSSIP_SENDER_MAIN, WALKWAY);
 
     // conservatory of life
-    if(pInstance->GetData(TYPE_AURIAYA) == DONE)
+    if (pInstance->GetData(TYPE_AURIAYA) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Conservatory of Life", GOSSIP_SENDER_MAIN, CONSERVATORY);
 
     // spark of imagination
-    if(pInstance->GetData(TYPE_MIMIRON) == DONE)
+    if (pInstance->GetData(TYPE_MIMIRON) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Spark of Imagination", GOSSIP_SENDER_MAIN, SPARK);
 
     // prison of yogg saron
-    if(pInstance->GetData(TYPE_VEZAX) == DONE)
+    if (pInstance->GetData(TYPE_VEZAX) == DONE)
         pPlayer->ADD_GOSSIP_ITEM(0, "Teleport to the Prison of Yogg-Saron", GOSSIP_SENDER_MAIN, PRISON);
 
     pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pGO->GetGUID());
@@ -104,11 +104,11 @@ bool GoHello_ulduar_teleporter( Player *pPlayer, GameObject *pGO )
 
 bool GoSelect_ulduar_teleporter( Player *pPlayer, GameObject *pGO, uint32 sender, uint32 action)
 {
-    if(sender != GOSSIP_SENDER_MAIN) return true;
-    if(!pPlayer->getAttackers().empty()) return true;
+    if (sender != GOSSIP_SENDER_MAIN) return true;
+    if (!pPlayer->getAttackers().empty()) return true;
 
     ScriptedInstance *pInstance = (ScriptedInstance *) pGO->GetInstanceData();
-    if(!pInstance) return true;
+    if (!pInstance) return true;
 
     switch(action)
     {
@@ -153,7 +153,7 @@ bool GossipHello_hodir_image(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance *m_pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
 
-    if(m_pInstance && m_pInstance->GetData(TYPE_KEEPER_HODIR) != DONE && m_pInstance->GetData(TYPE_KEEPER_HODIR) != FAIL)
+    if (m_pInstance && m_pInstance->GetData(TYPE_KEEPER_HODIR) != DONE && m_pInstance->GetData(TYPE_KEEPER_HODIR) != FAIL)
     {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, REQUEST_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, DENY_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -170,12 +170,12 @@ bool GossipSelect_hodir_image(Player* pPlayer, Creature* pCreature, uint32 uiSen
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_HODIR, DONE);
     }
     if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_HODIR, FAIL);
     }
     return true;
@@ -186,7 +186,7 @@ bool GossipHello_freya_image(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance *m_pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
 
-    if(m_pInstance && m_pInstance->GetData(TYPE_KEEPER_FREYA) != DONE && m_pInstance->GetData(TYPE_KEEPER_FREYA) != FAIL)
+    if (m_pInstance && m_pInstance->GetData(TYPE_KEEPER_FREYA) != DONE && m_pInstance->GetData(TYPE_KEEPER_FREYA) != FAIL)
     {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, REQUEST_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, DENY_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -203,12 +203,12 @@ bool GossipSelect_freya_image(Player* pPlayer, Creature* pCreature, uint32 uiSen
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_FREYA, DONE);
     }
     if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_FREYA, FAIL);
     }
     return true;
@@ -218,7 +218,7 @@ bool GossipHello_mimiron_image(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance *m_pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
 
-    if(m_pInstance && m_pInstance->GetData(TYPE_KEEPER_MIMIRON) != DONE && m_pInstance->GetData(TYPE_KEEPER_MIMIRON) != FAIL)
+    if (m_pInstance && m_pInstance->GetData(TYPE_KEEPER_MIMIRON) != DONE && m_pInstance->GetData(TYPE_KEEPER_MIMIRON) != FAIL)
     {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, REQUEST_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, DENY_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -235,12 +235,12 @@ bool GossipSelect_mimiron_image(Player* pPlayer, Creature* pCreature, uint32 uiS
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_MIMIRON, DONE);
     }
     if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_MIMIRON, FAIL);
     }
     return true;
@@ -251,7 +251,7 @@ bool GossipHello_thorim_image(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance *m_pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
 
-    if(m_pInstance && m_pInstance->GetData(TYPE_KEEPER_THORIM) != DONE && m_pInstance->GetData(TYPE_KEEPER_THORIM) != FAIL)
+    if (m_pInstance && m_pInstance->GetData(TYPE_KEEPER_THORIM) != DONE && m_pInstance->GetData(TYPE_KEEPER_THORIM) != FAIL)
     {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, REQUEST_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, DENY_HELP, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -268,12 +268,12 @@ bool GossipSelect_thorim_image(Player* pPlayer, Creature* pCreature, uint32 uiSe
 
     if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_THORIM, DONE);
     }
     if (uiAction == GOSSIP_ACTION_INFO_DEF+2)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KEEPER_THORIM, FAIL);
     }
     return true;

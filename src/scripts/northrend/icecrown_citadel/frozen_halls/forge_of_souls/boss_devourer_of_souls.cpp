@@ -96,7 +96,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if(mirrorStage != 2 || !mirrorPlr || !mirrorPlr->IsInWorld() || !mirrorPlr->isAlive())
+        if (mirrorStage != 2 || !mirrorPlr || !mirrorPlr->IsInWorld() || !mirrorPlr->isAlive())
             return;
         uint32 dmg = m_bIsRegularMode ? uiDamage*0.3f : uiDamage*0.45f;
         pDoneBy->DealDamage(mirrorPlr, dmg, NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -110,7 +110,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
         pSummoned->ForcedDespawn(10000);
 
         Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-        if(plr)
+        if (plr)
         {
             pSummoned->AI()->AttackStart(plr);
             pSummoned->AddThreat(plr, 1000.0f);
@@ -122,20 +122,20 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiPhantomBlastTimer <= uiDiff)
+        if (m_uiPhantomBlastTimer <= uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_PHANTOM_BLAST : SPELL_PHANTOM_BLAST_H);
             m_uiPhantomBlastTimer = 3000;
         }else m_uiPhantomBlastTimer -= uiDiff;
 
-        if(m_uiMirroredSoulsTimer <= uiDiff)
+        if (m_uiMirroredSoulsTimer <= uiDiff)
         {
             switch(mirrorStage)
             {
                 case 0:
                 {
                     Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-                    if(plr)
+                    if (plr)
                     {
                         DoScriptText(EMOTE_MIRRORED_SOULS, m_creature);
                         DoCast(plr, SPELL_MIRRORED_SOULS);
@@ -160,7 +160,7 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
             }
         }else m_uiMirroredSoulsTimer-= uiDiff;
 
-        if(m_uiUnleashedSoulsTimer <= uiDiff)
+        if (m_uiUnleashedSoulsTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_UNLEASHED_SOULS);
             DoScriptText(EMOTE_UNLEASH_SOULS, m_creature);
@@ -169,16 +169,16 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
             m_uiWellOfSoulsTimer = 6000;
         }else m_uiUnleashedSoulsTimer -= uiDiff;
 
-        if(m_uiWellOfSoulsTimer <= uiDiff)
+        if (m_uiWellOfSoulsTimer <= uiDiff)
         {
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-            if(plr)
+            if (plr)
             {
                 float x, y, z;
                 plr->GetPosition(x, y, z);
 
                 Creature *well = m_creature->SummonCreature(NPC_WELL_OF_SOULS, x, y, z, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 15000);
-                if(well)
+                if (well)
                     well->CastSpell(m_creature, SPELL_WELL_OF_SOULS, true);
                 
                 plr->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 1.0f, M_PI_F);

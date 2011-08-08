@@ -77,10 +77,10 @@ struct MANGOS_DLL_DECL boss_moorabiAI : public ScriptedAI
          if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(Phase == false && m_creature->HasAura(SPELL_TRANSFORMATION))
+        if (Phase == false && m_creature->HasAura(SPELL_TRANSFORMATION))
             Phase = true;
 
-        if(Phase == true)
+        if (Phase == true)
         {
             m_creature->RemoveAurasDueToSpell(SPELL_MOJO_FRENZY);
 

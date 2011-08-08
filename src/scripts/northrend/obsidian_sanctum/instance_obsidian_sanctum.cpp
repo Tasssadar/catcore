@@ -78,7 +78,7 @@ struct MANGOS_DLL_DECL instance_obsidian_sanctum : public ScriptedInstance
     {
         if (uiType == TYPE_SARTHARION_EVENT)
             m_auiEncounter[0] = uiData;
-        else if(uiType == TYPE_DRAGONS_ALIVE)
+        else if (uiType == TYPE_DRAGONS_ALIVE)
             m_uiDragonsAlive = uiData;
     }
 
@@ -111,10 +111,10 @@ struct MANGOS_DLL_DECL instance_obsidian_sanctum : public ScriptedInstance
     bool CheckConditionCriteriaMeet(Player const* source, uint32 map_id, uint32 instance_condition_id)
     {
         //Check map...
-        if(map_id != instance->GetId())
+        if (map_id != instance->GetId())
             return false;
         //Check dragons count
-        if(m_uiDragonsAlive >= instance_condition_id)
+        if (m_uiDragonsAlive >= instance_condition_id)
             return true;
         return false;
     }

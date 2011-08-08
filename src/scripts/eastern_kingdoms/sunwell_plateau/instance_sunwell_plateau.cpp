@@ -109,7 +109,7 @@ struct MANGOS_DLL_DECL instance_sunwell_plateau : public ScriptedInstance
     bool IsEncounterInProgress() const
     {
         for(uint8 i = 0; i < ENCOUNTERS; ++i)
-            if(Encounters[i] == IN_PROGRESS)
+            if (Encounters[i] == IN_PROGRESS)
                 return true;
 
         return false;
@@ -294,8 +294,8 @@ struct MANGOS_DLL_DECL instance_sunwell_plateau : public ScriptedInstance
     void Update(uint32 diff)
     {
         // Only check for Spectral Realm if Kalecgos Encounter is running
-        if(Encounters[0] == IN_PROGRESS)
-            if(SpectralRealmTimer < diff)
+        if (Encounters[0] == IN_PROGRESS)
+            if (SpectralRealmTimer < diff)
             {
                 EjectPlayers();
                 SpectralRealmTimer = 5000;

@@ -186,7 +186,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
 
     void KilledUnit(Unit* victim)
     {
-        if(!(rand()%5))
+        if (!(rand()%5))
             DoScriptText(SAY_KILL, m_creature);
     }
 
@@ -242,7 +242,7 @@ struct MANGOS_DLL_DECL boss_gothikAI : public Scripted_NoMovementAI
         {
             if (Summon_Timer < diff)
             {
-                if(waves[waveCount].entry)
+                if (waves[waveCount].entry)
                 {
                     for(uint32 i = 0; i < waves[waveCount].number; ++i)
                     {

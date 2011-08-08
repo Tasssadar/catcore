@@ -297,7 +297,7 @@ struct MANGOS_DLL_DECL mob_xtheartAI : public ScriptedAI
     void UpdateAI(const uint32 diff)
     {
         // despawns the creature if not killed in 30 secs
-        if(m_uiDeathTimer < diff)
+        if (m_uiDeathTimer < diff)
         {
             // pass damage to boss
             if (Creature* pTemp = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_XT002)))
@@ -409,7 +409,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_XT002, DONE);
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
             {
                 m_pInstance->SetData(TYPE_XT002_HARD, DONE);
                 m_creature->SummonGameobject( m_bIsRegularMode ? LOOT_XT002_HARD : LOOT_XT002_HARD_H, 
@@ -470,7 +470,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_XT002, IN_PROGRESS);
-            if(m_pInstance->GetData(TYPE_XT002_TP) != DONE)
+            if (m_pInstance->GetData(TYPE_XT002_TP) != DONE)
                 m_pInstance->SetData(TYPE_XT002_TP, DONE);
         }
 
@@ -517,7 +517,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             // fix spell range
             DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHT_BOMB : SPELL_LIGHT_BOMB_H);
                         
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
                 m_uiLifeSparkTimer = 9000;
 
             m_uiLight_Bomb_Timer = urand(10000, 14000);
@@ -528,7 +528,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             // fix spell range
             DoCast(m_creature, m_bIsRegularMode ? SPELL_GRAVITY_BOMB : SPELL_GRAVITY_BOMB_H);
                 
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
                 m_uiVoidZoneTimer = 9000;
 
             m_uiGravity_Bomb_Timer = urand(25000, 30000); 
@@ -617,11 +617,11 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_bIsHardMode = true;
         }
         
-        if(m_bIsHardMode)
+        if (m_bIsHardMode)
         {
             m_bPhase2 = false;
 
-            if(m_uiHpDelayTimer < uiDiff && m_bHasMoreHealth)
+            if (m_uiHpDelayTimer < uiDiff && m_bHasMoreHealth)
             {
                 m_creature->SetHealth(m_creature->GetMaxHealth()+ (m_creature->GetMaxHealth() * m_bIsRegularMode ? 0.5 : 0.6));
                 m_bHasMoreHealth = false;
@@ -652,9 +652,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_uiBoombotCount        = 0;   
             m_uiPummellerCount      = 0;
 
-            if(Creature* pHeart = m_creature->SummonCreature(NPC_HEART, 0.0f, 0.0f, 0.0f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 900000))
+            if (Creature* pHeart = m_creature->SummonCreature(NPC_HEART, 0.0f, 0.0f, 0.0f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 900000))
             {
-                if(!m_bIsRegularMode)
+                if (!m_bIsRegularMode)
                     pHeart->SetMaxHealth(7199999);
             }
         }
@@ -674,12 +674,12 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         }else m_uiHeart_Timer -= uiDiff;
 
         //adds
-        if(m_bPhase2 && !m_bIsHardMode)
+        if (m_bPhase2 && !m_bIsHardMode)
         {
             // pummeller
-            if(m_uiPummellerTimer < uiDiff && m_uiPummellerCount < m_uiMaxPumeller)
+            if (m_uiPummellerTimer < uiDiff && m_uiPummellerCount < m_uiMaxPumeller)
             {
-                if(m_uiPummellerCount == 0)
+                if (m_uiPummellerCount == 0)
                     DoScriptText(SAY_ADDS, m_creature);
                 uint8 i = urand(0, 4);
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_PUMMELER, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
@@ -697,7 +697,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             else m_uiPummellerTimer -= uiDiff;
 
             // boombot
-            if(m_uiBoombotTimer < uiDiff && m_uiBoombotCount < m_uiMaxBoombot)
+            if (m_uiBoombotTimer < uiDiff && m_uiBoombotCount < m_uiMaxBoombot)
             {
                 uint8 i = urand(0, 4);
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_BOOMBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
@@ -712,7 +712,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             else m_uiBoombotTimer -= uiDiff;
 
             // scrapbot
-            if(m_uiScrapbotTimer < uiDiff && m_uiScrapbotCount < m_uiMaxScrapbot)
+            if (m_uiScrapbotTimer < uiDiff && m_uiScrapbotCount < m_uiMaxScrapbot)
             {
                 uint8 i = urand(0, 4);
                 for(int j = 0; j < 5; j++)
