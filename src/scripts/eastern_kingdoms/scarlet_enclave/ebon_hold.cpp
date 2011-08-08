@@ -1174,7 +1174,7 @@ struct MANGOS_DLL_DECL npc_crusade_persuadedAI : public ScriptedAI
     {
         if (caster->GetTypeId() == TYPEID_PLAYER && m_creature->isAlive() && spell->Id == SPELL_PERSUASIVE_STRIKE && uiSpeech_counter == 0)
         {
-            if(((Player*)caster)->GetQuestStatus(12720) == QUEST_STATUS_INCOMPLETE)
+            if (((Player*)caster)->GetQuestStatus(12720) == QUEST_STATUS_INCOMPLETE)
             {
                 if (rand()%100 > 90) // chance
                 {
@@ -1235,7 +1235,7 @@ struct MANGOS_DLL_DECL npc_crusade_persuadedAI : public ScriptedAI
                         uiCrusade_faction = 0;
                         uiSpeech_counter++;
                         AttackStart(pPlayer);
-                        if(((Player*)pPlayer)->GetQuestStatus(12720) == QUEST_STATUS_INCOMPLETE)
+                        if (((Player*)pPlayer)->GetQuestStatus(12720) == QUEST_STATUS_INCOMPLETE)
                             ((Player*)pPlayer)->AreaExploredOrEventHappens(12720);
                         break;
                 }
@@ -1386,7 +1386,7 @@ struct MANGOS_DLL_DECL mob_scarlet_minerAI : public ScriptedAI
     {
         if (pCaster->GetTypeId() == TYPEID_PLAYER && m_creature->isAlive() && pSpell->Id == SPELL_GIFT_OF_THE_HARVESTER_MISSILE)
         {
-            if(((Player*)pCaster)->GetQuestStatus(12698) == QUEST_STATUS_INCOMPLETE)
+            if (((Player*)pCaster)->GetQuestStatus(12698) == QUEST_STATUS_INCOMPLETE)
             {
                 // spell 52490 Scarlet Miner Ghoul Transform doesn't work, hack it
                 Unit* pGhoul = m_creature->SummonCreature(NPC_SCARLET_GHOUL, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 60000);
@@ -1430,7 +1430,7 @@ struct MANGOS_DLL_DECL mob_scarlet_courierAI : public ScriptedAI
 
     void MovementInform(uint32 type, uint32 id)
     {
-        if(type != POINT_MOTION_TYPE)
+        if (type != POINT_MOTION_TYPE)
                 return;
 
         switch(id)
@@ -1495,7 +1495,7 @@ struct MANGOS_DLL_DECL mob_scarlet_courier_controllerAI : public ScriptedAI
     void UpdateAI(const uint32 diff) 
     {
         GameObject* treeGO = GetClosestGameObjectWithEntry(m_creature, GO_INCONSPICUOUS_TREE, 40.0f);
-        if(treeGO && bAmbush_overlook == false)
+        if (treeGO && bAmbush_overlook == false)
         {
             Creature* pCourier = m_creature->SummonCreature(NPC_SCARLET_COURIER, 1461.65, -6010.34, 116.369, 0, TEMPSUMMON_TIMED_DESPAWN, 180000);
             pCourier->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
@@ -1503,7 +1503,7 @@ struct MANGOS_DLL_DECL mob_scarlet_courier_controllerAI : public ScriptedAI
             pCourier->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
             bAmbush_overlook = true;
         }
-        if(!treeGO && bAmbush_overlook == true)
+        if (!treeGO && bAmbush_overlook == true)
             bAmbush_overlook = false;
     }
 };

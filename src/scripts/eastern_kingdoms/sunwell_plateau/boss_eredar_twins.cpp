@@ -132,10 +132,10 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
 
         // Respawn Second Twin NotWorking ;p
         /*
-        if(pInstance)
+        if (pInstance)
         {
-            if(Creature* Sacrolash = ((Creature*)Unit::GetUnit(*m_creature, pInstance->GetData64(DATA_SACROLASH))))
-                if(!Sacrolash->isAlive())
+            if (Creature* Sacrolash = ((Creature*)Unit::GetUnit(*m_creature, pInstance->GetData64(DATA_SACROLASH))))
+                if (!Sacrolash->isAlive())
                     Sacrolash->Respawn();
         }
         */
@@ -144,13 +144,13 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
 
     void DamageDeal(Unit* pDoneTo, uint32& uiDamage) 
     {
-        if(pDoneTo->HasAura(SPELL_DARK_TOUCHED))
+        if (pDoneTo->HasAura(SPELL_DARK_TOUCHED))
             pDoneTo->RemoveAurasDueToSpell(SPELL_DARK_TOUCHED,0);
     }
 
     void Aggro(Unit *who)
     {
-        if(pInstance)
+        if (pInstance)
             pInstance->SetData(DATA_EREDAR_TWINS_EVENT, IN_PROGRESS);
         m_creature->SetInCombatWithZone();
         DoScriptText(YELL_TWINS_AGGRO, m_creature);
@@ -181,7 +181,7 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
     {       
         
         // return since we have no target
-        if(!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
            return;
         
         if (m_creature->HasAura(SPELL_BANISH))
@@ -214,18 +214,18 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
             m_bIsBanished = true;
         }
 
-        if(m_uiConfCount = 10)
+        if (m_uiConfCount = 10)
         {
-            if(Unit* pPlayer = Unit::GetUnit(*m_creature, m_uiConfTargetGUID))
+            if (Unit* pPlayer = Unit::GetUnit(*m_creature, m_uiConfTargetGUID))
                 pPlayer->RemoveAurasDueToSpell(AURA_CONF,0);
             ++m_uiConfCount;
         }
 
-        if(m_uiConfCount < 10)
+        if (m_uiConfCount < 10)
         {
-            if(m_uiConfTimer < diff)
+            if (m_uiConfTimer < diff)
             {
-                if(Unit* pPlayer = Unit::GetUnit(*m_creature, m_uiConfTargetGUID))
+                if (Unit* pPlayer = Unit::GetUnit(*m_creature, m_uiConfTargetGUID))
                 {
                     pPlayer->CastSpell(pPlayer, SPELL_CONFLAGRATION_DEV, true);
 
@@ -245,16 +245,16 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
         }
 
         // does alysthes stand and cast spells, after someone is out of range she follows victim
-        if(Unit *who = m_creature->getVictim())
+        if (Unit *who = m_creature->getVictim())
         {
-            if(who && who->IsInRange(m_creature, 0.0f, 15.0f, false))
+            if (who && who->IsInRange(m_creature, 0.0f, 15.0f, false))
                 m_creature->StopMoving();
             else 
                 m_creature->CanFreeMove();
         }
 
         // enrage
-        if(m_uiEnrageTimer < diff && !m_bIsEnraged)
+        if (m_uiEnrageTimer < diff && !m_bIsEnraged)
         {
             DoScriptText(YELL_TWINS_ENRAGE, m_creature);
             DoCast(m_creature, SPELL_TWINS_ENRAGE);
@@ -262,22 +262,22 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
         }else m_uiEnrageTimer -= diff;
         
         // 100%
-        if(m_uiPyrogenicsTimer < diff)
+        if (m_uiPyrogenicsTimer < diff)
         {
             DoCast(m_creature, SPELL_PYROGENICS);
             m_uiPyrogenicsTimer = 35000;
         }else m_uiPyrogenicsTimer -= diff;
         
         // 100%
-        if(m_uiFlameTouchedTimer < diff)
+        if (m_uiFlameTouchedTimer < diff)
         {
-            if(Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 victim->CastSpell(victim, SPELL_FLAME_TOUCHED, true);
             m_uiFlameTouchedTimer = 30000;
         }else m_uiFlameTouchedTimer -= diff;
         
         // in progress
-        if(m_uiConflagrationTimer < diff)
+        if (m_uiConflagrationTimer < diff)
         {
             m_uiConfTargetGUID = 0;
             if (Unit *victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
@@ -292,19 +292,19 @@ struct MANGOS_DLL_DECL boss_alythessAI : public ScriptedAI
         }else m_uiConflagrationTimer -= diff;
         
         // 50% nie zostawia sumona pod soba
-        if(m_uiBlazeTimer < diff)
+        if (m_uiBlazeTimer < diff)
         {
-            if(Unit *victim = m_creature->getVictim())
+            if (Unit *victim = m_creature->getVictim())
                 DoCast(victim, SPELL_BLAZE);
             m_uiBlazeTimer = urand(5000,10000);
         }else m_uiBlazeTimer -= diff;
         
         // 100%
-        if(m_uiFlameSearTimer < diff)
+        if (m_uiFlameSearTimer < diff)
         {
             uint8 i = urand(3,5);
             for(uint8 k=0; k<i; ++k)
-                if(Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     m_creature->CastSpell(victim, SPELL_FLAME_SEAR, true);	
             m_uiFlameSearTimer = 30000;
         }else m_uiFlameSearTimer -= diff;
@@ -356,10 +356,10 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
         }
 
         /*
-        if(pInstance)
+        if (pInstance)
         {
-            if(Creature* Alythess = ((Creature*)Unit::GetUnit(*m_creature, pInstance->GetData64(DATA_ALYTHESS))))
-                if(!Alythess->isAlive())
+            if (Creature* Alythess = ((Creature*)Unit::GetUnit(*m_creature, pInstance->GetData64(DATA_ALYTHESS))))
+                if (!Alythess->isAlive())
                     Alythess->Respawn();
         }
         */
@@ -367,13 +367,13 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
 
     void DamageDeal(Unit* pDoneTo, uint32& uiDamage) 
     {
-        if(pDoneTo->HasAura(SPELL_FLAME_TOUCHED))
+        if (pDoneTo->HasAura(SPELL_FLAME_TOUCHED))
             pDoneTo->RemoveAurasDueToSpell(SPELL_FLAME_TOUCHED,0);
     }
 
     void Aggro(Unit *who)
     {
-        if(pInstance)
+        if (pInstance)
             pInstance->SetData(DATA_EREDAR_TWINS_EVENT, IN_PROGRESS);
         m_creature->SetInCombatWithZone();
         DoScriptText(YELL_TWINS_AGGRO, m_creature);
@@ -438,7 +438,7 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
         }
 
         // enrage
-        if(m_uiEnrageTimer < diff && !m_bIsEnraged)
+        if (m_uiEnrageTimer < diff && !m_bIsEnraged)
         {
             DoScriptText(YELL_TWINS_ENRAGE, m_creature);
             DoCast(m_creature, SPELL_TWINS_ENRAGE);
@@ -446,17 +446,17 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
         }else m_uiEnrageTimer -= diff;
         
         // 100%
-        if(m_uiDarkTouchedTimer < diff)
+        if (m_uiDarkTouchedTimer < diff)
         {
-            if(Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 victim->CastSpell(victim, SPELL_DARK_TOUCHED,true);
             m_uiDarkTouchedTimer = urand(10000,13000);
         }else m_uiDarkTouchedTimer -= diff;
 
         // 100%
-        if(m_uiShadowBladesTimer < diff)
+        if (m_uiShadowBladesTimer < diff)
         {
-            if(Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 m_creature->CastSpell(victim, SPELL_DARK_STRIKE, false);
                 m_creature->CastSpell(victim, SPELL_SHADOW_BLADES, true);
@@ -465,17 +465,17 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
         }else m_uiShadowBladesTimer -= diff;
         
         // 100%
-        if(m_uiShadowNovaTimer < diff)
+        if (m_uiShadowNovaTimer < diff)
         {
-            if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 DoCast(target, SPELL_SHADOW_NOVA);
             m_uiShadowNovaTimer = urand(30000,40000);
         }else m_uiShadowNovaTimer -= diff;
         
         // 100%
-        if(m_uiConfoundingBlowTimer < diff)
+        if (m_uiConfoundingBlowTimer < diff)
         {
-            if(Unit *victim = m_creature->getVictim())
+            if (Unit *victim = m_creature->getVictim())
                 DoCast(victim, SPELL_CONFOUNDING_BLOW);
             m_uiConfoundingBlowTimer = urand(25000,30000);
         }else m_uiConfoundingBlowTimer -= diff;
@@ -485,13 +485,13 @@ struct MANGOS_DLL_DECL boss_sacrolashAI : public ScriptedAI
         {
             for(uint8 i=0; i<3; ++i)
             {
-                if(Creature *image = m_creature->SummonCreature(MOB_SHADOW_IMAGE, m_creature->GetPositionX()+urand(4,10), m_creature->GetPositionY()+urand(4,10), m_creature->GetPositionZ(), 0.0,TEMPSUMMON_TIMED_DESPAWN, 10000))
+                if (Creature *image = m_creature->SummonCreature(MOB_SHADOW_IMAGE, m_creature->GetPositionX()+urand(4,10), m_creature->GetPositionY()+urand(4,10), m_creature->GetPositionZ(), 0.0,TEMPSUMMON_TIMED_DESPAWN, 10000))
                 {
                     image->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                     image->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                     image->setFaction(14); 
 
-                    if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                         image->AI()->AttackStart(target);
                 }
             }
@@ -532,9 +532,9 @@ struct MANGOS_DLL_DECL npc_shadow_imageAI : public ScriptedAI
     
     void UpdateAI(const uint32 diff)
     {       	
-        if(m_uiDarkStrikeTimer < diff)
+        if (m_uiDarkStrikeTimer < diff)
         {
-            if(Unit *victim = m_creature->getVictim())
+            if (Unit *victim = m_creature->getVictim())
             {
                 m_creature->CastSpell(victim, SPELL_DARK_STRIKE, false);
                 victim->CastSpell(victim, SPELL_DARK_TOUCHED, true);
@@ -542,9 +542,9 @@ struct MANGOS_DLL_DECL npc_shadow_imageAI : public ScriptedAI
             m_uiDarkStrikeTimer = 2000;
         }else m_uiDarkStrikeTimer -= diff;
         
-        if(m_uiShadowfuryTimer < diff)
+        if (m_uiShadowfuryTimer < diff)
         {
-            if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 m_creature->CastSpell(target, SPELL_SHADOWFURY, false);
             m_uiShadowfuryTimer = 8000;	
         }else m_uiShadowfuryTimer -= diff;

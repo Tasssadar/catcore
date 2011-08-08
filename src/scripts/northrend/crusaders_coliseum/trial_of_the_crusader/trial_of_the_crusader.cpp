@@ -70,9 +70,9 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
         m_pInstance->SetData(TYPE_STAGE,0);
         DelayTimer = 0;
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        if(Creature *pAlly = GetClosestCreatureWithEntry(m_creature, NPC_THRALL, 300.0f))
+        if (Creature *pAlly = GetClosestCreatureWithEntry(m_creature, NPC_THRALL, 300.0f))
             pAlly->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        if(Creature *pAlly = GetClosestCreatureWithEntry(m_creature, NPC_PROUDMOORE, 300.0f))
+        if (Creature *pAlly = GetClosestCreatureWithEntry(m_creature, NPC_PROUDMOORE, 300.0f))
             pAlly->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetRespawnDelay(DAY);
     }
@@ -88,7 +88,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
         if (!m_pInstance)
             return;
         
-        if(DelayTimer < diff)
+        if (DelayTimer < diff)
         {
             switch (m_pInstance->GetData(TYPE_STAGE))
             {
@@ -367,7 +367,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
         pPortal->SetRespawnDelay(DAY);
         pPortal->CastSpell(pPortal, 51807, false);
         pPortal->SetDisplayId(17612);
-        if(m_pInstance) m_pInstance->SetData(TYPE_LICH_KING,IN_PROGRESS);
+        if (m_pInstance) m_pInstance->SetData(TYPE_LICH_KING,IN_PROGRESS);
     }
 
     void AttackStart(Unit *who)
@@ -387,7 +387,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
 
     void StartMovement()
     {
-        if(!WayPointList.empty() || MovementStarted)
+        if (!WayPointList.empty() || MovementStarted)
             return;
 
         AddWaypoint(0, SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z);
@@ -410,7 +410,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if(!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_LICH_KING_1)
+        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_LICH_KING_1)
             return;
         
         if (!MovementStarted)
@@ -490,7 +490,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
                         pGoFloor->SetUInt32Value(GAMEOBJECT_BYTES_1,8449);
                     }
                     m_creature->CastSpell(m_creature,69016,false);
-                    if(m_pInstance)
+                    if (m_pInstance)
                         m_pInstance->SetData(TYPE_LICH_KING,DONE);
 
                    m_pInstance->SetData(TYPE_ANUBARAK,IN_PROGRESS);
@@ -517,10 +517,10 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
 
     void MovementInform(uint32 type, uint32 id)
     {
-        if(m_pInstance && id == 2)
+        if (m_pInstance && id == 2)
             Event = true;
         
-        if(type != POINT_MOTION_TYPE || WayPoint->mapid != id)
+        if (type != POINT_MOTION_TYPE || WayPoint->mapid != id)
             return;
 
         ++WayPoint;
@@ -563,12 +563,12 @@ struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff)
     {
-        if(!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG)
+        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG)
             return;
         
         UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
         
-        if(UpdateTimer <= diff)
+        if (UpdateTimer <= diff)
         {
             switch(m_pInstance->GetData(TYPE_EVENT))
             {

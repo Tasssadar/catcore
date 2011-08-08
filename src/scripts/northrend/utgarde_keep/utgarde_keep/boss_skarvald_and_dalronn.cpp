@@ -151,7 +151,7 @@ struct MANGOS_DLL_DECL boss_s_and_d_dummyAI : public ScriptedAI
                 //pBuddy->CastSpell(m_creature, m_creature->GetEntry() == NPC_SKARVALD ? SPELL_SUMMON_SKA_GHOST : SPELL_SUMMON_DAL_GHOST, true);
                 float x,y,z;
                 m_creature->GetPosition(x,y,z);
-                if(Creature *ghost = pBuddy->SummonCreature(m_creature->GetEntry() == NPC_SKARVALD ? 27390 : 27389, x,y,z, 0, TEMPSUMMON_MANUAL_DESPAWN, 0))
+                if (Creature *ghost = pBuddy->SummonCreature(m_creature->GetEntry() == NPC_SKARVALD ? 27390 : 27389, x,y,z, 0, TEMPSUMMON_MANUAL_DESPAWN, 0))
                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
             }

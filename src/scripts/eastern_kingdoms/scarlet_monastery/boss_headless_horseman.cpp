@@ -80,7 +80,7 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
             m_creature->AddThreat(pWho);
             m_creature->SetInCombatWith(pWho);
             pWho->SetInCombatWith(m_creature);
-            if(!m_bIsAir)
+            if (!m_bIsAir)
                 m_creature->GetMotionMaster()->MoveChase(pWho);
         }
     }
@@ -106,7 +106,7 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(!under && m_creature->GetHealthPercent() <= 50.0f)
+        if (!under && m_creature->GetHealthPercent() <= 50.0f)
         {
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             under = true;
@@ -120,9 +120,9 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
             m_creature->RemoveAllAuras();
         }
 
-        if(m_bIsAir)
+        if (m_bIsAir)
         {
-            if(m_airTimer <= uiDiff)
+            if (m_airTimer <= uiDiff)
             {
                 m_creature->RemoveSplineFlag(SPLINEFLAG_UNKNOWN7);
                 m_creature->GetMotionMaster()->Clear(false);
@@ -132,7 +132,7 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }else m_airTimer -= uiDiff;
 
-            if(m_summonTimer <= uiDiff)
+            if (m_summonTimer <= uiDiff)
             {
                 DoScriptText(SAY_SPROUTING_PUMPKINS, m_creature);
                 float x,y,z;
@@ -150,7 +150,7 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
                 m_summonTimer = 40000;
             }else m_summonTimer -= uiDiff; 
 
-            if(m_flameTimer <= uiDiff)
+            if (m_flameTimer <= uiDiff)
             {
                 DoCast(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_FLAMESTRIKE);
                 m_flameTimer = 8000;
@@ -158,13 +158,13 @@ struct MANGOS_DLL_DECL boss_headless_horsemanAI : public ScriptedAI
         }
         else
         {
-            if(m_smashTimer <= uiDiff)
+            if (m_smashTimer <= uiDiff)
             {
                 DoCast(m_creature, SPELL_SMASH);
                 m_smashTimer = 10000;
             }else m_smashTimer -= uiDiff;
 
-            if(m_quakeTimer <= uiDiff)
+            if (m_quakeTimer <= uiDiff)
             {
                 DoCast(m_creature, SPELL_QUAKE);
                 m_quakeTimer = urand(10000, 17000);

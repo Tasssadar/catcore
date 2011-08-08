@@ -326,7 +326,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             return;
 
         //Spell casting for second and third Phase
-        if(Phase2)
+        if (Phase2)
         {
             //start phase 3 when we are 40% health
             if (!PhaseGuardian && (m_creature->GetHealth()*100 / m_creature->GetMaxHealth()) < 40)
@@ -454,7 +454,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             if (GuardiansOfIcecrown_Timer < diff)
             {
                 int8 Pos = rand()%6;
-                if( Creature* pGuardian = m_creature->SummonCreature(NPC_GUARDIAN, AddPos[Pos][0], AddPos[Pos][1], AddPos[Pos][2], AddPos[Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
+                if ( Creature* pGuardian = m_creature->SummonCreature(NPC_GUARDIAN, AddPos[Pos][0], AddPos[Pos][1], AddPos[Pos][2], AddPos[Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
                 {
                     pGuardian->Attack(m_creature->getVictim(),true);
                     pGuardian->GetMotionMaster()->MoveChase(m_creature->getVictim());

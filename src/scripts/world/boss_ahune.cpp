@@ -65,7 +65,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
     
     void MoveInLineOfSight(Unit *pWho)
     {
-        if(!pWho || pWho->GetTypeId() != TYPEID_PLAYER || m_creature->GetDistance2d(pWho) > 50.0f || 
+        if (!pWho || pWho->GetTypeId() != TYPEID_PLAYER || m_creature->GetDistance2d(pWho) > 50.0f || 
             !pWho->isTargetableForAttack())
             return;
         
@@ -79,7 +79,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
     {
         CreatureList adds;
         GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 50.0f);
-        if(!adds.empty())
+        if (!adds.empty())
             for(CreatureList::iterator iter = adds.begin(); iter != adds.end(); ++iter)
                 (*iter)->ForcedDespawn();
 
@@ -95,14 +95,14 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
         m_creature->UpdateGroundPositionZ(fx, fy, fz, 20.0f);
         
         Map* pMap = m_creature->GetMap();
-        if(!pMap)
+        if (!pMap)
             return;
         Player *plr = NULL;
         WorldPacket data(SMSG_MONSTER_MOVE);
         Map::PlayerList const &lPlayers = pMap->GetPlayers();
         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
         {
-            if(!itr->getSource()->isAlive() || !itr->getSource()->IsInWorld())
+            if (!itr->getSource()->isAlive() || !itr->getSource()->IsInWorld())
                 continue;
             plr = itr->getSource();
             
@@ -141,7 +141,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
             sz = fz;
             m_creature->UpdateGroundPositionZ(sx, sy, sz, 20.0f);
             Creature *pAdd = m_creature->SummonCreature(NPC_ADD, sx, sy, sz, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
-            if(!pAdd)
+            if (!pAdd)
                 continue;
             pAdd->GetMotionMaster()->MovePoint(0, fx, fy, fz, false);
             pAdd->CastSpell(pAdd, SPELL_SUMMON_AURA, true);
@@ -157,12 +157,12 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiPhase == 1 || m_uiPhase == 2)
+        if (m_uiPhase == 1 || m_uiPhase == 2)
         {
             // tank out of range
-            if(m_creature->GetDistance2d(m_creature->getVictim()) > m_creature->GetAttackDistance(m_creature->getVictim()))
+            if (m_creature->GetDistance2d(m_creature->getVictim()) > m_creature->GetAttackDistance(m_creature->getVictim()))
             {
-                if(m_uiRange_Timer <= uiDiff)
+                if (m_uiRange_Timer <= uiDiff)
                 {
                     DoCast(m_creature, SPELL_FROST_BREATH);
                     m_uiRange_Timer = 10000;
@@ -193,7 +193,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
             }
             else m_uiCleaveTimer -= uiDiff;
             
-            if(m_uiPhase == 1 && m_creature->GetHealthPercent() <= 50.0f)
+            if (m_uiPhase == 1 && m_creature->GetHealthPercent() <= 50.0f)
             {
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 m_creature->RemoveAllAuras();
@@ -203,19 +203,19 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
                 return;
             }
         }
-        else if(m_uiPhase == 2)
+        else if (m_uiPhase == 2)
         {
-            if(m_uiAddCheck_Timer <= uiDiff)
+            if (m_uiAddCheck_Timer <= uiDiff)
             {
                 CreatureList adds;
                 GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 5.0f);
-                if(!adds.empty())
+                if (!adds.empty())
                 {
                     adds.clear();
                     GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 45.0f);
                     for(CreatureList::iterator iter = adds.begin(); iter != adds.end(); ++iter)
                     {
-                        if(!(*iter)->isAlive())
+                        if (!(*iter)->isAlive())
                             continue;
                         (*iter)->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.0f);
                         m_creature->CastSpell(*iter, SPELL_LINK, true);
@@ -234,7 +234,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
                 m_uiAddCheck_Timer = 2000;
             }else m_uiAddCheck_Timer -= uiDiff;
             
-            if(m_uiBlizzard_Timer <= uiDiff)
+            if (m_uiBlizzard_Timer <= uiDiff)
             {
                 if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                     DoCast(target,SPELL_BLIZZARD);
@@ -266,7 +266,7 @@ struct MANGOS_DLL_DECL mob_ahune_addAI : public ScriptedAI
     
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
     {
-        if(pSpell->Id == SPELL_LINK)
+        if (pSpell->Id == SPELL_LINK)
         {
             m_creature->SetMaxHealth(200000);
             m_creature->SetHealth(200000);
@@ -281,7 +281,7 @@ struct MANGOS_DLL_DECL mob_ahune_addAI : public ScriptedAI
         if (!m_bStart || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
         
-        if(m_uiNovaTimer <= uiDiff)
+        if (m_uiNovaTimer <= uiDiff)
         {
             DoCast(m_creature, SPELL_FROST_NOVA);
             m_uiNovaTimer = urand(10000, 25000);

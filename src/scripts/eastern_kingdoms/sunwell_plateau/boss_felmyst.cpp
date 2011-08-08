@@ -176,10 +176,10 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
         m_creature->SetVisibility(VISIBILITY_OFF);
         m_creature->setFaction(35);
 
-        if(pInstance)
+        if (pInstance)
             pInstance->SetData(DATA_FELMYST_EVENT, NOT_STARTED);
 
-        if(!m_creature->HasAura(SPELL_SUNWELLRADIANCE_AURA))
+        if (!m_creature->HasAura(SPELL_SUNWELLRADIANCE_AURA))
             DoCast(m_creature, SPELL_SUNWELLRADIANCE_AURA);
     }
  
@@ -212,13 +212,13 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
         DoScriptText(YELL_DEATH, m_creature);
         DoPlaySoundToSet(m_creature, 12483);
 
-        if(pInstance)
+        if (pInstance)
             pInstance->SetData(DATA_FELMYST_EVENT, DONE);
     }
  
     void UpdateAI(const uint32 diff)
     {
-        if(pInstance && pInstance->GetData(DATA_BRUTALLUS_EVENT) == DONE && pInstance->GetData(DATA_FELMYST_EVENT) == NOT_STARTED)
+        if (pInstance && pInstance->GetData(DATA_BRUTALLUS_EVENT) == DONE && pInstance->GetData(DATA_FELMYST_EVENT) == NOT_STARTED)
         {
             m_creature->SetVisibility(VISIBILITY_ON);
             m_creature->setFaction(14);
@@ -227,11 +227,11 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
  
-        if(m_uiEncapsulateCount < 5)
+        if (m_uiEncapsulateCount < 5)
         {
-            if(m_uiEncapsulateAOETimer < diff)
+            if (m_uiEncapsulateAOETimer < diff)
             {
-                if(Unit* target = Unit::GetUnit(*m_creature, m_uiEncapsulateGUID))
+                if (Unit* target = Unit::GetUnit(*m_creature, m_uiEncapsulateGUID))
                 {
                     target->CastSpell(target, SPELL_ENCAPSULATE_AOE, true);
                     ++m_uiEncapsulateCount;
@@ -242,15 +242,15 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             return;
         }
 
-        if(m_uiEnrageTimer < diff)
+        if (m_uiEnrageTimer < diff)
         {
             DoCast(m_creature, SPELL_ENRAGE, true);
             m_uiEnrageTimer = 30000;
         }m_uiEnrageTimer -= diff;
  
-        if(!m_bIsFlyPhase)
+        if (!m_bIsFlyPhase)
         {
-            if(m_uiFlyPhaseTimer < diff)
+            if (m_uiFlyPhaseTimer < diff)
             {
                 //Stop Moving
                 m_creature->StopMoving();
@@ -267,7 +267,7 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
                 m_bIsFogOfCorruption    = true;
                 m_bIsFlyPhase           = true;
 
-                if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     m_fPosX = target->GetPositionX();
                     m_fPosY = target->GetPositionY();
@@ -277,16 +277,16 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             }else m_uiFlyPhaseTimer -= diff;
  
             //100%
-            if(m_uiCorrosionTimer < diff)
+            if (m_uiCorrosionTimer < diff)
             {
                 DoScriptText(YELL_CORROSION, m_creature);
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     DoCast(m_creature->getVictim(), SPELL_CORROSION);
                 m_uiCorrosionTimer = 72000;
             }else m_uiCorrosionTimer -= diff;
  
             //100%
-            if(m_uiNoxiousFumesTimer < diff && !m_bIsCastedNoxiousFumes)
+            if (m_uiNoxiousFumesTimer < diff && !m_bIsCastedNoxiousFumes)
             {
                 DoScriptText(YELL_NOXIOUSFUMES, m_creature);
                 DoPlaySoundToSet(m_creature, 12478);
@@ -296,16 +296,16 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             }else m_uiNoxiousFumesTimer -= diff;
  
             //100%
-            if(m_uiGasNovaTimer < diff)
+            if (m_uiGasNovaTimer < diff)
             {
                 DoCast(m_creature, SPELL_GASNOVA);
                 m_uiGasNovaTimer = 35000;
             }else m_uiGasNovaTimer -= diff;
  
             //100%
-            if(m_uiEncapsulateTimer < diff)
+            if (m_uiEncapsulateTimer < diff)
             {
-                if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     m_uiEncapsulateGUID = target->GetGUID();
                     DoCast(target, SPELL_ENCAPSULATE_CHANNEL);
@@ -316,11 +316,11 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
             }else m_uiEncapsulateTimer -= diff;
  
             //100%
-            if(m_uiCleaveTimer < diff)
+            if (m_uiCleaveTimer < diff)
             {
                 DoScriptText(YELL_CLEAVE, m_creature);
 
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     DoCast(m_creature->getVictim(), SPELL_CLEAVE);
                 m_uiCleaveTimer = 28000;
             }else m_uiCleaveTimer -= diff;
@@ -329,8 +329,8 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
         }
         else
         {
-            if(m_uiMaxBreathCount > 1)
-                if(m_uiLandPhaseTimer < diff)
+            if (m_uiMaxBreathCount > 1)
+                if (m_uiLandPhaseTimer < diff)
                 {
                     m_creature->GetMap()->CreatureRelocation(m_creature, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()-20, m_creature->GetOrientation());
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
@@ -338,18 +338,18 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
                     m_bIsFlyPhase           = false;
                 }else m_uiLandPhaseTimer -= diff;
 
-            if(m_uiDemonicVaporInitTimer < diff)
+            if (m_uiDemonicVaporInitTimer < diff)
             {
-                if(m_uiMaxBreathCount < 2)
+                if (m_uiMaxBreathCount < 2)
                 {
-                    if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
                         m_uiVictimGUID = target->GetGUID();
                         DoCast(target, SPELL_VAPOR_DAMAGE, true);
                         for(uint8 i=0; i<2; ++i) // i<10
                         {
                             Creature *Undead = m_creature->SummonCreature(MOB_DEAD, target->GetPositionX()+urand(1,20), target->GetPositionY()+urand(1,20), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000);
-                            if(Undead)
+                            if (Undead)
                                 Undead->AI()->AttackStart(target);
                         }
                     }
@@ -360,20 +360,20 @@ struct MANGOS_DLL_DECL boss_felmystAI : public ScriptedAI
                 }
             }else m_uiDemonicVaporInitTimer -= diff;
 
-            if(m_uiDemonicVaporTimer < diff)
+            if (m_uiDemonicVaporTimer < diff)
             {
-                if(m_uiBreathCount < 5)
+                if (m_uiBreathCount < 5)
                 {
-                    if(Unit* Victim = Unit::GetUnit(*m_creature, m_uiVictimGUID))
+                    if (Unit* Victim = Unit::GetUnit(*m_creature, m_uiVictimGUID))
                         m_creature->SummonCreature(MOB_VAPOR, Victim->GetPositionX(), Victim->GetPositionY(), Victim->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
                     m_uiDemonicVaporTimer = 2000;
                     ++m_uiBreathCount;
                 }
             }else m_uiDemonicVaporTimer -= diff;
             
-            if(m_bIsFogOfCorruption)
+            if (m_bIsFogOfCorruption)
             {
-                if(m_uiFogOfCorruptionTimer < diff)
+                if (m_uiFogOfCorruptionTimer < diff)
                 {
                     switch(m_uiFogCount)
                     {
@@ -446,7 +446,7 @@ struct MANGOS_DLL_DECL mob_deathcloudAI : public Scripted_NoMovementAI
             case CLASS_HUNTER:  m_uiSpell = SPELL_HUNTER; break;
         }
         Creature* cImage = m_creature->SummonCreature(CREATURE_IMAGE, victim->GetPositionX(), victim->GetPositionY(), victim->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 15000);
-        if(cImage)
+        if (cImage)
         {
             cImage->setFaction(14);
             cImage->AI()->AttackStart(cImage->getVictim());
@@ -461,15 +461,15 @@ struct MANGOS_DLL_DECL mob_deathcloudAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 diff)
     {
         //Image Attacks Timer
-        if(m_uiImageCastTimer < diff)
+        if (m_uiImageCastTimer < diff)
         {
             for(uint8 i=0; i<m_uiImageCount; ++i)
 			{
-                if(Unit* cImage = Unit::GetUnit((*m_creature), m_uiImageGUID[i][0]))
+                if (Unit* cImage = Unit::GetUnit((*m_creature), m_uiImageGUID[i][0]))
 				{
-					if(!cImage->isDead())
+					if (!cImage->isDead())
 					{
-						if(Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+						if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 							cImage->CastSpell(target, m_uiImageGUID[i][1], true);
 					}
 				}
@@ -477,14 +477,14 @@ struct MANGOS_DLL_DECL mob_deathcloudAI : public Scripted_NoMovementAI
             m_uiImageCastTimer = 8000;
         }else m_uiImageCastTimer -= diff;
 
-        if(m_uiCheckTimer < diff)
+        if (m_uiCheckTimer < diff)
         {
             //For Now we need to kill player and replace him by image (sinister from kiljaeden)
             std::list<HostileReference *> t_list = m_creature->getThreatManager().getThreatList();
             for(std::list<HostileReference *>::iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
             {
-                if(Unit *target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid()))
-                    if(target && target->GetTypeId() == TYPEID_PLAYER && target->IsWithinDistInMap(m_creature, 15))
+                if (Unit *target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid()))
+                    if (target && target->GetTypeId() == TYPEID_PLAYER && target->IsWithinDistInMap(m_creature, 15))
                     {
                         //Kill Player
                         SummonImageOf(target);
@@ -531,11 +531,11 @@ struct MANGOS_DLL_DECL mob_felmyst_vaporAI : public Scripted_NoMovementAI
             std::list<HostileReference *> t_list = m_creature->getThreatManager().getThreatList();
             for(std::list<HostileReference *>::iterator itr = t_list.begin(); itr!= t_list.end(); ++itr)
             {
-                if(Unit *target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid()))
-                    if(target && target->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(target, 3))
+                if (Unit *target = Unit::GetUnit(*m_creature, (*itr)->getUnitGuid()))
+                    if (target && target->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(target, 3))
                     {
                         Creature *Undead = m_creature->SummonCreature(MOB_DEAD, m_creature->GetPositionX()+urand(1,6), target->GetPositionY()+urand(1,6), target->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 20000);
-                        if(Undead)
+                        if (Undead)
                             Undead->AI()->AttackStart(target);
                     }
             }

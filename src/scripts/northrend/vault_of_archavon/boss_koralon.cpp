@@ -83,13 +83,13 @@ struct MANGOS_DLL_DECL boss_koralonAI : public ScriptedAI
         angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F;
         m_creature->SetOrientation(angle);
 
-        if(rotateCount == 1)
+        if (rotateCount == 1)
         {
             m_creature->addUnitState(UNIT_STAT_IGNORE_TARGET);
             m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_TURN_RIGHT);
             m_creature->GetMap()->AddUpdateObject(m_creature);
         }
-        else if(rotateCount == 4)
+        else if (rotateCount == 4)
         {
             rotateCount = 0;
             bRotate = false;
@@ -118,9 +118,9 @@ struct MANGOS_DLL_DECL boss_koralonAI : public ScriptedAI
             FlamingCinder_Timer = 12000;
         }else FlamingCinder_Timer -= diff;
 
-        if(bRotate)
+        if (bRotate)
         {
-            if(Rotate_Timer <= diff)
+            if (Rotate_Timer <= diff)
             {
                 Turn();
                 Rotate_Timer = 750;

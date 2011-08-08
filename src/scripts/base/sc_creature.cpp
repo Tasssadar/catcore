@@ -99,7 +99,7 @@ void ScriptedAI::UpdateAI(const uint32 uiDiff)
 
     //if (!m_lCastTimerList.empty())
     //    for (SpellCastTimerList::iterator itr = m_lCastTimerList.begin(); itr != m_lCastTimerList.end(); ++itr)
-    //        if((*itr)->CheckAndUpdate(uiDiff))
+    //        if ((*itr)->CheckAndUpdate(uiDiff))
     //            HandleTimedSpellCast((*itr)->target, (*itr)->SpellId);
 }
 

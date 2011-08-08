@@ -235,7 +235,7 @@ struct MANGOS_DLL_DECL boss_volkhanAI : public ScriptedAI
     {
         Creature *pAnvil = GetClosestCreatureWithEntry(m_creature, NPC_VOLKHAN_ANVIL, 500.0f);
 
-        if(!pAnvil)
+        if (!pAnvil)
             return;
 
         DoScriptText(EMOTE_TO_ANVIL, m_creature);

@@ -100,7 +100,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         home[1] = m_creature->GetPositionY();
         home[2] = m_creature->GetPositionZ();
 
-        if(pAnimus)
+        if (pAnimus)
             pAnimus->ForcedDespawn();
 
         pAnimus = NULL;
@@ -130,7 +130,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
 
     void JustDied(Unit* /*killer*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_VEZAX, DONE);
             if (HardMode)
@@ -193,7 +193,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
     }
     void ActivateHardMode()
     {
-        if(pAnimus = m_creature->SummonCreature(NPC_SARONITE_ANIMUS, home[0], home[1], home[2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
+        if (pAnimus = m_creature->SummonCreature(NPC_SARONITE_ANIMUS, home[0], home[1], home[2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
             pAnimus->AI()->AttackStart(m_creature->getVictim());
         for(CreatureList::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
             (*iter)->ForcedDespawn();
@@ -267,7 +267,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
             DoScriptText(EMOTE_VAPORS, m_creature);
             m_uiSummonVapors_Timer = 30*IN_MILLISECONDS;
             Vapors_Count++;
-            if(Vapors_Count == 6 && !VaporKilled)
+            if (Vapors_Count == 6 && !VaporKilled)
                 PreActivateHardMode();
         }else m_uiSummonVapors_Timer -= diff;
 
@@ -399,7 +399,7 @@ struct MANGOS_DLL_DECL npc_saronitevaporsAI : public ScriptedAI
     void DamageTaken(Unit* /*pDoneBy*/, uint32 &damage)
     {
         // Mana regen pool
-        if(damage >= m_creature->GetHealth())
+        if (damage >= m_creature->GetHealth())
         {
             damage = 0;
             if (!m_bIsDead)
@@ -438,7 +438,7 @@ struct MANGOS_DLL_DECL npc_saronitevaporsAI : public ScriptedAI
     void JustDied(Unit* /*killer*/)
     {
         Creature* boss = pVezax ? pVezax : (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX));
-        if(boss)
+        if (boss)
             ((boss_generalvezaxAI*)boss->AI())->VaporKilled = true;
     }
 

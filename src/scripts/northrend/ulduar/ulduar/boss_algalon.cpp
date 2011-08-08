@@ -142,7 +142,7 @@ struct MANGOS_DLL_DECL mob_black_holeAI : public ScriptedAI
         // summon unleashed dark matter in phase 2
         if (m_uiSummonTimer < uiDiff && m_bIsPhase2)
         {
-            if(Creature* pTemp = m_creature->SummonCreature(NPC_UNLEASHED_DARK_MATTER, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+            if (Creature* pTemp = m_creature->SummonCreature(NPC_UNLEASHED_DARK_MATTER, 0, 0, 0, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
                 pTemp->SetInCombatWithZone();
             m_uiSummonTimer = urand(10000, 15000);
         }
@@ -151,13 +151,13 @@ struct MANGOS_DLL_DECL mob_black_holeAI : public ScriptedAI
         // phase players into the void
         if (m_uiRaidCheckTimer < uiDiff && !m_bIsPhase2)
         {
-            if(!m_bHasAura)
+            if (!m_bHasAura)
             {
                 DoCast(m_creature, SPELL_BLACK_HOLE_TRIGG);
                 m_bHasAura = true;
             }
 
-            if(Creature *pConstellation = GetClosestCreatureWithEntry(m_creature, NPC_LIVING_CONSTELLATION, 2))
+            if (Creature *pConstellation = GetClosestCreatureWithEntry(m_creature, NPC_LIVING_CONSTELLATION, 2))
             {
                 pConstellation->DealDamage(pConstellation, pConstellation->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                 m_creature->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -278,7 +278,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             /* hacky way to complete achievements; use only if you have this function
             m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_OBSERVED : ACHIEV_OBSERVED_H);
 
-            if(m_bFeedOnTears)
+            if (m_bFeedOnTears)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_FEED_TEARS : ACHIEV_FEED_TEARS_H);
                 */
         }
@@ -288,7 +288,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if(!m_bIsInProgress)
+        if (!m_bIsInProgress)
             return;
 
         if (m_creature->Attack(pWho, true)) 
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void DamageTaken(Unit* /*done_by*/, uint32 &uiDamage)
     {
-        if(m_creature->GetHealthPercent() < 1.0f)
+        if (m_creature->GetHealthPercent() < 1.0f)
         {
             uiDamage = 0;
             m_bIsOutro = true;
@@ -336,10 +336,10 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         float angle = (float) rand()*360/RAND_MAX + 1;
         float homeX = 1630.475f + urand(15, 30)*cos(angle*(M_PI/180));
         float homeY = -286.989f + urand(15, 30)*sin(angle*(M_PI/180));
-        if(Creature* pTemp = m_creature->SummonCreature(m_uiCreatureEntry, homeX, homeY, 417.32f, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
+        if (Creature* pTemp = m_creature->SummonCreature(m_uiCreatureEntry, homeX, homeY, 417.32f, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
         {
             pTemp->SetInCombatWithZone();
-            if(pTemp->GetEntry() == NPC_DARK_MATTER)
+            if (pTemp->GetEntry() == NPC_DARK_MATTER)
                 pTemp->CastSpell(pTemp, SPELL_BLACK_HOLE_SHIFT, false);
         }
     }
@@ -349,11 +349,11 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         // set combat phase
         m_uiCombatPhase = 2;
 
-        if(m_bIsFirstTime)
+        if (m_bIsFirstTime)
         {
             m_bIsInProgress = true;
             DoScriptText(SAY_ENGAGE, m_creature);
-            if(m_pInstance)
+            if (m_pInstance)
             {
                 m_pInstance->DoUpdateWorldState(UI_STATE_ALGALON_TIMER_ON, 1);
                 m_pInstance->DoUpdateWorldState(UI_STATE_ALGALON_TIMER_COUNT, m_uiDespawnTimer / 60000);
@@ -372,7 +372,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         // despawn timer
-        if(m_uiDespawnTimer < uiDiff && !m_bIsDespawned && m_bIsInProgress)
+        if (m_uiDespawnTimer < uiDiff && !m_bIsDespawned && m_bIsInProgress)
         {
             m_bIsDespawned = true;
             m_bIsOutro = true;
@@ -381,20 +381,20 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         else m_uiDespawnTimer -= uiDiff;
 
         // update world state
-        if(m_uiDespawnTimer < m_uiLastTimer - 60000 && !m_bIsDespawned)
+        if (m_uiDespawnTimer < m_uiLastTimer - 60000 && !m_bIsDespawned)
         {
             m_uiLastTimer = m_uiDespawnTimer;
             uint32 tMinutes = m_uiDespawnTimer / 60000;
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoUpdateWorldState(UI_STATE_ALGALON_TIMER_COUNT, tMinutes);
         }
 
-        if(!m_bIsOutro)
+        if (!m_bIsOutro)
         {
             // intro
-            if(m_uiCombatPhase == 1)
+            if (m_uiCombatPhase == 1)
             {
-                if(m_bIsIntro  && m_bIsFirstTime)
+                if (m_bIsIntro  && m_bIsFirstTime)
                 {
                     switch(m_uiIntroStep)
                     {
@@ -431,37 +431,37 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             }
 
             // combat
-            if(m_uiCombatPhase == 2)
+            if (m_uiCombatPhase == 2)
             {
                 if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
                     return;
 
                 // spells
-                if(m_uiQuantumStrike_Timer < uiDiff)
+                if (m_uiQuantumStrike_Timer < uiDiff)
                 {
                     DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_QUANTUM_STRIKE : SPELL_QUANTUM_STRIKE_H);
                     m_uiQuantumStrike_Timer = 4000 + rand()%10000;
                 }else m_uiQuantumStrike_Timer -= uiDiff;
 
-                if(m_uiBigBang_Timer < uiDiff)
+                if (m_uiBigBang_Timer < uiDiff)
                 {
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_BIG_BANG : SPELL_BIG_BANG_H);
                     m_uiBigBang_Timer = 90000;
                     m_uiDarkMaterTimer = 1000;
                 }else m_uiBigBang_Timer -= uiDiff;
 
-                if(m_uiCosmicSmash_Timer < uiDiff)
+                if (m_uiCosmicSmash_Timer < uiDiff)
                 {
                     uint8 times = m_bIsRegularMode ? 1 : 3;
                     for (uint8 i = 0; i < times; ++i)
-                        if(Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
+                        if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
                             DoCast(pTarget, m_bIsRegularMode ? SPELL_COSMIC_SMASH : SPELL_COSMIC_SMASH_H);
                     m_uiTriggerCosmicSmash_Timer = 4000;
                     m_bTriggerCosmicSmash = true;
                     m_uiCosmicSmash_Timer = urand(30000, 60000);
                 }else m_uiCosmicSmash_Timer -= uiDiff;
 
-                if(m_uiTriggerCosmicSmash_Timer < uiDiff && m_bTriggerCosmicSmash)
+                if (m_uiTriggerCosmicSmash_Timer < uiDiff && m_bTriggerCosmicSmash)
                 {
                     CreatureList lTriggers;
                     GetCreatureListWithEntryInGrid(lTriggers, m_creature, NPC_COSMIC_SMASH, 200.0f);
@@ -476,16 +476,16 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     m_bTriggerCosmicSmash = false;
                 }else m_uiTriggerCosmicSmash_Timer -= uiDiff;
 
-                if(m_uiPhasePunch_Timer < uiDiff)
+                if (m_uiPhasePunch_Timer < uiDiff)
                 {
-                    if(Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_TOPAGGRO, 0))
+                    if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_TOPAGGRO, 0))
                         DoCast(pTarget,SPELL_PHASE_PUNCH);
                     m_uiPhasePunch_Timer = 15000;
                 }else m_uiPhasePunch_Timer -= uiDiff;
 
                 // hack, phase punch needs core support
                 // PLEASE REMOVE FOR REVISION!
-                /*if(m_uiRaidCheckTimer < uiDiff)
+                /*if (m_uiRaidCheckTimer < uiDiff)
                 {
                     Map *map = m_creature->GetMap();
                     if (map->IsDungeon())
@@ -500,7 +500,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                             if (i->getSource()->isAlive() && i->getSource()->HasAura(SPELL_PHASE_PUNCH, EFFECT_INDEX_0))
                             {
                                 Aura *phasePunch = i->getSource()->GetAura(SPELL_PHASE_PUNCH, EFFECT_INDEX_0);
-                                if(phasePunch->GetStackAmount() > 4)
+                                if (phasePunch->GetStackAmount() > 4)
                                 {
                                     i->getSource()->RemoveAurasDueToSpell(SPELL_PHASE_PUNCH);
                                     i->getSource()->CastSpell(i->getSource(), SPELL_PHASE_PUNCH_SHIFT, false);
@@ -514,7 +514,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }else m_uiRaidCheckTimer -= uiDiff;*/
 
                 // berserk
-                if(m_uiBerserk_Timer < uiDiff)
+                if (m_uiBerserk_Timer < uiDiff)
                 {
                     DoScriptText(SAY_BERSERK, m_creature);	
                     DoCast(m_creature, SPELL_BERSERK);
@@ -522,21 +522,21 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }else m_uiBerserk_Timer -= uiDiff;
 
                 // summons
-                if(m_uiCollapsingStar_Timer < uiDiff && !m_bIsPhase2)
+                if (m_uiCollapsingStar_Timer < uiDiff && !m_bIsPhase2)
                 {
                     DoScriptText(SAY_SUMMON_STAR, m_creature);
                     SummonCreature(NPC_COLLAPSING_STAR);
                     m_uiCollapsingStar_Timer = urand(15000, 20000);
                 }else m_uiCollapsingStar_Timer -= uiDiff;
 
-                if(m_uiLivingConstellationTimer < uiDiff && !m_bIsPhase2)
+                if (m_uiLivingConstellationTimer < uiDiff && !m_bIsPhase2)
                 {
                     for(uint8 i = 0; i < urand (1, 3); i++)
                         SummonCreature(NPC_LIVING_CONSTELLATION);
                     m_uiLivingConstellationTimer = 30000;
                 }else m_uiLivingConstellationTimer -= uiDiff;
 
-                if(m_uiDarkMaterTimer < uiDiff && !m_bIsPhase2)
+                if (m_uiDarkMaterTimer < uiDiff && !m_bIsPhase2)
                 {
                     for(uint8 i = 0; i < 7; i++)
                         SummonCreature(NPC_DARK_MATTER);
@@ -544,7 +544,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }else m_uiDarkMaterTimer -= uiDiff;
 
                 // hp check -> start phase 2
-                if(!m_bIsPhase2 && m_creature->GetHealthPercent() < 20)
+                if (!m_bIsPhase2 && m_creature->GetHealthPercent() < 20)
                 {
                     DoScriptText(SAY_PHASE2, m_creature);
                     m_bIsPhase2 = true;
@@ -564,7 +564,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
                     for (uint8 i = 0; i < 4; ++i)
                     {
-                        if(Creature* pTemp = m_creature->SummonCreature(NPC_BLACK_HOLE, PositionLoc[i].x, PositionLoc[i].y, m_creature->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN, 0))
+                        if (Creature* pTemp = m_creature->SummonCreature(NPC_BLACK_HOLE, PositionLoc[i].x, PositionLoc[i].y, m_creature->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN, 0))
                             ((mob_black_holeAI*)pTemp->AI())->m_bIsPhase2 = true;
                     }
                 }
@@ -575,7 +575,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             }
         }
         // outro: both for defeat and despawn
-        if(m_bIsOutro)
+        if (m_bIsOutro)
         {
             switch(m_uiOutroStep)
             {
@@ -593,7 +593,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             case 3:
                 // make boss kneel
                 m_creature->SetSplineFlags(SPLINEFLAG_UNKNOWN12);
-                if(m_bIsDespawned)
+                if (m_bIsDespawned)
                 {
                     DoScriptText(SAY_DESPAWN1, m_creature);
                     ++m_uiOutroStep;
@@ -607,7 +607,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }
                 break;
             case 5:
-                if(m_bIsDespawned)
+                if (m_bIsDespawned)
                 {
                     DoScriptText(SAY_DESPAWN2, m_creature);
                     ++m_uiOutroStep;
@@ -621,7 +621,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }
                 break;
             case 7:
-                if(m_bIsDespawned)
+                if (m_bIsDespawned)
                 {
                     DoScriptText(SAY_DESPAWN3, m_creature);
                     ++m_uiOutroStep;
@@ -635,7 +635,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }
                 break;
             case 9:
-                if(m_bIsDespawned)
+                if (m_bIsDespawned)
                 {
                     DoCast(m_creature, SPELL_ASCEND);
                     ++m_uiOutroStep;
@@ -649,9 +649,9 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }
                 break;
             case 11:
-                if(m_bIsDespawned)
+                if (m_bIsDespawned)
                 {
-                    if(m_pInstance)
+                    if (m_pInstance)
                     {
                         m_pInstance->DoUpdateWorldState(UI_STATE_ALGALON_TIMER_ON, 0);
                         m_pInstance->SetData(TYPE_ALGALON, FAIL);
@@ -710,7 +710,7 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if(uiDamage > m_creature->GetHealth())
+        if (uiDamage > m_creature->GetHealth())
         {
             uiDamage = 0;
             m_creature->SetHealth(m_creature->GetMaxHealth());
@@ -736,7 +736,7 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 
         // movement should be improved
         // npc should ignore threat tables
-        if(m_uiHealthTimer < uiDiff)
+        if (m_uiHealthTimer < uiDiff)
         {
             m_creature->GetMotionMaster()->MoveConfused();
             m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()/100, NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -757,7 +757,7 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 
         // movement should be improved
         // npc should ignore threat tables
-        if(m_uiHealthTimer < uiDiff && m_creature->GetHealthPercent() > 1.0f)
+        if (m_uiHealthTimer < uiDiff && m_creature->GetHealthPercent() > 1.0f)
         {
             m_creature->GetMotionMaster()->MoveConfused();
             m_creature->DealDamage(m_creature, (m_creature->GetMaxHealth() * 0.01), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -854,16 +854,16 @@ bool GOHello_go_celestial_acces(Player* pPlayer, GameObject* pGo)
     // check if the player has the key
     if (m_bIsRegularMode)
     {
-        if(pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY, 1) || pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY_H, 1)) 
+        if (pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY, 1) || pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY_H, 1))
             m_bHasItem = true;
     }
     else
     {
-        if(pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY_H, 1))
+        if (pPlayer->HasItemCount(ITEM_PLANETARIUM_KEY_H, 1))
             m_bHasItem = true;        
     }
 
-    if(!m_bHasItem)        
+    if (!m_bHasItem)
         return false;
 
     if (!m_pInstance)
@@ -879,16 +879,16 @@ bool GOHello_go_celestial_acces(Player* pPlayer, GameObject* pGo)
     // start encounter
     if (Creature* pAlgalon = ((Creature*)Unit::GetUnit((*pGo), m_pInstance->GetData64(NPC_ALGALON))))
     {
-        if(pAlgalon->isAlive())
+        if (pAlgalon->isAlive())
         {
             ((boss_algalonAI*)pAlgalon->AI())->StartEncounter();
             pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
 
             // open celestial door
-            if(GameObject* pDoor = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_CELESTIAL_DOOR)))
+            if (GameObject* pDoor = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_CELESTIAL_DOOR)))
                 m_pInstance->OpenDoor(pDoor->GetGUID());
             // open celestial door - the bottom part
-            if(GameObject* pDoor2 = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_CELESTIAL_DOOR_2)))
+            if (GameObject* pDoor2 = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_CELESTIAL_DOOR_2)))
                 m_pInstance->OpenDoor(pDoor2->GetGUID());
         }
     }

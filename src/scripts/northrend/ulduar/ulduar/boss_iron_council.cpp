@@ -389,7 +389,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 pSteelbreaker->SetHealth(pSteelbreaker->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_BRUNDIR_DEATH1, m_creature);
         else
             DoScriptText(SAY_BRUNDIR_DEATH2, m_creature);
@@ -411,7 +411,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
 
@@ -432,14 +432,14 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
 
     void KilledUnit(Unit* /*who*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_BRUNDIR_SLAY1, m_creature);
         else
             DoScriptText(SAY_BRUNDIR_SLAY2, m_creature);
@@ -727,7 +727,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
                 pSteelbreaker->SetHealth(pSteelbreaker->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_MOLGEIM_DEATH1, m_creature);
         else
             DoScriptText(SAY_MOLGEIM_DEATH2, m_creature);
@@ -749,7 +749,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
 
@@ -770,14 +770,14 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
 
     void KilledUnit(Unit* /*who*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_MOLGEIM_SLAY1, m_creature);
         else
             DoScriptText(SAY_MOLGEIM_SLAY2, m_creature);
@@ -975,7 +975,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         if (m_bSupercharge2)
             m_creature->CastSpell(m_creature, SPELL_ELECTRICAL_CHARGE_2, true);
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_STEEL_SLAY1, m_creature);
         else
             DoScriptText(SAY_STEEL_SLAY2, m_creature);
@@ -1064,7 +1064,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
                 pBrundir->SetHealth(pBrundir->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_STEEL_DEATH1, m_creature);
         else
             DoScriptText(SAY_STEEL_DEATH2, m_creature);
@@ -1105,7 +1105,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
