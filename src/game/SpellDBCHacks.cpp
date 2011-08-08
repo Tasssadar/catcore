@@ -221,4 +221,10 @@ void SpellMgr::ApplySpellHacks()
     // Soulstorm - remove root effect, it does not work and causes trouble
     SpellEntry *sfix35 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68872));
     sfix35->Effect[2] = 0;
+
+    // Brightleaf's Essence - why the fuck has this spell two exactly same auras ?
+    SpellEntry *sfix36 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62968));
+    sfix36->Effect[1] = 0;
+    SpellEntry *sfix37 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65761));
+    sfix37->Effect[1] = 0;
 }

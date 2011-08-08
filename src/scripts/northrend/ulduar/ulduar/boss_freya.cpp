@@ -72,6 +72,14 @@ enum
     SPELL_STONEBARKS_ESSENCE        = 65590, //62386,
     SPELL_EFFECT_STONEBARK          = 63295,
 
+    // elder buffs
+    SPELL_BUFF_BRIGHTLEAF           = 62485,
+    SPELL_BUFF_BRIGHTLEAF_H         = 65587,
+    SPELL_BUFF_IRONBRANCH           = 62484,
+    SPELL_BUFF_IRONBRANCH_H         = 65588,
+    SPELL_BUFF_STONEBARK            = 62483,
+    SPELL_BUFF_STONEBARK_H          = 65589,
+
     NPC_SUN_BEAM                    = 33170,
     NPC_UNSTABLE_SUN_BEAM           = 33050,
 
@@ -595,7 +603,6 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
     bool m_bIsIronbranchAlive;
     bool m_bIsStonebarkAlive;
 
-    uint32 m_uiAchievProgress;
     bool m_bNature;
 
     uint8 m_uiBombSummonedCount;
@@ -629,7 +636,6 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
         m_uiStep                        = 1;
         m_bIsOutro                      = false;
 
-        m_uiAchievProgress              = 0;
         m_bNature                       = false;
         m_bHasAura                      = false;
 
@@ -639,24 +645,24 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
 
         m_pKiller                       = NULL;
 
+        m_bIsBrightleafAlive            = false;
+        m_bIsIronbranchAlive            = false;
+        m_bIsStonebarkAlive             = false;
+
+        // remove elder auras
         if(m_pInstance) 
         {
-            // remove elder auras
-            if (Creature* pBrightleaf = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_BRIGHTLEAF))))
-            {
+            if (Creature* pBrightleaf = m_pInstance->GetCreature(NPC_BRIGHTLEAF))
                 if (pBrightleaf->isAlive())
                     pBrightleaf->RemoveAllAuras();
-            }
-            if (Creature* pIronbranch = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_IRONBRACH))))
-            {
+
+            if (Creature* pIronbranch = m_pInstance->GetCreature(NPC_IRONBRACH))
                 if (pIronbranch->isAlive())
                     pIronbranch->RemoveAllAuras();
-            }
-            if (Creature* pStonebark = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STONEBARK))))
-            {
+
+            if (Creature* pStonebark = m_pInstance->GetCreature(NPC_STONEBARK))
                 if (pStonebark->isAlive())
                     pStonebark->RemoveAllAuras();
-            }
         }
 
         if (m_pInstance->GetData(TYPE_FREYA) == IN_PROGRESS)
@@ -673,46 +679,19 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FREYA, IN_PROGRESS);
 
             // check brightleaf
-            if (Creature* pBrightleaf = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_BRIGHTLEAF))))
-            {
-                if (pBrightleaf->isAlive())
-                {
-                    pBrightleaf->CastSpell(pBrightleaf, SPELL_DRAINED_OF_POWER, false);
-                    pBrightleaf->CastSpell(m_creature, SPELL_EFFECT_BRIGHTLEAF, false);
-                    m_bIsBrightleafAlive = true;
-                    ++m_uiAchievProgress;
-                }
-                else
-                    m_bIsBrightleafAlive = false;
-            }
+            if (Creature* pBrightleaf = m_pInstance->GetCreature(NPC_BRIGHTLEAF))
+                if (m_bIsBrightleafAlive = pBrightleaf->isAlive())
+                    pBrightleaf->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_BRIGHTLEAF : SPELL_BUFF_BRIGHTLEAF_H, false);
 
             // check ironbranch
-            if (Creature* pIronbranch = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_IRONBRACH))))
-            {
-                if (pIronbranch->isAlive())
-                {
-                    pIronbranch->CastSpell(pIronbranch, SPELL_DRAINED_OF_POWER, false);
-                    pIronbranch->CastSpell(m_creature, SPELL_EFFECT_IRONBRANCH, false);
-                    m_bIsIronbranchAlive = true;
-                    ++m_uiAchievProgress;
-                }
-                else
-                    m_bIsIronbranchAlive = false;
-            }
+            if (Creature* pIronbranch = m_pInstance->GetCreature(NPC_IRONBRACH))
+                if (m_bIsIronbranchAlive = pIronbranch->isAlive())
+                    pIronbranch->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_IRONBRANCH : SPELL_BUFF_IRONBRANCH_H, false);
 
             // check stonebark
-            if (Creature* pStonebark = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_STONEBARK))))
-            {
-                if (pStonebark->isAlive())
-                {
-                    pStonebark->CastSpell(pStonebark, SPELL_DRAINED_OF_POWER, false);
-                    pStonebark->CastSpell(m_creature, SPELL_EFFECT_STONEBARK, false);
-                    m_bIsStonebarkAlive = true;
-                    ++m_uiAchievProgress;
-                }
-                else
-                    m_bIsStonebarkAlive = false;
-            }
+            if (Creature* pStonebark = m_pInstance->GetCreature(NPC_STONEBARK))
+                if (m_bIsStonebarkAlive = pStonebark->isAlive())
+                    pStonebark->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_STONEBARK : SPELL_BUFF_STONEBARK_H, false);
         }
 
         m_bIsHardMode = CheckHardMode();
@@ -735,51 +714,40 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
         {
             m_pInstance->SetData(TYPE_FREYA_HARD, 0);
 
+            uint8 m_uiAchievProgress = 0;
+            if (m_bIsBrightleafAlive)
+                ++m_uiAchievProgress;
+            if (m_bIsIronbranchAlive)
+                ++m_uiAchievProgress;
+            if (m_bIsStonebarkAlive)
+                ++m_uiAchievProgress;
+
+            m_pInstance->SetData(TYPE_FREYA_HARD, m_uiAchievProgress);
+
             // hacky way to complete achievements; use only if you have this function
             if(m_uiAchievProgress == 1)
-            {
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_KNOCK_WOOD : ACHIEV_KNOCK_WOOD_H);
-                m_pInstance->SetData(TYPE_FREYA_HARD, 1);
-                //DoCast(m_creature, m_bIsRegularMode ? SPELL_SUMMON_CHEST_1 : SPELL_SUMMON_CHEST_1_H);
-            }
             else if (m_uiAchievProgress == 2)
-            {
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_KNOCK_KNOCK_WOOD : ACHIEV_KNOCK_KNOCK_WOOD_H);
-                m_pInstance->SetData(TYPE_FREYA_HARD, 2);
-                //DoCast(m_creature, m_bIsRegularMode ? SPELL_SUMMON_CHEST_2 : SPELL_SUMMON_CHEST_2_H);
-            }
             else if (m_uiAchievProgress == 3)
-            {
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_KNOCK_KNOCK_KNOCK_WOOD : ACHIEV_KNOCK_KNOCK_KNOCK_WOOD_H);
-                m_pInstance->SetData(TYPE_FREYA_HARD, 3);
-                //DoCast(m_creature, m_bIsRegularMode ? SPELL_SUMMON_CHEST_3 : SPELL_SUMMON_CHEST_3_H);
-            }
-            else
-            {
-                m_pInstance->SetData(TYPE_FREYA_HARD, 0);
-               // DoCast(m_creature, m_bIsRegularMode ? SPELL_SUMMON_CHEST_0 : SPELL_SUMMON_CHEST_0_H);
-            }
 
             if (m_bNature)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_BACK_TO_NATURE : ACHIEV_BACK_TO_NATURE_H);
       
             uint32 m_uiLootChestId = m_bIsRegularMode ? LOOT_FREYA : LOOT_FREYA_H;
             if(m_bIsHardMode)
-            {
-                m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_KNOCK_KNOCK_KNOCK_WOOD : ACHIEV_KNOCK_KNOCK_KNOCK_WOOD_H);
-                m_pInstance->SetData(TYPE_FREYA_HARD, 3);
                 m_uiLootChestId =  m_bIsRegularMode ? LOOT_FREYA_HARD : LOOT_FREYA_HARD_H;
-            }
-            
+
             // spawn loot chest
             m_creature->SummonGameobject(m_uiLootChestId, m_fLootFreya[0], m_fLootFreya[1], m_fLootFreya[2], m_fLootFreya[3], 604800);
 
             m_pInstance->SetData(TYPE_FREYA, DONE);
-        }
 
-        m_creature->SetHardModeKill(m_bIsHardMode);
-        m_creature->LogKill(m_pKiller, m_uiAchievProgress);
-        m_creature->ForcedDespawn();
+            m_creature->SetHardModeKill(m_bIsHardMode);
+            m_creature->LogKill(m_pKiller, m_uiAchievProgress);
+            m_creature->ForcedDespawn();
+        }
     }
 
     // for debug only!
@@ -874,12 +842,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
         }
     }
 
-    bool CheckHardMode()
-    {
-        if(m_bIsBrightleafAlive && m_bIsIronbranchAlive && m_bIsStonebarkAlive)
-            return true;
-        return false;
-    }
+    bool CheckHardMode() { return m_bIsBrightleafAlive && m_bIsIronbranchAlive && m_bIsStonebarkAlive; }
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -1197,7 +1160,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
     bool m_bNpcSunBeamFreya;
     bool m_bNpcSunBeamBright;
 
-    bool m_bHasGrow;
+    bool m_bHasGrown;
 
     void Reset()
     {
@@ -1209,8 +1172,8 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         m_uiGrow_Timer              = 0;
         m_uiNatureBombGUID          = 0;
         m_uiSunBeamDespawn_Timer    = urand(10000,11000);
-        m_bHasGrow                  = true;
-        m_uiHealthyGrow_Timer       = urand(3000,12000);
+        m_bHasGrown                 = false;
+        m_uiHealthyGrow_Timer       = 2000;
         m_bNpcNatureBomb            = false;
         m_bNpcEonarsGift            = false;
         m_bNpcHealthySpore          = false;
@@ -1319,25 +1282,29 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         // HEALTHY SPORE
         if(m_bNpcHealthySpore)
         {
-            if (!m_bHasGrow && m_fSize < 0.25)
+            if (m_bHasGrown && m_fSize < 0.5)
                 m_creature->ForcedDespawn();
 
             if (m_uiHealthyGrow_Timer < uiDiff)
             {
-                if (m_bHasGrow)
+                if (!m_bHasGrown)
                 {
                     m_fSize = float(urand(150,225))/100;
-                    m_bHasGrow = false;
+                    m_bHasGrown = true;
                 }
                 else
                     m_fSize = float(urand(1,300))/100;
-                if (m_fSize < 1)
-                    m_fSize = 0.1f;
+
+                if (m_fSize > 1)
+                {
+                    if (!m_creature->HasAura(SPELL_POTENT_PHEROMONES))
+                        m_creature->CastSpell(m_creature, SPELL_POTENT_PHEROMONES, true);
+                }
                 else
-                    m_creature->CastSpell(m_creature, SPELL_POTENT_PHEROMONES, true);
+                    m_creature->RemoveAurasDueToSpell(SPELL_POTENT_PHEROMONES);
 
                 m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, m_fSize);
-                m_uiHealthyGrow_Timer = urand(3000,5000);
+                m_uiHealthyGrow_Timer = 3000;
             }else m_uiHealthyGrow_Timer -= uiDiff;
         }
 
@@ -1612,3 +1579,39 @@ void AddSC_boss_freya()
     newscript->GetAI = &GetAI_mob_iron_roots;
     newscript->RegisterSelf();
 }
+
+/*
+-- brightleaf
+    -- normal
+        -- first spell
+        INSERT INTO spell_script_target VALUES (62485, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (62385, 1, 32915);
+    -- heroic
+        -- first spell
+        INSERT INTO spell_script_target VALUES (65587, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (65585, 1, 32915);
+-- ironbranch
+    -- normal
+        -- first spell
+        INSERT INTO spell_script_target VALUES (62484, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (62387, 1, 32913);
+    -- heroic
+        -- first spell
+        INSERT INTO spell_script_target VALUES (65588, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (65586, 1, 32913);
+-- stonebark
+    -- normal
+        -- first spell
+        INSERT INTO spell_script_target VALUES (62483, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (62386, 1, 32914);
+    -- heroic
+        -- first spell
+        INSERT INTO spell_script_target VALUES (65589, 1, 32906);
+        -- second spell
+        INSERT INTO spell_script_target VALUES (65590, 1, 32914);
+*/

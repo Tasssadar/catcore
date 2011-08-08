@@ -2793,6 +2793,17 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 }
                 return;
             }
+            case 62485: // Brightleaf's Essence Channel
+            case 65587: // Brightleaf's Essence Channel (h)
+            case 62484: // Ironbranch's Essence Channel
+            case 65588: // Ironbranch's Essence Channel (h)
+            case 62483: // Stonebark's Essence Channel
+            case 65589: // Stonebark's Essence Channel (h)
+            {
+                if (Unit* pCaster = GetCaster())
+                    pCaster->CastSpell(pCaster, 62467, true);
+                return;
+            }
         }
 
         // Living Bomb
