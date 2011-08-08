@@ -1319,20 +1319,23 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         // HEALTHY SPORE
         if(m_bNpcHealthySpore)
         {
-            if(!m_bHasGrow && m_fSize < 0.25)
+            if (!m_bHasGrow && m_fSize < 0.25)
                 m_creature->ForcedDespawn();
 
-            if(m_uiHealthyGrow_Timer < uiDiff)
+            if (m_uiHealthyGrow_Timer < uiDiff)
             {
-                if(m_bHasGrow)
+                if (m_bHasGrow)
                 {
                     m_fSize = float(urand(150,225))/100;
                     m_bHasGrow = false;
                 }
                 else
                     m_fSize = float(urand(1,300))/100;
-                if(m_fSize < 1)
+                if (m_fSize < 1)
                     m_fSize = 0.1f;
+                else
+                    m_creature->CastSpell(m_creature, SPELL_POTENT_PHEROMONES, true);
+
                 m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, m_fSize);
                 m_uiHealthyGrow_Timer = urand(3000,5000);
             }else m_uiHealthyGrow_Timer -= uiDiff;
@@ -1411,7 +1414,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
             // The Conservator's Grip needs core fix. It should be canceled by pheronomes!
         case NPC_ANCIENT_CONSERVATOR:
             m_bAncientConservator = true;
-            //DoCast(m_creature, SPELL_CONSERVATORS_GRIP); //spell disabled because it isn't negated by pheronomes
+            DoCast(m_creature, SPELL_CONSERVATORS_GRIP); //spell disabled because it isn't negated by pheronomes
             DoSpores(10);
             break;
         case NPC_DETONATING_LASHER:
