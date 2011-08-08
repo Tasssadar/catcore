@@ -126,12 +126,9 @@ struct MANGOS_DLL_DECL npc_hodir_friendlyAI : public ScriptedAI
         m_bCoolestFriend = false;
     }
 
-    void AttackStart(Unit* /*pWho*/)
+    void AttackStart(Unit* pWho)
     {
-        if (m_bIsFrozen)
-            return;
-
-        if (!pWho) 
+        if (m_bIsFrozen || !pWho)
             return;
 
         if (m_creature->Attack(pWho, true))

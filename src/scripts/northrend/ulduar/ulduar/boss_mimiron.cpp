@@ -158,30 +158,13 @@ const float PosMimiSafe[2]  = {2784.73f, 2579.31f};
 const float PosMimiCenter[2]= {2743.15f, 2561.94f};
 const float PosTankCenter[2]= {2745.88f, 2569.25f};
 
-struct LocationsXY
-{
-    float x, y;
-    uint32 id;
-};
-static LocationsXY SummonLoc[]=
-{
-    {2753.665f, 2584.712f},
-    {2754.150f, 2554.445f},
-    {2726.966f, 2569.032f},
-    {2759.085f, 2594.249f},
-    {2759.977f, 2544.345f},
-    {2715.542f, 2569.160f},
-    {2765.070f, 2604.337f},
-    {2765.676f, 2534.558f},
-    {2703.810f, 2569.132f},
-};
-
 float const m_fLootMimiron[4] = {2759.0f, 2575.6f, 364.3f, 5.32f};   //mimiron
 float const m_fLootMimironH[4] = {2758.9f, 2561.6f, 364.3f, 1.27f};  //mimiron hard
 
 /////////////////////////////
 ///       VEHICLES        ///
 /////////////////////////////
+
 struct MANGOS_DLL_DECL boss_mimiron_vehicleAI : public ScriptedAI
 {   
     boss_mimiron_vehicleAI(Creature* pCreature) : ScriptedAI(pCreature)

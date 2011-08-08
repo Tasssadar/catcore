@@ -655,7 +655,6 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     
     void SetData(uint32 uiType, uint32 uiData)
     {
-        error_log("setting data: %u to %u", uiType, uiData);
         switch(uiType)
         {
             case TYPE_LEVIATHAN:

@@ -273,7 +273,8 @@ static Locations OtherLoc[]=
 
 #define FLOOR_Z                 268.17f
 #define LANDING_Z               266.17f
-#define AIR_Z                   297.24 f  
+#define AIR_Z                   297.24f
+
 /*######
 ## boss_malygos
 ######*/

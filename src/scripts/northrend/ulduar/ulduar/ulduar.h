@@ -255,60 +255,7 @@ enum
     LOOT_THORIM_H               = 194315,
     LOOT_THORIM_HARD_H          = 1000011,
     LOOT_VEZAX_HARD             = 1000002,
-    LOOT_VEZAX_HARD_H           = 1000012,
+    LOOT_VEZAX_HARD_H           = 1000012
 };
-
-/*
-float const m_fLootXT002[4]     = {915.5f,   -11.3f, 418.5f, 3.02f}; //xt002 hard
-float const m_fLootAssembly[4]  = {1520.0f,  112.2f, 427.3f, 6.27f}; //assembly
-float const m_fLootAssemblyH[4] = {1520.8f,  126.7f, 427.3f, 6.27f}; //assembly hard
-float const m_fLootKologarn[4]  = {1838.1f,  -34.8f, 448.8f, 5.06f}; //kologarn
-float const m_fLootFreya[4]     = {2366.3f,  -52.7f, 424.7f, 3.14f}; //freya
-float const m_fLootHodir[4]     = {1973.0f, -199.5f, 432.7f, 3.68f}; //hodir
-float const m_fLootHodirH[4]    = {2032.7f, -196.4f, 432.7f, 4.71f}; //hodir hard
-float const m_fLootMimiron[4]   = {2759.0f, 2575.6f, 364.3f, 5.32f}; //mimiron
-float const m_fLootMimironH[4]  = {2758.9f, 2561.6f, 364.3f, 1.27f}; //mimiron hard
-float const m_fLootThorim[4]    = {2120.5f, -284.5f, 419.5f, 5.97f}; //thorim
-float const m_fLootThorimH[4]   = {2150.7f, -285.9f, 419.6f, 3.30f}; //thorim hard
-float const m_fLootVezax[4]     = {1853.5f,   47.4f, 342.3f, 1.62f}; //vezax hard
-*/
-
-/*struct LootChestLoc
-{
-    float x, y, z,o;
-};
-
-struct LootChestLoc m_fPosition[]=
-{
-    {915.5f,   -11.3f, 418.5f, 3.02f}, //xt002 hard
-    {1520.0f,  112.2f, 427.3f, 6.27f}, //assembly
-    {1520.8f,  126.7f, 427.3f, 6.27f}, //assembly hard
-    {1838.1f,  -34.8f, 448.8f, 5.06f}, //kologarn
-    {2366.3f,  -52.7f, 424.7f, 3.14f}, //freya
-    //{2366.3f, -52.7f, 424.7f, 3.14f}, //freya hard
-    {1973.0f, -199.5f, 432.7f, 3.68f}, //hodir
-    {2032.7f, -196.4f, 432.7f, 4.71f}, //hodir hard
-    {2759.0f, 2575.6f, 364.3f, 5.32f}, //mimiron
-    {2758.9f, 2561.6f, 364.3f, 1.27f}, //mimiron hard
-    {2120.5f, -284.5f, 419.5f, 5.97f}, //thorim
-    {2150.7f, -285.9f, 419.6f, 3.30f}, //thorim hard
-    {1853.5f,   47.4f, 342.3f, 1.62f}  //vezax hard
-};
-enum PositionId
-{
-    POS_LOOT_XT002_HARD         = 0,
-    POS_LOOT_ASSEMBLY           = 1,
-    POS_LOOT_ASSEMBLY_HARD      = 2,
-    POS_LOOT_KOLOGARN           = 3,
-    POS_LOOT_FREYA              = 4,
-    //POS_LOOT_FREYA_HARD         = 5,
-    POS_LOOT_HODIR              = 5,
-    POS_LOOT_HODIR_HARD         = 6,
-    POS_LOOT_MIMIRON            = 7,
-    POS_LOOT_MIMIRON_HARD       = 8,
-    POS_LOOT_THORIM             = 9,
-    POS_LOOT_THORIM_HARD        = 10,
-    POS_LOOT_VEZAX_HARD         = 11,
-};*/
 
 #endif
