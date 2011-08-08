@@ -1201,7 +1201,6 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
             case NPC_HEALTHY_SPORE:
                 m_bNpcHealthySpore = true; 
                 DoCast(m_creature, SPELL_HEALTHY_SPORE_VISUAL);
-                DoCast(m_creature, SPELL_POTENT_PHEROMONES);
                 break;
             case NPC_SUN_BEAM:
                 m_bNpcSunBeamFreya = true;
@@ -1228,9 +1227,6 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_pInstance && m_pInstance->GetData(TYPE_FREYA) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
         if(!m_creature->isAlive())
             return;
 
@@ -1284,6 +1280,9 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         {
             if (m_bHasGrown && m_fSize < 0.5)
                 m_creature->ForcedDespawn();
+
+            if (!m_creature->HasAura(SPELL_HEALTHY_SPORE_VISUAL))
+                m_creature->CastSpell(m_creature, SPELL_HEALTHY_SPORE_VISUAL, true);
 
             if (m_uiHealthyGrow_Timer < uiDiff)
             {
@@ -1418,6 +1417,10 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
                     }
                 }
             }
+            CreatureList list;
+            GetCreatureListWithEntryInGrid(list, m_creature, NPC_HEALTHY_SPORE, 200.f);
+            for(CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+                (*itr)->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.1);
         }
 
         if (m_bDetonatingLasher)

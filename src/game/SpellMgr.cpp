@@ -1844,6 +1844,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
     if (!spellInfo_1 || !spellInfo_2)
         return false;
+
+    if (spellInfo_1->SpellIconID == 1 || spellInfo_2->SpellIconID == 1)
+        return false;
+
     if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
     {
         // Judgement of Light and Judgement of Light     
