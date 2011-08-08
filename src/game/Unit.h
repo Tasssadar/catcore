@@ -1826,7 +1826,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // those dummy aura links are used to provide unit target for spells with TARGET_PERIODIC_TRIGGER_AURA
         Aura* GetLinkedDummyAura(uint32 spell_id) const;
         void AddDummyAuraLink(Aura* m_Aura) { m_dummyAuraLink.push_back(m_Aura);}
-        void RemoveDummyAuraLink(Aura* m_Aura) { m_dummyAuraLink.remove(m_Aura);}
+        void RemoveDummyAuraLink(Aura* m_Aura);
 
         uint32 m_AuraFlags;
 

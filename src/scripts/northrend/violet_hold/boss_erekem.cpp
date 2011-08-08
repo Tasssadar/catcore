@@ -86,10 +86,10 @@ struct MANGOS_DLL_DECL boss_erekemAI : public npc_escortAI
 
         BossStartTimer=0;
 
-        std::list<Creature*> lUnitList;
+        CreatureList lUnitList;
         GetCreatureListWithEntryInGrid(lUnitList, m_creature, NPC_EREKEM_GUARD, 100.0f);
         if (!lUnitList.empty())
-            for(std::list<Creature*>::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
+            for(CreatureList::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
                 if ((*iter))
                     if ((*iter)->isDead())
                         (*iter)->Respawn();
@@ -115,10 +115,10 @@ struct MANGOS_DLL_DECL boss_erekemAI : public npc_escortAI
             }
             SetDespawnAtEnd(false);
             BossStartTimer=5000;
-            std::list<Creature*> lUnitList;
+            CreatureList lUnitList;
             GetCreatureListWithEntryInGrid(lUnitList, m_creature, NPC_EREKEM_GUARD, 100.0f);
             if (!lUnitList.empty())
-                for(std::list<Creature*>::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
+                for(CreatureList::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
                     if ((*iter))
                         (*iter)->AI()->DoAction(BOSS_PULL);
             break;

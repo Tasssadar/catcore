@@ -379,7 +379,7 @@ struct MANGOS_DLL_DECL mob_thurgAI : public boss_malacrass_addAI
 
         if (m_uiBloodlustTimer < uiDiff)
         {
-            std::list<Creature*> lTempList = DoFindFriendlyMissingBuff(50.0f, SPELL_BLOODLUST);
+            CreatureList lTempList = DoFindFriendlyMissingBuff(50.0f, SPELL_BLOODLUST);
 
             if (!lTempList.empty())
             {
@@ -498,7 +498,7 @@ struct MANGOS_DLL_DECL mob_alyson_antilleAI : public boss_malacrass_addAI
         if (m_uiDispelMagicTimer < uiDiff)
         {
             Unit* pTarget = NULL;
-            std::list<Creature*> lTempList = DoFindFriendlyCC(RANGE_FRIENDLY_TARGET);
+            CreatureList lTempList = DoFindFriendlyCC(RANGE_FRIENDLY_TARGET);
 
             if (!lTempList.empty())
                 pTarget = *(lTempList.begin());

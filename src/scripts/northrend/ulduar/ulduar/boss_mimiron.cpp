@@ -132,7 +132,7 @@ enum
     ACHIEV_FIREFIGHTER      = 3180,
     ACHIEV_FIREFIGHTER_H    = 3189,
 
-    RADIUS                  = 35,     // distance from where trigger for vx barrage is moving
+    RADIUS                  = 35      // distance from where trigger for vx barrage is moving
 };
 
 enum MimironPhase
@@ -146,7 +146,7 @@ enum MimironPhase
     PHASE_AERIAL    = 6,
     PHASE_TRANS_3   = 7,
     PHASE_ROBOT     = 8,
-    PHASE_OUTRO     = 9,
+    PHASE_OUTRO     = 9
 };
 
 #define CENTER_X            2744.732f
@@ -222,7 +222,7 @@ struct MANGOS_DLL_DECL boss_mimiron_vehicleAI : public ScriptedAI
         }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if (Creature* pMimiron = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_MIMIRON))))
         {
@@ -240,7 +240,7 @@ struct MANGOS_DLL_DECL boss_mimiron_vehicleAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* /*done_by*/, uint32 &uiDamage)
     {
         if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) >= PHASE_ROBOT)
         {
@@ -267,12 +267,12 @@ struct MANGOS_DLL_DECL boss_mimiron_vehicleAI : public ScriptedAI
 
     void SuppressFiresInRange(uint32 range)
     {
-        std::list<Creature*> lFires;
+        CreatureList lFires;
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, range);
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, range);
         if (!lFires.empty())
         {
-            for(std::list<Creature*>::iterator iter = lFires.begin(); iter != lFires.end(); ++iter)
+            for(CreatureList::iterator iter = lFires.begin(); iter != lFires.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
                     (*iter)->ForcedDespawn();
@@ -339,7 +339,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_mimiron_vehicleAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* done_by, uint32 &uiDamage)
     {
         if (m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
         {
@@ -372,37 +372,11 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_mimiron_vehicleAI
         SetCombatMovement(false);
     }
 
-    void JustDied(Unit* pWho)
+    void JustDied(Unit* /*pWho*/)
     {
         // for debug only
         if (m_pInstance && m_pInstance->GetData(TYPE_MIMIRON_PHASE) == PHASE_LEVIATHAN)
             m_pInstance->SetData(TYPE_MIMIRON_PHASE, PHASE_TRANS_1);
-    }
-
-    Unit* TargetRandomPreferRanged()
-    {
-        Unit* target = NULL;
-        std::list<Unit*> rangedTargetList;
-        ThreatList tList = m_creature->getThreatManager().getPlayerThreatList();
-        for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
-        {
-            Unit* pUnit = Unit::GetUnit((*m_creature), (*itr)->getUnitGuid());
-            if (!pUnit || pUnit->GetDistance(m_creature) < 15.0f)
-                continue;
-
-            rangedTargetList.push_back(pUnit);
-        }
-        uint8 minRanged = 1;
-        if (rangedTargetList.size() > minRanged)
-        {
-            std::list<Unit*>::iterator i = rangedTargetList.begin();
-            std::advance(i, rand() % rangedTargetList.size());
-            target = *i;
-        }
-        else
-            target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-
-        return target;
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -593,7 +567,7 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_mimiron_vehicleAI
        
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (m_pInstance)
         {
@@ -609,13 +583,13 @@ struct MANGOS_DLL_DECL boss_vx001AI : public boss_mimiron_vehicleAI
 
     Creature* SelectRandomFire()
     {
-        std::list<Creature*> lFires;
+        CreatureList lFires;
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, DEFAULT_VISIBILITY_INSTANCE);
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!lFires.empty())
         {
-            std::list<Creature* >::iterator iter = lFires.begin();
+            CreatureList::iterator iter = lFires.begin();
             advance(iter, urand(0, lFires.size()-1));
 
             if ((*iter)->isAlive())
@@ -847,7 +821,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
         }
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
         if (m_pInstance)
         {
@@ -883,10 +857,10 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
 
     Creature* SelectRandomSummonPoint()
     {
-        std::list<Creature*> m_lSummon;
+        CreatureList m_lSummon;
         GetCreatureListWithEntryInGrid(m_lSummon, m_creature, 33856, DEFAULT_VISIBILITY_INSTANCE);
 
-        std::list<Creature*>::iterator itr;
+        CreatureList::iterator itr;
         for(itr = m_lSummon.begin(); itr != m_lSummon.end(); ++itr)
         {
             if ((*itr)->HasAuraType(SPELL_AURA_DUMMY))
@@ -905,17 +879,17 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
         return *itr;
     }
 
-    std::list<Creature*> GetRandomSummonPointsPreferLine()
+    CreatureList GetRandomSummonPointsPreferLine()
     {
-        std::list<Creature*> m_lSummon;
+        CreatureList m_lSummon;
         GetCreatureListWithEntryInGrid(m_lSummon, m_creature, 33856, DEFAULT_VISIBILITY_INSTANCE);
 
         // split creatures into list by lines
-        std::list< std::list<Creature*> > m_lLists;
+        std::list< CreatureList > m_lLists;
         for (uint8 i = 1; i < 4; ++i)
         {
-            std::list<Creature*> m_lLine;
-            for(std::list<Creature*>::iterator itr = m_lSummon.begin(); itr != m_lSummon.end(); ++itr)
+            CreatureList m_lLine;
+            for(CreatureList::iterator itr = m_lSummon.begin(); itr != m_lSummon.end(); ++itr)
                 if (isCorrectPoint(m_creature->GetDistance(*itr), i))
                     m_lLine.push_back(*itr);
 
@@ -923,9 +897,9 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
         }
 
         // remove lines where one creature is already casting
-        for(std::list< std::list<Creature*> >::iterator iter = m_lLists.begin(); iter != m_lLists.end(); ++iter)
+        for(std::list< CreatureList >::iterator iter = m_lLists.begin(); iter != m_lLists.end(); ++iter)
         {
-            for(std::list<Creature*>::iterator itr = (*iter).begin(); itr != (*iter).end(); ++itr)
+            for(CreatureList::iterator itr = (*iter).begin(); itr != (*iter).end(); ++itr)
             {
                 if ((*itr)->HasAuraType(SPELL_AURA_DUMMY))
                 {
@@ -939,17 +913,17 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
         // select random line from remaing
         if (!m_lLists.empty())
         {
-            std::list< std::list<Creature*> >::iterator itr = m_lLists.begin();
+            std::list< CreatureList >::iterator itr = m_lLists.begin();
             std::advance(itr, urand(0, m_lLists.size()-1));
             return *itr;
         }
         // if no line remains select random targets in maximum of three
         else
         {
-            std::list<Creature*> m_lListOfLastHope;
+            CreatureList m_lListOfLastHope;
             for (uint8 i = 0; i < 3; ++i)
             {
-                std::list<Creature*>::iterator itr = m_lSummon.begin();
+                CreatureList::iterator itr = m_lSummon.begin();
                 for (uint8 y = 0; y !=  m_lSummon.size()-1; ++y)
                 {
                     std::advance(itr, y);
@@ -1008,8 +982,8 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
                 // Emergency fire bot
                 if (HandleTimer(m_uiFireBotTimer, uiDiff, true))
                 {
-                    std::list<Creature*> m_lPoints = GetRandomSummonPointsPreferLine();
-                    for (std::list<Creature*>::iterator itr = m_lPoints.begin(); itr != m_lPoints.end(); ++itr)
+                    CreatureList m_lPoints = GetRandomSummonPointsPreferLine();
+                    for (CreatureList::iterator itr = m_lPoints.begin(); itr != m_lPoints.end(); ++itr)
                         if (Creature* pPoint = *itr)
                             pPoint->CastSpell(pPoint, 64621, true);
 
@@ -1044,7 +1018,7 @@ struct MANGOS_DLL_DECL boss_aerial_command_unitAI : public boss_mimiron_vehicleA
 
 
 /////////////////////////////
-///       MIMIRON         ///
+////      MIMIRON        ////
 /////////////////////////////
 struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
 {   
@@ -1168,7 +1142,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
                 AttackStart(pWho);
         }
     }
-    void Aggro(Unit *who) 
+    void Aggro(Unit* /*who*/)
     {
         if (!m_pInstance)
             return;
@@ -1231,7 +1205,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
     }
 
     // for debug only
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
        if (m_pInstance) 
         {
@@ -1247,7 +1221,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
             return;
 
         Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
-        std::list<Player*> m_lPlayers;
+        PlrList m_lPlayers;
 
         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
             if (Player* plr = itr->getSource())
@@ -1257,7 +1231,7 @@ struct MANGOS_DLL_DECL boss_mimironAI : public ScriptedAI
         uint8 m_uiTargetsCount = m_lPlayers.size() < 3 ? m_lPlayers.size() : 3;
         for(uint8 i = 0; i < m_uiTargetsCount; ++i)
         {
-            std::list<Player*>::iterator itr = m_lPlayers.begin();
+            PlrList::iterator itr = m_lPlayers.begin();
             std::advance(itr, urand(0, m_lPlayers.size()-1));
             if (Player* plr = *itr)
                 m_creature->CastSpell(plr, SPELL_FLAMES_SUMMON, true);
@@ -1690,7 +1664,7 @@ struct MANGOS_DLL_DECL leviathan_turretAI : public ScriptedAI
         m_uiNapalmShellTimer = 10000;
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         // turret abilities implemented in leviathan himself
         /*if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -1806,12 +1780,12 @@ struct MANGOS_DLL_DECL mob_frost_bombAI : public ScriptedAI
 
     void SuppressFiresInRange(uint32 range)
     {
-        std::list<Creature*> lFires;
+        CreatureList lFires;
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, range);
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, range);
         if (!lFires.empty())
         {
-            for(std::list<Creature*>::iterator iter = lFires.begin(); iter != lFires.end(); ++iter)
+            for(CreatureList::iterator iter = lFires.begin(); iter != lFires.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
                     (*iter)->ForcedDespawn();
@@ -1867,8 +1841,8 @@ struct MANGOS_DLL_DECL mob_mimiron_flamesAI : public ScriptedAI
         m_bSpreaded = false;
     }
 
-    void AttackStart(Unit* pWho) { return; }
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    void AttackStart(Unit* /*pWho*/) { return; }
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
     {
         uiDamage = 0;
     }
@@ -1998,7 +1972,7 @@ struct MANGOS_DLL_DECL mob_magnetic_coreAI : public ScriptedAI
 };
 
 /////////////////////////////
-///          BOTS         ///
+////         BOTS        ////
 /////////////////////////////
 struct MANGOS_DLL_DECL mob_bomb_botAI : public ScriptedAI
 {   
@@ -2021,7 +1995,7 @@ struct MANGOS_DLL_DECL mob_bomb_botAI : public ScriptedAI
             AttackStart(plr);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
     {
         if (uiDamage > m_creature->GetHealth())
         {
@@ -2032,19 +2006,21 @@ struct MANGOS_DLL_DECL mob_bomb_botAI : public ScriptedAI
         }
     }
     
-    void MoveInLineOfSight(Unit* pWho)
+    void MoveInLineOfSight(Unit* /*pWho*/)
     {
         // already exploded
         if (m_bExploded)
             return;
 
         if (Unit* pUnit = SelectNearestPlayer())
+        {
             if (m_creature->GetDistance(pUnit) < 5)
             {
                 DoCast(m_creature, SPELL_BOMB_BOT_SACRIFICE);
                 m_bExploded = true;
                 m_uiDieTimer = 500;
             }
+        }
     }
 
     Player* SelectNearestPlayer()
@@ -2146,18 +2122,18 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
         DoWaterSpray();
     }
 
-    std::list<Creature*> GetFiresInCone()
+    CreatureList GetFiresInCone()
     {
         // all fires in 15 yards
-        std::list<Creature*> lFires;
+        CreatureList lFires;
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, 15);
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, 15);
 
-        std::list<Creature*> m_lProperFires;
+        CreatureList m_lProperFires;
         
         // fill list with 
         if (!lFires.empty())
-            for (std::list<Creature*>::iterator itr = lFires.begin(); itr != lFires.end(); ++itr)
+            for (CreatureList::iterator itr = lFires.begin(); itr != lFires.end(); ++itr)
                 if (m_creature->isInFront(*itr, 15, M_PI_F/12))
                     m_lProperFires.push_back(*itr);
 
@@ -2166,13 +2142,13 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
 
     Creature* SelectRandomFireInRange(uint32 range)
     {
-        std::list<Creature*> lFires;
+        CreatureList lFires;
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34363, range);
         GetCreatureListWithEntryInGrid(lFires, m_creature, 34121, range);
 
         if (!lFires.empty())
         {
-            std::list<Creature* >::iterator iter = lFires.begin();
+            CreatureList::iterator iter = lFires.begin();
             advance(iter, urand(0, lFires.size()-1));
 
             if ((*iter)->isAlive())
@@ -2182,7 +2158,7 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
         return 0;
     }
 
-    void AttackStart(Unit* pWho) {}
+    void AttackStart(Unit* /*pWho*/) {}
     void DoWaterSpray()
     {
         if (Creature* pFire = SelectRandomFireInRange(14))
@@ -2196,8 +2172,8 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
             DoCast(m_creature, SPELL_WATER_SPRAY);
             
             // should be implemented in core
-            std::list<Creature*> m_lFires = GetFiresInCone();
-            for(std::list<Creature*>::iterator itr = m_lFires.begin(); itr != m_lFires.end(); ++itr)
+            CreatureList m_lFires = GetFiresInCone();
+            for(CreatureList::iterator itr = m_lFires.begin(); itr != m_lFires.end(); ++itr)
                 (*itr)->ForcedDespawn();
         }
         else
@@ -2227,7 +2203,7 @@ struct MANGOS_DLL_DECL mob_emergency_botAI : public ScriptedAI
 
 // Red button -> used to start the hard mode
 /////////////////////////////
-///       RED BUTTON      ///
+////      RED BUTTON     ////
 /////////////////////////////
 bool GOHello_go_red_button(Player* pPlayer, GameObject* pGo)
 {

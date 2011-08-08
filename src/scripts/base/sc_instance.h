@@ -42,16 +42,22 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
         // Handle doors
         void HandleDoorsByData(uint64 uiGuid, uint8 uiData);
 
-        //Respawns a GO having negative spawntimesecs in gameobject-table
+        // Respawns a GO having negative spawntimesecs in gameobject-table
         void DoRespawnGameObject(uint64 uiGuid, uint32 uiTimeToDespawn = MINUTE);
 
-        //sends world state update to all players in instance
+        // sends world state update to all players in instance
         void DoUpdateWorldState(uint32 uiStateId, uint32 uiStateData);
 
-        //complete achievement
+        // complete achievement
         void CompleteAchievement(uint16 uiAchievementId, Player* pKiller, bool bWholeRaid);
 
-        //sends completed achievments to all players in instance
+        // sends completed achievments to all players in instance
         void DoCompleteAchievement(uint32 uiAchievmentId);
+
+        // get creature from instanceData
+        Creature* GetCreature(uint32 Data);
+
+        // get gameobject from instanceData
+        GameObject* GetGameObject(uint32 Data);
 };
 #endif

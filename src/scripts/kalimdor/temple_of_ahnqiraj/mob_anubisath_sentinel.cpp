@@ -53,7 +53,7 @@ struct MANGOS_DLL_DECL npc_anubisath_sentinelAI : public ScriptedAI
     uint32 m_uiMyAbility;
     bool m_bEnraged;
 
-    std::list<uint64> m_lAssistList;
+    GuidList m_lAssistList;
 
     void Reset()
     {
@@ -63,7 +63,7 @@ struct MANGOS_DLL_DECL npc_anubisath_sentinelAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        for(std::list<uint64>::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
+        for(GuidList::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
         {
             if (*itr == m_creature->GetGUID())
                 continue;
@@ -108,7 +108,7 @@ struct MANGOS_DLL_DECL npc_anubisath_sentinelAI : public ScriptedAI
 
     void DoTransferAbility()
     {
-        for(std::list<uint64>::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
+        for(GuidList::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
         {
             if (Unit* pBuddy = Unit::GetUnit(*m_creature, *itr))
             {
@@ -128,7 +128,7 @@ struct MANGOS_DLL_DECL npc_anubisath_sentinelAI : public ScriptedAI
     {
         if (!m_lAssistList.empty())
         {
-            for(std::list<uint64>::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
+            for(GuidList::iterator itr = m_lAssistList.begin(); itr != m_lAssistList.end(); ++itr)
             {
                 if (*itr == m_creature->GetGUID())
                     continue;
@@ -143,13 +143,13 @@ struct MANGOS_DLL_DECL npc_anubisath_sentinelAI : public ScriptedAI
             return;
         }
 
-        std::list<Creature*> lAssistList;
+        CreatureList lAssistList;
         GetCreatureListWithEntryInGrid(lAssistList, m_creature, m_creature->GetEntry(), 80.0f);
 
         if (lAssistList.empty())
             return;
 
-        for(std::list<Creature*>::iterator iter = lAssistList.begin(); iter != lAssistList.end(); ++iter)
+        for(CreatureList::iterator iter = lAssistList.begin(); iter != lAssistList.end(); ++iter)
         {
             m_lAssistList.push_back((*iter)->GetGUID());
 

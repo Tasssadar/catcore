@@ -139,3 +139,16 @@ void ScriptedInstance::DoCompleteAchievement(uint32 uiAchievmentId)
     else
         debug_log("SD2: DoCompleteAchievement attempt set data but no players in map.");
 }
+
+Creature* ScriptedInstance::GetCreature(uint32 Data)
+{
+    uint64 guid = GetData64(Data);
+    return instance ? instance->GetCreature(guid) : NULL;
+
+}
+
+GameObject* ScriptedInstance::GetGameObject(uint32 Data)
+{
+    uint64 guid = GetData64(Data);
+    return instance ? instance->GetGameObject(guid) : NULL;
+}

@@ -68,7 +68,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
 
-    std::list<uint64> m_lSparkGUIDList;
+    GuidList m_lSparkGUIDList;
 
     bool m_bIsRegularMode;
 
@@ -164,7 +164,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
         if (m_lSparkGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
         {
             if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
             {
@@ -183,7 +183,7 @@ struct MANGOS_DLL_DECL boss_ionarAI : public ScriptedAI
         if (m_lSparkGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
         {
             if (Creature* pSpark = (Creature*)Unit::GetUnit(*m_creature, *itr))
             {

@@ -225,6 +225,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         Corpse* GetCorpse(ObjectGuid guid);
         WorldObject* GetWorldObject(ObjectGuid guid);
 
+        Creature* GetCreature(uint64 guid) { return GetCreature(ObjectGuid(guid)); }
+
         TypeUnorderedMapContainer<AllMapStoredObjectTypes>& GetObjectsStore() { return m_objectsStore; }
 
         void AddUpdateObject(Object *obj)

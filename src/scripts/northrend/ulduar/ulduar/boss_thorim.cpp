@@ -151,7 +151,7 @@ enum
     ACHIEV_LOSE_ILLUSION            = 3176,
     ACHIEV_LOSE_ILLUSION_H          = 3183,
     ACHIEV_SIFFED                   = 2977,
-    ACHIEV_SIFFED_H                 = 2978,
+    ACHIEV_SIFFED_H                 = 2978
 };
 
 enum phases
@@ -160,7 +160,7 @@ enum phases
     PHASE_INTRO			= 1,
     PHASE_BALCONY		= 2,
     PHASE_ARENA			= 3,
-    PHASE_OUTRO			= 4,
+    PHASE_OUTRO			= 4
 };
 
 #define LOC_Z                       419.5f  
@@ -226,7 +226,7 @@ struct MANGOS_DLL_DECL mob_thorim_trap_bunnyAI : public ScriptedAI
         }
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit* /*pWho*/)
     {
         return;
     }
@@ -617,13 +617,11 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     Player* m_pKiller;
 
     // mob list check
-    std::list<uint64> m_lOrbsGUIDList;
+    GuidList m_lOrbsGUIDList;
     uint64 m_lPrePhaseGUIDs[4];
 
     void Reset()
     {
-        //m_uiPreAddsKilled		= 0;
-
         SetCombatMovement(false);
 
         m_bIsHardMode           = true;
@@ -652,7 +650,6 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         m_bIsOutro              = false;
         m_uiSifGUID             = 0;
         m_uiPrePhaseCheck       = 2000;
-        //m_uiPreAddsSpawned      = false;
         m_pKiller               = NULL;
         m_lOrbsGUIDList.clear();
 
@@ -661,24 +658,21 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
         DespawnPrePhaseAdds();
         SpawnPrePhaseAdds();
-        m_uiPhase				= PHASE_PREADDS;
+        m_uiPhase   = PHASE_PREADDS;
 
         if(m_pInstance) 
         {
             // respawn runic colossus
-            if (Creature* pColossus = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_RUNIC_COLOSSUS))))
-            {
+            if (Creature* pColossus = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RUNIC_COLOSSUS)))
                 if (!pColossus->isAlive())
                     pColossus->Respawn();
-            }
 
             // respawn ancient rune giant
-            if (Creature* pRuneGiant = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_RUNE_GIANT))))
-            {
+            if (Creature* pRuneGiant = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_RUNE_GIANT)))
                 if (!pRuneGiant->isAlive())
                     pRuneGiant->Respawn();
-            }
         }
+
         if (m_pInstance->GetData(TYPE_THORIM) == IN_PROGRESS)
             m_pInstance->SetData(TYPE_THORIM, FAIL);
     }
@@ -689,21 +683,12 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
             pSpellTarget->CastSpell(pSpellTarget, SPELL_DEAFENING_THUNDER, false);
     }
     
-    /*void MoveInLineOfSight(Unit* pWho)
-    {
-        if (pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && !m_uiPreAddsSpawned)
-        {
-            HandlePreAddsSpawn(((Player*)pWho)->GetTeam());
-            m_uiPreAddsSpawned = true;
-        }
-    }*/
-
     void DespawnPrePhaseAdds()
     {
         for(uint8 i = 0; i < 4; ++i)
         {
             if (uint64 guid = m_lPrePhaseGUIDs[i])
-                if (Creature* pAdd = (Creature*)Unit::GetUnit(*m_creature, guid))
+                if (Creature* pAdd = m_pInstance->instance->GetCreature(guid))
                     pAdd->ForcedDespawn();
             m_lPrePhaseGUIDs[i] = 0;
         }
@@ -746,10 +731,10 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     void JustReachedHome()
     {
         if(m_pInstance)
-            m_pInstance->SetData(TYPE_THORIM, NOT_STARTED);
+            m_pInstance->SetData(TYPE_THORIM, FAIL);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
@@ -781,7 +766,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
     }
 
     // for debug only
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
        if(m_pInstance) 
         {
@@ -791,7 +776,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* done_by, uint32 &uiDamage)
     {
         // phase 2
         if(uiDamage > 0 && m_uiPhase == PHASE_BALCONY && !m_bIsPhaseEnd)
@@ -846,7 +831,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
 
     Creature* SelectRandomOrb()
     {
-        std::list<Creature* > lThunderList;
+        CreatureList lThunderList;
         GetCreatureListWithEntryInGrid(lThunderList, m_creature, NPC_THUNDER_ORB, 100.0f);
  
         //This should not appear!
@@ -856,7 +841,7 @@ struct MANGOS_DLL_DECL boss_thorimAI : public ScriptedAI
             return NULL;
         }
             
-        std::list<Creature* >::iterator iter = lThunderList.begin();
+        CreatureList::iterator iter = lThunderList.begin();
         advance(iter, urand(0, lThunderList.size()-1));
  
         return *iter;
@@ -1287,22 +1272,13 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
 
     struct DistCreature
     {
-    public:
-        uint64 CreatureGUID;
-        float distance;
+        public:
+            DistCreature(uint64 guid, float dist) : CreatureGUID(guid), distance(dist) {}
 
-        bool operator< (DistCreature &toCompare)
-        {
-            if (distance< toCompare.distance)
-                return true;
-            else return false;
-        }
+            bool operator< (DistCreature &toCompare) { return distance< toCompare.distance; }
 
-        DistCreature(uint64 guid, float dist)
-        {
-            CreatureGUID = guid;
-            distance = dist;
-        }
+            uint64 CreatureGUID;
+            float distance;
     };    
 
     bool m_bIsRegularMode;
@@ -1330,7 +1306,7 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
         m_bTargetsLoaded = false;       
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
         if(m_pInstance) 
             m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, DONE);
@@ -1342,7 +1318,7 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
             m_pInstance->SetData(TYPE_RUNIC_COLOSSUS, NOT_STARTED);
     }
 
-    void DamageTaken(Unit* pAttacker,uint32 &damage)
+    void DamageTaken(Unit* pAttacker,uint32& /*damage*/)
     {
         if (!m_bAttacked)
         {
@@ -1357,13 +1333,13 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
         {
             if (!m_bTargetsLoaded)
             {
-                std::list<Creature*> temp;
+                CreatureList temp;
                 GetCreatureListWithEntryInGrid(temp,m_creature,33141,200.0f);
-                for (std::list<Creature*>::const_iterator itr = temp.begin();itr!=temp.end();++itr)
+                for (CreatureList::const_iterator itr = temp.begin();itr!=temp.end();++itr)
                     LeftRunicSmash.push_back(DistCreature((*itr)->GetGUID(),(*itr)->GetDistance2d(m_creature)));
                 temp.clear();
                 GetCreatureListWithEntryInGrid(temp,m_creature,33140,200.0f);
-                for (std::list<Creature*>::const_iterator itr = temp.begin();itr!=temp.end();++itr)
+                for (CreatureList::const_iterator itr = temp.begin();itr!=temp.end();++itr)
                     RightRunicSmash.push_back(DistCreature((*itr)->GetGUID(),(*itr)->GetDistance2d(m_creature)));
                 LeftRunicSmash.sort();
                 RightRunicSmash.sort();
@@ -1383,29 +1359,28 @@ struct MANGOS_DLL_DECL boss_runic_colossusAI : public ScriptedAI
         if (m_uiSmashCasted <=uiDiff && m_uiSmashCasted)
         {
 
-            Creature* pTarget;
-            /*switch (m_uiSmashPhase)
+            Creature* pTarget = NULL;
+            switch (m_uiSmashPhase)
             {
-            case 0:
-            case 4:
-                if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding).CreatureGUID))
-                    pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
-                ++NowExploding;            
-            case 2:
-            case 3:
-            case 5:
-                if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding).CreatureGUID))
-                    pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
-                ++NowExploding;
-            case 1:
-            case 6:
-            case 7:
-            case 8:
-                if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding).CreatureGUID))
-                    pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
-                ++NowExploding;
-            break;
-            }*/
+                case 0:
+                case 4:
+                    if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding++).CreatureGUID))
+                        pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
+                case 2:
+                case 3:
+                case 5:
+                    if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding++).CreatureGUID))
+                        pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
+                case 1:
+                case 6:
+                case 7:
+                case 8:
+                    if (pTarget = m_creature->GetMap()->GetCreature((*NowExploding++).CreatureGUID))
+                        pTarget->CastSpell(pTarget,SPELL_RUNIC_SMASH_DMG,true);
+                    break;
+                default:
+                    break;
+            }
 
             if (m_uiSmashPhase == 8)
             {
@@ -1483,17 +1458,17 @@ struct MANGOS_DLL_DECL boss_ancient_rune_giantAI : public ScriptedAI
 
     void JustRespawned()
     {
-        if(m_pInstance) 
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_RUNE_GIANT, NOT_STARTED);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_RUNE_GIANT, DONE);
     }
 
-    void Aggro(Unit *who) 
+    void Aggro(Unit* /*who*/)
     {
         // should be cast on adds!!!
         //DoCast(m_creature, SPELL_RUNIC_FORTIFICATION);
@@ -1586,41 +1561,18 @@ struct MANGOS_DLL_DECL mob_thorim_preaddsAI : public ScriptedAI
     void Reset()
     {
         // jormungar
-        m_uiAcidBreathTimer		= urand(7000, 14000);
-        m_uiSweepTimer			= urand(15000, 20000);
+        m_uiAcidBreathTimer     = urand(7000, 14000);
+        m_uiSweepTimer          = urand(15000, 20000);
 
         // captain
-        m_uiDevastateTimer		= urand(3000, 7000);
-        m_uiHeroicStrikeTimer	= urand(8000, 15000);
+        m_uiDevastateTimer      = urand(3000, 7000);
+        m_uiHeroicStrikeTimer   = urand(8000, 15000);
 
         // mercenary
-        m_uiShootTimer			= 1000;
-        m_uiBarbedShotTimer		= urand(7000, 10000);
-        m_uiWingClipTimer		= urand(10000, 15000);
+        m_uiShootTimer          = 1000;
+        m_uiBarbedShotTimer     = urand(7000, 10000);
+        m_uiWingClipTimer       = urand(10000, 15000);
     }
-
-    /*void AttackStart(Unit* pWho)
-    {
-        if (m_creature->Attack(pWho, true)) 
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            if(m_creature->GetEntry() == NPC_MERCENARY_ALY || m_creature->GetEntry() == NPC_MERCENARY_HORDE)
-                DoStartMovement(pWho, 20);
-            else
-                DoStartMovement(pWho);
-        }
-    }*/
-
-   /* void JustDied(Unit *killer)
-    {
-        if (Creature* pThorim = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_THORIM))))
-        {
-            if(pThorim->isAlive())
-                ((boss_thorimAI*)pThorim->AI())->m_uiPreAddsKilled += 1;
-        }
-    }*/
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -1803,7 +1755,7 @@ struct MANGOS_DLL_DECL npc_lightning_orbAI : public ScriptedAI
         // find the correct aura for raid wipe!!!
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit* /*pWho*/)
     {
         return;
     }

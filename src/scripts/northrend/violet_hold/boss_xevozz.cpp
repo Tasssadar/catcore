@@ -72,12 +72,12 @@ struct MANGOS_DLL_DECL boss_xevozzAI : public npc_escortAI
 
     void DespawnSphere()
     {
-        std::list<Creature*> assistList;
+        CreatureList assistList;
         GetCreatureListWithEntryInGrid(assistList,m_creature, NPC_ETHEREAL_SPHERE ,150.0f);
 
         if (assistList.empty())
             return;
-        for(std::list<Creature*>::iterator iter = assistList.begin(); iter != assistList.end(); ++iter)
+        for(CreatureList::iterator iter = assistList.begin(); iter != assistList.end(); ++iter)
             (*iter)->DealDamage((*iter), (*iter)->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
     }
 

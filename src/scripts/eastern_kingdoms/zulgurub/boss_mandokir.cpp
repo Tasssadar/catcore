@@ -133,12 +133,12 @@ struct MANGOS_DLL_DECL boss_mandokirAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_OHGAN, NOT_STARTED);
 
-        std::list<Creature*> lSpirits;                      //despawn spirits
+        CreatureList lSpirits;                      //despawn spirits
         GetCreatureListWithEntryInGrid(lSpirits, m_creature, NPC_CHAINED_SPIRIT, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!lSpirits.empty())
         {
-            for(std::list<Creature*>::iterator iter = lSpirits.begin(); iter != lSpirits.end(); ++iter)
+            for(CreatureList::iterator iter = lSpirits.begin(); iter != lSpirits.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
                     (*iter)->ForcedDespawn();

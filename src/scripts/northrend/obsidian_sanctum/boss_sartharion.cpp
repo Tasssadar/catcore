@@ -238,7 +238,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
     bool m_bHasCalledShadron;
     bool m_bHasCalledVesperon;
 
-    std::list<uint64> PlayerCheckList;
+    GuidList PlayerCheckList;
 
     Creature *Vesperon;
     Creature *Shadron;
@@ -506,7 +506,7 @@ struct MANGOS_DLL_DECL boss_sartharionAI : public ScriptedAI
 
         if (m_uiPlayerCheckTimer < uiDiff)
         {
-            for(std::list<uint64>::iterator itr = PlayerCheckList.begin(); itr != PlayerCheckList.end(); ++itr)
+            for(GuidList::iterator itr = PlayerCheckList.begin(); itr != PlayerCheckList.end(); ++itr)
             {
                 Player *plr = (Player*)Unit::GetUnit(*m_creature, (*itr));
                 if(!plr || !plr->isAlive() || !plr->IsInMap(m_creature))
@@ -727,7 +727,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
     uint32 m_uiPortalTimer;
     bool m_bHasSpawnedPortal;
     uint8 m_uiAcolytesCount;
-    std::list<uint64> Acolytes;
+    GuidList Acolytes;
     void Reset()
     {
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
@@ -890,7 +890,7 @@ struct MANGOS_DLL_DECL dummy_dragonAI : public ScriptedAI
     }
     void DespawnCreatures()
     {
-        for(std::list<uint64>::iterator itr = Acolytes.begin(); itr != Acolytes.end(); ++itr)
+        for(GuidList::iterator itr = Acolytes.begin(); itr != Acolytes.end(); ++itr)
         {
             if(Creature *pCreature = (Creature*)Unit::GetUnit((*m_creature), (*itr)))
             {

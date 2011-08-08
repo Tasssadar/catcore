@@ -2353,7 +2353,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_SINGLE_ENEMY:
         {
-            Aura* pAura = m_triggeredByAuraSpell ? m_caster->GetLinkedDummyAura(m_triggeredByAuraSpell->Id) : NULL;
+            Aura* pAura = m_triggeredByAuraSpell && m_caster ? m_caster->GetLinkedDummyAura(m_triggeredByAuraSpell->Id) : NULL;
             Unit* pTarget = pAura ? pAura->GetTarget() : m_targets.getUnitTarget();
             if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(pTarget, m_spellInfo))
             {

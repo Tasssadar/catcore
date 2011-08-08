@@ -142,20 +142,20 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
 
     void DespawnAdds()
     {
-        std::list<Creature*> pWorshippers;
+        CreatureList pWorshippers;
         GetCreatureListWithEntryInGrid(pWorshippers, m_creature, NPC_WORSHIPPER, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!pWorshippers.empty())
-            for(std::list<Creature*>::iterator itr = pWorshippers.begin(); itr != pWorshippers.end(); ++itr)
+            for(CreatureList::iterator itr = pWorshippers.begin(); itr != pWorshippers.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }
 
-        std::list<Creature*> pFollower;
+        CreatureList pFollower;
         GetCreatureListWithEntryInGrid(pFollower, m_creature, NPC_FOLLOWER, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!pFollower.empty())
-            for(std::list<Creature*>::iterator iter = pFollower.begin(); iter != pFollower.end(); ++iter)
+            for(CreatureList::iterator iter = pFollower.begin(); iter != pFollower.end(); ++iter)
             {
                 (*iter)->ForcedDespawn();
             }

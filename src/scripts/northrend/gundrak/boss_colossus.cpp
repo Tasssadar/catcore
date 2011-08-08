@@ -93,7 +93,7 @@ struct MANGOS_DLL_DECL boss_drakkari_colossusAI : public ScriptedAI
 
     void StartEvent()
     {
-        std::list<Creature*> mojos;
+        CreatureList mojos;
         GetCreatureListWithEntryInGrid(mojos, m_creature, NPC_MOJO, 20.0f);
         while (!mojos.empty())
         {
@@ -107,7 +107,7 @@ struct MANGOS_DLL_DECL boss_drakkari_colossusAI : public ScriptedAI
 
     void RespawnMojos()
     {
-        std::list<Creature*> mojos;
+        CreatureList mojos;
         GetCreatureListWithEntryInGrid(mojos, m_creature, NPC_MOJO, 20.0f);
         while (!mojos.empty())
         {

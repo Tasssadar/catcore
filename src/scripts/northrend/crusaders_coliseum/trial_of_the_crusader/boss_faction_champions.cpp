@@ -118,7 +118,7 @@ struct FactionedChampionAI : public ScriptedAI
     void Reset()
     {
         m_bHasMagicalCC = false;
-        m_TimerMgr->AddTimer(TIMER_GCD, NULL, 0, 0, 1500, UNIT_SELECT_NONE);
+        m_TimerMgr->AddTimer(TIMER_GCD, NULL, 0, 0, 1500, UNIT_SELECT_NONE, CAST_TYPE_FORCE);
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)
@@ -213,7 +213,7 @@ struct FactionedChampionAI : public ScriptedAI
     void FactionedCast(Unit* target, uint32 spellId, bool triggered)
     {
         m_creature->CastSpell(target, spellId, triggered);
-        m_TimerMgr->AddCooldown(TIMER_GCD);
+        m_TimerMgr->Cooldown(TIMER_GCD);
     }
 };
 
@@ -274,7 +274,7 @@ struct factioned_healerAI : public FactionedChampionAI
         for (uint8 healpower = appropHealPower; healpower > 0; --healpower)
         {
             SpellTimer* heal = m_TimerMgr->GetTimer(TIMER_HEAL+healpower);
-            if (heal && heal->IsReady(m_creature->IsNonMeleeSpellCasted(false)))
+            if (heal && heal->IsReady())
                 return heal;
         }
 
@@ -357,7 +357,7 @@ struct champ_rdruidAI : public factioned_healerAI
             return;
 
         // GCD check
-        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+        if (!m_TimerMgr->IsReady(TIMER_GCD))
             return;
 
         // Tranquility
@@ -411,7 +411,7 @@ struct champ_hpalaAI : public factioned_healerAI
             return;
 
         // GCD check
-        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+        if (!m_TimerMgr->IsReady(TIMER_GCD))
             return;
 
         // cast heal if it suits situation, if does, return function
@@ -461,7 +461,7 @@ struct champ_dpriestAI : public factioned_healerAI
             return;
 
         // GCD check
-        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+        if (!m_TimerMgr->IsReady(TIMER_GCD))
             return;
 
         // cast heal if it suits situation, if does, return function
@@ -511,7 +511,7 @@ struct champ_rshamAI : public factioned_healerAI
             return;
 
         // GCD check
-        if (!m_TimerMgr->IsReady(TIMER_GCD, false))
+        if (!m_TimerMgr->IsReady(TIMER_GCD))
             return;
 
         // cast heal if it suits situation, if does, return function

@@ -42,15 +42,15 @@ enum
     SAY_STONEBARK_DEATH     = -1603183,
 
     /* BOSS SPELLS */
-    SPELL_ATTUNED_TO_NATURE        = 62519, //increases healing, start at 150 stacks
-    SPELL_ATTUNED_10_STACKS		   = 62525,
-    SPELL_ATTUNED_2_STACKS		   = 62524,
-    SPELL_ATTUNED_25_STACKS		   = 62521,
-    SPELL_TOUCH_OF_EONAR           = 62528, //heals Freya, 6k per second
-    SPELL_TOUCH_OF_EONAR_H         = 62892, //heals Freya, 24k per second
-    SPELL_SUNBEAM                  = 62623,
-    SPELL_SUNBEAM_H                = 62872,
-    SPELL_BERSERK                  = 47008, // 10 min
+    SPELL_ATTUNED_TO_NATURE         = 62519, //increases healing, start at 150 stacks
+    SPELL_ATTUNED_10_STACKS         = 62525,
+    SPELL_ATTUNED_2_STACKS          = 62524,
+    SPELL_ATTUNED_25_STACKS         = 62521,
+    SPELL_TOUCH_OF_EONAR            = 62528, //heals Freya, 6k per second
+    SPELL_TOUCH_OF_EONAR_H          = 62892, //heals Freya, 24k per second
+    SPELL_SUNBEAM                   = 62623,
+    SPELL_SUNBEAM_H                 = 62872,
+    SPELL_BERSERK                   = 47008, // 10 min
 
     /* HARD MODE SPELLS */
     SPELL_DRAINED_OF_POWER          = 62467,
@@ -76,112 +76,112 @@ enum
     NPC_UNSTABLE_SUN_BEAM           = 33050,
 
     // sanctuary adds 
-    NPC_EONARS_GIFT             = 33228,
-    SPELL_LIFEBINDERS_GIFT      = 62584,    // after 12 secs, heals Freya & her allies for 30%
-    SPELL_LIFEBINDERS_GIFT_H    = 64185,    // the same but for 60%
-    SPELL_PHEROMONES            = 62619,    // protects from conservators grip
-    NPC_HEALTHY_SPORE           = 33215,
+    NPC_EONARS_GIFT                 = 33228,
+    SPELL_LIFEBINDERS_GIFT          = 62584,    // after 12 secs, heals Freya & her allies for 30%
+    SPELL_LIFEBINDERS_GIFT_H        = 64185,    // the same but for 60%
+    SPELL_PHEROMONES                = 62619,    // protects from conservators grip
+    NPC_HEALTHY_SPORE               = 33215,
 
     /* ADDS */
     // 6 waves of adds. 1 of the 3 each min 
-    NPC_DETONATING_LASHER       = 32918,    // recude 2 stacks
+    NPC_DETONATING_LASHER           = 32918,    // recude 2 stacks
     // spells
-    SPELL_FLAME_LASH            = 62608,
-    SPELL_DETONATE              = 62598,
-    SPELL_DETONATE_H            = 62937, 
+    SPELL_FLAME_LASH                = 62608,
+    SPELL_DETONATE                  = 62598,
+    SPELL_DETONATE_H                = 62937,
 
-    NPC_ANCIENT_CONSERVATOR     = 33203,    // reduce 30 stacks
+    NPC_ANCIENT_CONSERVATOR         = 33203,    // reduce 30 stacks
     //spells
-    SPELL_CONSERVATORS_GRIP     = 62532,
-    SPELL_NATURES_FURY          = 62589,
-    SPELL_NATURES_FURY_H        = 63571,
+    SPELL_CONSERVATORS_GRIP         = 62532,
+    SPELL_NATURES_FURY              = 62589,
+    SPELL_NATURES_FURY_H            = 63571,
 
     /* elemental adds */                    // each one reduces 10 stacks
-    NPC_WATER_SPIRIT            = 33202,
+    NPC_WATER_SPIRIT                = 33202,
     // spells
-    SPELL_TIDAL_WAVE            = 62653,
-    SPELL_TIDAL_WAVE_H          = 62935,
+    SPELL_TIDAL_WAVE                = 62653,
+    SPELL_TIDAL_WAVE_H              = 62935,
 
-    NPC_STORM_LASHER            = 32919,
+    NPC_STORM_LASHER                = 32919,
     // spells
-    SPELL_STORMBOLT             = 62649,
-    SPELL_STORMBOLT_H           = 62938,
-    SPELL_LIGHTNING_LASH        = 62648,    // 3 targets
-    SPELL_LIGHTNING_LASH_H      = 62939,    // 5 targets
+    SPELL_STORMBOLT                 = 62649,
+    SPELL_STORMBOLT_H               = 62938,
+    SPELL_LIGHTNING_LASH            = 62648,    // 3 targets
+    SPELL_LIGHTNING_LASH_H          = 62939,    // 5 targets
 
-    NPC_SNAPLASHER              = 32916,
+    NPC_SNAPLASHER                  = 32916,
     // spells
-    SPELL_HARDENED_BARK         = 62664,
-    SPELL_HARDENED_BARK_H       = 64191,
+    SPELL_HARDENED_BARK             = 62664,
+    SPELL_HARDENED_BARK_H           = 64191,
 
     // nature bomb
-    NPC_NATURE_BOMB             = 34129,
-    GO_NATURE_BOMB              = 194902,
-    SPELL_NATURE_BOMB           = 64587,
-    SPELL_NATURE_BOMB_H         = 64650,
+    NPC_NATURE_BOMB                 = 34129,
+    GO_NATURE_BOMB                  = 194902,
+    SPELL_NATURE_BOMB               = 64587,
+    SPELL_NATURE_BOMB_H             = 64650,
 
     /* ELDERS */                            // used in phase 1
-    ELDER_BRIGHTLEAF            = 32915,
-    ELDER_IRONBRANCH            = 32913,
-    ELDER_STONEBARK             = 32914,
+    ELDER_BRIGHTLEAF                = 32915,
+    ELDER_IRONBRANCH                = 32913,
+    ELDER_STONEBARK                 = 32914,
 
     // brightleaf spells
-    SPELL_BRIGHTLEAF_FLUX       = 62262,
-    SPELL_SOLAR_FLARE           = 62240,
-    SPELL_SOLAR_FLARE_H         = 62920,
-    SPELL_UNSTABLE_SUN_BEAM     = 62211,
-    SPELL_UNSTABLE_SUN_BEAM_A   = 62243,
-    SPELL_UNSTABLE_ENERGY       = 62217,    // cancels sun bean 
-    SPELL_UNSTABLE_ENERGY_H     = 62922,
-    SPELL_PHOTOSYNTHESIS        = 62209,
+    SPELL_BRIGHTLEAF_FLUX           = 62262,
+    SPELL_SOLAR_FLARE               = 62240,
+    SPELL_SOLAR_FLARE_H             = 62920,
+    SPELL_UNSTABLE_SUN_BEAM         = 62211,
+    SPELL_UNSTABLE_SUN_BEAM_A       = 62243,
+    SPELL_UNSTABLE_ENERGY           = 62217,    // cancels sun bean
+    SPELL_UNSTABLE_ENERGY_H         = 62922,
+    SPELL_PHOTOSYNTHESIS            = 62209,
 
     // ironbrach spells
-    SPELL_IMPALE                = 62310,
-    SPELL_IMPALE_H              = 62928,
-    SPELL_IRON_ROOTS            = 62283, 
-    SPELL_IRON_ROOTS_H          = 62930,
-    NPC_IRON_ROOTS              = 33088,
-    SPELL_THORM_SWARM           = 62285,
-    SPELL_THORM_SWARM_H         = 62931,
+    SPELL_IMPALE                    = 62310,
+    SPELL_IMPALE_H                  = 62928,
+    SPELL_IRON_ROOTS                = 62283,
+    SPELL_IRON_ROOTS_H              = 62930,
+    NPC_IRON_ROOTS                  = 33088,
+    SPELL_THORM_SWARM               = 62285,
+    SPELL_THORM_SWARM_H             = 62931,
 
     // stonebark spells
-    SPELL_FIST_OF_STONE         = 62344,
-    SPELL_BROKEN_BONES          = 62356,
-    SPELL_GROUND_TREMOR         = 62325,
-    SPELL_GROUND_TREMOR_H       = 62932,
-    SPELL_PETRIFIED_BARK        = 62337,
-    SPELL_PETRIFIED_BARK_H      = 62933,
+    SPELL_FIST_OF_STONE             = 62344,
+    SPELL_BROKEN_BONES              = 62356,
+    SPELL_GROUND_TREMOR             = 62325,
+    SPELL_GROUND_TREMOR_H           = 62932,
+    SPELL_PETRIFIED_BARK            = 62337,
+    SPELL_PETRIFIED_BARK_H          = 62933,
 
     // 10 man
-    SPELL_SUMMON_CHEST_0                = 62950,
-    SPELL_SUMMON_CHEST_1                = 62952,
-    SPELL_SUMMON_CHEST_2                = 62953,
-    SPELL_SUMMON_CHEST_3                = 62954,
+    SPELL_SUMMON_CHEST_0            = 62950,
+    SPELL_SUMMON_CHEST_1            = 62952,
+    SPELL_SUMMON_CHEST_2            = 62953,
+    SPELL_SUMMON_CHEST_3            = 62954,
     // 25 man
-    SPELL_SUMMON_CHEST_0_H              = 62955,
-    SPELL_SUMMON_CHEST_1_H              = 62956,
-    SPELL_SUMMON_CHEST_2_H              = 62957,
-    SPELL_SUMMON_CHEST_3_H              = 62958,
+    SPELL_SUMMON_CHEST_0_H          = 62955,
+    SPELL_SUMMON_CHEST_1_H          = 62956,
+    SPELL_SUMMON_CHEST_2_H          = 62957,
+    SPELL_SUMMON_CHEST_3_H          = 62958,
 
-    SPELL_SUMMON_ALLIES_OF_NATURE       = 62678, //better do that in sd2
-    SPELL_SUMMON_LASHERS                = 62688, // lashers - broken
-    SPELL_SUMMON_ELEMENTALS             = 62686, // elementals -> better in sd2
-    SPELL_SUMMON_CONSERVATOR            = 62685, // conservator
-    SPELL_LIFEBINDERS_GIFT_SUMMON       = 62869,
-    SPELL_NATURE_BOMB_SUMMON            = 64606,
+    SPELL_SUMMON_ALLIES_OF_NATURE   = 62678, //better do that in sd2
+    SPELL_SUMMON_LASHERS            = 62688, // lashers - broken
+    SPELL_SUMMON_ELEMENTALS         = 62686, // elementals -> better in sd2
+    SPELL_SUMMON_CONSERVATOR        = 62685, // conservator
+    SPELL_LIFEBINDERS_GIFT_SUMMON   = 62869,
+    SPELL_NATURE_BOMB_SUMMON        = 64606,
 
-    SPELL_SPORE_SUMMON_NE               = 62591,
-    SPELL_SPORE_SUMMON_SE               = 62592,
-    SPELL_SPORE_SUMMON_SW               = 62593,
-    SPELL_SPORE_SUMMON_NW               = 62582,
+    SPELL_SPORE_SUMMON_NE           = 62591,
+    SPELL_SPORE_SUMMON_SE           = 62592,
+    SPELL_SPORE_SUMMON_SW           = 62593,
+    SPELL_SPORE_SUMMON_NW           = 62582,
 
-    SPELL_HEALTHY_SPORE_VISUAL          = 62538,
-    SPELL_NATURE_BOMB_VISUAL            = 64604,
-    SPELL_LIFEBINDERS_VISUAL            = 62579,
-    SPELL_LIFEBINDER_GROW               = 44833,
+    SPELL_HEALTHY_SPORE_VISUAL      = 62538,
+    SPELL_NATURE_BOMB_VISUAL        = 64604,
+    SPELL_LIFEBINDERS_VISUAL        = 62579,
+    SPELL_LIFEBINDER_GROW           = 44833,
 
-    SPELL_PHEROMONES_LG                 = 62619,
-    SPELL_POTENT_PHEROMONES             = 62541,
+    SPELL_PHEROMONES_LG             = 62619,
+    SPELL_POTENT_PHEROMONES         = 62541,
 
     ACHIEV_BACK_TO_NATURE           = 2982,
     ACHIEV_BACK_TO_NATURE_H         = 2983,
@@ -190,7 +190,7 @@ enum
     ACHIEV_KNOCK_KNOCK_WOOD         = 3178,
     ACHIEV_KNOCK_KNOCK_WOOD_H       = 3186,
     ACHIEV_KNOCK_KNOCK_KNOCK_WOOD   = 3179,
-    ACHIEV_KNOCK_KNOCK_KNOCK_WOOD_H = 3187, 
+    ACHIEV_KNOCK_KNOCK_KNOCK_WOOD_H = 3187
 };
 
 float const m_fLootFreya[4] = {2366.3f,  -52.7f, 424.7f, 3.14f};     //freya
@@ -218,7 +218,7 @@ struct MANGOS_DLL_DECL mob_iron_rootsAI : public ScriptedAI
         m_uiCreatureEntry = m_creature->GetEntry();
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
     {
         if (uiDamage > m_creature->GetHealth())
         {
@@ -256,7 +256,7 @@ struct MANGOS_DLL_DECL mob_iron_rootsAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* Killer)
+    void JustDied(Unit* /*Killer*/)
     {
         if (Unit* pVictim = Unit::GetUnit((*m_creature), m_uiVictimGUID))
         {
@@ -272,7 +272,7 @@ struct MANGOS_DLL_DECL mob_iron_rootsAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiuiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -311,12 +311,12 @@ struct MANGOS_DLL_DECL boss_elder_brightleafAI : public ScriptedAI
         m_creature->SetRespawnDelay(7*DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {    
         DoScriptText(SAY_BRIGHTLEAF_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_BRIGHTLEAF_SLAY1, m_creature);
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL boss_elder_brightleafAI : public ScriptedAI
             DoScriptText(SAY_BRIGHTLEAF_SLAY2, m_creature);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
         DoScriptText(SAY_BRIGHTLEAF_DEATH, m_creature);
     }
@@ -414,17 +414,17 @@ struct MANGOS_DLL_DECL boss_elder_ironbranchAI : public ScriptedAI
         m_creature->SetRespawnDelay(7*DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {    
         DoScriptText(SAY_IRONBRANCH_AGGRO, m_creature);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
         DoScriptText(SAY_IRONBRANCH_DEATH, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_IRONBRANCH_SLAY1, m_creature);
@@ -495,17 +495,17 @@ struct MANGOS_DLL_DECL boss_elder_stonebarkAI : public ScriptedAI
         m_creature->SetRespawnDelay(7*DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {    
         DoScriptText(SAY_STONEBARK_AGGRO, m_creature);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
         DoScriptText(SAY_STONEBARK_DEATH, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_STONEBARK_SLAY1, m_creature);
@@ -663,7 +663,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             m_pInstance->SetData(TYPE_FREYA, FAIL);
     }
 
-    void Aggro(Unit *who) 
+    void Aggro(Unit* /*who*/)
     {
         // aura should stack up to 150 when casted, need core support
         DoCast(m_creature, SPELL_ATTUNED_TO_NATURE);
@@ -783,7 +783,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
     }
 
     // for debug only!
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if(m_pInstance) 
         {
@@ -793,7 +793,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* done_by, uint32 &uiDamage)
     {
         if(m_creature->GetHealthPercent() < 1.0f || uiDamage > m_creature->GetHealth())
         {
@@ -806,7 +806,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
         }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
@@ -1048,10 +1048,10 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                     // summons only 3 bombs, just as visual
                     m_creature->CastSpell(m_creature, SPELL_NATURE_BOMB_VISUAL, true);
                     
-                    std::list<GameObject*> m_lBombs;
+                    GameObjectList m_lBombs;
                     GetGameObjectListWithEntryInGrid(m_lBombs, m_creature, GO_NATURE_BOMB, 200.0f);
                     if (!m_lBombs.empty())
-                        for(std::list<GameObject*>::iterator itr = m_lBombs.begin(); itr != m_lBombs.end(); ++itr)
+                        for(GameObjectList::iterator itr = m_lBombs.begin(); itr != m_lBombs.end(); ++itr)
                             (*itr)->Delete();
 
                     Map* pMap = m_creature->GetMap();
@@ -1258,7 +1258,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);           
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit* /*pWho*/)
     {
         return;
     }
@@ -1319,20 +1319,23 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         // HEALTHY SPORE
         if(m_bNpcHealthySpore)
         {
-            if(!m_bHasGrow && m_fSize < 0.25)
+            if (!m_bHasGrow && m_fSize < 0.25)
                 m_creature->ForcedDespawn();
 
-            if(m_uiHealthyGrow_Timer < uiDiff)
+            if (m_uiHealthyGrow_Timer < uiDiff)
             {
-                if(m_bHasGrow)
+                if (m_bHasGrow)
                 {
                     m_fSize = float(urand(150,225))/100;
                     m_bHasGrow = false;
                 }
                 else
                     m_fSize = float(urand(1,300))/100;
-                if(m_fSize < 1)
+                if (m_fSize < 1)
                     m_fSize = 0.1f;
+                else
+                    m_creature->CastSpell(m_creature, SPELL_POTENT_PHEROMONES, true);
+
                 m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, m_fSize);
                 m_uiHealthyGrow_Timer = urand(3000,5000);
             }else m_uiHealthyGrow_Timer -= uiDiff;
@@ -1411,7 +1414,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
             // The Conservator's Grip needs core fix. It should be canceled by pheronomes!
         case NPC_ANCIENT_CONSERVATOR:
             m_bAncientConservator = true;
-            //DoCast(m_creature, SPELL_CONSERVATORS_GRIP); //spell disabled because it isn't negated by pheronomes
+            DoCast(m_creature, SPELL_CONSERVATORS_GRIP); //spell disabled because it isn't negated by pheronomes
             DoSpores(10);
             break;
         case NPC_DETONATING_LASHER:
@@ -1431,7 +1434,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);
     }
 
-    void JustDied(Unit* Killer)
+    void JustDied(Unit* /*Killer*/)
     {
         // remove some stacks from Freya's aura
         // hacky way. Should be done by spell which needs core support
@@ -1466,7 +1469,7 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit *done_by, uint32 &uiDamage)
+    void DamageTaken(Unit* /*done_by*/, uint32 &uiDamage)
     {
         if (m_bDetonatingLasher && uiDamage > m_creature->GetHealth() && !m_bHasExploded)
         {

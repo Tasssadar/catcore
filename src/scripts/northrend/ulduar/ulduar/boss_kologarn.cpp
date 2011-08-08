@@ -70,7 +70,7 @@ enum
     ACHIEV_DISARMED                 = 2953,
     ACHIEV_DISARMED_H               = 2954,
     ACHIEV_IF_LOOKS_COULD_KILL      = 2955,
-    ACHIEV_IF_LOOKS_COULD_KILL_H    = 2956,
+    ACHIEV_IF_LOOKS_COULD_KILL_H    = 2956
 };
 
 float LeftArm[3] = {1784.742f, -39.962f, 448.805f}; 
@@ -107,7 +107,7 @@ struct MANGOS_DLL_DECL mob_eyebeamAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 /*diff*/)
     {
     }
 };
@@ -184,25 +184,25 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
         {
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_RIGHT_ARM))))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_RIGHT_ARM)))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_KOLOGARN))))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (!m_pInstance)
             return;
 
-        if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_KOLOGARN))))
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
         {
             DoScriptText(SAY_LEFT_ARM_LOST, pTemp);
             if (pTemp->isAlive())
@@ -217,7 +217,7 @@ struct MANGOS_DLL_DECL boss_left_armAI : public ScriptedAI
 
         if (m_uiShockwave_Timer < diff)
         {
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_KOLOGARN))))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
                 DoScriptText(SAY_SHOCKWEAVE, pTemp);
 
             DoCast(m_creature, m_bIsRegularMode ? SPELL_SHOCKWAVE : SPELL_SHOCKWAVE_H);
@@ -266,14 +266,14 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
         {
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_LEFT_ARM))))
+            if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_LEFT_ARM)))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_KOLOGARN))))
+            if (Creature* pTemp = (m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
                 if (pTemp->isAlive())
                     pTemp->SetInCombatWithZone();
         }
@@ -284,7 +284,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         RemoveStoneGrip();
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         m_uiFreeDamage += uiDamage;
         if(m_uiFreeDamage > m_uiMaxDamage)
@@ -307,12 +307,12 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (!m_pInstance)
             return;
 
-        if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_KOLOGARN))))
+        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KOLOGARN)))
         {
             DoScriptText(SAY_RIGHT_ARM_LOST, pTemp);
             if (pTemp->isAlive())
@@ -465,7 +465,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
         {
@@ -486,7 +486,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if(irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);

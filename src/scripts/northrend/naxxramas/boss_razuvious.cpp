@@ -75,7 +75,7 @@ struct MANGOS_DLL_DECL boss_razuviousAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> DeathKnightList;
+    GuidList DeathKnightList;
 
     uint32 UnbalancingStrike_Timer;
     uint32 DisruptingShout_Timer;
@@ -118,11 +118,11 @@ struct MANGOS_DLL_DECL boss_razuviousAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_RAZUVIOUS, DONE);
 
-        std::list<Creature*> m_pDeathKnight;
+        CreatureList m_pDeathKnight;
         GetCreatureListWithEntryInGrid(m_pDeathKnight, m_creature, NPC_DEATH_KNIGHT_UNDERSTUDY, 100.0f);
 
         if (!m_pDeathKnight.empty())
-            for(std::list<Creature*>::iterator itr = m_pDeathKnight.begin(); itr != m_pDeathKnight.end(); ++itr)
+            for(CreatureList::iterator itr = m_pDeathKnight.begin(); itr != m_pDeathKnight.end(); ++itr)
             {
                 (*itr)->CastSpell((*itr), SPELL_HOPELESS, true);
                 (*itr)->SetArmor(0);
@@ -155,11 +155,11 @@ struct MANGOS_DLL_DECL boss_razuviousAI : public ScriptedAI
 
     void DespawnDeathKnightUnderstudies()
     {
-        std::list<Creature*> m_pDeathKnight;
+        CreatureList m_pDeathKnight;
         GetCreatureListWithEntryInGrid(m_pDeathKnight, m_creature, NPC_DEATH_KNIGHT_UNDERSTUDY, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pDeathKnight.empty())
-            for(std::list<Creature*>::iterator itr = m_pDeathKnight.begin(); itr != m_pDeathKnight.end(); ++itr)
+            for(CreatureList::iterator itr = m_pDeathKnight.begin(); itr != m_pDeathKnight.end(); ++itr)
                 (*itr)->ForcedDespawn();
     }
 

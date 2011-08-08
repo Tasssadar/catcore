@@ -236,14 +236,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     uint32 phaseTimer;
     uint32 slowTimer;
     bool forward;
-    std::list<GameObject*> GetGameObjectsByEntry(uint32 entry)
+    GameObjectList GetGameObjectsByEntry(uint32 entry)
     {
         CellPair pair(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
         Cell cell(pair);
         //cell.data.Part.reserved = ALL_DISTRICT;
         cell.SetNoCreate();
  
-        std::list<GameObject*> gameobjectList;
+        GameObjectList gameobjectList;
  
         AllGameObjectsWithEntryInRange check(m_creature, entry, 100);
         MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRange> searcher(m_creature, gameobjectList, check);
@@ -263,14 +263,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
  
         if(safePlace != 1)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181678);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181678);
             //Visual part of eruption
             for (int32 i = 181510; i <= 181526; i++)
             {
                 if (i == 181513 || i == 181512 || i == 181511 || i == 181525 || i == 181514 || i == 181515 || i == 181516)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
                         //Required GO Custom Animation Patch for this
@@ -283,7 +283,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                 }
             }
             //Damage part of eruption
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
                 if(!(*itr))
                     continue;
@@ -308,13 +308,13 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         else forward = true;
         if(safePlace != 2)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181676);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181676);
             for (int32 i = 181511; i <= 181531; i++)
             {
                 if ((i > 181516 && i < 181525) || (i == 181526))
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
                     {
@@ -325,7 +325,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
                 if(!(*itr))
                     continue;
@@ -347,13 +347,13 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         }
         if(safePlace != 3)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181677);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181677);
             for (int32 i = 181532; i <= 181545; i++)
             {
                 if (i >= 181537 && i <= 181539)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
                     {
@@ -364,7 +364,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
                 if(!(*itr))
                     continue;
@@ -386,13 +386,13 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         }
         if(safePlace != 4)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181695);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181695);
             for (int32 i = 181537; i <= 181552; i++)
             {
                 if (i > 181539 && i < 181545)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
                     if((*itr))
                     {
@@ -403,7 +403,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
                 if(!(*itr))
                     continue;

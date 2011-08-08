@@ -77,10 +77,10 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
     
     void EnterEvadeMode()
     {
-        std::list<Creature*> adds;
+        CreatureList adds;
         GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 50.0f);
         if(!adds.empty())
-            for(std::list<Creature*>::iterator iter = adds.begin(); iter != adds.end(); ++iter)
+            for(CreatureList::iterator iter = adds.begin(); iter != adds.end(); ++iter)
                 (*iter)->ForcedDespawn();
 
         m_creature->GetMotionMaster()->MoveTargetedHome();
@@ -207,13 +207,13 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
         {
             if(m_uiAddCheck_Timer <= uiDiff)
             {
-                std::list<Creature*> adds;
+                CreatureList adds;
                 GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 5.0f);
                 if(!adds.empty())
                 {
                     adds.clear();
                     GetCreatureListWithEntryInGrid(adds, m_creature, NPC_ADD, 45.0f);
-                    for(std::list<Creature*>::iterator iter = adds.begin(); iter != adds.end(); ++iter)
+                    for(CreatureList::iterator iter = adds.begin(); iter != adds.end(); ++iter)
                     {
                         if(!(*iter)->isAlive())
                             continue;

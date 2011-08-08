@@ -117,8 +117,8 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     ScriptedInstance *m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> m_lSummonsGUIDList;
-    std::list<uint64>::iterator m_uiSendSummon;
+    GuidList m_lSummonsGUIDList;
+    GuidList::iterator m_uiSendSummon;
 
     uint32 GuardiansOfIcecrown_Timer;
     uint32 GuardiansOfIcecrown_Count;
@@ -257,7 +257,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         if (m_lSummonsGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lSummonsGUIDList.begin(); itr != m_lSummonsGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lSummonsGUIDList.begin(); itr != m_lSummonsGUIDList.end(); ++itr)
         {
             if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                 if (pTemp->isAlive())
@@ -266,11 +266,11 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
         m_lSummonsGUIDList.clear();
 
-        std::list<Creature*> m_pGuardian;
+        CreatureList m_pGuardian;
         GetCreatureListWithEntryInGrid(m_pGuardian, m_creature, NPC_GUARDIAN, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pGuardian.empty())
-            for(std::list<Creature*>::iterator itr = m_pGuardian.begin(); itr != m_pGuardian.end(); ++itr)
+            for(CreatureList::iterator itr = m_pGuardian.begin(); itr != m_pGuardian.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }

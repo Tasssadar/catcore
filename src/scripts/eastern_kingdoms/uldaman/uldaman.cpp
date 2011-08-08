@@ -182,12 +182,12 @@ bool GOHello_go_altar_of_keepers(Player* pPlayer, GameObject* pGo)
 
     pPlayer->CastSpell(pPlayer, SPELL_USE_ALTAR_VISUAL, true);
 
-    std::list<Creature*> lStoneKeepers;
+    CreatureList lStoneKeepers;
     GetCreatureListWithEntryInGrid(lStoneKeepers, pGo, NPC_STONE_KEEPER, HALL_RADIUS);
 
     if (!lStoneKeepers.empty())
     {
-        for(std::list<Creature*>::iterator itr = lStoneKeepers.begin(); itr != lStoneKeepers.end(); ++itr)
+        for(CreatureList::iterator itr = lStoneKeepers.begin(); itr != lStoneKeepers.end(); ++itr)
         {
             if (*itr && (*itr)->isAlive())
             {

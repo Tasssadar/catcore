@@ -850,6 +850,9 @@ void AreaAura::Update(uint32 diff)
                     // recalculate basepoints for lower rank (all AreaAura spell not use custom basepoints?)
                     if (actualSpellInfo != GetSpellProto())
                         actualBasePoints = actualSpellInfo->CalculateSimpleValue(m_effIndex);
+                    // check immunity
+                    if ((*tIter)->IsImmunedToSpellEffect(actualSpellInfo, m_effIndex))
+                        continue;
                     AreaAura *aur = new AreaAura(actualSpellInfo, m_effIndex, &actualBasePoints, (*tIter), caster, NULL);
                     aur->SetAuraDuration(GetAuraDuration());
                     (*tIter)->AddAura(aur);
@@ -868,9 +871,10 @@ void AreaAura::Update(uint32 diff)
         // or caster is isolated or caster no longer has the aura
         // or caster is (no longer) friendly
         bool needFriendly = (m_areaAuraType == AREA_AURA_ENEMY ? false : true);
-        if ( !caster || caster->hasUnitState(UNIT_STAT_ISOLATED) ||
+        if (!caster || caster->hasUnitState(UNIT_STAT_ISOLATED) ||
             !caster->IsWithinDistInMap(m_target, m_radius)      ||
             !caster->HasAura(GetId(), GetEffIndex())            ||
+            m_target->IsImmunedToSpellEffect(GetSpellProto(), m_effIndex) ||
             caster->IsFriendlyTo(m_target) != needFriendly
            )
         {
