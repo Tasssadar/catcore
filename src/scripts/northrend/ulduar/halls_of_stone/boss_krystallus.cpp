@@ -76,7 +76,7 @@ struct MANGOS_DLL_DECL boss_krystallusAI : public ScriptedAI
         m_uiStomp_Timer = 20000 + rand()%9000;
         m_uiShatter_Timer = 0;
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KRYSTALLUS, NOT_STARTED);
     }
 
@@ -84,7 +84,7 @@ struct MANGOS_DLL_DECL boss_krystallusAI : public ScriptedAI
     {
         DoScriptText(SAY_AGGRO,m_creature);
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_KRYSTALLUS, IN_PROGRESS);
     }
 

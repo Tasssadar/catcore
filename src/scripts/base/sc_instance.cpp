@@ -106,10 +106,10 @@ void ScriptedInstance::DoUpdateWorldState(uint32 uiStateId, uint32 uiStateData)
 
 void ScriptedInstance::CompleteAchievement(uint16 uiAchievementId, Player* pKiller, bool bWholeRaid)
 {
-    if(!pKiller)
+    if (!pKiller)
         return;
 
-    if(bWholeRaid && pKiller->GetGroup())
+    if (bWholeRaid && pKiller->GetGroup())
     {
         Group *pGroup = pKiller->GetGroup();
         for(GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())

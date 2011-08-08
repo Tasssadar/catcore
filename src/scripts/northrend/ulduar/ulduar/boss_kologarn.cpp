@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL boss_right_armAI : public ScriptedAI
     void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         m_uiFreeDamage += uiDamage;
-        if(m_uiFreeDamage > m_uiMaxDamage)
+        if (m_uiFreeDamage > m_uiMaxDamage)
         {
             m_uiFreeDamage = 0;
             RemoveStoneGrip();
@@ -424,21 +424,21 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         // Rubble and roll
         if (m_uiRubbleNo >= 25)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_RUBBLE_AND_ROLL : ACHIEV_RUBBLE_AND_ROLL_H);
         }
 
         // With open arms
         if (m_bOpenArms)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_WITH_OPEN_ARMS : ACHIEV_WITH_OPEN_ARMS_H);
         }
 
         // Disarmed
         if (m_bHasLeftDied && m_bHasRightDied && m_uiDisarmedTimer <= 12000)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_DISARMED : ACHIEV_DISARMED_H);
         }
 
@@ -484,7 +484,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
     void KilledUnit(Unit* /*pVictim*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
         else
             DoScriptText(SAY_SLAY2, m_creature);
@@ -589,7 +589,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
                     for(uint8 i = 0; i < 5; i++)
                     {
-                        if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, LeftArm[0] - urand(0, 5), LeftArm[1] + urand(0, 10), LeftArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
+                        if (Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, LeftArm[0] - urand(0, 5), LeftArm[1] + urand(0, 10), LeftArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                         {
                             pRubble->GetMotionMaster()->MovePoint(0, KoloFront[0], KoloFront[1], KoloFront[2]);
 
@@ -617,7 +617,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
 
                     for(uint8 i = 0; i < 5; i++)
                     {
-                        if(Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, RightArm[0] - urand(0, 5), RightArm[1] + urand(0, 10), RightArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
+                        if (Creature* pRubble = m_creature->SummonCreature(MOB_RUBBLE, RightArm[0] - urand(0, 5), RightArm[1] + urand(0, 10), RightArm[2], 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                         {
                             pRubble->GetMotionMaster()->MovePoint(0, KoloFront[0], KoloFront[1], KoloFront[2]);
 
@@ -647,7 +647,7 @@ struct MANGOS_DLL_DECL boss_kologarnAI : public ScriptedAI
         if (m_bHasLeftDied || m_bHasRightDied)
             m_uiDisarmedTimer += uiDiff;
 
-        if(m_uiEnrageTimer < uiDiff)
+        if (m_uiEnrageTimer < uiDiff)
         {
             DoScriptText(SAY_BERSERK, m_creature);
             DoCast(m_creature, SPELL_ENRAGE);

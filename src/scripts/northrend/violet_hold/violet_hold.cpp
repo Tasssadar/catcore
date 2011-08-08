@@ -769,7 +769,7 @@ struct MANGOS_DLL_DECL npc_violetholdportalAI : public Scripted_NoMovementAI
         {
             if (SummonTimer)
             {
-                if(SummonTimer<=diff)
+                if (SummonTimer<=diff)
                 {
                     float x,y,z;
                     m_creature->GetPosition(x,y,z);
@@ -1025,7 +1025,7 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public npc_escortAI
         {
             if (LockTimer<=diff)
             {
-                if(m_instance)
+                if (m_instance)
                 {
                     Creature* Door=m_creature->GetMap()->GetCreature(m_instance->GetData64(DOOR_GUID));
                     if (Door)
@@ -1135,9 +1135,9 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
         case BOSS_DEAD:
             PortalSpawnTimer=35000;
             isBoss=false;
-            if(PortalCounter <= 6)
+            if (PortalCounter <= 6)
                 ((InstanceMap*)m_instance->instance)->KilledCreature("First Prisoner");
-            else if(PortalCounter <= 12)
+            else if (PortalCounter <= 12)
                 ((InstanceMap*)m_instance->instance)->KilledCreature("Second Prisoner");
             break;
         case EVENT_START: //start event
@@ -1327,7 +1327,7 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
             }
             else
             {
-                if(PortalCounter==17)
+                if (PortalCounter==17)
                 {
                     if (Creature* Portal = m_creature->SummonCreature(C_PORTAL,CyanigosaPortal[0][0],CyanigosaPortal[0][1],CyanigosaPortal[0][2],CyanigosaPortal[0][3],TEMPSUMMON_TIMED_DESPAWN,10000))
                         Portal->AI()->DoAction(CYANIGOSA);

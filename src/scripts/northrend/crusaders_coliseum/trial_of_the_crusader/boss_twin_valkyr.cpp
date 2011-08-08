@@ -84,7 +84,7 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public BSWScriptedAI
     uint8 stage;
 
     void Reset() {
-        if(!m_pInstance) return;
+        if (!m_pInstance) return;
         SetEquipmentSlots(false, EQUIP_MAIN_1, EQUIP_OFFHAND_1, EQUIP_RANGED_1);
         m_creature->SetRespawnDelay(7*DAY);
         m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_NONE);
@@ -135,13 +135,13 @@ struct MANGOS_DLL_DECL boss_fjolaAI : public BSWScriptedAI
         if (!m_creature || !m_creature->isAlive())
             return;
 
-        if(pDoneBy->GetGUID() == m_creature->GetGUID()) return;
+        if (pDoneBy->GetGUID() == m_creature->GetGUID()) return;
 
-        if(pDoneBy->GetTypeId() == TYPEID_PLAYER)
+        if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
         {
-            if(pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
+            if (pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
                 uiDamage /= 2;
-            else if(pDoneBy->HasAura(SPELL_DARK_ESSENCE))
+            else if (pDoneBy->HasAura(SPELL_DARK_ESSENCE))
                 uiDamage += uiDamage/2;
         }
 
@@ -243,7 +243,7 @@ struct MANGOS_DLL_DECL boss_eydisAI : public BSWScriptedAI
 
     void Reset() 
     {
-        if(!m_pInstance) return;
+        if (!m_pInstance) return;
         SetEquipmentSlots(false, EQUIP_MAIN_2, EQUIP_OFFHAND_2, EQUIP_RANGED_2);
         m_creature->SetRespawnDelay(7*DAY);
         m_pInstance->SetData(DATA_CASTING_VALKYRS, SPELL_NONE);
@@ -293,13 +293,13 @@ struct MANGOS_DLL_DECL boss_eydisAI : public BSWScriptedAI
         if (!m_creature || !m_creature->isAlive())
             return;
 
-        if(pDoneBy->GetGUID() == m_creature->GetGUID()) return;
+        if (pDoneBy->GetGUID() == m_creature->GetGUID()) return;
 
-        if(pDoneBy->GetTypeId() == TYPEID_PLAYER)
+        if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
         {
-            if(pDoneBy->HasAura(SPELL_DARK_ESSENCE))
+            if (pDoneBy->HasAura(SPELL_DARK_ESSENCE))
                 uiDamage /= 2;
-            else if(pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
+            else if (pDoneBy->HasAura(SPELL_LIGHT_ESSENCE))
                 uiDamage += uiDamage/2;
         }
 
@@ -431,7 +431,7 @@ CreatureAI* GetAI_mob_light_essence(Creature* pCreature)
 bool GossipHello_mob_light_essence(Player *player, Creature* pCreature)
 {
     ScriptedInstance *pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
-    if(!pInstance) return true;
+    if (!pInstance) return true;
         player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
         player->RemoveAurasDueToSpell(SPELL_DARK_ESSENCE);
 //        player->CastSpell(player,SPELL_REMOVE_TOUCH,false); // Not worked now
@@ -483,7 +483,7 @@ CreatureAI* GetAI_mob_dark_essence(Creature* pCreature)
 bool GossipHello_mob_dark_essence(Player *player, Creature* pCreature)
 {
     ScriptedInstance *pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
-    if(!pInstance) return true;
+    if (!pInstance) return true;
     player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
         player->RemoveAurasDueToSpell(SPELL_LIGHT_ESSENCE);
 //        player->CastSpell(player,SPELL_REMOVE_TOUCH,false); // Not worked now

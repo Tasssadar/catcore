@@ -76,7 +76,7 @@ struct MANGOS_DLL_DECL boss_anubarak_trialAI : public BSWScriptedAI
     Unit* pTarget;
 
     void Reset() {
-        if(!m_pInstance) return;
+        if (!m_pInstance) return;
         stage = 0;
         intro = true;
         m_creature->SetRespawnDelay(DAY);
@@ -292,7 +292,7 @@ struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public BSWScriptedAI
         timedCast(SPELL_EXPOSE_WEAKNESS, uiDiff);
 
         if (timedQuery(SPELL_SPIDER_FRENZY, uiDiff))
-            if(Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_BURROWER, 50.0f))
+            if (Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_BURROWER, 50.0f))
             {
             currentTarget = pTemp;
             doCast(SPELL_SPIDER_FRENZY);

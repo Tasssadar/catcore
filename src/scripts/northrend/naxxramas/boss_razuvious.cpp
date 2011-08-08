@@ -168,7 +168,7 @@ struct MANGOS_DLL_DECL boss_razuviousAI : public ScriptedAI
         m_creature->SummonCreature(NPC_DEATH_KNIGHT_UNDERSTUDY, 2757.48f, -3111.52f, 267.77f, 3.93f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 3000000);
         m_creature->SummonCreature(NPC_DEATH_KNIGHT_UNDERSTUDY, 2762.05f, -3084.47f, 267.77f, 2.13f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 3000000);
         
-        if(!m_bIsRegularMode)
+        if (!m_bIsRegularMode)
         {
             m_creature->SummonCreature(NPC_DEATH_KNIGHT_UNDERSTUDY, 2781.99f, -3087.81f, 267.68f, 0.61f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 3000000);
             m_creature->SummonCreature(NPC_DEATH_KNIGHT_UNDERSTUDY, 2779.13f, -3112.39f, 267.68f, 5.1f, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 3000000);

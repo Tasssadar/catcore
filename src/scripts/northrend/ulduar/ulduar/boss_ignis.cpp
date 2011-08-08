@@ -159,9 +159,9 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
             {
                 if (pTemp->HasAura(BUFF_STRENGHT_OF_CREATOR))
                 {
-                    if(Aura* strenght = pTemp->GetAura(BUFF_STRENGHT_OF_CREATOR, EFFECT_INDEX_0))
+                    if (Aura* strenght = pTemp->GetAura(BUFF_STRENGHT_OF_CREATOR, EFFECT_INDEX_0))
                     {
-                        if(strenght->modStackAmount(-1))
+                        if (strenght->modStackAmount(-1))
                             pTemp->RemoveAurasDueToSpell(BUFF_STRENGHT_OF_CREATOR);
                     }
                 }
@@ -185,7 +185,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if(!m_bIsInCombat || !pWho)
+        if (!m_bIsInCombat || !pWho)
             return;
 
         if (m_creature->Attack(pWho, true)) 
@@ -235,9 +235,9 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         // check for aura
         if (m_uiAura_Check_Timer < uiDiff && !m_bIsMolten)
         {
-            if(Aura* aura = m_creature->GetAura(SPELL_HEAT,EFFECT_INDEX_0))
+            if (Aura* aura = m_creature->GetAura(SPELL_HEAT,EFFECT_INDEX_0))
             {
-                if(aura->GetStackAmount() > 9)
+                if (aura->GetStackAmount() > 9)
                 {
                     DoCast(m_creature, SPELL_MOLTEN);
                     m_creature->RemoveAurasDueToSpell(SPELL_HEAT);
@@ -249,13 +249,13 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
         }else m_uiAura_Check_Timer -= uiDiff;
 
         //Water checks
-        if(m_bIsMolten)
+        if (m_bIsMolten)
         {
             // should work with Vmaps3
             if (m_uiWaterCheckTimer <= uiDiff)
             {
-                //if(m_creature->IsInWater())
-                if( m_creature->GetDistance2d(524.1f, 277.0f) < WATER_RADIUS ||
+                //if (m_creature->IsInWater())
+                if ( m_creature->GetDistance2d(524.1f, 277.0f) < WATER_RADIUS ||
                     m_creature->GetDistance2d(648.5f, 277.0f) < WATER_RADIUS)
                 {
                     DoCast(m_creature, SPELL_BRITTLE);
@@ -264,7 +264,7 @@ struct MANGOS_DLL_DECL mob_iron_constructAI : public ScriptedAI
                 }
                 // workaround
                 /* else use workaround
-                if( m_creature->GetDistance2d(524.15f, 277.0f) < 18 || m_creature->GetDistance2d(648.5f, 277.0f) < 18)
+                if ( m_creature->GetDistance2d(524.15f, 277.0f) < 18 || m_creature->GetDistance2d(648.5f, 277.0f) < 18)
                 {
                     DoCast(m_creature, SPELL_BRITTLE);
                     m_creature->RemoveAurasDueToSpell(SPELL_MOLTEN);
@@ -343,7 +343,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
         if (m_uiEncounterTimer < 240000)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_STOKIN_THE_FURNACE : ACHIEV_STOKIN_THE_FURNACE_H);
         }
     }
@@ -362,7 +362,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         CreatureList::iterator iter = lConstructList.begin();
         advance(iter, urand(0, lConstructList.size()-1));
 
-        if((*iter)->isAlive())
+        if ((*iter)->isAlive())
             return *iter;
         else
         {
@@ -373,7 +373,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
     void KilledUnit(Unit* /*pVictim*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
         else
             DoScriptText(SAY_SLAY2, m_creature);
@@ -412,7 +412,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         m_uiEncounterTimer = uiDiff;
 
         // enrage
-        if(m_uiEnrageTimer < uiDiff)
+        if (m_uiEnrageTimer < uiDiff)
         {
             DoScriptText(SAY_BERSERK, m_creature);
             DoCast(m_creature, SPELL_ENRAGE);
@@ -464,7 +464,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
                     DoCast(pPotTarget, m_bIsRegularMode ? SPELL_SLAG_POT_DMG : SPELL_SLAG_POT_DMG_H);
                 else if (m_uiPotDmgCount == 10)
                 {
-                    if(pPotTarget->isAlive())
+                    if (pPotTarget->isAlive())
                         pPotTarget->CastSpell(pPotTarget, SPELL_HASTE, false);
                     m_bHasSlagPotCasted = false;
                 }
@@ -477,7 +477,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
         {
             DoScriptText(SAY_SUMMON, m_creature);
 
-            if(Creature* pConstruct = SelectRandomConstruct(200.0f))
+            if (Creature* pConstruct = SelectRandomConstruct(200.0f))
             {
                 ((mob_iron_constructAI*)pConstruct->AI())->GetInCombat();
                 if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
@@ -492,7 +492,7 @@ struct MANGOS_DLL_DECL boss_ignisAI : public ScriptedAI
 
         if (m_uiScorch_Timer < uiDiff)
         {
-            if(irand(0,1))
+            if (irand(0,1))
                 DoScriptText(SAY_SCORCH1, m_creature);
             else
                 DoScriptText(SAY_SCORCH2, m_creature);

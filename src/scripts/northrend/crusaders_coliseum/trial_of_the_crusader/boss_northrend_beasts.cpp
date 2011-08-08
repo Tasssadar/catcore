@@ -650,17 +650,17 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_creature->hasUnitState(UNIT_STAT_STUNNED))
             return;
 
-        if(m_trample)
+        if (m_trample)
         {
-            if(m_trampleTimer <= uiDiff)
+            if (m_trampleTimer <= uiDiff)
             {
                 PlrList pList = GetAttackingPlayers();
                 for (PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
                 {
-                    if(!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
+                    if (!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
                         continue;
 
-                    if(m_hitPlayers.find((*itr)->GetGUIDLow()) == m_hitPlayers.end() &&
+                    if (m_hitPlayers.find((*itr)->GetGUIDLow()) == m_hitPlayers.end() &&
                         (*itr)->IsWithinDist2d(m_creature->GetPositionX(), m_creature->GetPositionY(), 12.0f))
                     {
                         m_hitPlayers.insert((*itr)->GetGUIDLow());
@@ -744,7 +744,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         m_creature->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->getVictim()->GetGUID());
                         SetCombatMovement(true);
                         m_creature->CastSpell(m_creature, SPELL_TRAMPLE, true);
-                        if(m_sombodyDied)
+                        if (m_sombodyDied)
                             m_creature->CastSpell(m_creature, SPELL_ENRAGE_ICE, false);
                         else
                             m_creature->CastSpell(m_creature, SPELL_STAGGERED_DAZE, false);

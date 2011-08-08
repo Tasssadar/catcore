@@ -100,7 +100,7 @@ struct MANGOS_DLL_DECL boss_keristraszaAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if(m_creature->HasAura(SPELL_FROZEN_PRISON))
+        if (m_creature->HasAura(SPELL_FROZEN_PRISON))
             return;
 
         if (m_creature->Attack(pWho, true))

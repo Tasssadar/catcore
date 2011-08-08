@@ -169,14 +169,14 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_bIsIntro)
+        if (m_bIsIntro)
         {
-            if(m_uiSpeech_Timer < uiDiff)
+            if (m_uiSpeech_Timer < uiDiff)
             {
                 switch(m_uiIntro_Phase)
                 {
                 case 0:
-                    if(Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
+                    if (Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
                         DoScriptText(SAY_AGGRO1, pEngineer);
                     GetRazorDown();
                     ++m_uiIntro_Phase;
@@ -188,7 +188,7 @@ struct MANGOS_DLL_DECL npc_expedition_commanderAI : public ScriptedAI
                     m_uiSpeech_Timer = 7000;
                     break;
                 case 2:
-                    if(Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
+                    if (Creature* pEngineer = GetClosestCreatureWithEntry(m_creature, NPC_EXP_ENGINEER, 50.0f))
                         DoScriptText(SAY_AGGRO3, pEngineer);
                     ++m_uiIntro_Phase;
                     m_uiSpeech_Timer = 5000;
@@ -215,7 +215,7 @@ bool GossipHello_npc_expedition_commander(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance* pInstance = (ScriptedInstance *) pCreature->GetInstanceData();
 
-    if(pInstance->GetData(TYPE_RAZORSCALE) != DONE)
+    if (pInstance->GetData(TYPE_RAZORSCALE) != DONE)
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
     pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
@@ -441,7 +441,7 @@ struct MANGOS_DLL_DECL mob_mole_machineAI : public ScriptedAI
         if (m_uiSummonTimer < diff)
         {
             // summon 2 dwarfes
-            if(!m_bIsSentinel)
+            if (!m_bIsSentinel)
             {
                 if (Creature* pTemp = m_creature->SummonCreature(MOB_DARK_RUNE_WATCHER, m_creature->GetPositionX() + 5, m_creature->GetPositionY() + 5, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000))
                 {
@@ -553,7 +553,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         RespawnEngineers();
         EngineerSendHome();
         
-        if(m_creature->GetPositionZ() < 435.0f)
+        if (m_creature->GetPositionZ() < 435.0f)
         {
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, 0.0f);
             m_creature->SendMonsterMove(PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
@@ -579,7 +579,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiFlyNo < 2)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_QUICK_SHAVE : ACHIEV_QUICK_SHAVE_H);
         }
     }
@@ -652,7 +652,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
     {
         uint8 count = 0;
         uint32 transitTime = 0;
-        if(GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[entry]))
+        if (GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[entry]))
         {
             lEngineer.clear();
             GetCreatureListWithEntryInGrid(lEngineer, m_creature, NPC_EXP_ENGINEER, 200.0f);
@@ -800,7 +800,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         // AIR PHASE
         // air position check (sometimes it falls to the ground like a rock
-        if(m_creature->GetPositionZ() < 430.0f && m_bAirphase && !m_bIsGrounded)
+        if (m_creature->GetPositionZ() < 430.0f && m_bAirphase && !m_bIsGrounded)
         {
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, 0.0f);
             m_creature->SendMonsterMove(PositionLoc[4].x, PositionLoc[4].y, PositionLoc[4].z, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), 1);
@@ -832,7 +832,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
         // repair harpoons
         if (m_uiRepairHarpoonTimer < uiDiff && m_bAirphase && !m_bIsGrounded && m_uiHarpoonsRepaired <= m_uiMaxHarpoons)
         {
-            if(GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[m_uiHarpoonsRepaired]))
+            if (GameObject* pHarpoon = m_pInstance->instance->GetGameObject(m_uiHarpoonsGUID[m_uiHarpoonsRepaired]))
             {
                 //pHarpoon->SetUInt32Value(GAMEOBJECT_DISPLAYID, 8245);
                 pHarpoon->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
@@ -868,7 +868,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
                 case 0:
                 break;
                 case 1:
-                    if(Creature* pTemp = m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[2].x, PositionLoc[2].y, PositionLoc[2].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000))
+                    if (Creature* pTemp = m_creature->SummonCreature(NPC_MOLE_MACHINE, PositionLoc[2].x, PositionLoc[2].y, PositionLoc[2].z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000))
                         ((mob_mole_machineAI*)pTemp->AI())->m_bIsSentinel = true;
                 break;
                 case 2:
@@ -886,7 +886,7 @@ struct MANGOS_DLL_DECL boss_razorscaleAI : public ScriptedAI
 
         if (m_uiHarpoonsUsed == m_uiMaxHarpoons && m_bAirphase)
         {
-            if(Creature* pCommander = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
+            if (Creature* pCommander = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_COMMANDER)))
                 DoScriptText(SAY_GROUND, pCommander);
             m_creature->GetMap()->CreatureRelocation(m_creature, PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, 1.5);
             m_creature->SendMonsterMove(PositionLoc[3].x, PositionLoc[3].y, PositionLoc[3].z, SPLINETYPE_FACINGSPOT, m_creature->GetSplineFlags(), 1);
