@@ -1125,6 +1125,8 @@ class SpellMgr
             return SpellAreaForAreaMapBounds(mSpellAreaForAreaMap.lower_bound(area_id),mSpellAreaForAreaMap.upper_bound(area_id));
         }
 
+        bool IsSelfOnlyCast(SpellEntry* const spellInfo);
+
     // Modifiers
     public:
         static SpellMgr& Instance();

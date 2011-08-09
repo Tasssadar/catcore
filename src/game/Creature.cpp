@@ -513,8 +513,8 @@ void Creature::Update(uint32 diff)
             {
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
-                i_AI->UpdateAI(diff);
                 i_AI->UpdateTimers(diff);
+                i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
 

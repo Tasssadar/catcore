@@ -2,6 +2,14 @@
 #include "DBCStores.h"
 #include "Map.h"
 
+SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
+    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
+{
+    spellInfo_m = sSpellStore.LookupEntry(spellId_m);
+    SetInitialCooldown(initialCooldown);
+    Reset(TIMER_VALUE_ALL);
+}
+
 void SpellTimer::Reset(TimerValues value)
 {
     switch (value)
@@ -51,19 +59,8 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
 
 void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
-    if (cooldown == DBC_COOLDOWN)
-    {
-        SpellEntry const* spellEntry = sSpellStore.LookupEntry(GetSpellId());
-        if (spellEntry)
-            initialCooldown_m = spellEntry->RecoveryTime;
-        else
-            initialCooldown_m = 0;
-    }
-    else if (cooldown < 0)
-    {
-        initialCooldown_m = 0;
-        return;
-    }
+    if (cooldown <= DBC_COOLDOWN)
+        initialCooldown_m = spellEntry_m->RecoveryTime;
     else
         initialCooldown_m = cooldown;
 }
@@ -78,49 +75,90 @@ void SpellTimer::Update(uint32 diff)
 
 bool SpellTimer::IsReady()
 {
-    if (castType_m == CAST_TYPE_NONCAST && isCasterCasting())
-        return false;
-
     return timer_m == 0;
 }
 
-bool SpellTimer::Finish(Unit* target)
-{
-    target_m = target ? target : getTarget();
-    if (!target_m)
-        return false;
-
-    caster_m->CastSpell(target, GetSpellId(), false);
-    Cooldown();
-    target_m = NULL;
-    return true;
-}
-
-Unit* SpellTimer::getTarget()
+Unit* SpellTimer::getTarget(Unit* target)
 {
     if (!caster_m || !caster_m->IsInWorld())
         return NULL;
 
+    if (target)
+        target_m = target;
+
+    if (target_m)
+        return target_m;
+
     switch(targetType_m)
     {
-        case UNIT_SELECT_SELF:      return caster_m;
-        case UNIT_SELECT_VICTIM:    return caster_m->getVictim();
-        case UNIT_SELECT_GUID:      return caster_m->GetMap()->GetUnit(ObjectGuid(targetInfo_m));
+        case UNIT_SELECT_SELF:      SetTarget(caster_m); break;
+        case UNIT_SELECT_VICTIM:    SetTarget(caster_m->getVictim()); break;
+        case UNIT_SELECT_GUID:      SetTarget(caster_m->GetMap()->GetUnit(ObjectGuid(targetInfo_m))); break;
         case UNIT_SELECT_RANDOM_PLAYER:
             if (caster_m->GetTypeId() == TYPEID_UNIT)
-                return ((Creature*)caster_m)->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, targetInfo_m);
+                SetTarget(((Creature*)caster_m)->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, targetInfo_m));
+            break;
         case UNIT_SELECT_RANDOM_UNIT:
             if (caster_m->GetTypeId() == TYPEID_UNIT)
-                return ((Creature*)caster_m)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, targetInfo_m);
+                SetTarget(((Creature*)caster_m)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, targetInfo_m));
+            break;
         default:
             break;
     }
 
-    return NULL;
+    if (!target_m)
+    {
+        // here could be used specific targets types for finding right target from implicitTargets
+        if (sSpellMgr.IsSelfOnlyCast(spellInfo_m))
+            SetTarget(caster_m);
+    }
+
+    return target_m;
 }
 
-void SpellTimer::InterruptCastedSpells()
+void SpellTimer::Cooldown(uint32 cd, bool permanent)
 {
-    if (caster_m)
-        caster_m->InterruptNonMeleeSpells(false);
+    if (cd && permanent)
+        cooldown_m = cd;
+
+    timer_m = cd ? cd : cooldown_m;
 }
+
+bool SpellTimer::Finish(Unit *target)
+{
+    // if timer for not existing spell, dont even try to finish it
+    if (!spellInfo_m)
+        return false;
+
+    Unit* c = getCaster();
+    Unit* t = getTarget(target);
+
+    // checking just target, caster checked in getTarget()
+    if (!t || !t->IsInWorld())
+        return false;
+
+    if (castType_m == CAST_TYPE_FORCE)
+        c->InterruptNonMeleeSpells(false);
+
+    c->CastSpell(t, GetSpellId(), false);
+    Cooldown();
+    SetTarget(NULL);
+    return true;
+}
+
+// for case of useage outside of SpellTimerMgr
+bool SpellTimer::IsCastable()
+{
+    if (!IsReady())
+        return false;
+
+    if (!caster_m)
+        return false;
+
+    if (castType_m != CAST_TYPE_FORCE && caster_m->IsNonMeleeSpellCasted(false))
+        return false;
+
+    return true;
+}
+
+

@@ -4561,3 +4561,17 @@ SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty)
     SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
     return spellEntry;
 }
+
+bool SpellMgr::IsSelfOnlyCast(SpellEntry *const spellInfo)
+{
+    for(uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        if (spellInfo->EffectImplicitTargetA[i] != TARGET_SELF &&
+            spellInfo->EffectImplicitTargetB[i] != TARGET_SELF &&
+            spellInfo->EffectImplicitTargetA[i] != TARGET_SELF2 &&
+            spellInfo->EffectImplicitTargetB[i] != TARGET_SELF2)
+            return false;
+    }
+
+    return true;
+}

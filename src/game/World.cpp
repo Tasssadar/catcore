@@ -2567,7 +2567,7 @@ void World::SpocitejRepkyCommand()
     {
         uint16* faction = i ? factionA : factionH;
 
-        for(std::list<uint32>::iterator itr = guid.begin(); itr != guid.end(); ++itr)
+        for(std::list<uint32>::iterator itr = lowGuids.begin(); itr != lowGuids.end(); ++itr)
         {
             int32 values[4];
             bool error = false;
@@ -2595,7 +2595,6 @@ void World::SpocitejRepkyCommand()
             CharacterDatabase.PExecute("UPDATE character_reputation SET standing = %u WHERE guid = %u AND faction = %u", finalvalue, *itr, faction[4]);
         }
     }
-    uint64 timeEnd = getMSTime();
-    float secTime = float(timeEnd-timeStart)/1000;
+    float secTime = float(getMSTimeDiff(timeStart, getMSTime()))/1000;
     sLog.outCatLog("World::SpocitejRepkyCommand: Reputation of HE and AV fixed in %f seconds", secTime);
 }
