@@ -60,7 +60,7 @@ void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
     if (cooldown <= DBC_COOLDOWN)
     {
-        SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
         initialCooldown_m = spellInfo ? spellInfo->RecoveryTime : 0;
     }
     else
@@ -82,7 +82,7 @@ bool SpellTimer::IsReady()
 
 uint32 SpellTimer::getGCD()
 {
-    if (SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m))
+    if (SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m))
         return spellInfo->StartRecoveryTime;
 
     return NULL;
@@ -119,7 +119,7 @@ Unit* SpellTimer::getTarget(Unit* target)
     if (!target_m)
     {
         // here could be used specific targets types for finding right target from implicitTargets
-        SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
         if (spellInfo)
         {
             if (sSpellMgr.IsSelfOnlyCast(spellInfo))
@@ -141,7 +141,7 @@ void SpellTimer::Cooldown(uint32 cd, bool permanent)
 bool SpellTimer::Finish(Unit *target)
 {
     // if timer for not existing spell, dont even try to finish it
-    SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
     if (!spellInfo)
         return false;
 
