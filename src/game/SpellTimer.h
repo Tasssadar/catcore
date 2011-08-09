@@ -54,13 +54,12 @@ struct SpellTimer
         void SetTarget(Unit* target) { target_m = target; }
 
         Unit* getTarget(Unit* target = NULL);
-        SpellEntry* GetSpellInfo() const;
         Unit* getCaster()       const { return caster_m; }
         uint32 getSpellId()     const { return spellId_m; }
         bool isUpdateable()     const { return updateAllowed_m; }
         bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
         CastType getCastType()  const { return castType_m; }
-        uint32 getGCD()         const { return GetSpellInfo() ? GetSpellInfo()->StartRecoveryTime : 0; }
+        uint32 getGCD();
 
     private:
         Unit* caster_m;

@@ -59,7 +59,10 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
 void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
     if (cooldown <= DBC_COOLDOWN)
-        initialCooldown_m = GetSpellInfo() ? GetSpellInfo()->RecoveryTime : 0;
+    {
+        SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        initialCooldown_m = spellInfo ? spellInfo->RecoveryTime : 0;
+    }
     else
         initialCooldown_m = cooldown;
 }
@@ -77,9 +80,12 @@ bool SpellTimer::IsReady()
     return timer_m == 0;
 }
 
-SpellEntry* SpellTimer::GetSpellInfo() const
+uint32 SpellTimer::getGCD()
 {
-    return sSpellStore.LookupEntry(spellId_m);
+    if (SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m))
+        return spellInfo->StartRecoveryTime;
+
+    return NULL;
 }
 
 Unit* SpellTimer::getTarget(Unit* target)
@@ -113,8 +119,12 @@ Unit* SpellTimer::getTarget(Unit* target)
     if (!target_m)
     {
         // here could be used specific targets types for finding right target from implicitTargets
-        if (sSpellMgr.IsSelfOnlyCast(GetSpellInfo()))
-            SetTarget(caster_m);
+        SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        if (spellInfo)
+        {
+            if (sSpellMgr.IsSelfOnlyCast(spellInfo))
+                SetTarget(caster_m);
+        }
     }
 
     return target_m;
@@ -131,7 +141,8 @@ void SpellTimer::Cooldown(uint32 cd, bool permanent)
 bool SpellTimer::Finish(Unit *target)
 {
     // if timer for not existing spell, dont even try to finish it
-    if (!GetSpellInfo())
+    SpellEntry* const spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+    if (!spellInfo)
         return false;
 
     Unit* c = getCaster();
@@ -144,7 +155,7 @@ bool SpellTimer::Finish(Unit *target)
     if (castType_m == CAST_TYPE_FORCE)
         c->InterruptNonMeleeSpells(false);
 
-    c->CastSpell(t, spellId_m, false);
+    c->CastSpell(t, spellInfo, false);
     Cooldown();
     SetTarget(NULL);
     return true;
