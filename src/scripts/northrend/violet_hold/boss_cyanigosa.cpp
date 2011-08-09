@@ -25,6 +25,8 @@ enum
     SPELL_CYANIGOSA_TRANSFORM                 = 58668,
 };
 
+const float jumpPos[3]= {1930.07f, 803.198f, 53.3749f};
+
 struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
 {
     boss_cyanigosaAI(Creature *pCreature) : ScriptedAI(pCreature)
@@ -79,7 +81,8 @@ struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
             {
                 switch (RPPhase)
                 {
-                case 0: 
+                case 0:
+                    m_creature->SendTrajMonsterMove(jumpPos[0], jumpPos[1], jumpPos[2], false, 150.0f, 1000, SPLINETYPE_NORMAL);
                     //she should jump here, no spell aviable for that, it doesn't work
                     RPPhase++;
                     RPTimer=5000;//10000;
