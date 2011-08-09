@@ -4571,7 +4571,7 @@ SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty)
     return spellEntry;
 }
 
-bool SpellMgr::IsSelfOnlyCast(SpellEntry *const spellInfo)
+bool SpellMgr::IsSelfOnlyCast(SpellEntry const *spellInfo)
 {
     for(uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
