@@ -190,6 +190,7 @@ enum
 
     SPELL_PHEROMONES_LG             = 62619,
     SPELL_POTENT_PHEROMONES         = 62541,
+    SPELL_POTENT_PHEROMONES_PROC    = 64321,
 
     ACHIEV_BACK_TO_NATURE           = 2982,
     ACHIEV_BACK_TO_NATURE_H         = 2983,
@@ -1201,6 +1202,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
             case NPC_HEALTHY_SPORE:
                 m_bNpcHealthySpore = true; 
                 DoCast(m_creature, SPELL_HEALTHY_SPORE_VISUAL);
+                m_TimerMgr->AddTimer(SPELL_POTENT_PHEROMONES_PROC, SPELL_POTENT_PHEROMONES_PROC, 0, 500, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
                 break;
             case NPC_SUN_BEAM:
                 m_bNpcSunBeamFreya = true;
@@ -1283,6 +1285,9 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
 
             if (!m_creature->HasAura(SPELL_HEALTHY_SPORE_VISUAL))
                 m_creature->CastSpell(m_creature, SPELL_HEALTHY_SPORE_VISUAL, true);
+
+            if (m_fSize > 1)
+                m_TimerMgr->CheckTimer(SPELL_POTENT_PHEROMONES_PROC);
 
             if (m_uiHealthyGrow_Timer < uiDiff)
             {
