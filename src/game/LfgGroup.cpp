@@ -106,6 +106,7 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
         m_lfgFlags |= LFG_GRP_PREMADE;
     if(mixed)
         m_lfgFlags |= LFG_GRP_MIXED;
+    m_awarded = false;
 }
 
 LfgGroup::~LfgGroup()
@@ -301,7 +302,7 @@ void LfgGroup::KilledCreature(Creature *creature)
         m_instanceStatus = INSTANCE_SAVED;
     }
     
-    if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
+    if (!m_awarded && creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
     {
         //Last boss
         m_instanceStatus = INSTANCE_COMPLETED;
@@ -325,6 +326,7 @@ void LfgGroup::KilledCreature(Creature *creature)
             if (IsRandom())
                 plr->RemoveAurasDueToSpell(LFG_RANDOM_COOLDOWN);
         }
+        m_awarded = true;
     }  
     SendUpdate();
 }

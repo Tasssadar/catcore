@@ -246,6 +246,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint8 m_lfgFlags;
         VoteToKick m_voteToKick;
         RoleCheck m_roleCheck;
+        bool m_awarded;
 };
 
 #endif
