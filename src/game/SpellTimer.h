@@ -54,12 +54,13 @@ struct SpellTimer
         void SetTarget(Unit* target) { target_m = target; }
 
         Unit* getTarget(Unit* target = NULL);
+        SpellEntry* GetSpellInfo() const;
         Unit* getCaster()       const { return caster_m; }
         uint32 getSpellId()     const { return spellId_m; }
         bool isUpdateable()     const { return updateAllowed_m; }
         bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
         CastType getCastType()  const { return castType_m; }
-        uint32 getGCD()         const { return spellInfo_m ? spellInfo_m->StartRecoveryTime : 0; }
+        uint32 getGCD()         const { return GetSpellInfo() ? GetSpellInfo()->StartRecoveryTime : 0; }
 
     private:
         Unit* caster_m;
@@ -68,7 +69,6 @@ struct SpellTimer
         uint32 timer_m;
         uint32 cooldown_m;
         uint32 spellId_m;
-        SpellEntry* spellInfo_m;
 
         uint32 initialTimer_m;
         uint32 initialSpellId_m;

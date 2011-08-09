@@ -16,7 +16,6 @@ void SpellTimer::Reset(TimerValues value)
         case TIMER_VALUE_ALL:
             cooldown_m = initialCooldown_m;
             spellId_m = initialSpellId_m;
-            spellInfo_m = sSpellStore.LookupEntry(initialSpellId_m);
             timer_m = initialTimer_m;
             updateAllowed_m = true;
             break;
@@ -25,7 +24,6 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_SPELLID:
             spellId_m = initialSpellId_m;
-            spellInfo_m = sSpellStore.LookupEntry(initialSpellId_m);
             break;
         case TIMER_VALUE_TIMER:
             timer_m = initialTimer_m;
@@ -46,7 +44,6 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
             break;
         case TIMER_VALUE_SPELLID:
             spellId_m = newValue;
-            spellInfo_m = sSpellStore.LookupEntry(newValue);
             break;
         case TIMER_VALUE_TIMER:
             timer_m = newValue;
@@ -62,7 +59,7 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
 void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
     if (cooldown <= DBC_COOLDOWN)
-        initialCooldown_m = spellInfo_m ? spellInfo_m->RecoveryTime : 0;
+        initialCooldown_m = GetSpellInfo() ? GetSpellInfo()->RecoveryTime : 0;
     else
         initialCooldown_m = cooldown;
 }
@@ -78,6 +75,11 @@ void SpellTimer::Update(uint32 diff)
 bool SpellTimer::IsReady()
 {
     return timer_m == 0;
+}
+
+SpellEntry* SpellTimer::GetSpellInfo() const
+{
+    return sSpellStore.LookupEntry(spellId_m);
 }
 
 Unit* SpellTimer::getTarget(Unit* target)
@@ -111,7 +113,7 @@ Unit* SpellTimer::getTarget(Unit* target)
     if (!target_m)
     {
         // here could be used specific targets types for finding right target from implicitTargets
-        if (sSpellMgr.IsSelfOnlyCast(spellInfo_m))
+        if (sSpellMgr.IsSelfOnlyCast(GetSpellInfo()))
             SetTarget(caster_m);
     }
 
@@ -129,7 +131,7 @@ void SpellTimer::Cooldown(uint32 cd, bool permanent)
 bool SpellTimer::Finish(Unit *target)
 {
     // if timer for not existing spell, dont even try to finish it
-    if (!spellInfo_m)
+    if (!GetSpellInfo())
         return false;
 
     Unit* c = getCaster();
@@ -142,7 +144,7 @@ bool SpellTimer::Finish(Unit *target)
     if (castType_m == CAST_TYPE_FORCE)
         c->InterruptNonMeleeSpells(false);
 
-    c->CastSpell(t, spellInfo_m, false);
+    c->CastSpell(t, spellId_m, false);
     Cooldown();
     SetTarget(NULL);
     return true;
