@@ -2,25 +2,28 @@
 #include "SpellTimer.h"
 #include "SpellTimerMgr.h"
 
-SpellTimerMgr::SpellTimerMgr()
+SpellTimerMgr::SpellTimerMgr(Unit* unit) : m_owner(unit)
 {
+    ASSERT(owner != NULL);
+    m_GCD = new SpellTimer(GCD_ID, 0, 0);
 }
-
 SpellTimerMgr::~SpellTimerMgr()
 {
     for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
         delete itr->second;
 
     m_TimerMap.clear();
+
+    delete m_GCD;
 }
 
-void SpellTimerMgr::AddTimer(uint32 timerId, Unit* caster, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo)
+void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster)
 {
     // is already set, delete
     if (m_TimerMap[timerId])
         RemoveTimer(timerId);
 
-    m_TimerMap[timerId] = new SpellTimer(caster, initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo);
+    m_TimerMap[timerId] = new SpellTimer(initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo, caster ? caster : m_owner);
 }
 
 void SpellTimerMgr::RemoveTimer(uint32 timerId)
@@ -36,6 +39,8 @@ SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 
 void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 {
+    m_GCD->Update(uiDiff);
+
     if (m_TimerMap.empty())
         return;
 
@@ -43,16 +48,15 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
         if (itr->second->isUpdateable())
             itr->second->Update(uiDiff);
 
-    if (m_CastList.empty())
+    if (m_IdToBeCasted.empty())
         return;
 
-    for(SpellTimerList::iterator itr = m_CastList.begin(); itr != m_CastList.end(); ++itr)
+    for(TimerIdList::iterator itr = m_IdToBeCasted.begin(); itr != m_IdToBeCasted.end(); ++itr)
     {
-        SpellTimer* timer = *itr;
-        if (timer && !timer->isCasterCasting())
+        if (CanBeTimerFinished(*itr))
         {
-            timer->Finish();
-            m_CastList.erase(itr);
+            FinishTimer(*itr);
+            m_IdToBeCasted.erase(itr);
         }
     }
 }
@@ -67,31 +71,63 @@ uint32 SpellTimerMgr::GetSpellId(uint32 timerId)
     return m_TimerMap[timerId]->GetSpellId();
 }
 
-void SpellTimerMgr::Cooldown(uint32 timerId)
+void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)
 {
-    m_TimerMap[timerId]->Cooldown();
+    m_TimerMap[timerId]->Cooldown(changedCD, permanent);
 }
 
 bool SpellTimerMgr::CheckTimer(uint32 timerId, Unit *target)
 {
-    // lets find timer
     SpellTimer* timer = m_TimerMap[timerId];
 
-    //  if timer is ready
+    // timer with timerId not found
+    if (!timer)
+        return false;
+
+    //  if timer isn't ready
     if (!timer->IsReady())
         return false;
 
     // custom handeling differed by cast type
-    if (timer->GetCastType() == CAST_TYPE_FORCE)
+    if (timer->getCastType() == CAST_TYPE_NONCAST)
     {
-        timer->InterruptCastedSpells();
-        return timer->Finish(target);
+        if (!CanBeTimerFinished(timerId))
+            return false;
     }
-    else if (timer->GetCastType() == CAST_TYPE_QUEUE && timer->isCasterCasting())
+    else if (timer->getCastType() == CAST_TYPE_QUEUE)
     {
-        m_CastList.push_back(timer);
-        return false;
+        if (!CanBeTimerFinished(timerId))
+        {
+            timer->SetTarget(target);
+            m_IdToBeCasted.push_back(timerId);
+            return false;
+        }
     }
 
-    return timer->Finish(target);
+    return FinishTimer(timerId,target);
+}
+
+bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
+{
+    if (m_TimerMap[timerId]->getCaster() != m_owner)
+        return true;
+
+    if (m_owner->IsNonMeleeSpellCasted(false))
+        return false;
+
+    if (!m_GCD->IsReady())
+        return false;
+
+    return true;
+}
+
+bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
+{
+    if (m_TimerMap[timerId]->Finish(target))
+    {
+        m_GCD->Cooldown(m_TimerMap[timerId]->getGCD());
+        return true;
+    }
+
+    return false;
 }

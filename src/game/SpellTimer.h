@@ -29,36 +29,37 @@ enum TimerValues
     TIMER_VALUE_UPDATEABLE  = 3
 };
 
-#define DBC_COOLDOWN -1
+#define DBC_COOLDOWN 0
 
 struct SpellTimer
 {
-    SpellTimer(Unit* caster, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo) :
-        caster_m(caster), initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo)
-    {
-        SetInitialCooldown(initialCooldown);
-        Reset(TIMER_VALUE_ALL);
-    }
+    SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = NULL, Unit* caster = NULL);
 
     public:
+        void SetSpellEntry();
         void SetInitialCooldown(int32 cooldown);
 
         void Reset(TimerValues value);
         void SetValue(TimerValues value, uint32 newValue);
 
-        void Cooldown() { timer_m = cooldown_m; }
+        void Cooldown(uint32 cd = NULL, bool permanent = false);
 
         bool IsReady();
-        bool Finish(Unit* target = NULL);
+        bool IsCastable();
+
         void Update(uint32 diff);
 
-        Unit* getTarget();
-        void InterruptCastedSpells();
+        bool Finish(Unit* target = NULL);
 
-        uint32 GetSpellId()     const { return spellId_m; }
+        void SetTarget(Unit* target) { target_m = target; }
+
+        Unit* getTarget(Unit* target = NULL);
+        Unit* getCaster()       const { return caster_m; }
+        uint32 getSpellId()     const { return spellId_m; }
         bool isUpdateable()     const { return updateAllowed_m; }
         bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
-        CastType GetCastType()  const { return castType_m; }
+        CastType getCastType()  const { return castType_m; }
+        uint32 getGCD()         const { return spellInfo_m ? spellInfo_m->StartRecoveryTime : 0; }
 
     private:
         Unit* caster_m;
@@ -67,6 +68,7 @@ struct SpellTimer
         uint32 timer_m;
         uint32 cooldown_m;
         uint32 spellId_m;
+        SpellEntry* const spellInfo_m;
 
         uint32 initialTimer_m;
         uint32 initialSpellId_m;
