@@ -267,10 +267,10 @@ struct factioned_healerAI : public FactionedChampionAI
         {
             SpellTimer* heal = m_TimerMgr->GetTimer(TIMER_HEAL+healpower);
             if (heal && heal->IsReady())
-                return healpower;
+                return HealPower(healpower);
         }
 
-        return NULL;
+        return HEAL_NOHEAL;
     }
 
     bool DoHeal()

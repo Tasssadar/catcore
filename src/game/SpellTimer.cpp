@@ -5,7 +5,6 @@
 SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
     initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
 {
-    spellInfo_m = sSpellStore.LookupEntry(spellId_m);
     SetInitialCooldown(initialCooldown);
     Reset(TIMER_VALUE_ALL);
 }
@@ -17,6 +16,7 @@ void SpellTimer::Reset(TimerValues value)
         case TIMER_VALUE_ALL:
             cooldown_m = initialCooldown_m;
             spellId_m = initialSpellId_m;
+            spellInfo_m = sSpellStore.LookupEntry(initialSpellId_m);
             timer_m = initialTimer_m;
             updateAllowed_m = true;
             break;
@@ -25,6 +25,7 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_SPELLID:
             spellId_m = initialSpellId_m;
+            spellInfo_m = sSpellStore.LookupEntry(initialSpellId_m);
             break;
         case TIMER_VALUE_TIMER:
             timer_m = initialTimer_m;
@@ -45,6 +46,7 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
             break;
         case TIMER_VALUE_SPELLID:
             spellId_m = newValue;
+            spellInfo_m = sSpellStore.LookupEntry(newValue);
             break;
         case TIMER_VALUE_TIMER:
             timer_m = newValue;
@@ -60,7 +62,7 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
 void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
     if (cooldown <= DBC_COOLDOWN)
-        initialCooldown_m = spellEntry_m->RecoveryTime;
+        initialCooldown_m = spellInfo_m ? spellInfo_m->RecoveryTime : 0;
     else
         initialCooldown_m = cooldown;
 }
@@ -140,7 +142,7 @@ bool SpellTimer::Finish(Unit *target)
     if (castType_m == CAST_TYPE_FORCE)
         c->InterruptNonMeleeSpells(false);
 
-    c->CastSpell(t, GetSpellId(), false);
+    c->CastSpell(t, spellInfo_m, false);
     Cooldown();
     SetTarget(NULL);
     return true;
@@ -160,5 +162,3 @@ bool SpellTimer::IsCastable()
 
     return true;
 }
-
-

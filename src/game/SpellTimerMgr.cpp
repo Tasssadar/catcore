@@ -4,7 +4,7 @@
 
 SpellTimerMgr::SpellTimerMgr(Unit* unit) : m_owner(unit)
 {
-    ASSERT(owner != NULL);
+    ASSERT(m_owner != NULL);
     m_GCD = new SpellTimer(GCD_ID, 0, 0);
 }
 SpellTimerMgr::~SpellTimerMgr()
@@ -68,7 +68,7 @@ bool SpellTimerMgr::IsReady(uint32 timerId)
 
 uint32 SpellTimerMgr::GetSpellId(uint32 timerId)
 {
-    return m_TimerMap[timerId]->GetSpellId();
+    return m_TimerMap[timerId]->getSpellId();
 }
 
 void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)

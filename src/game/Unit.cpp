@@ -1359,8 +1359,9 @@ void Unit::CastSpell(Unit* Victim, uint32 spellId, bool triggered, Item *castIte
 
 void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, Item *castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
-    if(!Victim)
+    if (!Victim)
         return;
+
     if (!spellInfo)
     {
         if (triggeredByAura)
@@ -11335,6 +11336,7 @@ uint32 Unit::SpellHealingBonusDone(Unit *pVictim, SpellEntry const *spellProto, 
                 break;
             }
             case 8477: // Nourish Heal Boost
+
             {
                 int32 stepPercent = (*i)->GetModifier()->m_amount;
 

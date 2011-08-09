@@ -68,7 +68,7 @@ struct SpellTimer
         uint32 timer_m;
         uint32 cooldown_m;
         uint32 spellId_m;
-        SpellEntry* const spellInfo_m;
+        SpellEntry* spellInfo_m;
 
         uint32 initialTimer_m;
         uint32 initialSpellId_m;

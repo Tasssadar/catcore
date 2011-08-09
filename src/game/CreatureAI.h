@@ -60,7 +60,7 @@ enum CastFlags
 class MANGOS_DLL_SPEC CreatureAI
 {
     public:
-        explicit CreatureAI(Creature* creature) : m_creature(creature), m_TimerMgr(new SpellTimerMgr(creature)) {}
+        explicit CreatureAI(Creature* creature) : m_creature(creature), m_TimerMgr(new SpellTimerMgr((Unit*)creature)) {}
 
         virtual ~CreatureAI();
 
