@@ -2045,9 +2045,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if (spellInfo_1->Id == 60530 && spellInfo_2->SpellIconID == 64)
                         return false;
 
-                   // Frenzied Regeneration and Darkmoon Card Berserker
+                    // Frenzied Regeneration and Darkmoon Card Berserker
                     if (spellInfo_2->Id == 22842 && spellInfo_1->Id == 60196 )
                         return false;
+
+                    // Totem of Electrifying Wind and Innervate
+                    if (spellInfo_2->Id == 29166 && spellInfo_1->Id == 67385 )
+                        return false;
+
                     break;
                 }
                 case SPELLFAMILY_ROGUE:
@@ -2405,6 +2410,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
             // Frenzied Regeneration and Darkmoon Card Berserker
             if (spellInfo_1->Id == 22842 && spellInfo_2->Id == 60196 )
+                return false;
+
+            // Innervate and Totem of Electrifying Wind
+            if (spellInfo_1->Id == 29166 && spellInfo_2->Id == 67385 )
                 return false;
 
             break;
