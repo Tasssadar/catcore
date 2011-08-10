@@ -91,7 +91,7 @@ struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
                     pointPath[1].z = jumpPos[2];
 
                     m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
-                    m_creature->SendTrajMonsterMove(jumpPos[0], jumpPos[1], jumpPos[2], false, 150.0f, 1000, SPLINETYPE_NORMAL);
+                    m_creature->SendTrajMonsterMove(jumpPos[0], jumpPos[1], jumpPos[2], false, 100.0f, 1000, SPLINETYPE_NORMAL);
                     
                     //she should jump here, no spell aviable for that, it doesn't work
                     RPPhase++;

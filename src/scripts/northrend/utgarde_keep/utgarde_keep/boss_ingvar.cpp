@@ -32,7 +32,7 @@ enum
     SAY_DEATH_SECOND            = -1574008,
     SAY_KILL_FIRST              = -1574009,
     SAY_KILL_SECOND             = -1574010,
-    SAY_ANNHYLDE                = -1574011,
+    SAY_ANNHYLDE                = -1574023,
     EMOTE_ROAR                  = -1574022,
 
     NPC_ANNHYLDE                = 24068,
@@ -102,12 +102,12 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
     void Reset()
     {
-
+        SetCombatMovement(true);
         m_uiCleaveTimer = urand(5000, 7000);
         m_uiSmashTimer = urand(8000, 15000);
         m_uiStaggeringRoarTimer = urand(10000, 25000);
         m_uiEnrageTimer = 30000;
-        m_uiRessTimer = 3000;
+        m_uiRessTimer = 4000;
 
         m_phase = 0;
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -115,7 +115,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        DoScriptText(m_bIsResurrected ? SAY_AGGRO_SECOND : SAY_AGGRO_FIRST, m_creature);
+        DoScriptText(SAY_AGGRO_FIRST, m_creature);
     }
 
     //this need to be done when spell works
@@ -127,18 +127,22 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
         if (m_phase == 0 && uiDamage >= m_creature->GetHealth())
         {
             m_phase = 1;
+            uiDamage = 0;
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveAllAuras();
-            uiDamage = m_creature->GetHealth() -1;
+            m_creature->InterruptNonMeleeSpells(true);
+            m_creature->SetHealth(1);
+            m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
 
-            m_creature->GetMotionMaster()->Clear(false);
+            SetCombatMovement(false);
+            m_creature->GetMotionMaster()->Clear(false, true);
             m_creature->GetMotionMaster()->MoveIdle();
 
             DoScriptText(SAY_DEATH_FIRST, m_creature);
 
-            m_creature->CastSpell(m_creature, SPELL_FEIGN_DEATH, true);
             m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
-            m_creature->SummonCreature(NPC_ANNHYLDE, annhyldeSpawn[0], annhyldeSpawn[1], annhyldeSpawn[2], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
+            
+            m_creature->SummonCreature(NPC_ANNHYLDE, annhyldeSpawn[0], annhyldeSpawn[1], annhyldeSpawn[2], 0, TEMPSUMMON_TIMED_DESPAWN, 30000);
         }
     }
 
@@ -158,7 +162,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
     void KilledUnit(Unit* pVictim)
     {
         if (urand(0, 1))
-            DoScriptText(m_bIsResurrected ? SAY_KILL_SECOND : SAY_KILL_FIRST, m_creature);
+            DoScriptText(m_phase == 3 ? SAY_KILL_SECOND : SAY_KILL_FIRST, m_creature);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -209,8 +213,10 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 m_creature->CastSpell(m_creature, SPELL_TRANSFORM, true);
                 m_phase = 3;
-                m_creature->GetMotionMaster()->Clear(false);
+                SetCombatMovement(true);
+                m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                DoScriptText(SAY_AGGRO_SECOND, m_creature);
             }else m_uiRessTimer -= uiDiff;
             return;
         }
@@ -313,7 +319,7 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
             return 0;
         float x, y, z;
         pIngvar->GetPosition(x, y, z);
-        z += 23.0f;
+        z += 17.0f;
         
         PointPath path;
         path.resize(2);
@@ -332,10 +338,10 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
             switch(m_phase)
             {
                 case 0:
+                    pIngvar->CastSpell(pIngvar, SPELL_SKY_BEAM, true);
                     m_phaseTimer = DoMove() + 500;
                     break;
                 case 1:
-                    pIngvar->CastSpell(pIngvar, SPELL_SKY_BEAM, true);
                     m_phaseTimer = 1000;
                     break;
                 case 2:
@@ -352,14 +358,16 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
                     break;
                 case 5:
                     pIngvar->CastSpell(pIngvar, SPELL_SCOURGE_RES_BUBBLE, true);
-                    m_phaseTimer = 5000;
+                    m_creature->CastSpell(pIngvar, SPELL_SCOURGE_RES_CHANNEL, false);
+                    m_phaseTimer = 6000;
                     break;
                 case 6:
-                    pIngvar->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
+                    pIngvar->SetStandState(UNIT_STAND_STATE_STAND);
                     pIngvar->CastSpell(pIngvar, SPELL_SCOURGE_RES_HEAL, true);
                     m_phaseTimer = 7000;
                     break;
                 case 7:
+                    m_creature->SetVisibility(VISIBILITY_OFF);
                     m_phaseTimer = 7000;
                     m_creature->ForcedDespawn();
                     break;
