@@ -22,6 +22,7 @@ SDCategory: Pit of Saron
 EndScriptData */
 
 #include "precompiled.h"
+#include "pit_of_saron.h"
 
 enum
 {
@@ -67,7 +68,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
     bool m_bIsRegularMode;
 
     uint8 m_forgePhase;
-    uin32 m_forgeTimer;
+    uint32 m_forgeTimer;
     
     uint32 m_uiChillingWaveTimer;
     uint32 m_uiDeepFreezeTimer;
@@ -94,6 +95,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
+        m_pInstance->SetData(TYPE_GARFROST, DONE);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -120,6 +122,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
                         SetCombatMovement(true);
                         m_creature->GetMotionMaster()->Clear(false, true);
                         m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        m_creature->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->getVictim()->GetGUID());
                         break;
                 }
                 ++m_forgePhase;
@@ -130,6 +133,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
         if((m_forgePhase == 3  && m_creature->GetHealthPercent() <= 33.0f) ||
            (m_forgePhase == 0 && m_creature->GetHealthPercent() <= 66.0f))
         {
+            m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
             ++m_forgePhase;
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);

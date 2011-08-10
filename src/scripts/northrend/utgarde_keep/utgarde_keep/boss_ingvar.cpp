@@ -217,6 +217,7 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 DoScriptText(SAY_AGGRO_SECOND, m_creature);
+                m_creature->SetUInt64Value(UNIT_FIELD_TARGET, m_creature->getVictim()->GetGUID());
             }else m_uiRessTimer -= uiDiff;
             return;
         }

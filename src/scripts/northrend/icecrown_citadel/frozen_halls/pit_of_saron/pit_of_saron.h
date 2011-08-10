@@ -16,5 +16,5 @@ enum
     NPC_RIMEFANG       = 36661,
 
     GO_ICE_WALL        = 201885,
-}
+};
 #endif

@@ -52,19 +52,6 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         {
             case NPC_GARFROST:            m_uiGarfrostGUID = pCreature->GetGUID(); break;
             case NPC_TYRANNUS:            m_uiTyrannusGUID = pCreature->GetGUID(); break;
-            case NPC_ICK:
-            {
-                float x, y, z;
-                pCreature->GetPosition(x, y, z);
-                pCreature->SetVisibility(VISIBILITY_OFF);
-                pCreature->ForcedDespawn();
-                if (m_auiEncounter[1] == DONE)
-                    break;
-                Vehicle *pIck = pCreature->SummonVehicle(NPC_ICK, x, y, z, pCreature->GetOrientation(), 522, NULL, 0);
-                pIck->SetRespawnDelay(86400);
-                m_uiIckGUID = pIck->GetGUID();
-                break;
-            }
         }
     }
 
@@ -88,12 +75,12 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         {
             case TYPE_GARFROST:
                 m_auiEncounter[0] = uiData;
-                if (uiData == DONE && m_auiEncounter[1] = DONE)
+                if (uiData == DONE && m_auiEncounter[1] == DONE)
                     DoUseDoorOrButton(m_uiIceWallGUID);
                 break;
-            case TYPE_ICK_AND_CRICK:
+            case TYPE_ICK_AND_KRICK:
                 m_auiEncounter[1] = uiData;
-                if (uiData == DONE && m_auiEncounter[0] = DONE)
+                if (uiData == DONE && m_auiEncounter[0] == DONE)
                     DoUseDoorOrButton(m_uiIceWallGUID);
                 break;
             case TYPE_TYRANNUS:
@@ -151,7 +138,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         {
             case TYPE_GARFROST:
                 return m_auiEncounter[0];
-            case TYPE_ICK_AND_CRICK:
+            case TYPE_ICK_AND_KRICK:
                 return m_auiEncounter[1];
             case TYPE_TYRANNUS:
                 return m_auiEncounter[2];

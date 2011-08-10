@@ -2082,10 +2082,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         for(std::list<Unit*>::iterator itr = tmpMap.begin(); itr != tmpMap.end(); ++itr)
                         {
                             pGo = NULL;
-                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*(*itr), 196485, 5.0f);
-                            MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pSource, pGo, go_check);
+                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*(*itr), 196485, 15.0f);
+                            MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(*itr, pGo, go_check);
 
-                            Cell::VisitGridObjects(*itr, searcher, 5.0f);
+                            Cell::VisitGridObjects(*itr, searcher, 15.0f);
                             if(!pGo)
                                 continue;
 

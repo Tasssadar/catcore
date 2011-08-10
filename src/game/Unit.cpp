@@ -499,11 +499,11 @@ void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velo
 {
     PointPath pointPath;
     pointPath.resize(2);
-    m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+    GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
     pointPath[1].x = x;
     pointPath[1].y = y;
     pointPath[1].z = z;
-    m_creature->GetMotionMaster()->MoveCharge(pointPath, time, 1, 1);
+    GetMotionMaster()->MoveCharge(pointPath, time, 1, 1);
     SendTrajMonsterMove(x, y, z, knockback, velocity, time, SPLINETYPE_NORMAL);
 }
 
