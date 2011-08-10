@@ -143,8 +143,11 @@ Creature::~Creature()
     delete i_AI;
     i_AI = NULL;
 
-    delete m_TimerMgr;
-    m_TimerMgr = NULL;
+    if (m_TimerMgr)
+    {
+        delete m_TimerMgr;
+        m_TimerMgr = NULL;
+    }
 }
 
 void Creature::AddToWorld()

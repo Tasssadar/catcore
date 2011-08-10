@@ -682,17 +682,17 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             // check brightleaf
             if (Creature* pBrightleaf = m_pInstance->GetCreature(NPC_BRIGHTLEAF))
                 if (m_bIsBrightleafAlive = pBrightleaf->isAlive())
-                    pBrightleaf->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_BRIGHTLEAF : SPELL_BUFF_BRIGHTLEAF_H, false);
+                    pBrightleaf->CastSpell(pBrightleaf, SPELL_DRAINED_OF_POWER, false);
 
             // check ironbranch
             if (Creature* pIronbranch = m_pInstance->GetCreature(NPC_IRONBRACH))
                 if (m_bIsIronbranchAlive = pIronbranch->isAlive())
-                    pIronbranch->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_IRONBRANCH : SPELL_BUFF_IRONBRANCH_H, false);
+                    pIronbranch->CastSpell(pIronbranch, SPELL_DRAINED_OF_POWER, false);
 
             // check stonebark
             if (Creature* pStonebark = m_pInstance->GetCreature(NPC_STONEBARK))
                 if (m_bIsStonebarkAlive = pStonebark->isAlive())
-                    pStonebark->CastSpell(m_creature, m_bIsRegularMode ? SPELL_BUFF_STONEBARK : SPELL_BUFF_STONEBARK_H, false);
+                    pStonebark->CastSpell(pStonebark, SPELL_DRAINED_OF_POWER, false);
         }
 
         m_bIsHardMode = CheckHardMode();
@@ -1592,34 +1592,34 @@ void AddSC_boss_freya()
 -- brightleaf
     -- normal
         -- first spell
-        INSERT INTO spell_script_target VALUES (62485, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (62485, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (62385, 1, 32915);
+        INSERT IGNORE INTO spell_script_target VALUES (62385, 1, 32906);
     -- heroic
         -- first spell
-        INSERT INTO spell_script_target VALUES (65587, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (65587, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (65585, 1, 32915);
+        INSERT IGNORE INTO spell_script_target VALUES (65585, 1, 32906);
 -- ironbranch
     -- normal
         -- first spell
-        INSERT INTO spell_script_target VALUES (62484, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (62484, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (62387, 1, 32913);
+        INSERT IGNORE INTO spell_script_target VALUES (62387, 1, 32906);
     -- heroic
         -- first spell
-        INSERT INTO spell_script_target VALUES (65588, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (65588, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (65586, 1, 32913);
+        INSERT IGNORE INTO spell_script_target VALUES (65586, 1, 32906);
 -- stonebark
     -- normal
         -- first spell
-        INSERT INTO spell_script_target VALUES (62483, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (62483, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (62386, 1, 32914);
+        INSERT IGNORE INTO spell_script_target VALUES (62386, 1, 32906);
     -- heroic
         -- first spell
-        INSERT INTO spell_script_target VALUES (65589, 1, 32906);
+        INSERT IGNORE INTO spell_script_target VALUES (65589, 1, 32906);
         -- second spell
-        INSERT INTO spell_script_target VALUES (65590, 1, 32914);
+        INSERT IGNORE INTO spell_script_target VALUES (65590, 1, 32906);
 */
