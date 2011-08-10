@@ -495,6 +495,18 @@ void Unit::SendTrajMonsterMove(float x, float y, float z, bool knockback, float 
     SendMessageToSet(&data, true);
 }
 
+void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time)
+{
+    PointPath pointPath;
+    pointPath.resize(2);
+    m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+    pointPath[1].x = x;
+    pointPath[1].y = y;
+    pointPath[1].z = z;
+    m_creature->GetMotionMaster()->MoveCharge(pointPath, time, 1, 1);
+    SendTrajMonsterMove(x, y, z, knockback, velocity, time, SPLINETYPE_NORMAL);
+}
+
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
 {
     if (!transitTime)

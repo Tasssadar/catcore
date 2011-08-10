@@ -2073,6 +2073,36 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                     // exclude caster (this can be important if this not original caster)
                     targetUnitMap.remove(m_caster);
+
+                    // Permafrost should not hit if behind saronite boulder
+                    if(m_spellInfo->Id == 68786)
+                    {
+                        std::list<Unit*> tmpMap = targetUnitMap;
+                        GameObject *pGo = NULL;
+                        for(std::list<Unit*>::iterator itr = tmpMap.begin(); itr != tmpMap.end(); ++itr)
+                        {
+                            pGo = NULL;
+                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*itr, 196485, 5.0f);
+                            MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pSource, pGo, go_check);
+
+                            Cell::VisitGridObjects(*itr, searcher, 5.0f);
+                            if(!pGo)
+                                continue;
+
+                            float angle =  pGo->GetAngle(m_caster) + M_PI_F;
+                            angle = angle > M_PI_F*2 ? angle - M_PI_F*2 : angle;
+                            float angle_min = angle - M_PI_F*0.4f;
+                            float angle_max = angle + M_PI_F*0.4f;
+                            angle_min = angle_min < 0 ? angle_min + M_PI_F*2 : angle_min;
+                            angle_max = angle_max > M_PI_F*2 ? angle_max - M_PI_F*2 : angle_max;
+
+                            angle = pGo->GetAngle(*itr);
+                            if(angle_min < angle_max && angle > angle_min && angle < angle_max)
+                                targetUnitMap.remove(*itr);
+                            else if(angle_min > angle_max && (angle < angle_max || angle > angle_min))
+                                targetUnitMap.remove(*itr);
+                        }
+                    }
                     break;
             }
             break;

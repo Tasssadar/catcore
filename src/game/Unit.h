@@ -1503,7 +1503,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0, Player* player = NULL);
         void SendSplineMove(SplineWayPointMap *pWps, SplineType type, SplineFlags flags, uint32 time, Player* player, ...);
         void SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...);
-
+        void TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time);
         template<typename PathElem, typename PathNode>
         void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
 
