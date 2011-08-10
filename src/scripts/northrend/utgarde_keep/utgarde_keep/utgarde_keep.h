@@ -13,6 +13,7 @@ enum
     NPC_KELESETH                = 23953,
     NPC_SKARVALD                = 24200,
     NPC_DALRONN                 = 24201,
+    NPC_INGVAR                  = 23954,
 
     GO_BELLOW_1                 = 186688,
     GO_BELLOW_2                 = 186689,
