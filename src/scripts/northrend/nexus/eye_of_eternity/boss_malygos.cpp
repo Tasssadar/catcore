@@ -362,10 +362,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         m_uiSurgeOfPowerTimer = 30000;
         
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
-        m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-        m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetSpeedRate(MOVE_FLIGHT, 3.5f, true);
         m_creature->SetSpeedRate(MOVE_RUN, 3.5f, true);
         m_creature->SetSpeedRate(MOVE_WALK, 3.5f, true);
@@ -563,13 +560,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         m_creature->SendMessageToSet(&data, false);
         m_creature->GetMap()->CreatureRelocation(m_creature, cx, cy, z, m_creature->GetOrientation());
 
-        if (takeoff){
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
-        }else{
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
-        }
+        if (takeoff)
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        else
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
     }
 
     void DoVortex(uint8 phase)
@@ -1258,8 +1252,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
                 if (Creature *pTemp = m_creature->SummonCreature(NPC_ALEXSTRASZA, OtherLoc[3].x, OtherLoc[3].y, OtherLoc[3].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
-                    pTemp->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-                    pTemp->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+                    pTemp->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     m_creature->SetFacingToObject(pTemp);
                     pTemp->SetFacingToObject(m_creature);
                     pTemp->SetVisibility(VISIBILITY_OFF);
