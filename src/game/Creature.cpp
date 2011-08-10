@@ -517,9 +517,9 @@ void Creature::Update(uint32 diff)
 
             if (!IsInEvadeMode())
             {
-                if (m_TimerMgr)
-                    if (SelectHostileTarget() && getVictim())
-                        m_TimerMgr->UpdateTimers(diff);
+                //if (m_TimerMgr)
+                //    if (SelectHostileTarget() && getVictim())
+                //        m_TimerMgr->UpdateTimers(diff);
 
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;

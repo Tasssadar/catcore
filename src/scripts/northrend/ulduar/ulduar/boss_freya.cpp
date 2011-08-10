@@ -80,6 +80,13 @@ enum
     SPELL_BUFF_STONEBARK            = 62483,
     SPELL_BUFF_STONEBARK_H          = 65589,
 
+    SPELL_BUFF_BRIGHTLEAF2          = 62385,
+    SPELL_BUFF_BRIGHTLEAF2_H        = 65585,
+    SPELL_BUFF_IRONBRANCH2          = 62387,
+    SPELL_BUFF_IRONBRANCH2_H        = 65586,
+    SPELL_BUFF_STONEBARK2           = 62386,
+    SPELL_BUFF_STONEBARK2_H         = 65590,
+
     NPC_SUN_BEAM                    = 33170,
     NPC_UNSTABLE_SUN_BEAM           = 33050,
 
@@ -681,18 +688,33 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
 
             // check brightleaf
             if (Creature* pBrightleaf = m_pInstance->GetCreature(NPC_BRIGHTLEAF))
+            {
                 if (m_bIsBrightleafAlive = pBrightleaf->isAlive())
-                    pBrightleaf->CastSpell(pBrightleaf, SPELL_DRAINED_OF_POWER, false);
+                {
+                    pBrightleaf->CastSpell(pBrightleaf, m_bIsRegularMode ? SPELL_BUFF_BRIGHTLEAF2 : SPELL_BUFF_BRIGHTLEAF2_H, false);
+                    pBrightleaf->CastSpell(pBrightleaf, SPELL_DRAINED_OF_POWER, true);
+                }
+            }
 
             // check ironbranch
             if (Creature* pIronbranch = m_pInstance->GetCreature(NPC_IRONBRACH))
+            {
                 if (m_bIsIronbranchAlive = pIronbranch->isAlive())
-                    pIronbranch->CastSpell(pIronbranch, SPELL_DRAINED_OF_POWER, false);
+                {
+                    pIronbranch->CastSpell(pIronbranch, m_bIsRegularMode ? SPELL_BUFF_IRONBRANCH2 : SPELL_BUFF_IRONBRANCH2_H, false);
+                    pIronbranch->CastSpell(pIronbranch, SPELL_DRAINED_OF_POWER, true);
+                }
+            }
 
             // check stonebark
             if (Creature* pStonebark = m_pInstance->GetCreature(NPC_STONEBARK))
+            {
                 if (m_bIsStonebarkAlive = pStonebark->isAlive())
-                    pStonebark->CastSpell(pStonebark, SPELL_DRAINED_OF_POWER, false);
+                {
+                    pStonebark->CastSpell(pStonebark, m_bIsRegularMode ? SPELL_BUFF_STONEBARK2 : SPELL_BUFF_STONEBARK2_H, false);
+                    pStonebark->CastSpell(pStonebark, SPELL_DRAINED_OF_POWER, true);
+                }
+            }
         }
 
         m_bIsHardMode = CheckHardMode();
@@ -930,8 +952,8 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             // Hardmode
             if (m_bIsBrightleafAlive)
             {
-                if (!m_creature->HasAura(SPELL_BRIGHTLEAFS_ESSENCE, EFFECT_INDEX_0))
-                    DoCast(m_creature, SPELL_BRIGHTLEAFS_ESSENCE);
+                //if (!m_creature->HasAura(SPELL_BRIGHTLEAFS_ESSENCE, EFFECT_INDEX_0))
+                //    DoCast(m_creature, SPELL_BRIGHTLEAFS_ESSENCE);
 
                 // hacky way, should be done by spell
                 if (m_uiUnstableEnergyTimer < uiDiff)
@@ -954,8 +976,8 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
 
             if (m_bIsIronbranchAlive)
             {
-                if (!m_creature->HasAura(SPELL_IRONBRANCH_ESSENCE, EFFECT_INDEX_0))
-                    DoCast(m_creature, SPELL_IRONBRANCH_ESSENCE);
+                //if (!m_creature->HasAura(SPELL_IRONBRANCH_ESSENCE, EFFECT_INDEX_0))
+                //    DoCast(m_creature, SPELL_IRONBRANCH_ESSENCE);
 
                 if (m_uiStrenghtenIronRootsTimer < uiDiff)
                 {
@@ -972,8 +994,8 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
             if (m_bIsStonebarkAlive)
             {
                 // aura doesn't work. Needs core fix
-                if (!m_creature->HasAura(SPELL_STONEBARKS_ESSENCE, EFFECT_INDEX_0))
-                    DoCast(m_creature, SPELL_STONEBARKS_ESSENCE);
+                //if (!m_creature->HasAura(SPELL_STONEBARKS_ESSENCE, EFFECT_INDEX_0))
+                //    DoCast(m_creature, SPELL_STONEBARKS_ESSENCE);
 
                 if (m_uiGroundTremorTimer < uiDiff)
                 {
@@ -1152,6 +1174,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
     uint32 m_uiSunBeamDespawn_Timer;
     uint32 m_uiUnstableEnergy_Timer;
     uint32 m_uiHealthyGrow_Timer;
+    uint32 m_uiHealthySpamTimer;
     uint64 m_uiNatureBombGUID;
     float m_fSize;
 
@@ -1171,6 +1194,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
         m_uiNonSelectable_Timer     = 5000;
         m_uiUnstableEnergy_Timer    = 1000;
         m_uiGrow_Timer              = 0;
+        m_uiHealthySpamTimer        = 0;
         m_uiNatureBombGUID          = 0;
         m_uiSunBeamDespawn_Timer    = urand(10000,11000);
         m_bHasGrown                 = false;
@@ -1202,7 +1226,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
             case NPC_HEALTHY_SPORE:
                 m_bNpcHealthySpore = true; 
                 DoCast(m_creature, SPELL_HEALTHY_SPORE_VISUAL);
-                m_TimerMgr->AddTimer(SPELL_POTENT_PHEROMONES_PROC, SPELL_POTENT_PHEROMONES_PROC, 0, 500, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+                m_uiHealthySpamTimer = 500;
                 break;
             case NPC_SUN_BEAM:
                 m_bNpcSunBeamFreya = true;
@@ -1287,7 +1311,13 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
                 m_creature->CastSpell(m_creature, SPELL_HEALTHY_SPORE_VISUAL, true);
 
             if (m_fSize > 1)
-                m_TimerMgr->CheckTimer(SPELL_POTENT_PHEROMONES_PROC);
+            {
+                if (HandleTimer(m_uiHealthySpamTimer, uiDiff, true))
+                {
+                    m_creature->CastSpell(m_creature, SPELL_POTENT_PHEROMONES_PROC, true);
+                    m_uiHealthySpamTimer = 500;
+                }
+            }
 
             if (m_uiHealthyGrow_Timer < uiDiff)
             {
@@ -1425,7 +1455,10 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_HEALTHY_SPORE, 200.f);
             for(CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            {
                 (*itr)->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.1);
+                (*itr)->ForcedDespawn();
+            }
         }
 
         if (m_bDetonatingLasher)
@@ -1457,11 +1490,18 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
 
     void DoSpores(int8 times)
     {
-        for(int8 i = 0; i < times; ++i)
+        for(int8 count = 0; count < times; ++count)
         {
-            for(int8 itr = 0; i < 3; ++i)
-                DoCast(m_creature, SPELL_SPORE_SUMMON_NE + itr);
-            DoCast(m_creature, SPELL_SPORE_SUMMON_NW);
+            float angle = rand_norm_f()*M_PI_F*2;
+            for(int8 i = 0; i < 4; ++i)
+            {
+                angle += M_PI_F/2;
+
+                float x,y;
+                float radius = urand(15, 40);
+                m_creature->GetNearPoint2D(x, y, radius, angle);
+                m_creature->SummonCreature(NPC_HEALTHY_SPORE, x, y, m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 30000);
+            }
         }
     }
 
