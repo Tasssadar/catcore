@@ -27,7 +27,7 @@
 #include "DBCEnums.h"
 #include "Database/DatabaseEnv.h"
 #include "Cell.h"
-
+#include "SpellTimerMgr.h"
 #include <list>
 
 struct SpellEntry;
@@ -665,6 +665,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void DoNotTriggerInstanceLock() { m_DoNotInsertToInstanceCombatList = true; }
 
+        SpellTimerMgr* CreateTimerMgr();
+
         uint32 SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float o, bool relocate = false);
 
         void LogKill(Unit* killer, int32 icomments = 0);
@@ -726,6 +728,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         bool m_DoNotInsertToInstanceCombatList;
         uint32 m_CombatWithPlayerIntervalCheck;
+
+        SpellTimerMgr* m_TimerMgr;
 
     private:
         GridReference<Creature> m_gridRef;

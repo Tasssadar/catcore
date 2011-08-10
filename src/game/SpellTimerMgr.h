@@ -28,7 +28,7 @@ struct SpellTimerMgr
         uint32 GetSpellId(uint32 timerId);
 
         bool CanBeTimerFinished(uint32 timerId);
-        bool FinishTimer(uint32 timerId, Unit* target = NULL);
+        bool FinishTimer(uint32 timerId);
 
     private:
         SpellTimerMap m_TimerMap;

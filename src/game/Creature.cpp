@@ -142,6 +142,9 @@ Creature::~Creature()
 
     delete i_AI;
     i_AI = NULL;
+
+    delete m_TimerMgr;
+    m_TimerMgr = NULL;
 }
 
 void Creature::AddToWorld()
@@ -511,9 +514,12 @@ void Creature::Update(uint32 diff)
 
             if (!IsInEvadeMode())
             {
+                if (m_TimerMgr)
+                    if (SelectHostileTarget() && getVictim())
+                        m_TimerMgr->UpdateTimers(diff);
+
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
-                i_AI->UpdateTimers(diff);
                 i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
@@ -2409,4 +2415,10 @@ void Creature::LogKill(Unit *killer, int32 icomments)
         << icomments << "')";
 
     CharacterDatabase.Execute(sql.str().c_str());
+}
+
+SpellTimerMgr* Creature::CreateTimerMgr()
+{
+    m_TimerMgr = new SpellTimerMgr((Unit*)this);
+    return m_TimerMgr;
 }

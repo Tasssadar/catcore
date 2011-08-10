@@ -23,7 +23,7 @@
 
 CreatureAI::~CreatureAI()
 {
-    delete m_TimerMgr;
+
 }
 
 void CreatureAI::AttackedBy( Unit* attacker )
@@ -121,12 +121,4 @@ CanCastResult CreatureAI::DoCastSpellIfCan(Unit* pTarget, uint32 uiSpell, uint32
     }
     else
         return CAST_FAIL_IS_CASTING;
-}
-
-void CreatureAI::UpdateTimers(const uint32 uiDiff)
-{
-    if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-        return;
-
-    m_TimerMgr->UpdateTimers(uiDiff);
 }

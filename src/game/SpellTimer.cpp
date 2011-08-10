@@ -3,7 +3,7 @@
 #include "Map.h"
 
 SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
-    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
+    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster), target_m(NULL)
 {
     SetInitialCooldown(initialCooldown);
     Reset(TIMER_VALUE_ALL);
@@ -145,17 +145,17 @@ bool SpellTimer::Finish(Unit *target)
     if (!spellInfo)
         return false;
 
-    Unit* c = getCaster();
-    Unit* t = getTarget(target);
+    Unit* uCaster = getCaster();
+    Unit* uTarget = getTarget(target);
 
     // checking just target, caster checked in getTarget()
-    if (!t || !t->IsInWorld())
+    if (!uTarget || !uTarget->IsInWorld())
         return false;
 
     if (castType_m == CAST_TYPE_FORCE)
-        c->InterruptNonMeleeSpells(false);
+        uCaster->InterruptNonMeleeSpells(false);
 
-    c->CastSpell(t, spellInfo, false);
+    uCaster->CastSpell(uTarget, spellInfo, false);
     Cooldown();
     SetTarget(NULL);
     return true;

@@ -188,10 +188,14 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
 
+    // Pointer to spell timer manager of creature
+    SpellTimerMgr* m_TimerMgr;
+
     private:
         bool   m_bCombatMovement;
         uint32 m_uiEvadeCheckCooldown;
         bool   m_bAttackEnabled;
+
 };
 
 struct MANGOS_DLL_DECL Scripted_NoMovementAI : public ScriptedAI

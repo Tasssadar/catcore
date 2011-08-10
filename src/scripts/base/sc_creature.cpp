@@ -18,7 +18,8 @@ struct TSpellSummary
 ScriptedAI::ScriptedAI(Creature* pCreature) : CreatureAI(pCreature),
     m_bCombatMovement(true),
     m_uiEvadeCheckCooldown(2500),
-    m_bAttackEnabled(true)
+    m_bAttackEnabled(true),
+    m_TimerMgr(pCreature->CreateTimerMgr())
 {}
 
 bool ScriptedAI::IsVisible(Unit* pWho) const

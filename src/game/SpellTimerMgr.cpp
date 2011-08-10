@@ -104,7 +104,8 @@ bool SpellTimerMgr::CheckTimer(uint32 timerId, Unit *target)
         }
     }
 
-    return FinishTimer(timerId,target);
+    timer->SetTarget(target);
+    return FinishTimer(timerId);
 }
 
 bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
@@ -121,9 +122,9 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
+bool SpellTimerMgr::FinishTimer(uint32 timerId)
 {
-    if (m_TimerMap[timerId]->Finish(target))
+    if (m_TimerMap[timerId]->Finish())
     {
         m_GCD->Cooldown(m_TimerMap[timerId]->getGCD());
         return true;
