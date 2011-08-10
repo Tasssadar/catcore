@@ -143,8 +143,11 @@ Creature::~Creature()
     delete i_AI;
     i_AI = NULL;
 
-    delete m_TimerMgr;
-    m_TimerMgr = NULL;
+    if (m_TimerMgr)
+    {
+        delete m_TimerMgr;
+        m_TimerMgr = NULL;
+    }
 }
 
 void Creature::AddToWorld()
@@ -514,9 +517,9 @@ void Creature::Update(uint32 diff)
 
             if (!IsInEvadeMode())
             {
-                if (m_TimerMgr)
-                    if (SelectHostileTarget() && getVictim())
-                        m_TimerMgr->UpdateTimers(diff);
+                //if (m_TimerMgr)
+                //    if (SelectHostileTarget() && getVictim())
+                //        m_TimerMgr->UpdateTimers(diff);
 
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
