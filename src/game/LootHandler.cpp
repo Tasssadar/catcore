@@ -85,6 +85,7 @@ void WorldSession::HandleAutostoreLootItemOpcode( WorldPacket & recv_data )
             loot = &bones->loot;
             break;
         }
+        case HIGHGUID_VEHICLE:
         case HIGHGUID_UNIT:
         {
             Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid);

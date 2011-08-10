@@ -2075,14 +2075,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.remove(m_caster);
 
                     // Permafrost should not hit if behind saronite boulder
-                    if(m_spellInfo->Id == 68786)
+                    if(m_spellInfo->Id == 68786 || m_spellInfo->Id == 70336)
                     {
                         std::list<Unit*> tmpMap = targetUnitMap;
                         GameObject *pGo = NULL;
                         for(std::list<Unit*>::iterator itr = tmpMap.begin(); itr != tmpMap.end(); ++itr)
                         {
                             pGo = NULL;
-                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*itr, 196485, 5.0f);
+                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*(*itr), 196485, 5.0f);
                             MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pSource, pGo, go_check);
 
                             Cell::VisitGridObjects(*itr, searcher, 5.0f);

@@ -768,6 +768,7 @@ void Vehicle::InstallAllAccessories()
             pPassenger->Relocate(GetPositionX(), GetPositionY(), GetPositionZ());
             GetMap()->Add(pPassenger);
             pPassenger->AIM_Initialize();
+            pPassenger->SetSummonPoint(GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
         }
         else
             pPassenger = (Creature*)SummonVehicle(cPassanger->entry, GetPositionX(), GetPositionY(), GetPositionZ(), 0, 0, this, cPassanger->seat_idx);
