@@ -226,9 +226,11 @@ void SpellMgr::ApplySpellHacks()
     SpellEntry *sfix36 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62968));
     sfix36->Effect[1] = 0;
 
-    // *sigh* wrong trigger spell id
-    SpellEntry *sfix37 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69012));
-    sfix37->EffectTriggerSpell[0] = 69015;
+    // *sigh* wrong trigger spell id, but resolve it in script
+    //SpellEntry *sfix37 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69012));
+    //sfix37->EffectTriggerSpell[0] = 69015;
 
-    
+    // Wrong target type...
+    SpellEntry *sfix38 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+    sfix38->EffectImplicitTargetA[2] = 1;
 }

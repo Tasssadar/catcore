@@ -1523,8 +1523,6 @@ bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIn
         }
     }
 
-    if/
-
     return Unit::IsImmunedToSpellEffect(spellInfo, index);
 }
 

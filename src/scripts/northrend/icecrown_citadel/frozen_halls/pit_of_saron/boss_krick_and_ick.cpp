@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
+#include "Vehicle.h"
 
 enum
 {
@@ -67,7 +68,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
 
     void Reset()
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         ickDead = false;
     }
 
@@ -97,6 +98,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         switch(action)
         {
             case ACTION_ICK_DEAD:
+                m_creature->InterruptNonMeleeSpells(false);
                 ickDead = true;
                 break;
         }
@@ -126,18 +128,15 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
     uint32 m_uiPursuitTimer;
     uint8 m_uiPursuitPhase;
     uint32 m_uiOrbsTimer;
+    uint8 m_uiOrbsCount;
     bool m_uiOrbs;
 
     Creature *pKrick;
     Unit *pPursuitTarget;
     void Reset()
     {
-        m_uiToxicWasteTimer = 10000;
-        m_uiPestulantFleshTimer = 8000;
-        m_uiPoisionNovaTimer = 16000;
-        m_uiPursuitTimer = 10000;
         m_uiPursuitPhase = 0;
-        m_uiOrbsTimer = 30000;
+        m_uiOrbsCount = 0;
         m_uiOrbs = false;
         SetCombatMovement(true);
         if(!m_creature->isVehicle())
@@ -148,11 +147,21 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 return;
             float x, y, z;
             m_creature->GetPosition(x, y, z);
-            Vehicle *pIck = pCreature->SummonVehicle(NPC_ICK, x, y, z, m_creature->GetOrientation(), 522, NULL, 0);
+            Vehicle *pIck = m_creature->SummonVehicle(NPC_ICK, x, y, z, m_creature->GetOrientation(), 522, NULL, 0);
             pIck->SetRespawnDelay(86400);
         }
         pKrick = NULL;
         pPursuitTarget = NULL;
+        ResetTimers();
+    }
+
+    void ResetTimers()
+    {
+        m_uiToxicWasteTimer = 10000;
+        m_uiPestulantFleshTimer = 8000;
+        m_uiPoisionNovaTimer = 16000;
+        m_uiPursuitTimer = 10000;
+        m_uiOrbsTimer = 30000;
     }
 
     void Aggro(Unit* pWho)
@@ -174,6 +183,17 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
         DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
+    void SummonOrbs()
+    {
+        PlrList pList = GetAttackingPlayers();
+        for (PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        {
+            if(!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
+                continue;
+            pKrick->CastSpell(*itr, SPELL_ORB_SUMMON, true);
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -183,11 +203,19 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
         {
             if(!m_uiOrbs)
             {
-                pKrick->CastSpell(pKrick, SPELL_EXPLOSIVE_BARRAGE_CHANNEL);
+                m_uiPursuitTimer = 30000;
+                pKrick->CastSpell(pKrick, SPELL_EXPLOSIVE_BARRAGE_CHANNEL, false);
                 SetCombatMovement(false);
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveIdle();
-                m_uiOrbsTimer = 20000;
+                m_uiOrbsTimer = 2000;
+                m_uiOrbsCount = 0;
+            }
+            else if(m_uiOrbsCount < 8)
+            {
+                SummonOrbs();
+                m_uiOrbsTimer = 2000;
+                ++m_uiOrbsCount;
             }
             else
             {
@@ -195,6 +223,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_uiOrbsTimer = 30000;
+                m_uiPursuitTimer = urand(13000, 16000);
             }
             m_uiOrbs = !m_uiOrbs;
         }else m_uiOrbsTimer -= uiDiff;
@@ -232,14 +261,15 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                         m_uiPursuitTimer = 10000;
                         break;
                     }
-                    DoCast(m_uiPursuitTarget, SPELL_PURSUIT);
-                    m_creature->AddThreat(m_uiPursuitTarget, 10000000.0f);
+                    DoCast(pPursuitTarget, SPELL_PURSUIT);
+                    m_creature->AddThreat(pPursuitTarget, 10000000.0f);
                     ++m_uiPursuitPhase;
                     m_uiPursuitTimer = 12000;
+                    m_uiOrbsTimer = 20000;
                     break;
                 case 1:
-                    if(m_uiPursuitTarget && m_uiPursuitTarget->IsInWorld() && m_uiPursuitTarget->isAlive())
-                        m_creature->AddThreat(m_uiPursuitTarget, -10000000.0f);
+                    if(pPursuitTarget && pPursuitTarget->IsInWorld() && pPursuitTarget->isAlive())
+                        m_creature->AddThreat(pPursuitTarget, -10000000.0f);
                     m_uiPursuitTimer = urand(13000, 16000);
                     m_uiPursuitPhase = 0;
                     break;

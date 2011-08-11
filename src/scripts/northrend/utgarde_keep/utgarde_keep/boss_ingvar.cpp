@@ -122,7 +122,10 @@ struct MANGOS_DLL_DECL boss_ingvarAI : public ScriptedAI
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
         if (m_phase == 1)
+        {
+            uiDamage = 0;
             return;
+        }
 
         if (m_phase == 0 && uiDamage >= m_creature->GetHealth())
         {
