@@ -24,6 +24,8 @@ EndScriptData */
 #include "precompiled.h"
 #include "pit_of_saron.h"
 
+const float guidPos [4] = { 441.39f, 213.32f, 528.71f, 0.104f };
+
 struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
 {
     instance_pit_of_saron(Map* pMap) : ScriptedInstance(pMap) {Initialize();};
@@ -36,6 +38,11 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
     uint64 m_uiKrickGUID;
     uint64 m_uiTyrannusGUID;
     uint64 m_uiIceWallGUID;
+    uint64 m_uiTyrannusIntroGUID;
+    
+    int8 m_uiFaction;
+    uint8 m_eventState;
+    bool m_eventNpcsSummoned;
 
     void Initialize()
     {
@@ -46,14 +53,42 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         m_uiTyrannusGUID = 0;
         m_uiIceWallGUID = 0;
         m_uiKrickGUID = 0;
+        m_uiFaction = -1;
+        m_eventState = 0;
+        m_eventNpcsSummoned = false;
     }
 
     void OnCreatureCreate(Creature* pCreature)
     {
         switch(pCreature->GetEntry())
         {
-            case NPC_GARFROST:            m_uiGarfrostGUID = pCreature->GetGUID(); break;
-            case NPC_TYRANNUS:            m_uiTyrannusGUID = pCreature->GetGUID(); break;
+            case NPC_GARFROST:            m_uiGarfrostGUID     = pCreature->GetGUID(); break;
+            case NPC_TYRANNUS:            m_uiTyrannusGUID     = pCreature->GetGUID(); break;
+            case NPC_TYRANNUS_INTRO:      m_uiTyrannusIntroGUID = pCreature->GetGUID(); break;
+        }
+    }
+
+    void OnPlayerEnter(Player *plr)
+    {
+        if(m_uiFaction == -1)
+        {
+            if(plr->GetTeam() == HORDE)
+                m_uiFaction = 1;
+            else
+                m_uiFaction = 0;
+        }
+        if(!m_eventNpcsSummoned)
+            SummonEventNpcs(plr);
+    }
+
+    void SummonEventNpcs(Player *plr)
+    {
+        m_eventNpcsSummoned = true;
+        switch(m_eventState)
+        {
+            case 0:
+                plr->SummonCreature(m_uiFaction ? NPC_SYLVANAS_BEGIN : NPC_JAINA_BEGIN, guidPos[0], guidPos[1], guidPos[2], guidPos[3], TEMPSUMMON_MANUAL_DESPAWN, 0);
+                break;
         }
     }
 
@@ -88,17 +123,21 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             case TYPE_TYRANNUS:
                 m_auiEncounter[2] = uiData;
                 break;
+            case TYPE_EVENT_STATE:
+                m_eventState = uiData;
+                break;
             default:
                 error_log("SD2: Instance Pit of Saron: ERROR SetData = %u for type %u does not exist/not implemented.",uiType,uiData);
                 break;
         }
 
-        if (uiData == DONE)
+        if (uiData == DONE || uiType == TYPE_EVENT_STATE)
         {
             OUT_SAVE_INST_DATA;
 
             std::ostringstream saveStream;
-            saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " ";
+            saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
+                       << m_uiFaction << " " << m_eventState << " ";
 
             strInstData = saveStream.str();
 
@@ -133,7 +172,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         OUT_LOAD_INST_DATA(chrIn);
 
         std::istringstream loadStream(chrIn);
-        loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2];
+        loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_uiFaction >> m_eventState;
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         {
@@ -154,6 +193,10 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
                 return m_auiEncounter[1];
             case TYPE_TYRANNUS:
                 return m_auiEncounter[2];
+            case TYPE_FACTION:
+                return m_uiFaction;
+            case TYPE_EVENT_STATE:
+                return m_eventState;
         }
         return 0;
     }
@@ -163,6 +206,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         switch(uiData)
         {
             case NPC_KRICK: return m_uiKrickGUID;
+            case NPC_TYRANNUS_INTRO: return m_uiTyrannusIntroGUID;
         }
         return 0;
     }

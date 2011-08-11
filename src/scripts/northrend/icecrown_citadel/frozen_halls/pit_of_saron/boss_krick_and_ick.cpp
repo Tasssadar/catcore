@@ -210,8 +210,9 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_creature->GetMotionMaster()->MoveIdle();
                 m_uiOrbsTimer = 2000;
                 m_uiOrbsCount = 0;
+                m_uiOrbs = true;
             }
-            else if(m_uiOrbsCount < 8)
+            else if(m_uiOrbs && m_uiOrbsCount <= 8)
             {
                 SummonOrbs();
                 m_uiOrbsTimer = 2000;
@@ -224,15 +225,20 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
                 m_uiOrbsTimer = 30000;
                 m_uiPursuitTimer = urand(13000, 16000);
+                m_uiOrbs = false;
+                ResetTimers();
             }
-            m_uiOrbs = !m_uiOrbs;
+            
         }else m_uiOrbsTimer -= uiDiff;
 
+        if(m_uiOrbs)
+            return;
+        
         if(m_uiToxicWasteTimer <= uiDiff)
         {
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
             if(plr)
-                DoCast(plr, SPELL_TOXIC_WASTE);
+                DoCastSpellIfCan(plr, SPELL_TOXIC_WASTE);
             m_uiToxicWasteTimer = 10000;
         }else m_uiToxicWasteTimer -= uiDiff;
 
@@ -240,13 +246,16 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
         {
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
             if(plr)
-                DoCast(plr, m_bIsRegularMode ? SPELL_PUSTULANT_FLESH : SPELL_PUSTULANT_FLESH_H);
+                DoCastSpellIfCan(plr, m_bIsRegularMode ? SPELL_PUSTULANT_FLESH : SPELL_PUSTULANT_FLESH_H);
             m_uiPestulantFleshTimer = urand(8000, 12000);
         }else m_uiPestulantFleshTimer -= uiDiff;
 
         if(m_uiPoisionNovaTimer <= uiDiff)
         {
-            DoCast(m_creature, m_bIsRegularMode ? SPELL_POISON_NOVA : SPELL_POISON_NOVA_H);
+            m_creature->InterruptNonMeleeSpells(false);
+            if(m_uiPursuitTimer < 5000)
+                m_uiPursuitTimer = 5000;
+            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_POISON_NOVA : SPELL_POISON_NOVA_H);
             m_uiPoisionNovaTimer = urand(14000, 20000);
         }else m_uiPoisionNovaTimer -= uiDiff;
 
@@ -255,17 +264,20 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
             switch(m_uiPursuitPhase)
             {
                 case 0:
-                    pPursuitTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+                    pPursuitTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
                     if(!pPursuitTarget)
                     {
                         m_uiPursuitTimer = 10000;
                         break;
                     }
+                    m_creature->InterruptNonMeleeSpells(false);
+                    if(m_uiPoisionNovaTimer < 20000)
+                        m_uiPoisionNovaTimer = 20000;
                     DoCast(pPursuitTarget, SPELL_PURSUIT);
                     m_creature->AddThreat(pPursuitTarget, 10000000.0f);
                     ++m_uiPursuitPhase;
-                    m_uiPursuitTimer = 12000;
-                    m_uiOrbsTimer = 20000;
+                    m_uiPursuitTimer = 17000;
+                    m_uiOrbsTimer = 27000;
                     break;
                 case 1:
                     if(pPursuitTarget && pPursuitTarget->IsInWorld() && pPursuitTarget->isAlive())

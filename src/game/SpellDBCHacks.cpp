@@ -232,5 +232,9 @@ void SpellMgr::ApplySpellHacks()
 
     // Wrong target type...
     SpellEntry *sfix38 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+    sfix38->EffectImplicitTargetA[0] = 6;
+    sfix38->EffectImplicitTargetA[0] = 0;
+    sfix38->EffectImplicitTargetA[1] = 6;
+    sfix38->EffectImplicitTargetB[1] = 0;
     sfix38->EffectImplicitTargetA[2] = 1;
 }

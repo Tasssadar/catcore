@@ -13385,7 +13385,7 @@ bool Unit::SelectHostileTarget()
     }
 
     // enter in evade mode in other case
-    if (!((Creature*)this)->isVehicle())
+    if (!((Creature*)this)->isVehicle() && !GetCharmerGUID())
         ((Creature*)this)->AI()->EnterEvadeMode();
 
     return false;

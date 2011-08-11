@@ -1901,6 +1901,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     }
 
     v->Relocate(x, y, z, ang);
+    v->SetSummonPoint(x, y, z, ang);
 
     if (!v->IsPositionValid())
     {
