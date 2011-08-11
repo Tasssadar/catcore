@@ -1,7 +1,6 @@
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
-#include "../../../../../../dep/recastnavigation/RecastDemo/Contrib/stb_image.h"
 
 const float mobPosLeft[][3] =
 {
@@ -27,23 +26,24 @@ const float mobPosRight[][3] =
    {443.485, 191.246, 528.754}, // pravo 37497 (37587)
 };
 
-const uint32 heroIds [][2]
+const uint32 heroIds [][2] =
 {
     {37498, 37587},
     {37496, 37584},
     {37497, 37588},
 };
 
-const uint32 necrolytePos[2][3]
+const uint32 necrolytePos[2][3] =
 {
-    {496.83, 198.89, 528.794}, // right
-    {497.31, 247.85, 528.791}, // left
+    {496.83, 198.89, 530.5}, // right
+    {497.31, 247.85, 530.5}, // left
 };
 
 
 #define INTRO_MOB_COUNT_LEFT 5
 #define INTRO_MOB_COUNT_RIGHT 11
 
+/*
 INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_loc1`, `content_loc2`, `content_loc3`, `content_loc4`, `content_loc5`, `content_loc6`, `content_loc7`, `content_loc8`, `sound`, `type`, `language`, `emote`, `comment`) VALUES
 ('-1658901', 'Chm! Farther, not event fit to laber in the quarry. Relish these final moments, for soon you will be nothing more the mindless undead.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16748', '1', '0', '0', ''),
 ('-1658900', 'Intruders have entered the Master''s domain. Signal the alarms!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', 'Tyrranus opening'),
@@ -53,7 +53,7 @@ INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_lo
 ('-1658905', 'Minions! Destroy these interlopers!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16751', '1', '0', '0', ''),
 ('-1658906', 'No, you monster!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16627', '1', '0', '0', ''),
 ('-1658907', 'Pathetic weaklings...', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17046', '1', '0', '0', ''),
-('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16628', '1', '0', '0', ''),
+('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16629', '1', '0', '0', ''),
 ('-1658909', 'You will have to battle your way threw this pit on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17047', '1', '0', '0', ''),
 ('-1658910', 'Free any Alliance slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16629', '1', '0', '0', ''),
 ('-1658911', 'Free any Horde slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17048', '1', '0', '0', ''),
@@ -63,13 +63,13 @@ INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_lo
 ('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
 ('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
 
-
+*/
 enum
 {
     SAY_TYRANNUS_INTRO1     = -1658900,
-    SAY_TYRANNUS_INTRO2     = -1658902,
+    SAY_TYRANNUS_INTRO2     = -1658901,
     SAY_TYRANNUS_INTRO3     = -1658904,
-    SAY_TYRANNUS_INTRO3     = -1658905,
+    SAY_TYRANNUS_INTRO4     = -1658905,
 
     SOUND_TYRRANNUS_TRANSFORM = 16750,
 
@@ -81,7 +81,7 @@ enum
     NPC_SKELETAL_SLAVE      = 36881,
 };
 
-const int32 say_guide[][2]
+const int32 say_guide[][2] = 
 {
     {-1658902, -1658903},
     {-1658906, -1658907},
@@ -115,8 +115,11 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     void Reset()
     {
-        if(m_pInstance)
+        if(!m_pInstance)
+        {
             m_creature->ForcedDespawn();
+            return;
+        }
         faction = m_pInstance->GetData(TYPE_FACTION);
         eventState = m_pInstance->GetData(TYPE_EVENT_STATE);
         stopped = false;
@@ -176,12 +179,12 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
     {
         Creature *acolyte = rightHerosList[rightHerosList.size()-1];
         rightHerosList.pop_back();
-        for(std::vector<Creture*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+        for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
             (*itr)->AI()->AttackStart(acolyte);
 
         acolyte = leftHerosList[leftHerosList.size()-1];
         leftHerosList.pop_back();
-        for(std::vector<Creture*>::iterator itr = leftHerosList.begin(); itr != leftHerosList.end(); ++itr)
+        for(std::vector<Creature*>::iterator itr = leftHerosList.begin(); itr != leftHerosList.end(); ++itr)
         {
             (*itr)->AI()->AttackStart(acolyte);
             // put everything into right
@@ -192,22 +195,32 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
     void DoStrangulate(bool up, uint32 time)
     {
         float x, y, z;
-        for(std::vector<Creture*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+        for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
         {
             (*itr)->GetPosition(x, y, z);
             if(up)
             {
                 (*itr)->CastSpell(*itr, SPELL_STRANGULATE, true);
-                (*itr)->CombatStop();
+                (*itr)->AI()->DoAction(0);
+                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                (*itr)->GetMotionMaster()->Clear(false, true);
+                (*itr)->GetMotionMaster()->MoveIdle();
                 z += 10.0f;
             }
             else
             {
+                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
                 (*itr)->RemoveAurasDueToSpell(SPELL_STRANGULATE);
                 z -= 9.5f;
             }
-            (*itr)->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_NONE, time);
-            (*itr)->GetMap()->CreatureRelocation(x, y, z, 0.104f);
+            WorldPacket heart;
+            (*itr)->BuildHeartBeatMsg(&heart);
+            (*itr)->SendMessageToSet(&heart, false);
+ 
+            (*itr)->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, time);
+            (*itr)->GetMap()->CreatureRelocation(*itr, x, y, z, 0.104f);
         }
     }
 
@@ -222,7 +235,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             {
                 case 0:
                    pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO1);
-                   m_uiEventTimer = 4000;
+                   m_uiEventTimer = 5000;
                    break;
                case 1:
                    pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO2);
@@ -234,18 +247,19 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    break;
                case 3:
                    DoAttack();
-                   m_uiEventTimer = 4000;
+                   m_uiEventTimer = 5000;
                    break;
                case 4:
                    DoStrangulate(true, 4000);
-                   m_uiEventTimer = 4000;
+                   pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO3);
+                   m_uiEventTimer = 6000;
                    break;
                case 5:
                    pTyrannus->AI()->DoAction(SOUND_TYRRANNUS_TRANSFORM);
                    m_uiEventTimer = 7000;
                    break;
                case 6:
-                   for(std::vector<Creture*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+                   for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
                        pTyrannus->CastSpell(*itr, SPELL_TURN_TO_UNDEAD, false);
                        (*itr)->UpdateEntry(NPC_SKELETAL_SLAVE);
@@ -258,9 +272,14 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    m_uiEventTimer = 2000;
                    break;
                case 8:
-                   for(std::vector<Creture*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+                   pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO4);
+                   for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+                   {
+                       (*itr)->AI()->DoAction(1);
                        (*itr)->AI()->AttackStart(m_creature);
-                   m_uiEventTimer = 2000;
+                       (*itr)->AddThreat(m_creature, 1000000.0f);
+                   }
+                   m_uiEventTimer = 3000;
                    break;
                case 9:
                    if(faction)
@@ -299,6 +318,9 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
         Reset();
     }
 
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
     void Reset()
     {
     }
@@ -314,18 +336,48 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
         {
             case SAY_TYRANNUS_INTRO1:
             case SAY_TYRANNUS_INTRO2:
-            case SAY_TYRANNUS_INTRO3
+            case SAY_TYRANNUS_INTRO3:
+            case SAY_TYRANNUS_INTRO4:
                 DoScriptText(action, m_creature);
                 return;
             case SOUND_TYRRANNUS_TRANSFORM:
-                DoPlaySoundToSet(this, action);
+                DoPlaySoundToSet(m_creature, action);
                 return;
         }
     }
-    
+
     void UpdateAI(const uint32 uiDiff)
     {
-       
+        
+    }
+};
+
+struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
+{
+    mob_pos_heroAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
+    void Reset()
+    {
+    }
+
+    void DoAction(uint32 action)
+    {
+        SetCombatMovement(action);
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -337,6 +389,11 @@ CreatureAI* GetAI_mob_pos_guide_start(Creature* pCreature)
 CreatureAI* GetAI_mob_tyrannus_intro(Creature* pCreature)
 {
     return new mob_tyrannus_introAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_pos_hero(Creature* pCreature)
+{
+    return new mob_pos_heroAI(pCreature);
 }
 
 void AddSC_pit_of_saron()
@@ -351,5 +408,10 @@ void AddSC_pit_of_saron()
     newscript = new Script;
     newscript->Name = "mob_tyrannus_intro";
     newscript->GetAI = &GetAI_mob_tyrannus_intro;
+    newscript->RegisterSelf();
+
+     newscript = new Script;
+    newscript->Name = "mob_pos_hero";
+    newscript->GetAI = &GetAI_mob_pos_hero;
     newscript->RegisterSelf();
 }
