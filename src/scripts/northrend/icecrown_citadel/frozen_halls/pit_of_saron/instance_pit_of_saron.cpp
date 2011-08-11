@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
+#include "Vehicle.h"
 
 const float guidPos [4] = { 441.39f, 213.32f, 528.71f, 0.104f };
 const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
@@ -40,9 +41,10 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
     uint64 m_uiTyrannusGUID;
     uint64 m_uiIceWallGUID;
     uint64 m_uiTyrannusIntroGUID;
+    uint64 m_uiRimefangGUID;
     
-    uint8 m_uiFaction;
-    uint8 m_eventState;
+    uint32 m_uiFaction;
+    uint32 m_eventState;
     bool m_eventNpcsSummoned;
 
     void Initialize()
@@ -56,6 +58,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         m_uiKrickGUID = 0;
         m_uiFaction = 3;
         m_eventState = 0;
+        m_uiRimefangGUID = 0;
         m_eventNpcsSummoned = false;
     }
 
@@ -64,7 +67,6 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         switch(pCreature->GetEntry())
         {
             case NPC_GARFROST:            m_uiGarfrostGUID     = pCreature->GetGUID(); break;
-            case NPC_TYRANNUS:            m_uiTyrannusGUID     = pCreature->GetGUID(); break;
             case NPC_TYRANNUS_INTRO:      m_uiTyrannusIntroGUID = pCreature->GetGUID(); break;
         }
     }
@@ -92,7 +94,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
                 break;
             case 1:
             {
-                Creature *pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS_INTRO));
+                Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
                 if(pTyrannus)
                 {
                     pTyrannus->AI()->DoAction(0);
@@ -170,6 +172,12 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             case NPC_KRICK:
                 m_uiKrickGUID = Value;
                 break;
+            case NPC_TYRANNUS:
+                m_uiTyrannusGUID = Value;
+                break;
+            case NPC_RIMEFANG:
+                m_uiRimefangGUID = Value;
+                break;
         }
     }
 
@@ -224,6 +232,8 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         {
             case NPC_KRICK: return m_uiKrickGUID;
             case NPC_TYRANNUS_INTRO: return m_uiTyrannusIntroGUID;
+            case NPC_TYRANNUS: return m_uiTyrannusGUID;
+            case NPC_RIMEFANG: return m_uiRimefangGUID;
         }
         return 0;
     }

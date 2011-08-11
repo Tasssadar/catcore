@@ -135,8 +135,8 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                 
                 pGuide = m_creature->SummonCreature(faction ? NPC_SYLVANAS_BEGIN : NPC_JAINA_BEGIN,
                                            guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                float x = guidePos[0] + cos(guidePos[3])*15;
-                float y = guidePos[1] + sin(guidePos[3])*15;
+                float x = guidePos[0] + cos(guidePos[3])*30;
+                float y = guidePos[1] + sin(guidePos[3])*30;
                 if(pGuide && pTyrannus)
                 {
                     ickDead = true;
