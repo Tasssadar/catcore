@@ -23,7 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
-#include "vehicle.h"
+#include "Vehicle.h"
 
 enum
 {
@@ -123,8 +123,9 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                         break;
                     case 2:
                         SetCombatMovement(true);
+                        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         if(m_creature->getVictim())
-                            m_creature->AttackStart(m_creature->getVictim());
+                            AttackStart(m_creature->getVictim());
                         m_intro = false;
                         break;
                 }
@@ -138,6 +139,18 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         DoMeleeAttackIfReady();
     }
 };
+
+const float dismountPos[3] = { 1028.41f, 167.93, 628.2};
+const float fightPos[][3] =
+{
+    { 966.32,  178.91, 670.93 },
+    { 1076.13, 138.98, 670.93 },
+    { 1035.96, 208.28, 670.93 },
+    { 988.35,  113.54, 670.93 },
+    { 1012.25, 160.87, 670.93 },
+};
+
+#define FIGHT_POS 4
 
 struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
 {
@@ -155,7 +168,8 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
 
     Creature *pTyrannus;
     bool m_intro;
-    float m_z;
+
+    uint32 flyTimer;
     
     void Reset()
     {
@@ -168,7 +182,28 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
         }
         pTyrannus= NULL;
         m_intro = false;
-        m_z = m_creature->GetPositionZ();
+        flyTimer = urand(10000, 20000);
+    }
+
+    void MoveInLineOfSight(Unit* pWho)
+    {
+        if (m_creature->CanInitiateAttack() && pWho->isTargetableForAttack() &&
+            m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
+        {
+            if (m_creature->IsWithinDistInMap(pWho, 40.0f) && m_creature->IsWithinLOSInMap(pWho))
+            {
+                if (!m_creature->getVictim())
+                {
+                    pWho->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+                    AttackStart(pWho);
+                }
+                else if (m_creature->GetMap()->IsDungeon())
+                {
+                    pWho->SetInCombatWith(m_creature);
+                    m_creature->AddThreat(pWho);
+                }
+            }
+        }
     }
 
     void Aggro(Unit* pWho)
@@ -185,6 +220,19 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
     {
     }
 
+    void DoRandomFlight()
+    {
+        uint8 tmp = urand(0, FIGHT_POS);
+        PointPath path;
+        path.resize(2);
+        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
+        path.set(1, PathNode(fightPos[tmp][0], fightPos[tmp][1], fightPos[tmp][2]));
+        uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
+        m_creature->GetMotionMaster()->MoveClear(false, true);
+        m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
+        m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
+    }
+
     void DoAction(uint32 action)
     {
         switch(action)
@@ -192,6 +240,9 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
             case ACTION_START_FIGHT:
                 m_intro = false;
                 ((Vehicle*)m_creature)->RemoveAllPassengers();
+                pTyrannus->SendMonsterMove(dismountPos[0], dismountPos[1], dismountPos[2], SPLINETYPE_NORMAL, SPLINEFLAG_FORWARD, 0);
+                pTyrannus->GetMap()->CreatureRelocation(pTyrannus, dismountPos[0], dismountPos[1], dismountPos[2], 0);
+                DoRandomFlight();
                 break;
         }
     }
@@ -200,6 +251,12 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
     {
         if (m_intro || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        if(flyTimer <= uiDiff)
+        {
+            DoRandomFlight();
+            flyTimer = urand(10000, 20000);
+        }else flyTimer -= uiDiff;
     }
 };
 
@@ -210,7 +267,7 @@ CreatureAI* GetAI_boss_tyrannus(Creature* pCreature)
 
 CreatureAI* GetAI_boss_rimefang_pos(Creature* pCreature)
 {
-    return new boss_ickAI(pCreature);
+    return new boss_rimefang_posAI(pCreature);
 }
 
 void AddSC_boss_scourgelord_tyrannus()
