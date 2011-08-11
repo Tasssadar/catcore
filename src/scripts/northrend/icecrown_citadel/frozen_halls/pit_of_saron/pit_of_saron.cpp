@@ -1,6 +1,7 @@
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
+#include "../../../../../../dep/recastnavigation/RecastDemo/Contrib/stb_image.h"
 
 const float mobPosLeft[][3] =
 {
@@ -202,25 +203,48 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             {
                 (*itr)->CastSpell(*itr, SPELL_STRANGULATE, true);
                 (*itr)->AI()->DoAction(0);
-                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
                 (*itr)->GetMotionMaster()->Clear(false, true);
                 (*itr)->GetMotionMaster()->MoveIdle();
                 z += 10.0f;
             }
             else
             {
-                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
-                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
                 (*itr)->RemoveAurasDueToSpell(SPELL_STRANGULATE);
                 z -= 9.5f;
+            }
+            
+            (*itr)->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, up ? SPLINEFLAG_FLYING : SPLINEFLAG_FALLING, time);
+            (*itr)->GetMap()->CreatureRelocation(*itr, x, y, z, 0.104f);
+        }
+    }
+
+    void SetFlying(bool set)
+    {
+        for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+        {
+            if(set)
+            {
+                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                (*itr)->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+            }
+            else
+            {
+                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+                (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
             }
             WorldPacket heart;
             (*itr)->BuildHeartBeatMsg(&heart);
             (*itr)->SendMessageToSet(&heart, false);
- 
-            (*itr)->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, time);
-            (*itr)->GetMap()->CreatureRelocation(*itr, x, y, z, 0.104f);
+        }
+    }
+
+    void DoAction(uint32 action)
+    {
+        int32 i = action;
+        if(i < 0)
+        {
+            DoScriptText(i, m_creature);
+            return;
         }
     }
 
@@ -252,13 +276,17 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                case 4:
                    DoStrangulate(true, 4000);
                    pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO3);
-                   m_uiEventTimer = 6000;
+                   m_uiEventTimer = 4000;
                    break;
                case 5:
+                   SetFlying(true);
+                   m_uiEventTimer = 2000;
+                   break;
+               case 6:
                    pTyrannus->AI()->DoAction(SOUND_TYRRANNUS_TRANSFORM);
                    m_uiEventTimer = 7000;
                    break;
-               case 6:
+               case 7:
                    for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
                        pTyrannus->CastSpell(*itr, SPELL_TURN_TO_UNDEAD, false);
@@ -266,12 +294,13 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    }
                    m_uiEventTimer = 1000;
                    break;
-               case 7:
+               case 8:
                    DoScriptText(say_guide[1][faction], m_creature);
+                   SetFlying(false);
                    DoStrangulate(false, 1000);
                    m_uiEventTimer = 2000;
                    break;
-               case 8:
+               case 9:
                    pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO4);
                    for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
@@ -281,32 +310,42 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    }
                    m_uiEventTimer = 3000;
                    break;
-               case 9:
+               case 10:
                    if(faction)
                        DoCast(m_creature, SPELL_SYLVANAS_PWNT);
                    else
                    {
-                       for(std::vector<Creture*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+                       for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                            m_creature->CastSpell(*itr, SPELL_JAINA_PWNT, true);
                    }
                    m_uiEventTimer = 2000;
                    break;
-               case 10:
+               case 11:
                    DoScriptText(say_guide[2][faction], m_creature);
                    m_uiEventTimer = 4000;
                    break;
-               case 11:
+               case 12:
+                   pTyrannus->AI()->DoAction(0);
+                   pTyrannus->AI()->DoAction(1);
                    DoScriptText(say_guide[3][faction], m_creature);
                    m_uiEventTimer = 10000;
                    break;
-               case 12:
+               case 13:
                    SetEventState(1);
                    stopped = true;
                    break;
+               // ====================== INTRO END ===============
             }
             ++eventStateInternal;
         }else m_uiEventTimer -= uiDiff;
     }
+};
+
+const float tyrannusPos [][3] =
+{
+    { 842.02f, 264.17f, 640.03f },
+    { 829.35f, 149.98f, 548.53f },
+    { 952.54f, 164.32f, 669.85f },
 };
 
 struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
@@ -320,9 +359,13 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
+    bool toInvis;
+    uint32 invisTimer;
 
     void Reset()
     {
+        invisTimer = 17000;
+        toInvis = false;
     }
 
     void AttackStart(Unit* pWho)
@@ -332,23 +375,53 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
 
     void DoAction(uint32 action)
     {
+        if(int32(action) < 0)
+        {
+            DoScriptText(action, m_creature);
+            return;
+        }
         switch(action)
         {
-            case SAY_TYRANNUS_INTRO1:
-            case SAY_TYRANNUS_INTRO2:
-            case SAY_TYRANNUS_INTRO3:
-            case SAY_TYRANNUS_INTRO4:
-                DoScriptText(action, m_creature);
-                return;
             case SOUND_TYRRANNUS_TRANSFORM:
                 DoPlaySoundToSet(m_creature, action);
                 return;
+            case 0:
+                DoMove(0);
+                break;
+            case 1:
+                toInvis = true;
+                break;
+            case 2:
+                m_creature->SetVisibility(VISIBILITY_ON);
+                DoMove(1);
+                break;
+            case 3:
+                DoMove(2);
+                break;
         }
+    }
+
+    void DoMove(uint9 pos)
+    {
+        PointPath path;
+        path.resize(2);
+        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
+        path.set(1, PathNode(tyrannusPos[pos][0], tyrannusPos[pos][1], tyrannusPos[pos][2]));
+        uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
+        m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
+        m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        
+        if(toInvis)
+        {
+            if(invisTimer <= uiDiff)
+            {
+                m_creature->SetVisibility(VISIBILITY_OFF);
+                toInvis = false;
+            }else invisTimer-= uiDiff;
+        }
     }
 };
 
@@ -368,6 +441,11 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
     {
     }
 
+    void EnterEvadeMode()
+    {
+
+    }
+    
     void DoAction(uint32 action)
     {
         SetCombatMovement(action);

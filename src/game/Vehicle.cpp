@@ -746,7 +746,7 @@ void Vehicle::InstallAllAccessories()
                 }
                 entry = data->id;
             }     
-            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, 0))
+            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, ALLIANCE))
             {
                 delete pPassenger;
                 continue;

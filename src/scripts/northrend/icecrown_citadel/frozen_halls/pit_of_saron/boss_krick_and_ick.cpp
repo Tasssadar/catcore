@@ -27,12 +27,22 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO               = -1632000,
-    SAY_SOULSTORM           = -1632001,
-    SAY_CORRUPT_SOUL        = -1632002,
-    SAY_KILL1               = -1632003,
-    SAY_KILL2               = -1632004,
-    SAY_DEATH               = -1632005,
+    SAY_AGGRO               = -1658101,
+    SAY_POISION_NOVA        = -1658102,
+    SAY_ORBS                = -1658103,
+    SAY_PURSUIT1            = -1658104,
+    SAY_PURSUIT2            = -1658105,
+    SAY_PURSUIT3            = -1658106,
+    SAY_KILL1               = -1658107,
+    SAY_KILL2               = -1658108,
+
+    SAY_OUTRO1              = -1658109,
+    SAY_OUTRO2              = -1658111,
+    SAY_OUTRO3              = -1658113,
+    SAY_OUTRO4              = -1658115,
+
+    SAY_TR_OUTRO1           = -1658125,
+    SAY_TR_OUTRO2           = -1658127,
 
     // Boss Spells
     SPELL_PUSTULANT_FLESH   = 69581,
@@ -48,7 +58,18 @@ enum
     SPELL_ORB_EXPLODE_H     = 70433,
     SPELL_EXPLODING_ORB_VISUAL = 69017,
 
+    SPELL_STRANGULATE       = 69413,
+
     ACTION_ICK_DEAD         = 1,
+};
+
+const float guidePos[4] = { 784.67, 111.3, 509.5, 0.06};
+
+const int32 say_guide[][2] =
+{
+    {-1658110, -1658121},
+    {-1658112, -1658123},
+    {-1658117, -1658128},
 };
 
 struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
@@ -66,10 +87,23 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
     bool m_bIsRegularMode;
     bool ickDead;
 
+    uint32 eventTimer;
+    uint8 eventPhase;
+
+    Creature *pGuide;
+    Creature *pTyrannus;
+    uint8 faction;
+
     void Reset()
     {
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         ickDead = false;
+        eventPhase = 0;
+        eventTimer = 1000;
+        pGuide = NULL;
+        faction = m_pInstance->GetData(TYPE_FACTION);
+        pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS_INTRO));
+        pIck->SetRespawnDelay(86400);
     }
 
     void AttackStart(Unit* pWho)
@@ -80,17 +114,14 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void JustDied(Unit* pKiller)
     {
-        DoScriptText(SAY_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void DoAction(uint32 action)
@@ -99,14 +130,103 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         {
             case ACTION_ICK_DEAD:
                 m_creature->InterruptNonMeleeSpells(false);
-                ickDead = true;
+                
+                pGuide = m_creature->SummonCreature(faction ? NPC_SYLVANAS_BEGIN : NPC_JAINA_BEGIN,
+                                           guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_MANUAL_DESPAWN, 0);
+                float x = guidePos[0] + cos(guidePos[3])*15;
+                float y = guidePos[1] + sin(guidePos[3])*15;
+                if(pGuide && pTyrannus)
+                {
+                    ickDead = true;
+                    pGuide->GetMotionMaster()->MovePoint(1, x, y, guidePos[2]);
+                }
+                break;
+            case SAY_AGGRO:
+            case SAY_POISION_NOVA:
+            case SAY_ORBS:
+            case SAY_PURSUIT1:
+            case SAY_PURSUIT2:
+            case SAY_PURSUIT3:
+            case SAY_KILL1:
+            case SAY_KILL2:
+                DoScriptText(action, m_creature);
                 break;
         }
     }
+
     void UpdateAI(const uint32 uiDiff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if(!ickDead)
             return;
+
+        if(eventTimer <= uiDiff)
+        {
+            switch(eventPhase)
+            {
+                case 0:
+                    DoScriptText(SAY_OUTRO1, m_creature);
+                    eventTimer = 5500;
+                    break;
+                case 1:
+                    pGuide->DoAction(say_guide[0][faction]);
+                    eventTimer = 5500;
+                    break;
+                case 2:
+                    DoScriptText(SAY_OUTRO2, m_creature);
+                    eventTimer = 16000;
+                    break;
+                case 3:
+                    pTyrannus->AI()->DoAction(2);
+                    pGuide->DoAction(say_guide[1][faction]);
+                    eventTimer = faction ? 7000 : 3000;
+                    break;
+                case 4:
+                    DoScriptText(SAY_OUTRO3, m_creature);
+                    eventTimer = 5000;
+                    break;
+                case 5:
+                    pTyrannus->AI()->DoAction(SAY_TR_OUTRO1);
+                    eventTimer = 6000;
+                    break;
+                case 6:
+                {
+                    DoScriptText(SAY_OUTRO4, m_creature);
+                    float x, y, z;
+                    m_creature->GetPosition(x, y, z);
+                    z += 15.0f;
+                    DoCast(m_creature, SPELL_STRANGULATE, true);
+                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, 6000);
+                    m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);
+                    eventTimer = 5000;
+                    break;
+                }
+                case 7:
+                    m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    eventTimer = 2000;
+                    break;
+                case 8:
+                    pTyrannus->AI()->DoAction(SAY_TR_OUTRO2);
+                    eventTimer = 9000;
+                    break;
+                case 9:
+                {
+                    pGuide->DoAction(say_guide[2][faction]);
+                    pGuide->ForcedDespawn(20000);
+                    m_creature->CastSpell(m_creature, 7, true);
+                    float x, y, z;
+                    m_creature->GetPosition(x, y, z);
+                    z -= 14.5f;
+                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FALLING, 1000);
+                    m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);
+                    pTyrannus->AI()->DoAction(1);
+                    pTyrannus->AI()->DoAction(3);
+                    eventTimer = 10000000;
+                    break;
+                }
+            }
+            ++eventPhase;
+        }else eventTimer -= uiDiff;
     }
 };
 
@@ -169,18 +289,18 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
         pKrick = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KRICK));
         if(!pKrick)
             EnterEvadeMode();
-        DoScriptText(SAY_AGGRO, m_creature);
+        pKrick->AI()->DoAction(SAY_AGGRO);
     }
 
     void JustDied(Unit* pKiller)
     {
-        DoScriptText(SAY_DEATH, m_creature);
         m_pInstance->SetData(TYPE_ICK_AND_KRICK, DONE);
+        pKrick->AI()->DoAction(ACTION_ICK_DEAD);
     }
 
     void KilledUnit(Unit* pVictim)
     {
-        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
+        pKrick->AI()->DoAction(SAY_KILL1 - urand(0,1));
     }
 
     void SummonOrbs()
@@ -211,6 +331,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_uiOrbsTimer = 2000;
                 m_uiOrbsCount = 0;
                 m_uiOrbs = true;
+                pKrick->AI()->DoAction(SAY_ORBS);
             }
             else if(m_uiOrbs && m_uiOrbsCount <= 8)
             {
@@ -256,6 +377,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
             if(m_uiPursuitTimer < 5000)
                 m_uiPursuitTimer = 5000;
             DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_POISON_NOVA : SPELL_POISON_NOVA_H);
+            pKrick->AI()->DoAction(SAY_POISION_NOVA);
             m_uiPoisionNovaTimer = urand(14000, 20000);
         }else m_uiPoisionNovaTimer -= uiDiff;
 
@@ -278,6 +400,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                     ++m_uiPursuitPhase;
                     m_uiPursuitTimer = 17000;
                     m_uiOrbsTimer = 27000;
+                    pKrick->AI()->DoAction(SAY_PURSUIT1 - urand(0, 2));
                     break;
                 case 1:
                     if(pPursuitTarget && pPursuitTarget->IsInWorld() && pPursuitTarget->isAlive())
