@@ -133,6 +133,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
         if((m_forgePhase == 3  && m_creature->GetHealthPercent() <= 33.0f) ||
            (m_forgePhase == 0 && m_creature->GetHealthPercent() <= 66.0f))
         {
+            DoCast(m_creature, SPELL_THUNDERING_STOMP);
             m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
             ++m_forgePhase;
             SetCombatMovement(false);
@@ -154,14 +155,8 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
             if(plr)
                 DoCastSpellIfCan(plr, m_bIsRegularMode ? SPELL_DEEP_FREEZE : SPELL_DEEP_FREEZE_H);
-            m_uiDeepFreezeTimer = urand(6000, 10000);
+            m_uiDeepFreezeTimer = urand(10000, 18000);
         }else m_uiDeepFreezeTimer -= uiDiff;
-
-        if(m_uiThunderingStompTimer <= uiDiff)
-        {
-            DoCastSpellIfCan(m_creature, SPELL_THUNDERING_STOMP);
-            m_uiThunderingStompTimer = urand(7000, 12000);
-        }else m_uiThunderingStompTimer -= uiDiff;
 
         if(m_uiThrowSaronite <= uiDiff)
         {

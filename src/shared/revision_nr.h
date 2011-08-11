@@ -2,6 +2,6 @@
 #define __REVISION_NR_H__
  #define REVISION_NR "11543"
  #define REVISION_VP "pr1194"
- #define REVISION_SP "vsd273"
- #define REVISION_VP_DATE "10.8.2011"
+ #define REVISION_SP "vsd274"
+ #define REVISION_VP_DATE "11.8.2011"
 #endif // __REVISION_NR_H__

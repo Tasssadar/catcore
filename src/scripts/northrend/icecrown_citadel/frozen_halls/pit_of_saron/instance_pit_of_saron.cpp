@@ -33,6 +33,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
 
     uint64 m_uiGarfrostGUID;
     uint64 m_uiIckGUID;
+    uint64 m_uiKrickGUID;
     uint64 m_uiTyrannusGUID;
     uint64 m_uiIceWallGUID;
 
@@ -44,6 +45,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         m_uiIckGUID = 0;
         m_uiTyrannusGUID = 0;
         m_uiIceWallGUID = 0;
+        m_uiKrickGUID = 0;
     }
 
     void OnCreatureCreate(Creature* pCreature)
@@ -105,6 +107,16 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         }
     }
 
+    void SetData64(uint32 Data, uint64 Value)
+    {
+        switch(Data)
+        {
+            case NPC_KRICK:
+                m_uiKrickGUID = Value;
+                break;
+        }
+    }
+
     const char* Save()
     {
         return strInstData.c_str();
@@ -148,6 +160,10 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
 
     uint64 GetData64(uint32 uiData)
     {
+        switch(uiData)
+        {
+            case NPC_KRICK: return m_uiKrickGUID;
+        }
         return 0;
     }
 };

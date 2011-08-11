@@ -13167,7 +13167,7 @@ bool Unit::CanHaveThreatList() const
         return false;
 
     // vehicles can not have threat list
-    if ( ((Creature*)this)->isVehicle() )
+    if ( ((Creature*)this)->isVehicle() && IS_PLAYER_GUID(((Pet*)this)->GetOwnerGUID()))
         return false;
 
     // pets can not have a threat list, unless they are controlled by a creature

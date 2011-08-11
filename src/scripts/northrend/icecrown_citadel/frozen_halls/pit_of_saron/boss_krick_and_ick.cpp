@@ -34,20 +34,83 @@ enum
     SAY_DEATH               = -1632005,
 
     // Boss Spells
-    SPELL_PERMAFROST        = 70326,
-    SPELL_THROW_SARONITE    = 68788,
-    SPELL_FORGE_FROSTBORN_MACE   = 68785,
-    SPELL_FORGE_FROSTBORN_MACE_H = 70335,
-    SPELL_DEEP_FREEZE       = 70381,
-    SPELL_DEEP_FREEZE_H     = 72930,
-    SPELL_THUNDERING_STOMP  = 68771,
-    SPELL_CHILLING_WAVE     = 68778,
-    SPELL_CHILLING_WAVE_H   = 70333,
+    SPELL_PUSTULANT_FLESH   = 69581,
+    SPELL_PUSTULANT_FLESH_H = 70273,
+    SPELL_TOXIC_WASTE       = 69024,
+    SPELL_POISON_NOVA       = 68989,
+    SPELL_POISON_NOVA_H     = 70434,
+    SPELL_PURSUIT           = 68987,
+    SPELL_EXPLOSIVE_BARRAGE_CHANNEL = 69012,
+    SPELL_ORB_SUMMON        = 69015,
+
+    SPELL_ORB_EXPLODE       = 69019,
+    SPELL_ORB_EXPLODE_H     = 70433,
+    SPELL_EXPLODING_ORB_VISUAL = 69017,
+
+    ACTION_ICK_DEAD         = 1,
 };
 
 struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
 {
     boss_krickAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        if(m_pInstance)
+            m_pInstance->SetData64(NPC_KRICK, m_creature->GetGUID());
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+    bool ickDead;
+
+    void Reset()
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        ickDead = false;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if(ickDead)
+            return;
+    }
+
+    void Aggro(Unit* pWho)
+    {
+        DoScriptText(SAY_AGGRO, m_creature);
+    }
+
+    void JustDied(Unit* pKiller)
+    {
+        DoScriptText(SAY_DEATH, m_creature);
+    }
+
+    void KilledUnit(Unit* pVictim)
+    {
+        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
+    }
+
+    void DoAction(uint32 action)
+    {
+        switch(action)
+        {
+            case ACTION_ICK_DEAD:
+                ickDead = true;
+                break;
+        }
+    }
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+    }
+};
+
+struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
+{
+    boss_ickAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
@@ -57,22 +120,25 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    uint8 m_forgePhase;
-    uint32 m_forgeTimer;
+    uint32 m_uiToxicWasteTimer;
+    uint32 m_uiPestulantFleshTimer;
+    uint32 m_uiPoisionNovaTimer;
+    uint32 m_uiPursuitTimer;
+    uint8 m_uiPursuitPhase;
+    uint32 m_uiOrbsTimer;
+    bool m_uiOrbs;
 
-    uint32 m_uiChillingWaveTimer;
-    uint32 m_uiDeepFreezeTimer;
-    uint32 m_uiThunderingStompTimer;
-    uint32 m_uiThrowSaronite;
-    uint32 m_uiFearTimer;
-
+    Creature *pKrick;
+    Unit *pPursuitTarget;
     void Reset()
     {
-        m_uiChillingWaveTimer = 10000;
-        m_uiDeepFreezeTimer = 6000;
-        m_uiThunderingStompTimer = 14000;
-        m_uiThrowSaronite = 8000;
-        m_forgePhase = 0;
+        m_uiToxicWasteTimer = 10000;
+        m_uiPestulantFleshTimer = 8000;
+        m_uiPoisionNovaTimer = 16000;
+        m_uiPursuitTimer = 10000;
+        m_uiPursuitPhase = 0;
+        m_uiOrbsTimer = 30000;
+        m_uiOrbs = false;
         SetCombatMovement(true);
         if(!m_creature->isVehicle())
         {
@@ -85,17 +151,22 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
             Vehicle *pIck = pCreature->SummonVehicle(NPC_ICK, x, y, z, m_creature->GetOrientation(), 522, NULL, 0);
             pIck->SetRespawnDelay(86400);
         }
+        pKrick = NULL;
+        pPursuitTarget = NULL;
     }
 
     void Aggro(Unit* pWho)
     {
+        pKrick = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KRICK));
+        if(!pKrick)
+            EnterEvadeMode();
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
-        m_pInstance->SetData(TYPE_GARFROST, DONE);
+        m_pInstance->SetData(TYPE_ICK_AND_KRICK, DONE);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -108,13 +179,127 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        if(m_uiOrbsTimer <= uiDiff)
+        {
+            if(!m_uiOrbs)
+            {
+                pKrick->CastSpell(pKrick, SPELL_EXPLOSIVE_BARRAGE_CHANNEL);
+                SetCombatMovement(false);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                m_uiOrbsTimer = 20000;
+            }
+            else
+            {
+                SetCombatMovement(true);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                m_uiOrbsTimer = 30000;
+            }
+            m_uiOrbs = !m_uiOrbs;
+        }else m_uiOrbsTimer -= uiDiff;
+
+        if(m_uiToxicWasteTimer <= uiDiff)
+        {
+            Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+            if(plr)
+                DoCast(plr, SPELL_TOXIC_WASTE);
+            m_uiToxicWasteTimer = 10000;
+        }else m_uiToxicWasteTimer -= uiDiff;
+
+        if(m_uiPestulantFleshTimer <= uiDiff)
+        {
+            Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+            if(plr)
+                DoCast(plr, m_bIsRegularMode ? SPELL_PUSTULANT_FLESH : SPELL_PUSTULANT_FLESH_H);
+            m_uiPestulantFleshTimer = urand(8000, 12000);
+        }else m_uiPestulantFleshTimer -= uiDiff;
+
+        if(m_uiPoisionNovaTimer <= uiDiff)
+        {
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_POISON_NOVA : SPELL_POISON_NOVA_H);
+            m_uiPoisionNovaTimer = urand(14000, 20000);
+        }else m_uiPoisionNovaTimer -= uiDiff;
+
+        if(m_uiPursuitTimer <= uiDiff)
+        {
+            switch(m_uiPursuitPhase)
+            {
+                case 0:
+                    pPursuitTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+                    if(!pPursuitTarget)
+                    {
+                        m_uiPursuitTimer = 10000;
+                        break;
+                    }
+                    DoCast(m_uiPursuitTarget, SPELL_PURSUIT);
+                    m_creature->AddThreat(m_uiPursuitTarget, 10000000.0f);
+                    ++m_uiPursuitPhase;
+                    m_uiPursuitTimer = 12000;
+                    break;
+                case 1:
+                    if(m_uiPursuitTarget && m_uiPursuitTarget->IsInWorld() && m_uiPursuitTarget->isAlive())
+                        m_creature->AddThreat(m_uiPursuitTarget, -10000000.0f);
+                    m_uiPursuitTimer = urand(13000, 16000);
+                    m_uiPursuitPhase = 0;
+                    break;
+            }
+        }else m_uiPursuitTimer -= uiDiff;
+
         DoMeleeAttackIfReady();
+    }
+};
+
+struct MANGOS_DLL_DECL mob_exploding_orbAI : public ScriptedAI
+{
+    mob_exploding_orbAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
+    uint32 m_uiExplodeTimer;
+
+    void Reset()
+    {
+        m_creature->ForcedDespawn(4000);
+        m_uiExplodeTimer = 3000;
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        DoCast(m_creature, SPELL_EXPLODING_ORB_VISUAL, true);
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        return;
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if(m_uiExplodeTimer <= uiDiff)
+        {
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_ORB_EXPLODE : SPELL_ORB_EXPLODE_H);
+            m_uiExplodeTimer = 50000;
+        }else m_uiExplodeTimer -= uiDiff;
     }
 };
 
 CreatureAI* GetAI_boss_krick(Creature* pCreature)
 {
     return new boss_krickAI(pCreature);
+}
+
+CreatureAI* GetAI_boss_ick(Creature* pCreature)
+{
+    return new boss_ickAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_exploding_orb(Creature* pCreature)
+{
+    return new mob_exploding_orbAI(pCreature);
 }
 
 void AddSC_boss_ick_and_krick()
@@ -124,5 +309,15 @@ void AddSC_boss_ick_and_krick()
     newscript = new Script;
     newscript->Name = "boss_krick";
     newscript->GetAI = &GetAI_boss_krick;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "boss_ick";
+    newscript->GetAI = &GetAI_boss_ick;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_exploding_orb";
+    newscript->GetAI = &GetAI_mob_exploding_orb;
     newscript->RegisterSelf();
 }

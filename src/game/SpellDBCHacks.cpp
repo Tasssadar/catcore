@@ -225,4 +225,10 @@ void SpellMgr::ApplySpellHacks()
     // Brightleaf's Essence has twice the same effect
     SpellEntry *sfix36 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62968));
     sfix36->Effect[1] = 0;
+
+    // *sigh* wrong trigger spell id
+    SpellEntry *sfix37 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69012));
+    sfix37->EffectTriggerSpell[0] = 69015;
+
+    
 }

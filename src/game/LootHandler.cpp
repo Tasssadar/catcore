@@ -89,6 +89,8 @@ void WorldSession::HandleAutostoreLootItemOpcode( WorldPacket & recv_data )
         case HIGHGUID_UNIT:
         {
             Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid);
+            if(lguid.GetHigh() == HIGHGUID_VEHICLE)
+                pCreature = (Creature*)GetPlayer()->GetMap()->GetVehicle(lguid);
 
             bool ok_loot = pCreature && pCreature->isAlive() == (player->getClass()==CLASS_ROGUE && pCreature->lootForPickPocketed);
 
@@ -430,9 +432,12 @@ void WorldSession::DoLootRelease(ObjectGuid lguid)
                 player->DestroyItem( pItem->GetBagSlot(),pItem->GetSlot(), true);
             return;                                             // item can be looted only single player
         }
+        case HIGHGUID_VEHICLE:
         case HIGHGUID_UNIT:
         {
             Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid);
+            if(lguid.GetHigh() == HIGHGUID_VEHICLE)
+                pCreature = (Creature*)GetPlayer()->GetMap()->GetVehicle(lguid);
 
             bool ok_loot = pCreature && pCreature->isAlive() == (player->getClass()==CLASS_ROGUE && pCreature->lootForPickPocketed);
             if ( !ok_loot || !pCreature->IsWithinDistInMap(_player,INTERACTION_DISTANCE) )

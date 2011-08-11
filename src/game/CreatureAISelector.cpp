@@ -33,7 +33,7 @@ namespace FactorySelector
     CreatureAI* selectAI(Creature *creature)
     {
         // Allow scripting AI for normal creatures and not controlled pets (guardians and mini-pets)
-        if ((!creature->isPet() || !((Pet*)creature)->isControlled()) && !creature->isCharmed())
+        if ((!creature->isPet() || !((Pet*)creature)->isControlled()) && (!creature->isCharmed() || creature->isVehicle()))
             if (CreatureAI* scriptedAI = Script->GetAI(creature))
                 return scriptedAI;
 
