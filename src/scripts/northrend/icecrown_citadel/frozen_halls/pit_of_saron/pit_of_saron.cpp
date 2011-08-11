@@ -1,7 +1,6 @@
 
 #include "precompiled.h"
 #include "pit_of_saron.h"
-#include "../../../../../../dep/recastnavigation/RecastDemo/Contrib/stb_image.h"
 
 const float mobPosLeft[][3] =
 {
@@ -240,10 +239,9 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     void DoAction(uint32 action)
     {
-        int32 i = action;
-        if(i < 0)
+        if(int32(action) < 0)
         {
-            DoScriptText(i, m_creature);
+            DoScriptText(action, m_creature);
             return;
         }
     }
@@ -343,7 +341,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
 const float tyrannusPos [][3] =
 {
-    { 842.02f, 264.17f, 640.03f },
+    { 842.02f, 264.17f, 620.03f },
     { 829.35f, 149.98f, 548.53f },
     { 952.54f, 164.32f, 669.85f },
 };
@@ -401,7 +399,7 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
         }
     }
 
-    void DoMove(uint9 pos)
+    void DoMove(uint8 pos)
     {
         PointPath path;
         path.resize(2);

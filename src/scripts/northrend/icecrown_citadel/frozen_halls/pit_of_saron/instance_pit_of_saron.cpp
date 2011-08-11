@@ -25,6 +25,7 @@ EndScriptData */
 #include "pit_of_saron.h"
 
 const float guidPos [4] = { 441.39f, 213.32f, 528.71f, 0.104f };
+const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
 
 struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
 {
@@ -40,7 +41,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
     uint64 m_uiIceWallGUID;
     uint64 m_uiTyrannusIntroGUID;
     
-    int8 m_uiFaction;
+    uint8 m_uiFaction;
     uint8 m_eventState;
     bool m_eventNpcsSummoned;
 
@@ -53,7 +54,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         m_uiTyrannusGUID = 0;
         m_uiIceWallGUID = 0;
         m_uiKrickGUID = 0;
-        m_uiFaction = -1;
+        m_uiFaction = 3;
         m_eventState = 0;
         m_eventNpcsSummoned = false;
     }
@@ -70,7 +71,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
 
     void OnPlayerEnter(Player *plr)
     {
-        if(m_uiFaction == -1)
+        if(m_uiFaction == 3)
         {
             if(plr->GetTeam() == HORDE)
                 m_uiFaction = 1;
@@ -89,6 +90,22 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             case 0:
                 plr->SummonCreature(m_uiFaction ? NPC_SYLVANAS_BEGIN : NPC_JAINA_BEGIN, guidPos[0], guidPos[1], guidPos[2], guidPos[3], TEMPSUMMON_MANUAL_DESPAWN, 0);
                 break;
+            case 1:
+            {
+                Creature *pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS_INTRO));
+                if(pTyrannus)
+                {
+                    pTyrannus->AI()->DoAction(0);
+                    pTyrannus->AI()->DoAction(1);
+                }
+                break;
+            }
+            case 2:
+            {
+                Vehicle *pRimefang = plr->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
+                pRimefang->SetRespawnDelay(86400);
+                break;
+            }
         }
     }
 

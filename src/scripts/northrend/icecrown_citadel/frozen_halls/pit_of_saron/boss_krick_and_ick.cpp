@@ -64,6 +64,7 @@ enum
 };
 
 const float guidePos[4] = { 784.67, 111.3, 509.5, 0.06};
+const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
 
 const int32 say_guide[][2] =
 {
@@ -101,9 +102,8 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         eventPhase = 0;
         eventTimer = 1000;
         pGuide = NULL;
-        faction = m_pInstance->GetData(TYPE_FACTION);
         pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS_INTRO));
-        pIck->SetRespawnDelay(86400);
+        m_creature->SetRespawnDelay(86400);
     }
 
     void AttackStart(Unit* pWho)
@@ -129,10 +129,12 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         switch(action)
         {
             case ACTION_ICK_DEAD:
+            {
+                faction = m_pInstance->GetData(TYPE_FACTION);
                 m_creature->InterruptNonMeleeSpells(false);
                 
                 pGuide = m_creature->SummonCreature(faction ? NPC_SYLVANAS_BEGIN : NPC_JAINA_BEGIN,
-                                           guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_MANUAL_DESPAWN, 0);
+                                           guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
                 float x = guidePos[0] + cos(guidePos[3])*15;
                 float y = guidePos[1] + sin(guidePos[3])*15;
                 if(pGuide && pTyrannus)
@@ -140,7 +142,13 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     ickDead = true;
                     pGuide->GetMotionMaster()->MovePoint(1, x, y, guidePos[2]);
                 }
+                //Summon Last Boss
+                m_pInstance->SetData(TYPE_EVENT_STATE, 2);
+                Vehicle *pRimefang = m_creature->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2],
+                                                               tyrannusPos[3], 535, NULL, 0);
+                pRimefang->SetRespawnDelay(86400);
                 break;
+            }
             case SAY_AGGRO:
             case SAY_POISION_NOVA:
             case SAY_ORBS:
@@ -168,16 +176,16 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     eventTimer = 5500;
                     break;
                 case 1:
-                    pGuide->DoAction(say_guide[0][faction]);
+                    pGuide->AI()->DoAction(say_guide[0][faction]);
                     eventTimer = 5500;
                     break;
                 case 2:
+                    pTyrannus->AI()->DoAction(2);
                     DoScriptText(SAY_OUTRO2, m_creature);
                     eventTimer = 16000;
                     break;
                 case 3:
-                    pTyrannus->AI()->DoAction(2);
-                    pGuide->DoAction(say_guide[1][faction]);
+                    pGuide->AI()->DoAction(say_guide[1][faction]);
                     eventTimer = faction ? 7000 : 3000;
                     break;
                 case 4:
@@ -201,24 +209,37 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     break;
                 }
                 case 7:
+                {
                     m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
                     m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    WorldPacket heart;
+                    m_creature->BuildHeartBeatMsg(&heart);
+                    m_creature->SendMessageToSet(&heart, false);
                     eventTimer = 2000;
                     break;
+                }
                 case 8:
                     pTyrannus->AI()->DoAction(SAY_TR_OUTRO2);
                     eventTimer = 9000;
                     break;
                 case 9:
                 {
-                    pGuide->DoAction(say_guide[2][faction]);
+                    pGuide->AI()->DoAction(say_guide[2][faction]);
                     pGuide->ForcedDespawn(20000);
                     m_creature->CastSpell(m_creature, 7, true);
                     float x, y, z;
                     m_creature->GetPosition(x, y, z);
-                    z -= 14.5f;
-                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FALLING, 1000);
+                    z -= 15.0f;
+                    
+                    m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+                    m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+                    WorldPacket heart;
+                    m_creature->BuildHeartBeatMsg(&heart);
+                    m_creature->SendMessageToSet(&heart, false);
+                    
+                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FALLING, 2000);
                     m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);
+                    
                     pTyrannus->AI()->DoAction(1);
                     pTyrannus->AI()->DoAction(3);
                     eventTimer = 10000000;
@@ -294,8 +315,11 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        m_pInstance->SetData(TYPE_ICK_AND_KRICK, DONE);
-        pKrick->AI()->DoAction(ACTION_ICK_DEAD);
+        if(m_creature->isVehicle())
+        {
+            m_pInstance->SetData(TYPE_ICK_AND_KRICK, DONE);
+            pKrick->AI()->DoAction(ACTION_ICK_DEAD);
+        }
     }
 
     void KilledUnit(Unit* pVictim)
