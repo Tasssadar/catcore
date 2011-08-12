@@ -25,7 +25,7 @@ EndScriptData */
 #include "pit_of_saron.h"
 #include "Vehicle.h"
 
-const float guidPos [4] = { 427.84, 212.98, 529.2, 0.1};//{ 441.39f, 213.32f, 528.71f, 0.104f };
+const float guidPos [4] = { 427.84, 212.98, 529.2, 0.1 };//{ 441.39f, 213.32f, 528.71f, 0.104f };
 const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
 
 struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
@@ -104,6 +104,9 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             }
             case 2:
             {
+                Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
+                pTyrannus->SetVisibility(VISIBILITY_OFF);
+
                 Vehicle *pRimefang = plr->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
                 pRimefang->SetRespawnDelay(86400);
                 break;

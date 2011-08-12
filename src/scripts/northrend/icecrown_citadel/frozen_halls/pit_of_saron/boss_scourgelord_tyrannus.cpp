@@ -85,6 +85,8 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     uint8 m_uiMarkPhase;
     uint32 m_uiIcyBlastTimer;
 
+    uint32 m_uiEvadeCheckTimer;
+
     uint8 introPhase;
     uint32 m_uiIntroTimer;
     bool m_intro;
@@ -111,6 +113,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         pMarkTarget = NULL;
         m_uiMarkPhase = 0;
         pGuide = NULL;
+        m_uiEvadeCheckTimer = 3000;
     }
 
     void AttackStart(Unit* pWho)
@@ -237,6 +240,18 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        if(m_uiEvadeCheckTimer <= uiDiff)
+        {
+            float x,y,z;
+            m_creature->GetPosition(x, y, z);
+            if(z < 610 || z > 640 || !m_creature->GetMap()->GetTerrain()->IsOutdoors(x,y,z))
+            {
+                EnterEvadeMode();
+                return;
+            }
+            m_uiEvadeCheckTimer = 3000;
+        }else m_uiEvadeCheckTimer -= uiDiff;
 
         if(m_uiSmashTimer <= uiDiff)
         {

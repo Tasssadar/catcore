@@ -30,7 +30,7 @@ const uint32 heroIds [][2] =
 {
     {37498, 37587},
     {37496, 37584},
-    {37497, 37588},
+    {37497, 37588}, 
 };
 
 const uint32 necrolytePos[2][3] =
@@ -59,10 +59,10 @@ INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_lo
 ('-1658911', 'Free any Horde slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17048', '1', '0', '0', ''),
 ('-1658500', 'Forgemaster Garfrost hurls a massive saronite boulder at you!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '5', '0', '0', ''),
 ('-1658501', 'Ick is chasing you!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '5', '0', '0', ''),
-('-1658502', 'Ick begins to unleash a toxic poison cloud!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
-('-1658503', 'Krick begins rapidly conjuring explosive mines!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
-('-1658504', 'Scourgelord Tyrannus roars and swells with dark might!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
-('-1658505', 'The frostwyrm Rimefang gazes at %t and readies an icy attack!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', '');
+('-1658502', 'Ick begins to unleash a toxic poison cloud!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '3', '0', '0', ''),
+('-1658503', 'Krick begins rapidly conjuring explosive mines!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '3', '0', '0', ''),
+('-1658504', 'Scourgelord Tyrannus roars and swells with dark might!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '3', '0', '0', ''),
+('-1658505', 'The frostwyrm Rimefang gazes at %t and readies an icy attack!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '3', '0', '0', '');
 */
 enum
 {
@@ -272,6 +272,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             switch(eventStateInternal)
             {
                 case 0:
+                   SetEventState(1);
                    pTyrannus->AI()->DoAction(SAY_TYRANNUS_INTRO1);
                    m_uiEventTimer = 5000;
                    break;
@@ -308,10 +309,10 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    }
                    SetFlying(false);
                    DoStrangulate(false, 1000);
+                   DoScriptText(say_guide[1][faction], m_creature);
                    m_uiEventTimer = 3000;
                    break;
                case 8:
-                   DoScriptText(say_guide[1][faction], m_creature);
                    for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
                        (*itr)->SetStandState(UNIT_STAND_STATE_STAND);
@@ -346,7 +347,6 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    m_uiEventTimer = 4000;
                    break;
                case 12:
-                   SetEventState(1);
                    pTyrannus->AI()->DoAction(0);
                    pTyrannus->AI()->DoAction(1);
                    DoScriptText(say_guide[3][faction], m_creature);
@@ -493,9 +493,41 @@ const int32 slave_says[2] = {-1658313, -1658312 };
 const int32 guide_end[][2] =
 {
     {-1658315, -1658314 },
-    {-1658316, -1658318 },
-    {-1658317, 0 },
+    {-1658317, -1658318 },
+    {-1658316, 0 },
 };
+
+const float outroPos[][3] =
+{
+   {995.117, 136.438, 628.156},
+   {995.724, 143.097, 628.156},
+   {994.550, 156.671, 628.156},
+   {994.700, 160.007, 628.156},
+   {995.928, 174.579, 628.156},
+   {997.359, 182.870, 628.156},
+   {1003.825, 122.176, 628.156},
+   {1004.975, 126.011, 628.156},
+   {1015.304, 145.097, 628.156},
+   {1015.880, 150.601, 628.156},
+   {1012.257, 163.875, 628.156},
+   {1011.410, 169.595, 628.156},
+   {1016.512, 191.425, 628.156},
+   {1016.512, 191.425, 628.156},
+   {1025.370, 160.074, 628.156},
+   {1025.345, 156.223, 628.156}, // MAGE
+   {1024.981, 136.201, 628.156}, // mage
+   {1016.030, 125.871, 628.156},
+   {1017.468, 120.017, 628.156},
+   {1032.587, 147.116, 628.156},
+   {1041.433, 160.520, 628.156}, // MAGE
+   {1041.589, 165.289, 628.156}, // MAGE
+   {1032.082, 174.175, 628.156}, // MAGE
+   {1042.440, 175.693, 628.156},
+   {1042.075, 181.341, 628.156},
+   {1031.804, 188.817, 628.156},
+};
+
+#define OUTRO_MOB_COUNT 26
 
 struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
 {
@@ -544,22 +576,16 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
 
     void SpawnMobs()
     {
-        /*Creature *tmp;
-        for(uint8 i = 0; i < INTRO_MOB_COUNT_LEFT; ++i)
+        Creature *tmp;
+        for(uint8 i = 0; i < OUTRO_MOB_COUNT; ++i)
         {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
-                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2]);
-
-            leftHerosList.push_back(tmp);
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], spawnPos[0], spawnPos[1], spawnPos[2],
+                                             spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+            tmp->SetSpeedRate(MOVE_RUN, 1.5, true);
+            tmp->SetSpeedRate(MOVE_WALK, 1.5, true);
+            tmp->GetMotionMaster()->MovePoint(1, outroPos[i][0], outroPos[i][1], outroPos[i][2]);
+            herosList.push_back(tmp);
         }
-        for(uint8 i = 0; i < INTRO_MOB_COUNT_RIGHT; ++i)
-        {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
-                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
-            rightHerosList.push_back(tmp);
-        }*/
 
         pEndNpc->GetMotionMaster()->MovePoint(1, endNpcPos[0], endNpcPos[1], endNpcPos[2]);
         pSindragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, sindragosaPos[0], sindragosaPos[1], sindragosaPos[2],
@@ -591,6 +617,33 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         }
     }
 
+    void KillAll()
+    {
+        std::vector<Creature*> tmp = herosList;
+        herosList.clear();
+        for(std::vector<Creature*>::iterator itr = tmp.begin(); itr != tmp.end(); ++itr)
+        {
+            if((*itr)->GetEntry() == heroIds[2][faction])
+            {
+                (*itr)->CastSpell(*itr, 62766, false);
+                herosList.push_back(*itr);
+                continue;
+            }
+            (*itr)->CastSpell(*itr, 7, true);
+        }
+        pEndNpc->CastSpell(pEndNpc, 7, true);
+    }
+
+    void ToPortal()
+    {
+        for(std::vector<Creature*>::iterator itr = herosList.begin(); itr != herosList.end(); ++itr)
+        {
+            (*itr)->RemoveAurasDueToSpell(62766);
+            (*itr)->GetMotionMaster()->MovePoint(2, horPos[0], horPos[1], horPos[2]);
+            (*itr)->ForcedDespawn(15000);
+        }
+    }
+
     void DoFlySindragosa()
     {
         pSindragosa->SetSpeedRate(MOVE_FLIGHT, 4, true);
@@ -606,8 +659,8 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         float x, y ,z;
         pSindragosa->GetPosition(x, y, z);
         z += 100.0f;
-        x += cos(pSindragosa->GetOrientation())*30;
-        y += sin(pSindragosa->GetOrientation())*30;
+        x += cos(pSindragosa->GetOrientation())*35;
+        y += sin(pSindragosa->GetOrientation())*35;
         
         PointPath path;
         path.resize(2);
@@ -651,6 +704,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                     for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                         if (Player* pPlayer = itr->getSource())
                             pPlayer->CastSpell(pPlayer, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                    KillAll();
                     m_uiEventTimer = 3000;
                     break;
                 }
@@ -672,6 +726,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                 case 6:
                     m_creature->GetMotionMaster()->MovePoint(2, horPos[0], horPos[1], horPos[2]);
                     pSindragosa->SetVisibility(VISIBILITY_OFF);
+                    ToPortal();
                     stopped = true;
                     break;
             }
