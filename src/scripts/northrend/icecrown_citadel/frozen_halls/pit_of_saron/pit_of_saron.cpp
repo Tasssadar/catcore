@@ -53,16 +53,16 @@ INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_lo
 ('-1658905', 'Minions! Destroy these interlopers!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16751', '1', '0', '0', ''),
 ('-1658906', 'No, you monster!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16627', '1', '0', '0', ''),
 ('-1658907', 'Pathetic weaklings...', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17046', '1', '0', '0', ''),
-('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16630', '1', '0', '0', ''),
+('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16629', '1', '0', '0', ''),
 ('-1658909', 'You will have to battle your way threw this pit on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17047', '1', '0', '0', ''),
-('-1658910', 'Free any Alliance slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16631', '1', '0', '0', ''),
+('-1658910', 'Free any Alliance slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16630', '1', '0', '0', ''),
 ('-1658911', 'Free any Horde slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17048', '1', '0', '0', ''),
-('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
-('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
-('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
-('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
-('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
-
+('-1658500', 'Forgemaster Garfrost hurls a massive saronite boulder at you!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '5', '0', '0', ''),
+('-1658501', 'Ick is chasing you!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '5', '0', '0', ''),
+('-1658502', 'Ick begins to unleash a toxic poison cloud!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
+('-1658503', 'Krick begins rapidly conjuring explosive mines!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
+('-1658504', 'Scourgelord Tyrannus roars and swells with dark might!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', ''),
+('-1658505', 'The frostwyrm Rimefang gazes at %t and readies an icy attack!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '4', '0', '0', '');
 */
 enum
 {
@@ -86,6 +86,9 @@ enum
 
     SPELL_TELE_ALI          = 70525,
     SPELL_TELE_HORDE        = 70639,
+
+    SAY_SLAVE_INTRO_H         = -1658303,
+    SAY_SLAVE_INTRO_A         = -1658319,
 };
 
 const int32 say_guide[][2] = 
@@ -97,6 +100,7 @@ const int32 say_guide[][2] =
 };
 
 const float portalPos[3] = { 427.84, 212.98, 529.2};
+const float guideGoPos[3] = { 441.39f, 213.32f, 528.71f };
 
 struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 {
@@ -168,7 +172,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         for(uint8 i = 0; i < INTRO_MOB_COUNT_RIGHT; ++i)
         {
             tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
-                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+                                        0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
             tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
             rightHerosList.push_back(tmp);
         }
@@ -178,6 +182,8 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         tmp = m_creature->SummonCreature(NPC_NECROLYTE, necrolytePos[1][0], necrolytePos[1][1], necrolytePos[1][2],
                                          0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
         leftHerosList.push_back(tmp);
+
+        m_creature->GetMotionMaster()->MovePoint(1, guideGoPos[0], guideGoPos[1], guideGoPos[2]);
     }
 
     void AttackStart(Unit* pWho)
@@ -310,6 +316,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    {
                        (*itr)->SetStandState(UNIT_STAND_STATE_STAND);
                        pTyrannus->CastSpell(*itr, SPELL_TURN_TO_UNDEAD, true);
+                       (*itr)->CombatStop();
                        (*itr)->UpdateEntry(NPC_SKELETAL_SLAVE);
                    }
                    m_uiEventTimer = 2000;
@@ -479,6 +486,7 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
 const float sindragosaPos[4] = { 877.11, 202.16, 560.35, 5.921 };
 const float spawnPos[4] = { 1070.48, 103.21, 630.73, 2.13 };
 const float endNpcPos[3] = { 1003.18, 154.61, 628.2};
+const float horPos[3] = { 1096.62, 241.87, 630 };
 
 const int32 slave_says[2] = {-1658313, -1658312 };
 
@@ -489,9 +497,9 @@ const int32 guide_end[][2] =
     {-1658317, 0 },
 };
 
-struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
+struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
 {
-    mob_pos_guide_startAI(Creature* pCreature) : ScriptedAI(pCreature)
+    mob_pos_guide_endAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
@@ -509,7 +517,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     std::vector<Creature*> herosList;
 
-    Creature *pSyndragosa;
+    Creature *pSindragosa;
     Creature *pEndNpc;
 
     void Reset()
@@ -521,8 +529,9 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         }
         faction = m_pInstance->GetData(TYPE_FACTION);
         eventState = m_pInstance->GetData(TYPE_EVENT_STATE);
-        stopped = false;
-        SpawnMobs();
+        stopped = true;
+        pEndNpc = m_creature->SummonCreature(faction ? NPC_END_HORDE : NPC_END_ALLI, spawnPos[0], spawnPos[1], spawnPos[2],
+                                             spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
         m_uiEventTimer = 5000;
         eventStateInternal = 0;
      }
@@ -551,13 +560,10 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
             rightHerosList.push_back(tmp);
         }*/
-        
-        pSyndragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, sindragosaPos[0], sindragosaPos[1], sindragosaPos[2],
-                                                 sindragosaPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
-        
-        pEndNpc = m_creature->SummonCreature(faction ? NPC_END_HORDE : NPC_END_ALLI, spawnPos[0], spawnPos[1], spawnPos[2],
-                                                 spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+
         pEndNpc->GetMotionMaster()->MovePoint(1, endNpcPos[0], endNpcPos[1], endNpcPos[2]);
+        pSindragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, sindragosaPos[0], sindragosaPos[1], sindragosaPos[2],
+                                                 sindragosaPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
     }
 
     void AttackStart(Unit* pWho)
@@ -572,25 +578,43 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             DoScriptText(action, m_creature);
             return;
         }
+
+        switch(action)
+        {
+            case 0:
+                pEndNpc->AI()->DoAction(faction ? SAY_SLAVE_INTRO_H : SAY_SLAVE_INTRO_A);
+                break;
+            case 1:
+                SpawnMobs();
+                stopped = false;
+                break;
+        }
     }
 
     void DoFlySindragosa()
     {
-        pSindragosa->m_movementInfo.AddMovementFlag(MOVEFLAG_HOVER);
+        pSindragosa->SetSpeedRate(MOVE_FLIGHT, 4, true);
+        pSindragosa->SetSpeedRate(MOVE_RUN, 4, true);
+        pSindragosa->SetSpeedRate(MOVE_WALK, 4, true);
+
+        pSindragosa->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+        pSindragosa->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
         WorldPacket heart;
         pSindragosa->BuildHeartBeatMsg(&heart);
         pSindragosa->SendMessageToSet(&heart, false);
 
         float x, y ,z;
         pSindragosa->GetPosition(x, y, z);
-        z += 40.0f;
+        z += 100.0f;
+        x += cos(pSindragosa->GetOrientation())*30;
+        y += sin(pSindragosa->GetOrientation())*30;
+        
         PointPath path;
         path.resize(2);
         path.set(0, PathNode(pSindragosa->GetPositionX(), pSindragosa->GetPositionY(), pSindragosa->GetPositionZ()));
-        path.set(1, PathNode(x,y,z);
-        uint32 time = pSindragosa->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
-        pSindragosa->GetMotionMaster()->MoveCharge(path, time, 1, 1);
-        pSindragosa->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
+        path.set(1, PathNode(x,y,z));
+        pSindragosa->GetMotionMaster()->MoveCharge(path, 2000, 1, 1);
+        pSindragosa->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_NONE, 2000);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -604,7 +628,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             {
                 case 0:
                     pEndNpc->AI()->DoAction(slave_says[faction]);
-                    m_uiEventTimer = faction ? 30000 : 26000;
+                    m_uiEventTimer = faction ? 28000 : 24000;
                     break;
                 case 1:
                     DoFlySindragosa();
@@ -614,25 +638,30 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                 {
                     Creature *pFrostBomb = m_creature->SummonCreature(NPC_FROST_BOMB, endNpcPos[0], endNpcPos[1], endNpcPos[2], 0,
                                                                       TEMPSUMMON_DEAD_DESPAWN, 0);
-                    pSindragosa->CastSpell(pFrostBomb, SPELL_FROST_BOMB, false);
+                    pSindragosa->CastSpell(pFrostBomb, SPELL_FROST_BOMB, true);
+                    m_uiEventTimer = 2000;
+                    break;
+                }
+                case 3:
+                {
                     DoScriptText(guide_end[0][faction], m_creature);
 
                     Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
 
                     for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                         if (Player* pPlayer = itr->getSource())
-                            pPlayer->CastSpell(m_creature, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                            pPlayer->CastSpell(pPlayer, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
                     m_uiEventTimer = 3000;
                     break;
                 }
-                case 3:
+                case 4:
                 {
                     pSindragosa->GetMotionMaster()->MovePoint(2, tyrannusPos[0][0], tyrannusPos[0][1], tyrannusPos[0][2]);
                     DoScriptText(guide_end[1][faction], m_creature);
                     m_uiEventTimer = faction? 13000 : 7000;
                     break;
                 }
-                case 4:
+                case 5:
                 {
                     if(faction)
                         break;
@@ -640,7 +669,8 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                     m_uiEventTimer = 7000;
                     break;
                 }
-                case 5:
+                case 6:
+                    m_creature->GetMotionMaster()->MovePoint(2, horPos[0], horPos[1], horPos[2]);
                     pSindragosa->SetVisibility(VISIBILITY_OFF);
                     stopped = true;
                     break;
@@ -681,7 +711,7 @@ void AddSC_pit_of_saron()
 
     newscript = new Script;
     newscript->Name = "mob_pos_guide_end";
-    newscript->GetAI = &GetAI_mob_pos_guide_start;
+    newscript->GetAI = &GetAI_mob_pos_guide_end;
     newscript->RegisterSelf();
 
     newscript = new Script;

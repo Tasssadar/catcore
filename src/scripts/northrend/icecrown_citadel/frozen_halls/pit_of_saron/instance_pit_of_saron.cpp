@@ -25,7 +25,7 @@ EndScriptData */
 #include "pit_of_saron.h"
 #include "Vehicle.h"
 
-const float guidPos [4] = { 441.39f, 213.32f, 528.71f, 0.104f };
+const float guidPos [4] = { 427.84, 212.98, 529.2, 0.1};//{ 441.39f, 213.32f, 528.71f, 0.104f };
 const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
 
 struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance

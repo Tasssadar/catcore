@@ -44,6 +44,10 @@ enum
     SAY_TR_OUTRO1           = -1658125,
     SAY_TR_OUTRO2           = -1658127,
 
+    EMOTE_PURSUIT           = -1658501,
+    EMOTE_POISION_CLOUD     = -1658502,
+    EMOTE_ORBS              = -1658503,
+
     // Boss Spells
     SPELL_PUSTULANT_FLESH   = 69581,
     SPELL_PUSTULANT_FLESH_H = 70273,
@@ -205,7 +209,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     DoCast(m_creature, SPELL_STRANGULATE, true);
                     m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, 6000);
                     m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);
-                    eventTimer = 5000;
+                    eventTimer = 5500;
                     break;
                 }
                 case 7:
@@ -237,7 +241,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     m_creature->BuildHeartBeatMsg(&heart);
                     m_creature->SendMessageToSet(&heart, false);
                     
-                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FALLING, 2000);
+                    m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, 2000);
                     m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);
                     
                     pTyrannus->AI()->DoAction(1);
@@ -356,6 +360,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_uiOrbsCount = 0;
                 m_uiOrbs = true;
                 pKrick->AI()->DoAction(SAY_ORBS);
+                DoScriptText(EMOTE_ORBS, m_creature);
             }
             else if(m_uiOrbs && m_uiOrbsCount <= 8)
             {
@@ -402,6 +407,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                 m_uiPursuitTimer = 5000;
             DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_POISON_NOVA : SPELL_POISON_NOVA_H);
             pKrick->AI()->DoAction(SAY_POISION_NOVA);
+            DoScriptText(EMOTE_POISION_CLOUD, m_creature);
             m_uiPoisionNovaTimer = urand(14000, 20000);
         }else m_uiPoisionNovaTimer -= uiDiff;
 
@@ -425,6 +431,7 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
                     m_uiPursuitTimer = 17000;
                     m_uiOrbsTimer = 27000;
                     pKrick->AI()->DoAction(SAY_PURSUIT1 - urand(0, 2));
+                    DoScriptText(EMOTE_PURSUIT, m_creature, pPursuitTarget);
                     break;
                 case 1:
                     if(pPursuitTarget && pPursuitTarget->IsInWorld() && pPursuitTarget->isAlive())

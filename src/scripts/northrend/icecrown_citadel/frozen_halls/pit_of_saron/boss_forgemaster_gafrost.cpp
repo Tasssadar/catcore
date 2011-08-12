@@ -33,6 +33,8 @@ enum
     SAY_FORGE1              = -1658002,
     SAY_FORGE2              = -1658003,
 
+    EMOTE_BOULDER           = -1658500,
+
     // Boss Spells
     SPELL_PERMAFROST        = 70326,
     SPELL_THROW_SARONITE    = 68788,
@@ -103,6 +105,24 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
         DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
+    Unit *getRangedTarget()
+    {
+        Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+        std::vector<Unit*> targets;
+        for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+        {
+            if (Player* pPlayer = itr->getSource())
+            {
+                if(m_creature->GetDistance(pPlayer) >= 10.0f)
+                    targets.push_back(pPlayer);
+            }
+        }
+        if(!targets.empty())
+            return targets[time(0)%targets.size()];
+        else
+            return m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -156,14 +176,18 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
             Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
             if(plr)
                 DoCastSpellIfCan(plr, m_bIsRegularMode ? SPELL_DEEP_FREEZE : SPELL_DEEP_FREEZE_H);
-            m_uiDeepFreezeTimer = urand(10000, 18000);
+            m_uiDeepFreezeTimer = urand(15000, 25000);
         }else m_uiDeepFreezeTimer -= uiDiff;
 
         if(m_uiThrowSaronite <= uiDiff)
         {
-            Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+            Unit* plr = getRangedTarget();
+
             if(plr)
+            {
+                DoScriptText(EMOTE_BOULDER, m_creature, plr);
                 DoCast(plr, SPELL_THROW_SARONITE);
+            }
             m_uiThrowSaronite = urand(7000, 10000);
         }else m_uiThrowSaronite -= uiDiff;
 

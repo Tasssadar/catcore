@@ -36,6 +36,9 @@ enum
     SAY_KILL2               = -1658309,
     SAY_DEATH               = -1658311,
 
+    EMOTE_POWER             = -1658504,
+    EMOTE_MARK              = -1658505,
+
     SPELL_FORCEFUL_SMASH    = 69155,
     SPELL_FORCEFUL_SMASH_H  = 69627,
     SPELL_OVERLORDS_BRAND   = 69172,
@@ -88,6 +91,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     Vehicle *pRimefang;
     Unit *pMarkTarget;
+    Creature *pGuide;
 
     void Reset()
     {
@@ -106,6 +110,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         m_uiOverlordsBrandTimer = 12000;
         pMarkTarget = NULL;
         m_uiMarkPhase = 0;
+        pGuide = NULL;
     }
 
     void AttackStart(Unit* pWho)
@@ -130,11 +135,10 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        pGuide->AI()->DoAction(1);
         pRimefang->AI()->DoAction(ACTION_END);
         DoScriptText(SAY_DEATH, m_creature);
         m_pInstance->SetData(TYPE_EVENT_STATE, 3);
-        m_creature->SummonCreature(m_pInstance->GetData(TYPE_FACTION) ? NPC_SYLVANAS_END : NPC_JAINA_END,
-                                   guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
     }
 
     void KilledUnit(Unit* pVictim)
@@ -158,12 +162,44 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         switch(action)
         {
             case ACTION_START_INTRO:
+            {
                 m_intro = true;
+                pRimefang = m_creature->GetMap()->GetVehicle(m_pInstance->GetData64(NPC_RIMEFANG));
+
+                uint8 faction = m_pInstance->GetData(TYPE_FACTION);
+                pGuide = GetClosestCreatureWithEntry(m_creature, faction ? NPC_SYLVANAS_END : NPC_JAINA_END, 200.0f);
+                if(pGuide)
+                {
+                    introPhase = 2;
+                    m_uiIntroTimer = 1000;
+                    break;
+                }
+
                 DoScriptText(SAY_INTRO1, m_creature);
                 m_uiIntroTimer = 15000;
-                pRimefang = m_creature->GetMap()->GetVehicle(m_pInstance->GetData64(NPC_RIMEFANG));
+                pGuide = m_creature->SummonCreature(faction ? NPC_SYLVANAS_END : NPC_JAINA_END,
+                                           guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
                 break;
+            }
         }
+    }
+
+    Unit *getRangedTarget()
+    {
+        Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+        std::vector<Unit*> targets;
+        for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+        {
+            if (Player* pPlayer = itr->getSource())
+            {
+                if(m_creature->GetDistance(pPlayer) >= 10.0f)
+                    targets.push_back(pPlayer);
+            }
+        }
+        if(!targets.empty())
+            return targets[time(0)%targets.size()];
+        else
+            return m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -175,14 +211,18 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                 switch(introPhase)
                 {
                     case 0:
+                        pGuide->AI()->DoAction(0);
+                        m_uiIntroTimer = 10000;
+                        break;
+                    case 1:
                         DoScriptText(SAY_INTRO2, m_creature);
                         m_uiIntroTimer = 16000;
                         break;
-                    case 1:
+                    case 2:
                         pRimefang->AI()->DoAction(ACTION_START_FIGHT);
                         m_uiIntroTimer = 2000;
                         break;
-                    case 2:
+                    case 3:
                         SetCombatMovement(true);
                         m_intro = false;
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -211,6 +251,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
             if(m_uiOverlordsBrandTimer < 1000)
                 m_uiOverlordsBrandTimer = 1000;
             m_uiUnholyPowerTimer = urand(20000,25000);
+            DoScriptText(EMOTE_POWER, m_creature);
         }else m_uiUnholyPowerTimer -= uiDiff;
 
         if(m_uiMarkOfRimefangTimer <= uiDiff)
@@ -221,6 +262,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                 if(plr)
                 {
                     DoScriptText(SAY_MARK, m_creature);
+                    DoScriptText(EMOTE_MARK, m_creature, plr);
                     plr->CastSpell(plr, SPELL_MARK_OF_RIMEFANG, true);
                     pMarkTarget = plr;
                     m_uiMarkOfRimefangTimer = 7000;
@@ -253,17 +295,17 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
             if(m_uiHoarfrostTimer <= uiDiff)
             {
                 pRimefang->CastSpell(pMarkTarget, m_bIsRegularMode ? SPELL_HOARFROST : SPELL_HOARFROST_H, true);
-                m_uiHoarfrostTimer = 5000;
+                m_uiHoarfrostTimer = 6000;
             }else m_uiHoarfrostTimer -= uiDiff;
         }
 
         if(m_uiIcyBlastTimer <= uiDiff)
         {
             Unit *target = NULL;
-            if(pMarkTarget && pMarkTarget->IsInWorld() && pMarkTarget->isAlive())
-                target = pMarkTarget;
-            else
-                target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+            //if(pMarkTarget && pMarkTarget->IsInWorld() && pMarkTarget->isAlive())
+             //   target = pMarkTarget;
+            //else
+                target = getRangedTarget();
             if(target)
             {
                 float x, y, z;
