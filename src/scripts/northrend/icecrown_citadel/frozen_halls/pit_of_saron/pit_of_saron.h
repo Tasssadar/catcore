@@ -23,8 +23,12 @@ enum
     NPC_SYLVANAS_BEGIN = 36990,
     NPC_SYLVANAS_END   = 38189,
 
+    NPC_END_HORDE      = 37581,
+    NPC_END_ALLI       = 37580,
+
     NPC_NECROLYTE      = 36788,
     NPC_TYRANNUS_INTRO = 36794,
+    NPC_SINDRAGOSA     = 37755,
 
     GO_ICE_WALL        = 201885,
 };

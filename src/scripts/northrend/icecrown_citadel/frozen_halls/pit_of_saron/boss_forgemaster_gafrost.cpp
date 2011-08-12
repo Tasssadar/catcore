@@ -26,12 +26,12 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO               = -1632000,
-    SAY_SOULSTORM           = -1632001,
-    SAY_CORRUPT_SOUL        = -1632002,
-    SAY_KILL1               = -1632003,
-    SAY_KILL2               = -1632004,
-    SAY_DEATH               = -1632005,
+    SAY_AGGRO               = -1658001,
+    SAY_KILL1               = -1658004,
+    SAY_KILL2               = -1658005,
+    SAY_DEATH               = -1658006,
+    SAY_FORGE1              = -1658002,
+    SAY_FORGE2              = -1658003,
 
     // Boss Spells
     SPELL_PERMAFROST        = 70326,
@@ -133,6 +133,7 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
         if((m_forgePhase == 3  && m_creature->GetHealthPercent() <= 33.0f) ||
            (m_forgePhase == 0 && m_creature->GetHealthPercent() <= 66.0f))
         {
+            DoScriptText(SAY_FORGE1 - m_forgePhase/3, m_creature);
             DoCast(m_creature, SPELL_THUNDERING_STOMP);
             m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
             ++m_forgePhase;

@@ -29,6 +29,12 @@ enum
 {
     SAY_INTRO1              = -1658302,
     SAY_INTRO2              = -1658304,
+    SAY_AGGRO               = -1658305,
+    SAY_MARK                = -1658306,
+    SAY_POWER               = -1658307,
+    SAY_KILL1               = -1658308,
+    SAY_KILL2               = -1658309,
+    SAY_DEATH               = -1658311,
 
     SPELL_FORCEFUL_SMASH    = 69155,
     SPELL_FORCEFUL_SMASH_H  = 69627,
@@ -51,6 +57,7 @@ enum
 };
 
 const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
+const float guidePos[4] = { 1064.50, 96.96, 631.1, 2.035 };
 
 struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 {
@@ -118,20 +125,26 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
+        DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void JustDied(Unit* pKiller)
     {
         pRimefang->AI()->DoAction(ACTION_END);
+        DoScriptText(SAY_DEATH, m_creature);
+        m_pInstance->SetData(TYPE_EVENT_STATE, 3);
+        m_creature->SummonCreature(m_pInstance->GetData(TYPE_FACTION) ? NPC_SYLVANAS_END : NPC_JAINA_END,
+                                   guidePos[0], guidePos[1], guidePos[2], guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
     }
 
     void KilledUnit(Unit* pVictim)
     {
+        DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void EnterEvadeMode()
     {
-        Vehicle *pRimefangNew = plr->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
+        Vehicle *pRimefangNew = m_creature->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
         pRimefangNew->SetRespawnDelay(86400);
         
         pRimefang->SetVisibility(VISIBILITY_OFF);
@@ -193,6 +206,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
         if(m_uiUnholyPowerTimer <= uiDiff)
         {
+            DoScriptText(SAY_POWER, m_creature);
             DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_UNHOLY_POWER : SPELL_UNHOLY_POWER_H);
             if(m_uiOverlordsBrandTimer < 1000)
                 m_uiOverlordsBrandTimer = 1000;
@@ -206,6 +220,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                 Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
                 if(plr)
                 {
+                    DoScriptText(SAY_MARK, m_creature);
                     plr->CastSpell(plr, SPELL_MARK_OF_RIMEFANG, true);
                     pMarkTarget = plr;
                     m_uiMarkOfRimefangTimer = 7000;
@@ -394,10 +409,6 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if(m_end)
-        {
-            
-        }
         if (m_end || m_intro || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 

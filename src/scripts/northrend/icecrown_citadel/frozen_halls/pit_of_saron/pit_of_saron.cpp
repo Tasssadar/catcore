@@ -53,9 +53,9 @@ INSERT INTO `scriptdev2`.`script_texts` (`entry`, `content_default`, `content_lo
 ('-1658905', 'Minions! Destroy these interlopers!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16751', '1', '0', '0', ''),
 ('-1658906', 'No, you monster!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16627', '1', '0', '0', ''),
 ('-1658907', 'Pathetic weaklings...', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17046', '1', '0', '0', ''),
-('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16629', '1', '0', '0', ''),
+('-1658908', 'You will have to make your way across this quarry on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16630', '1', '0', '0', ''),
 ('-1658909', 'You will have to battle your way threw this pit on your own.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17047', '1', '0', '0', ''),
-('-1658910', 'Free any Alliance slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16629', '1', '0', '0', ''),
+('-1658910', 'Free any Alliance slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16631', '1', '0', '0', ''),
 ('-1658911', 'Free any Horde slaves that you come across. We will most certainly need their assistence in battling Tyrannus. I will gather reinforcemens and join you on the other side of the quarry.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '17048', '1', '0', '0', ''),
 ('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
 ('-1658900', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '16747', '1', '0', '0', ''),
@@ -80,6 +80,12 @@ enum
     SPELL_JAINA_PWNT        = 70464,
 
     NPC_SKELETAL_SLAVE      = 36881,
+
+    NPC_FROST_BOMB          = 37186,
+    SPELL_FROST_BOMB        = 70521,
+
+    SPELL_TELE_ALI          = 70525,
+    SPELL_TELE_HORDE        = 70639,
 };
 
 const int32 say_guide[][2] = 
@@ -456,7 +462,10 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
     
     void DoAction(uint32 action)
     {
-        SetCombatMovement(action);
+        if(int32(action) < 0)
+            DoScriptText(action, m_creature);
+        else
+            SetCombatMovement(action);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -464,6 +473,180 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
         DoMeleeAttackIfReady();
+    }
+};
+
+const float sindragosaPos[4] = { 877.11, 202.16, 560.35, 5.921 };
+const float spawnPos[4] = { 1070.48, 103.21, 630.73, 2.13 };
+const float endNpcPos[3] = { 1003.18, 154.61, 628.2};
+
+const int32 slave_says[2] = {-1658313, -1658312 };
+
+const int32 guide_end[][2] =
+{
+    {-1658315, -1658314 },
+    {-1658316, -1658318 },
+    {-1658317, 0 },
+};
+
+struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
+{
+    mob_pos_guide_startAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
+    uint32 m_uiEventTimer;
+    uint8 faction;
+    uint8 eventState;
+    uint8 eventStateInternal;
+    bool stopped;
+
+    std::vector<Creature*> herosList;
+
+    Creature *pSyndragosa;
+    Creature *pEndNpc;
+
+    void Reset()
+    {
+        if(!m_pInstance)
+        {
+            m_creature->ForcedDespawn();
+            return;
+        }
+        faction = m_pInstance->GetData(TYPE_FACTION);
+        eventState = m_pInstance->GetData(TYPE_EVENT_STATE);
+        stopped = false;
+        SpawnMobs();
+        m_uiEventTimer = 5000;
+        eventStateInternal = 0;
+     }
+
+    void SetEventState(uint32 state)
+    {
+         eventState = state;
+         m_pInstance->SetData(TYPE_EVENT_STATE, state);
+    }
+
+    void SpawnMobs()
+    {
+        /*Creature *tmp;
+        for(uint8 i = 0; i < INTRO_MOB_COUNT_LEFT; ++i)
+        {
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
+                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+            tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2]);
+
+            leftHerosList.push_back(tmp);
+        }
+        for(uint8 i = 0; i < INTRO_MOB_COUNT_RIGHT; ++i)
+        {
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
+                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+            tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
+            rightHerosList.push_back(tmp);
+        }*/
+        
+        pSyndragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, sindragosaPos[0], sindragosaPos[1], sindragosaPos[2],
+                                                 sindragosaPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        
+        pEndNpc = m_creature->SummonCreature(faction ? NPC_END_HORDE : NPC_END_ALLI, spawnPos[0], spawnPos[1], spawnPos[2],
+                                                 spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        pEndNpc->GetMotionMaster()->MovePoint(1, endNpcPos[0], endNpcPos[1], endNpcPos[2]);
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        return;
+    }
+
+    void DoAction(uint32 action)
+    {
+        if(int32(action) < 0)
+        {
+            DoScriptText(action, m_creature);
+            return;
+        }
+    }
+
+    void DoFlySindragosa()
+    {
+        pSindragosa->m_movementInfo.AddMovementFlag(MOVEFLAG_HOVER);
+        WorldPacket heart;
+        pSindragosa->BuildHeartBeatMsg(&heart);
+        pSindragosa->SendMessageToSet(&heart, false);
+
+        float x, y ,z;
+        pSindragosa->GetPosition(x, y, z);
+        z += 40.0f;
+        PointPath path;
+        path.resize(2);
+        path.set(0, PathNode(pSindragosa->GetPositionX(), pSindragosa->GetPositionY(), pSindragosa->GetPositionZ()));
+        path.set(1, PathNode(x,y,z);
+        uint32 time = pSindragosa->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
+        pSindragosa->GetMotionMaster()->MoveCharge(path, time, 1, 1);
+        pSindragosa->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if(stopped)
+            return;
+
+        if(m_uiEventTimer <= uiDiff)
+        {
+            switch(eventStateInternal)
+            {
+                case 0:
+                    pEndNpc->AI()->DoAction(slave_says[faction]);
+                    m_uiEventTimer = faction ? 30000 : 26000;
+                    break;
+                case 1:
+                    DoFlySindragosa();
+                    m_uiEventTimer = 2000;
+                    break;
+                case 2:
+                {
+                    Creature *pFrostBomb = m_creature->SummonCreature(NPC_FROST_BOMB, endNpcPos[0], endNpcPos[1], endNpcPos[2], 0,
+                                                                      TEMPSUMMON_DEAD_DESPAWN, 0);
+                    pSindragosa->CastSpell(pFrostBomb, SPELL_FROST_BOMB, false);
+                    DoScriptText(guide_end[0][faction], m_creature);
+
+                    Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+
+                    for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                        if (Player* pPlayer = itr->getSource())
+                            pPlayer->CastSpell(m_creature, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                    m_uiEventTimer = 3000;
+                    break;
+                }
+                case 3:
+                {
+                    pSindragosa->GetMotionMaster()->MovePoint(2, tyrannusPos[0][0], tyrannusPos[0][1], tyrannusPos[0][2]);
+                    DoScriptText(guide_end[1][faction], m_creature);
+                    m_uiEventTimer = faction? 13000 : 7000;
+                    break;
+                }
+                case 4:
+                {
+                    if(faction)
+                        break;
+                    DoScriptText(guide_end[2][faction], m_creature);
+                    m_uiEventTimer = 7000;
+                    break;
+                }
+                case 5:
+                    pSindragosa->SetVisibility(VISIBILITY_OFF);
+                    stopped = true;
+                    break;
+            }
+            ++eventStateInternal;
+        }else m_uiEventTimer -= uiDiff;
     }
 };
 
@@ -482,6 +665,11 @@ CreatureAI* GetAI_mob_pos_hero(Creature* pCreature)
     return new mob_pos_heroAI(pCreature);
 }
 
+CreatureAI* GetAI_mob_pos_guide_end(Creature* pCreature)
+{
+    return new mob_pos_guide_endAI(pCreature);
+}
+
 void AddSC_pit_of_saron()
 {
     Script* newscript;
@@ -492,11 +680,16 @@ void AddSC_pit_of_saron()
     newscript->RegisterSelf();
 
     newscript = new Script;
+    newscript->Name = "mob_pos_guide_end";
+    newscript->GetAI = &GetAI_mob_pos_guide_start;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
     newscript->Name = "mob_tyrannus_intro";
     newscript->GetAI = &GetAI_mob_tyrannus_intro;
     newscript->RegisterSelf();
 
-     newscript = new Script;
+    newscript = new Script;
     newscript->Name = "mob_pos_hero";
     newscript->GetAI = &GetAI_mob_pos_hero;
     newscript->RegisterSelf();
