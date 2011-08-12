@@ -153,7 +153,6 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         Creature *tmp;
         for(uint8 i = 0; i < INTRO_MOB_COUNT_LEFT; ++i)
         {
-            portalPos
             tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
                                        0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
             tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2]);
@@ -297,7 +296,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    }
                    SetFlying(false);
                    DoStrangulate(false, 1000);
-                   m_uiEventTimer = 2000;
+                   m_uiEventTimer = 3000;
                    break;
                case 8:
                    DoScriptText(say_guide[1][faction], m_creature);
@@ -334,13 +333,13 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                    m_uiEventTimer = 4000;
                    break;
                case 12:
+                   SetEventState(1);
                    pTyrannus->AI()->DoAction(0);
                    pTyrannus->AI()->DoAction(1);
                    DoScriptText(say_guide[3][faction], m_creature);
                    m_uiEventTimer = 10000;
                    break;
                case 13:
-                   SetEventState(1);
                    stopped = true;
                    break;
                // ====================== INTRO END ===============

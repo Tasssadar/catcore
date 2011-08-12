@@ -45,7 +45,12 @@ enum
     
     ACTION_START_INTRO      = 1,
     ACTION_START_FIGHT      = 2,
+    ACTION_END              = 3,
+
+    NPC_ICY_BLAST           = 36731,
 };
+
+const float tyrannusPos[4] = { 1017.29, 168.97, 642.92, 5.27};
 
 struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 {
@@ -98,7 +103,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if (!pWho)
+        if (!pWho || !pRimefang || m_intro)
             return;
 
         if (m_creature->Attack(pWho, true))
@@ -106,7 +111,6 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
             m_creature->AddThreat(pWho);
             m_creature->SetInCombatWith(pWho);
             pWho->SetInCombatWith(m_creature);
-
             if (IsCombatMovement())
                 m_creature->GetMotionMaster()->MoveChase(pWho);
         }
@@ -118,10 +122,22 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
+        pRimefang->AI()->DoAction(ACTION_END);
     }
 
     void KilledUnit(Unit* pVictim)
     {
+    }
+
+    void EnterEvadeMode()
+    {
+        Vehicle *pRimefangNew = plr->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
+        pRimefangNew->SetRespawnDelay(86400);
+        
+        pRimefang->SetVisibility(VISIBILITY_OFF);
+        pRimefang->ForcedDespawn();
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_creature->ForcedDespawn();
     }
 
     void DoAction(uint32 action)
@@ -155,10 +171,10 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                         break;
                     case 2:
                         SetCombatMovement(true);
+                        m_intro = false;
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         if(pRimefang->getVictim())
                             AttackStart(pRimefang->getVictim());
-                        m_intro = false;
                         break;
                 }
                 ++introPhase;
@@ -190,7 +206,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                 Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
                 if(plr)
                 {
-                    DoCastSpellIfCan(plr, SPELL_MARK_OF_RIMEFANG);
+                    plr->CastSpell(plr, SPELL_MARK_OF_RIMEFANG, true);
                     pMarkTarget = plr;
                     m_uiMarkOfRimefangTimer = 7000;
                     m_uiMarkPhase = 1;
@@ -234,7 +250,12 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
             else
                 target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
             if(target)
-                pRimefang->CastSpell(target, SPELL_ICY_BLAST, true);
+            {
+                float x, y, z;
+                target->GetPosition(x, y, z);
+                Creature *icy_blast = m_creature->SummonCreature(NPC_ICY_BLAST, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 60000);
+                pRimefang->CastSpell(icy_blast, SPELL_ICY_BLAST, true);
+            }
             m_uiIcyBlastTimer = urand(8000, 12000);
         }else m_uiIcyBlastTimer -= uiDiff;
 
@@ -272,6 +293,7 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
     bool m_intro;
 
     uint32 flyTimer;
+    bool m_end;
     
     void Reset()
     {
@@ -285,6 +307,20 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
         pTyrannus= NULL;
         m_intro = false;
         flyTimer = urand(10000, 20000);
+        m_end = false;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho || m_end)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+        }
     }
 
     void MoveInLineOfSight(Unit* pWho)
@@ -305,6 +341,10 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
                 }
             }
         }
+    }
+    
+    void EnterEvadeMode()
+    {
     }
 
     void Aggro(Unit* pWho)
@@ -345,12 +385,20 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
                 pTyrannus->GetMap()->CreatureRelocation(pTyrannus, dismountPos[0], dismountPos[1], dismountPos[2], 0);
                 DoRandomFlight();
                 break;
+            case ACTION_END:
+                m_creature->SetVisibility(VISIBILITY_OFF);
+                m_end = true;
+                break;
         }
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_intro || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if(m_end)
+        {
+            
+        }
+        if (m_end || m_intro || !m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         if(flyTimer <= uiDiff)

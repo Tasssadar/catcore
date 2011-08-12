@@ -3008,10 +3008,17 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
 
             return;
         }
+       
         default:
             break;
     }
 
+    if(m_spellInfo->Id == 69232 && (triggered_spell_id == 69238 || triggered_spell_id == 69628))
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
+        unitTarget->CastSpell(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spellInfo, true, m_CastItem, 0);
+        return;
+    }
     // normal case
     SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
 

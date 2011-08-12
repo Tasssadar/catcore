@@ -9602,6 +9602,10 @@ bool Unit::IsHostileTo(Unit const* unit) const
     if (((Unit*)this)->getVictim()==unit || ((Unit*)unit)->getVictim()==this)
         return true;
 
+    if(GetTypeId() == TYPEID_UNIT && GetEntry() == 36731 &&
+      (unit->GetTypeId() != TYPEID_UNIT || unit->GetEntry() != 36731))
+        return true;
+
     // test pet/charm masters instead pers/charmeds
     Unit *testerOwner = GetCharmerOrOwner();
     Unit *targetOwner = unit->GetCharmerOrOwner();
@@ -11541,6 +11545,9 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
     if (!spellInfo)
         return false;
 
+    if(spellInfo->Id == 69238 || spellInfo->Id == 69628)
+        return false;
+    
     //TODO add spellEffect immunity checks!, player with flag in bg is imune to imunity buffs from other friendly players!
     //SpellImmuneList const& dispelList = m_spellImmune[IMMUNITY_EFFECT];
 
@@ -11593,6 +11600,9 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 {
     if (spellInfo->Id == 63337)
         return false;
+
+    if(spellInfo->Id == 69238 || spellInfo->Id == 69628)
+        return (index != EFFECT_INDEX_0); 
 
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR BEGIN
     if (HasAuraType(SPELL_AURA_OF_DESPAIR))

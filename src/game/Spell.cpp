@@ -2900,6 +2900,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                 targetUnitMap.push_back(owner);
                     }
                     break;
+                case SPELL_EFFECT_PERSISTENT_AREA_AURA:
+                    if(m_spellInfo->EffectImplicitTargetB[effIndex] == 88)
+                    {
+                        SetTargetMap(effIndex, TARGET_ALL_ENEMY_IN_AREA, targetUnitMap);
+                    }
+                    break;
 
                 default:
                     break;

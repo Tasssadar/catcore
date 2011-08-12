@@ -238,8 +238,21 @@ void SpellMgr::ApplySpellHacks()
     sfix38->EffectImplicitTargetB[1] = 0;
     sfix38->EffectImplicitTargetA[2] = 1;
 
+    
     // Wrong target type...
-    SpellEntry *sfix39 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+    SpellEntry *sfix39 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69232));
     sfix39->EffectTriggerSpell[0] = 69233;
     sfix39->EffectTriggerSpell[1] = 69238;
+
+    SpellEntry *sfix40 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69238));
+    sfix40->EffectImplicitTargetA[0] = 28;
+    sfix40->EffectImplicitTargetB[0] = 0;
+    sfix40->EffectImplicitTargetA[1] = 28;
+    sfix40->EffectImplicitTargetB[1] = 0;
+
+    SpellEntry *sfix41 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69628));
+    sfix41->EffectImplicitTargetA[0] = 28;
+    sfix41->EffectImplicitTargetB[0] = 0;
+    sfix41->EffectImplicitTargetA[1] = 28;
+    sfix41->EffectImplicitTargetB[1] = 0;
 }
