@@ -75,6 +75,7 @@ enum
 
     SPELL_STRANGULATE       = 69413,
     SPELL_TURN_TO_UNDEAD    = 69350,
+    SPELL_NECROMANTIC_POWER = 69753,
     SPELL_SYLVANAS_PWNT     = 59514,
     SPELL_JAINA_PWNT        = 70464,
 
@@ -88,6 +89,8 @@ const int32 say_guide[][2] =
     {-1658908, -1658909},
     {-1658910, -1658911},
 };
+
+const float portalPos[3] = { 427.84, 212.98, 529.2};
 
 struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 {
@@ -150,16 +153,18 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         Creature *tmp;
         for(uint8 i = 0; i < INTRO_MOB_COUNT_LEFT; ++i)
         {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction],
-                                       mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2],
+            portalPos
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
                                        0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+            tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2]);
+            
             leftHerosList.push_back(tmp);
         }
         for(uint8 i = 0; i < INTRO_MOB_COUNT_RIGHT; ++i)
         {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction],
-                                       mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2],
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
                                        0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+            tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
             rightHerosList.push_back(tmp);
         }
         tmp = m_creature->SummonCreature(NPC_NECROLYTE, necrolytePos[0][0], necrolytePos[0][1], necrolytePos[0][2],
@@ -287,15 +292,21 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                case 7:
                    for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
-                       pTyrannus->CastSpell(*itr, SPELL_TURN_TO_UNDEAD, false);
-                       (*itr)->UpdateEntry(NPC_SKELETAL_SLAVE);
+                       pTyrannus->CastSpell(m_creature,  SPELL_NECROMANTIC_POWER, true);
+                       (*itr)->SetStandState(UNIT_STAND_STATE_DEAD);
                    }
-                   m_uiEventTimer = 1000;
+                   SetFlying(false);
+                   DoStrangulate(false, 1000);
+                   m_uiEventTimer = 2000;
                    break;
                case 8:
                    DoScriptText(say_guide[1][faction], m_creature);
-                   SetFlying(false);
-                   DoStrangulate(false, 1000);
+                   for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
+                   {
+                       (*itr)->SetStandState(UNIT_STAND_STATE_STAND);
+                       pTyrannus->CastSpell(*itr, SPELL_TURN_TO_UNDEAD, true);
+                       (*itr)->UpdateEntry(NPC_SKELETAL_SLAVE);
+                   }
                    m_uiEventTimer = 2000;
                    break;
                case 9:

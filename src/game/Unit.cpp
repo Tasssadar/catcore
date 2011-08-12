@@ -887,6 +887,18 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         }
     }
 
+    // Overlords brand
+    if(HasAura(69172))
+    {
+        Aura *aura = GetAura(69172, EFFECT_INDEX_0);
+        Unit *caster = aura->GetCaster();
+        if(caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->getVictim())
+        {
+            int32 basepoints[3] = { (damage+absorb), 0, 0 };
+            CastCustomSpell(((Creature*)caster)->getVictim(), 69189, &basepoints[0], &basepoints[1], &basepoints[2], true, NULL, aura);
+        }
+    }
+
     if (health <= damage)
     {
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamage: victim just died");
@@ -10361,6 +10373,18 @@ int32 Unit::DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellPro
         ((Player*)pVictim)->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HEALING_RECEIVED, addhealth);
     }
 
+    // Overlords brand
+    if(HasAura(69172))
+    {
+        Aura *aura = GetAura(69172, EFFECT_INDEX_0);
+        Unit *caster = aura->GetCaster();
+        if(caster && caster->GetTypeId() == TYPEID_UNIT)
+        {
+            int32 basepoints[3] = { addhealth*2, 0, 0 };
+            CastCustomSpell(caster, 69190, &basepoints[0], &basepoints[1], &basepoints[2], true, NULL, aura);
+        }
+    }
+
     return gain;
 }
 
@@ -16144,6 +16168,10 @@ void Unit::ExitVehicle()
             ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
             ((Player*)this)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
         }
+        
+        WorldPacket heart;
+        BuildHeartBeatMsg(&heart);
+        SendMessageToSet(&heart, true);
 
         float x = GetPositionX();
         float y = GetPositionY();

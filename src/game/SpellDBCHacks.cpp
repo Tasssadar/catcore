@@ -237,4 +237,9 @@ void SpellMgr::ApplySpellHacks()
     sfix38->EffectImplicitTargetA[1] = 6;
     sfix38->EffectImplicitTargetB[1] = 0;
     sfix38->EffectImplicitTargetA[2] = 1;
+
+    // Wrong target type...
+    SpellEntry *sfix39 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+    sfix39->EffectTriggerSpell[0] = 69233;
+    sfix39->EffectTriggerSpell[1] = 69238;
 }

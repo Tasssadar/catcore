@@ -27,11 +27,24 @@ EndScriptData */
 
 enum
 {
-    SAY_INTRO1         = -1658302,
-    SAY_INTRO2         = -1658304,
+    SAY_INTRO1              = -1658302,
+    SAY_INTRO2              = -1658304,
+
+    SPELL_FORCEFUL_SMASH    = 69155,
+    SPELL_FORCEFUL_SMASH_H  = 69627,
+    SPELL_OVERLORDS_BRAND   = 69172,
+    SPELL_UNHOLY_POWER      = 69167,
+    SPELL_UNHOLY_POWER_H    = 69629,
+
+    SPELL_MARK_OF_RIMEFANG  = 69275,
+
+    SPELL_HOARFROST         = 69245,
+    SPELL_HOARFROST_H       = 69645,
+
+    SPELL_ICY_BLAST         = 69232,
     
-    ACTION_START_INTRO = 1,
-    ACTION_START_FIGHT = 2,
+    ACTION_START_INTRO      = 1,
+    ACTION_START_FIGHT      = 2,
 };
 
 struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
@@ -48,11 +61,21 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
+    uint32 m_uiSmashTimer;
+    uint32 m_uiUnholyPowerTimer;
+    uint32 m_uiOverlordsBrandTimer;
+
+    uint32 m_uiHoarfrostTimer;
+    uint32 m_uiMarkOfRimefangTimer;
+    uint8 m_uiMarkPhase;
+    uint32 m_uiIcyBlastTimer;
+
     uint8 introPhase;
     uint32 m_uiIntroTimer;
     bool m_intro;
 
     Vehicle *pRimefang;
+    Unit *pMarkTarget;
 
     void Reset()
     {
@@ -62,6 +85,15 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         introPhase = 0;
         m_intro = false;
         pRimefang = NULL;
+
+        m_uiSmashTimer = 10000;
+        m_uiUnholyPowerTimer = 20000;
+        m_uiIcyBlastTimer = 12000;
+        m_uiMarkOfRimefangTimer = 6000;
+        m_uiHoarfrostTimer = 5000;
+        m_uiOverlordsBrandTimer = 12000;
+        pMarkTarget = NULL;
+        m_uiMarkPhase = 0;
     }
 
     void AttackStart(Unit* pWho)
@@ -124,8 +156,8 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
                     case 2:
                         SetCombatMovement(true);
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        if(m_creature->getVictim())
-                            AttackStart(m_creature->getVictim());
+                        if(pRimefang->getVictim())
+                            AttackStart(pRimefang->getVictim());
                         m_intro = false;
                         break;
                 }
@@ -133,8 +165,78 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
             }else m_uiIntroTimer -= uiDiff;
             return;
         }
+        
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+
+        if(m_uiSmashTimer <= uiDiff)
+        {
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_FORCEFUL_SMASH : SPELL_FORCEFUL_SMASH_H);
+            m_uiSmashTimer = urand(10000,15000);
+        }else m_uiSmashTimer -= uiDiff;
+
+        if(m_uiUnholyPowerTimer <= uiDiff)
+        {
+            DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_UNHOLY_POWER : SPELL_UNHOLY_POWER_H);
+            if(m_uiOverlordsBrandTimer < 1000)
+                m_uiOverlordsBrandTimer = 1000;
+            m_uiUnholyPowerTimer = urand(20000,25000);
+        }else m_uiUnholyPowerTimer -= uiDiff;
+
+        if(m_uiMarkOfRimefangTimer <= uiDiff)
+        {
+            if(!m_uiMarkPhase)
+            {
+                Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
+                if(plr)
+                {
+                    DoCastSpellIfCan(plr, SPELL_MARK_OF_RIMEFANG);
+                    pMarkTarget = plr;
+                    m_uiMarkOfRimefangTimer = 7000;
+                    m_uiMarkPhase = 1;
+                }
+                else m_uiMarkOfRimefangTimer = urand(7000, 12000);
+            }
+            else
+            {
+                m_uiMarkPhase = 0;
+                pMarkTarget = NULL;
+                m_uiMarkOfRimefangTimer = urand(7000, 12000);
+            }
+        }else m_uiMarkOfRimefangTimer -= uiDiff;
+
+        if(m_uiOverlordsBrandTimer <= uiDiff)
+        {
+            Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
+            if(plr)
+                DoCast(plr, SPELL_OVERLORDS_BRAND);
+            if(m_uiUnholyPowerTimer < 1500)
+                m_uiUnholyPowerTimer = 1500;
+            m_uiOverlordsBrandTimer = urand(12000, 17000);
+        }else m_uiOverlordsBrandTimer -= uiDiff;
+
+
+        // ===================================== Rimefang Spells
+        if(pMarkTarget && pMarkTarget->IsInWorld() && pMarkTarget->isAlive())
+        {
+            if(m_uiHoarfrostTimer <= uiDiff)
+            {
+                pRimefang->CastSpell(pMarkTarget, m_bIsRegularMode ? SPELL_HOARFROST : SPELL_HOARFROST_H, true);
+                m_uiHoarfrostTimer = 5000;
+            }else m_uiHoarfrostTimer -= uiDiff;
+        }
+
+        if(m_uiIcyBlastTimer <= uiDiff)
+        {
+            Unit *target = NULL;
+            if(pMarkTarget && pMarkTarget->IsInWorld() && pMarkTarget->isAlive())
+                target = pMarkTarget;
+            else
+                target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
+            if(target)
+                pRimefang->CastSpell(target, SPELL_ICY_BLAST, true);
+            m_uiIcyBlastTimer = urand(8000, 12000);
+        }else m_uiIcyBlastTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -187,8 +289,7 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho)
     {
-        if (m_creature->CanInitiateAttack() && pWho->isTargetableForAttack() &&
-            m_creature->IsHostileTo(pWho) && pWho->isInAccessablePlaceFor(m_creature))
+        if (pWho->isTargetableForAttack() && m_creature->IsHostileTo(pWho))
         {
             if (m_creature->IsWithinDistInMap(pWho, 40.0f) && m_creature->IsWithinLOSInMap(pWho))
             {
@@ -228,7 +329,7 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
         path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
         path.set(1, PathNode(fightPos[tmp][0], fightPos[tmp][1], fightPos[tmp][2]));
         uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
-        m_creature->GetMotionMaster()->MoveClear(false, true);
+        m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
         m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
     }
