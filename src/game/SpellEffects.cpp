@@ -3198,7 +3198,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
         return;
 
     //Remove from lfg
-    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (unitTarget->GetTypeId() == TYPEID_PLAYER && m_spellInfo->Id != 70525 && m_spellInfo->Id != 70639)
     {
         if (Group *group = ((Player*)unitTarget)->GetGroup())
         {

@@ -97,7 +97,8 @@ void HostileRefManager::setOnlineOfflineState(bool pIsOnline)
     ref = getFirst();
     while(ref != NULL)
     {
-        ref->setOnlineOfflineState(pIsOnline);
+        if(iOwner->GetMapId() == ref->getSource()->getOwner()->GetMapId())
+            ref->setOnlineOfflineState(pIsOnline);
         ref = ref->next();
     }
 }

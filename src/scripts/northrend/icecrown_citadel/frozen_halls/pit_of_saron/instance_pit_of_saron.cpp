@@ -105,7 +105,8 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             case 2:
             {
                 Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
-                pTyrannus->SetVisibility(VISIBILITY_OFF);
+                if(pTyrannus)
+                    pTyrannus->SetVisibility(VISIBILITY_OFF);
 
                 Vehicle *pRimefang = plr->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2], tyrannusPos[3], 535, NULL, 0);
                 pRimefang->SetRespawnDelay(86400);
@@ -207,6 +208,8 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             if (m_auiEncounter[i] == IN_PROGRESS)
                 m_auiEncounter[i] = NOT_STARTED;
         }
+        if (m_auiEncounter[1] == DONE && m_auiEncounter[0] == DONE)
+            DoUseDoorOrButton(m_uiIceWallGUID);
 
         OUT_LOAD_INST_DATA_COMPLETE;
     }

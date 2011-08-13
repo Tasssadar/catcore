@@ -304,7 +304,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                case 7:
                    for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
                    {
-                       pTyrannus->CastSpell(m_creature,  SPELL_NECROMANTIC_POWER, true);
+//                       pTyrannus->CastSpell(m_creature,  SPELL_NECROMANTIC_POWER, true);
                        (*itr)->SetStandState(UNIT_STAND_STATE_DEAD);
                    }
                    SetFlying(false);
@@ -690,7 +690,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                 case 2:
                 {
                     Creature *pFrostBomb = m_creature->SummonCreature(NPC_FROST_BOMB, endNpcPos[0], endNpcPos[1], endNpcPos[2], 0,
-                                                                      TEMPSUMMON_DEAD_DESPAWN, 0);
+                                                                      TEMPSUMMON_TIMED_DESPAWN, 5000);
                     pSindragosa->CastSpell(pFrostBomb, SPELL_FROST_BOMB, true);
                     m_uiEventTimer = 2000;
                     break;
@@ -700,10 +700,20 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                     DoScriptText(guide_end[0][faction], m_creature);
 
                     Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
-
+                    if(!lPlayers.isEmpty())
+                    {
+                    
+                    std::vector<Player*> plrlist;
                     for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
                         if (Player* pPlayer = itr->getSource())
-                            pPlayer->CastSpell(pPlayer, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                            plrlist.push_back(pPlayer);
+                    for(std::vector<Player*>::iterator itr = plrlist.begin(); itr != plrlist.end(); ++itr)
+                    {
+                            if(!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
+                            continue;
+                            (*itr)->CastSpell(*itr, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                    }
+                    }
                     KillAll();
                     m_uiEventTimer = 3000;
                     break;

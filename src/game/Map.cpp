@@ -497,6 +497,8 @@ void Map::MessageDistBroadcast(WorldObject *obj, WorldPacket *msg, float dist)
 
 bool Map::loaded(const GridPair &p) const
 {
+    //if((p.x_coord == 33 || p.x_coord == 34) && p.y_coord == 32)
+        //return false;
     return ( getNGrid(p.x_coord, p.y_coord) && isGridObjectDataLoaded(p.x_coord, p.y_coord) );
 }
 
@@ -1340,7 +1342,7 @@ bool InstanceMap::CanEnter(Player *player)
     uint32 maxPlayers = GetMaxPlayers();
     if (!player->isGameMaster() && GetPlayersCountExceptGMs() >= maxPlayers)
     {
-        DETAIL_LOG("MAP: Instance '%u' of map '%s' cannot have more than '%u' players. Player '%s' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
+        sLog.outError("MAP: Instance '%u' of map '%s' cannot have more than '%u' players. Player '%s' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
         player->SendTransferAborted(GetId(), TRANSFER_ABORT_MAX_PLAYERS);
         return false;
     }
@@ -1348,10 +1350,14 @@ bool InstanceMap::CanEnter(Player *player)
     // cannot enter while players in the instance are in combat
     Group *pGroup = player->GetGroup();
     if (GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
-        return false;
-
-    if (pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
     {
+    sLog.outError("MAP: Instance '%u' of map '%s' is locked. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
+        return false;
+        }
+
+    if (GetId() != 658 && pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
+    {
+    sLog.outError("MAP: Instance '%u' of map '%s' is in combat. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
         player->SendTransferAborted(GetId(), TRANSFER_ABORT_ZONE_IN_COMBAT);
         return false;
     }

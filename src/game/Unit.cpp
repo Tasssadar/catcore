@@ -10402,6 +10402,9 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
     {
         Unit::AuraList const& magnetAuras = victim->GetAurasByType(SPELL_AURA_SPELL_MAGNET);
         for(Unit::AuraList::const_iterator itr = magnetAuras.begin(); itr != magnetAuras.end(); ++itr)
+        {
+            if(!(*itr))
+                continue;
             if (Unit* magnet = (*itr)->GetCaster())
                 if (magnet->IsWithinLOSInMap(this) && magnet->isAlive())
                 {
@@ -10410,12 +10413,16 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
                          magnet->CastSpell(magnet, 5, true);
                     return magnet;
                 }
+        }
     }
     // Normal case
     else
     {
         AuraList const& hitTriggerAuras = victim->GetAurasByType(SPELL_AURA_ADD_CASTER_HIT_TRIGGER);
         for(AuraList::const_iterator i = hitTriggerAuras.begin(); i != hitTriggerAuras.end(); ++i)
+        {
+            if(!(*i))
+                continue;
             if (Unit* magnet = (*i)->GetCaster())
                 if (magnet->isAlive() && magnet->IsWithinLOSInMap(this))
                     if (roll_chance_i((*i)->GetModifier()->m_amount))
@@ -10425,6 +10432,7 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
                                 victim->RemoveAura((*i),AURA_REMOVE_BY_DEFAULT);
                             return magnet;
                         }
+        }
     }
 
     return victim;
@@ -16423,6 +16431,8 @@ void Unit::SendThreatClear()
 
 void Unit::SendThreatRemove(HostileReference* pHostileReference)
 {
+    if((GetTypeId() == TYPEID_UNIT) && ((Creature*)this)->isVehicle())
+        return;
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_THREAT_REMOVE Message");
     WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
     data << GetPackGUID();
