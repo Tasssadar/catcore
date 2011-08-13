@@ -11609,7 +11609,7 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
     if (spellInfo->Id == 63337)
         return false;
 
-    if(spellInfo->Id == 69238 || spellInfo->Id == 69628)
+    if(GetTypeId() == TYPEID_UNIT && (spellInfo->Id == 69238 || spellInfo->Id == 69628))
         return (index != EFFECT_INDEX_0); 
 
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR BEGIN
@@ -11671,7 +11671,8 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
-
+        if(spellInfo->Effect[index] == SPELL_EFFECT_ATTACK_ME && (HasAura(69029) || HasAura(70850))
+            return true;
     }
 
     if (uint32 aura = spellInfo->EffectApplyAuraName[index])
@@ -11688,6 +11689,9 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                 ((*iter)->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellInfo)) &&  // Check school
                 !IsPositiveEffect(spellInfo->Id, index))                                  // Harmful
                 return true;
+
+        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850))
+            return true;
     }
 
     return false;
