@@ -943,7 +943,11 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     }
     m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     SendUpdate();
-    sLfgMgr.AddCheckedGroup(this, true);
+    RemoveRoleCheckGroup(this);
+    if(GetMembersCount() == LFG_GROUP)
+        TeleportToDungeon();
+    else
+        sLfgMgr.AddCheckedGroup(this, true);
 }
 
 void LfgGroup::SendRoleCheckFail(uint8 error)

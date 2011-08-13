@@ -320,6 +320,8 @@ class MANGOS_DLL_SPEC LfgMgr
         void SendLfgContinue(Player *player);
         void UpdateFormedGroups(LfgGroup *group = NULL);
 
+        void RemoveRoleCheckGroup(LfgGroup *grp) { rolecheckGroups.erase(grp); }
+
     private:
         ACE_Thread_Mutex m_queueLock;
         void UpdateQueue(uint8 side);
