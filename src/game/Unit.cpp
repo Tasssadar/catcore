@@ -11671,7 +11671,7 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
-        if(spellInfo->Effect[index] == SPELL_EFFECT_ATTACK_ME && (HasAura(69029) || HasAura(70850))
+        if(spellInfo->Effect[index] == SPELL_EFFECT_ATTACK_ME && (HasAura(69029) || HasAura(70850)))
             return true;
     }
 
@@ -11690,7 +11690,7 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                 !IsPositiveEffect(spellInfo->Id, index))                                  // Harmful
                 return true;
 
-        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850))
+        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850)))\
             return true;
     }
 

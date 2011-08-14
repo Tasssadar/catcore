@@ -140,6 +140,49 @@ void MapManager::LoadTransports()
     }
 }
 
+void MapManager::LoadTransportNPCs()
+{
+    //                                                         0    1          2                3             4             5             6             7
+    QueryResult result = WorldDatabase.PQuery("SELECT guid, npc_entry, transport_entry, TransOffsetX, TransOffsetY, TransOffsetZ, TransOffsetO, emote FROM creature_transport");
+
+    if (!result)
+    {
+        sLog.outString(">> Loaded 0 transport NPCs. DB table `creature_transport` is empty!");
+        sLog.outString();
+        return;
+    }
+
+    uint32 count = 0;
+
+    do
+    {
+        Field *fields = result->Fetch();
+        uint32 guid = fields[0].GetUInt32();
+        uint32 entry = fields[1].GetUInt32();
+        uint32 transportEntry = fields[2].GetUInt32();
+        float tX = fields[3].GetFloat();
+        float tY = fields[4].GetFloat();
+        float tZ = fields[5].GetFloat();
+        float tO = fields[6].GetFloat();
+        uint32 anim = fields[7].GetUInt32();
+
+        for (MapManager::TransportSet::iterator itr = m_Transports.begin(); itr != m_Transports.end(); ++itr)
+        {
+            if ((*itr)->GetEntry() == transportEntry)
+            {
+                (*itr)->AddNPCPassenger(guid, entry, tX, tY, tZ, tO, anim);
+                break;
+            }
+        }
+
+        ++count;
+    }
+    while (result->NextRow());
+
+    sLog.outString(">> Loaded %u transport npcs", count);
+    sLog.outString();
+}
+
 Transport::Transport() : GameObject()
 {
     m_updateFlag = (UPDATEFLAG_TRANSPORT | UPDATEFLAG_HIGHGUID | UPDATEFLAG_HAS_POSITION | UPDATEFLAG_ROTATION);
@@ -473,6 +516,9 @@ void Transport::TeleportTransport(uint32 newMapid, float x, float y, float z)
         UpdateForMap(oldMap);
         UpdateForMap(newMap);
     }
+
+    for (CreatureSet::iterator itr = m_NPCPassengerSet.begin(); itr != m_NPCPassengerSet.end(); ++itr)
+        (*itr)->FarTeleportTo(newMap, x, y, z, (*itr)->GetOrientation());
 }
 
 bool Transport::AddPassenger(Player* passenger)
@@ -516,6 +562,7 @@ void Transport::Update(time_t /*p_time*/)
         else
         {
             Relocate(m_curr->second.x, m_curr->second.y, m_curr->second.z);
+            UpdateNPCPositions();
         }
 
         /*
@@ -575,5 +622,69 @@ void Transport::DoEventIfAny(WayPointMap::value_type const& node, bool departure
     {
         DEBUG_FILTER_LOG(LOG_FILTER_TRANSPORT_MOVES, "Taxi %s event %u of node %u of %s (%s) path", departure ? "departure" : "arrival", eventid, node.first, GetName(), GetObjectGuid().GetString().c_str());
         GetMap()->ScriptsStart(sEventScripts, eventid, this, this);
+    }
+}
+
+uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, float z, float o, uint32 anim)
+{
+    Map* map = GetMap();
+    Creature* pCreature = new Creature;
+
+    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, GetPhaseMask(), entry, 0, GetGOInfo()->faction, 0, 0, 0, 0))
+    {
+        delete pCreature;
+        return 0;
+    }
+
+    pCreature->SetTransport(this);
+    pCreature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+    pCreature->m_movementInfo.guid = GetGUID();
+    pCreature->m_movementInfo.t_pos.Relocate(x, y, z, o);
+
+    if (anim)
+        pCreature->SetUInt32Value(UNIT_NPC_EMOTESTATE, anim);
+
+    pCreature->Relocate(
+        GetPositionX() + (x * cos(GetOrientation()) + y * sin(GetOrientation() + float(M_PI))),
+        GetPositionY() + (y * cos(GetOrientation()) + x * sin(GetOrientation())),
+        z + GetPositionZ() ,
+        o + GetOrientation());
+
+    pCreature->SetHomePosition(pCreature->GetPositionX(), pCreature->GetPositionY(), pCreature->GetPositionZ(), pCreature->GetOrientation());
+
+    if (!pCreature->IsPositionValid())
+    {
+        sLog.outError("Creature (guidlow %d, entry %d) not created. Suggested coordinates isn't valid (X: %f Y: %f)", pCreature->GetGUIDLow(), pCreature->GetEntry(), pCreature->GetPositionX(), pCreature->GetPositionY());
+        delete pCreature;
+        return 0;
+    }
+
+    map->Add(pCreature);
+    m_NPCPassengerSet.insert(pCreature);
+
+    if (tguid == 0)
+    {
+        ++currenttguid;
+        tguid = currenttguid;
+    }
+    else
+        currenttguid = std::max(tguid, currenttguid);
+
+    return tguid;
+}
+
+void Transport::UpdateNPCPositions()
+{
+    for (CreatureSet::iterator itr = m_NPCPassengerSet.begin(); itr != m_NPCPassengerSet.end(); ++itr)
+    {
+        Creature* npc = *itr;
+
+        float x, y, z, o;
+        o = GetOrientation() + npc->m_movementInfo.t_pos.m_orientation;
+        x = GetPositionX() + (npc->m_movementInfo.t_pos.m_positionX * cos(GetOrientation()) + npc->m_movementInfo.t_pos.m_positionY * sin(GetOrientation() + M_PI));
+        y = GetPositionY() + (npc->m_movementInfo.t_pos.m_positionY * cos(GetOrientation()) + npc->m_movementInfo.t_pos.m_positionX * sin(GetOrientation()));
+        z = GetPositionZ() + npc->m_movementInfo.t_pos.m_positionZ;
+        npc->SetHomePosition(x, y, z, o);
+        GetMap()->CreatureRelocation(npc, x, y, z, o, false);
     }
 }

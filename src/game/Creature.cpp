@@ -2050,6 +2050,26 @@ void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
     m_CreatureCategoryCooldowns[category] = apply_time;
 }
 
+void Creature::FarTeleportTo(Map* map, float X, float Y, float Z, float O)
+{
+    InterruptNonMeleeSpells(true);
+    CombatStop();
+    DeleteThreatList();
+    GetMotionMaster()->Clear(false);
+    
+    WorldPacket data(SMSG_DESTROY_OBJECT, 8 + 1);
+    data << uint64(GetGUID());
+    data << uint8(0);
+    SendMessageToSet(&data, false);
+
+    RemoveFromWorld();
+    ResetMap();
+    SetMap(map);
+    AddToWorld();
+
+    SetPosition(X, Y, Z, O, true);
+}
+
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
