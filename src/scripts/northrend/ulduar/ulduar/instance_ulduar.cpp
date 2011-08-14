@@ -779,6 +779,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             case TYPE_ALGALON:
                 m_auiEncounter[13] = uiData;
                 DoUseDoorOrButton(m_uiUniverseFloorCelestialGUID);
+                DoUseDoorOrButton(m_uiUniverseFloorArchivumGUID);
                 /*if (uiData == IN_PROGRESS)
                 {
                     CloseDoor(m_uiCelestialDoorGUID);

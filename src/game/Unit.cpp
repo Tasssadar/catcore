@@ -11602,6 +11602,14 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
         }
     }
 
+    if((HasAura(69029) || HasAura(70850)))
+    {
+        bool im = false;
+        for(uint8 i = 0; i < 3 && !im; ++i)
+            im = IsImmunedToSpellEffect( spellInfo, SpellEffectIndex(i));
+        return im;
+    }
+
     return false;
 }
 

@@ -909,6 +909,8 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
             return false;
 
         DEBUG_LOG("Unloading grid[%u,%u] for map %u", x,y, i_id);
+
+        
         ObjectGridUnloader unloader(*grid);
 
         // Finish remove and delete all creatures with delayed remove before moving to respawn grids
@@ -920,10 +922,9 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
 
         // Finish remove and delete all creatures with delayed remove before unload
         RemoveAllObjectsInRemoveList();
-
-        unloader.UnloadN();
-        delete getNGrid(x, y);
         setNGrid(NULL, x, y);
+        unloader.UnloadN();
+        delete grid;
     }
 
     int gx = (MAX_NUMBER_OF_GRIDS - 1) - x;

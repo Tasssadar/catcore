@@ -1917,8 +1917,23 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ALL_ENEMY_IN_AREA:
+        {
             FillAreaTargets(targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
+
+            //Algalon - living constelation's arcane barrage
+            if (m_spellInfo->Id == 64599)
+            {
+                if (targetUnitMap.size() > 0)
+                {
+                    uint8 j = rand() % targetUnitMap.size();
+                    for (uint8 i = 0; i < j; i++)
+                        targetUnitMap.pop_front();
+                    for (uint8 i = j+1; i < targetUnitMap.size(); i++)
+                        targetUnitMap.pop_back();
+                }
+            }
             break;
+        }
         case TARGET_AREAEFFECT_INSTANT:
         {
             SpellTargets targetB = SPELL_TARGETS_AOE_DAMAGE;

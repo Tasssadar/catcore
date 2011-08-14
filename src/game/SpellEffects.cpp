@@ -3399,6 +3399,17 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     if (m_spellInfo->Id == 60430 && (unitTarget->GetTypeId() != TYPEID_UNIT || unitTarget->GetEntry() != 30643))
         return;
 
+    // Algalon - Phase Punch
+    if (m_spellInfo->Id == 64412)
+    {
+        Aura* aura = unitTarget->GetAura(64412, EFFECT_INDEX_0);
+        if (aura && (aura->GetStackAmount() == 4))
+        {
+            unitTarget->RemoveAura(64412, EFFECT_INDEX_0);
+            m_caster->CastSpell(unitTarget, 65509, true);
+            return;
+        }
+    }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
     Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem, this);
