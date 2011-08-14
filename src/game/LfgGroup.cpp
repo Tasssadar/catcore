@@ -943,7 +943,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     }
     m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     SendUpdate();
-    RemoveRoleCheckGroup(this);
+    sLfgMgr.RemoveRoleCheckGroup(this);
     if(GetMembersCount() == LFG_GROUP)
         TeleportToDungeon();
     else

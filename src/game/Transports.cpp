@@ -143,12 +143,13 @@ void MapManager::LoadTransports()
 void MapManager::LoadTransportNPCs()
 {
     //                                                         0    1          2                3             4             5             6             7
-    QueryResult result = WorldDatabase.PQuery("SELECT guid, npc_entry, transport_entry, TransOffsetX, TransOffsetY, TransOffsetZ, TransOffsetO, emote FROM creature_transport");
+    QueryResult *result = WorldDatabase.PQuery("SELECT guid, npc_entry, transport_entry, TransOffsetX, TransOffsetY, TransOffsetZ, TransOffsetO, emote FROM creature_transport");
 
     if (!result)
     {
         sLog.outString(">> Loaded 0 transport NPCs. DB table `creature_transport` is empty!");
         sLog.outString();
+        delete result;
         return;
     }
 
@@ -178,6 +179,7 @@ void MapManager::LoadTransportNPCs()
         ++count;
     }
     while (result->NextRow());
+    delete result;
 
     sLog.outString(">> Loaded %u transport npcs", count);
     sLog.outString();
@@ -185,6 +187,7 @@ void MapManager::LoadTransportNPCs()
 
 Transport::Transport() : GameObject()
 {
+    currenttguid = 0;
     m_updateFlag = (UPDATEFLAG_TRANSPORT | UPDATEFLAG_HIGHGUID | UPDATEFLAG_HAS_POSITION | UPDATEFLAG_ROTATION);
 }
 
@@ -630,16 +633,16 @@ uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, 
     Map* map = GetMap();
     Creature* pCreature = new Creature;
 
-    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, GetPhaseMask(), entry, 0, GetGOInfo()->faction, 0, 0, 0, 0))
+    if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, GetPhaseMask(), entry, 0, NULL))
     {
         delete pCreature;
         return 0;
     }
+    pCreature->AIM_Initialize();
 
     pCreature->SetTransport(this);
-    pCreature->AddUnitMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
-    pCreature->m_movementInfo.guid = GetGUID();
-    pCreature->m_movementInfo.t_pos.Relocate(x, y, z, o);
+    pCreature->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+    pCreature->m_movementInfo.SetTransportData(GetGUID(), x, y, z, o, 0, -1);
 
     if (anim)
         pCreature->SetUInt32Value(UNIT_NPC_EMOTESTATE, anim);
@@ -650,7 +653,7 @@ uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, 
         z + GetPositionZ() ,
         o + GetOrientation());
 
-    pCreature->SetHomePosition(pCreature->GetPositionX(), pCreature->GetPositionY(), pCreature->GetPositionZ(), pCreature->GetOrientation());
+    pCreature->SetSummonPoint(pCreature->GetPositionX(), pCreature->GetPositionY(), pCreature->GetPositionZ(), pCreature->GetOrientation());
 
     if (!pCreature->IsPositionValid())
     {
@@ -658,8 +661,8 @@ uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, 
         delete pCreature;
         return 0;
     }
-
     map->Add(pCreature);
+    //pCreature->SetActiveObjectState(true);
     m_NPCPassengerSet.insert(pCreature);
 
     if (tguid == 0)
@@ -680,11 +683,12 @@ void Transport::UpdateNPCPositions()
         Creature* npc = *itr;
 
         float x, y, z, o;
-        o = GetOrientation() + npc->m_movementInfo.t_pos.m_orientation;
-        x = GetPositionX() + (npc->m_movementInfo.t_pos.m_positionX * cos(GetOrientation()) + npc->m_movementInfo.t_pos.m_positionY * sin(GetOrientation() + M_PI));
-        y = GetPositionY() + (npc->m_movementInfo.t_pos.m_positionY * cos(GetOrientation()) + npc->m_movementInfo.t_pos.m_positionX * sin(GetOrientation()));
-        z = GetPositionZ() + npc->m_movementInfo.t_pos.m_positionZ;
-        npc->SetHomePosition(x, y, z, o);
-        GetMap()->CreatureRelocation(npc, x, y, z, o, false);
+        o = GetOrientation() + npc->m_movementInfo.GetTransportPos()->o;
+        x = GetPositionX() + (npc->m_movementInfo.GetTransportPos()->x * cos(GetOrientation()) + npc->m_movementInfo.GetTransportPos()->y * sin(GetOrientation() + M_PI));
+        y = GetPositionY() + (npc->m_movementInfo.GetTransportPos()->y * cos(GetOrientation()) + npc->m_movementInfo.GetTransportPos()->x * sin(GetOrientation()));
+        z = GetPositionZ() + npc->m_movementInfo.GetTransportPos()->z;
+        npc->SetSummonPoint(x, y, z, o);
+        GetMap()->CreatureRelocation(npc, x, y, z, o);
     }
+    
 }

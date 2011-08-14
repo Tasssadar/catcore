@@ -789,13 +789,16 @@ Map::CreatureRelocation(Creature *creature, float x, float y, float z, float ang
     CellPair new_val = MaNGOS::ComputeCellPair(x, y);
     Cell new_cell(new_val);
 
+    if (creature->GetTransport() && !getNGrid(new_cell.GridX(), new_cell.GridY()))
+        return;
+
     bool moved_to_resp = false;
     if (old_cell.DiffCell(new_cell) || old_cell.DiffGrid(new_cell))
     {
         DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) added to moving list from grid[%u,%u]cell[%u,%u] to grid[%u,%u]cell[%u,%u].", creature->GetGUIDLow(), creature->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
 
         // try to move to the new cell or move it to respawn -- do nothing if both operations failed
-        if (!CreatureCellRelocation(creature,new_cell) && !(moved_to_resp = CreatureRespawnRelocation(creature)))
+        if (!CreatureCellRelocation(creature,new_cell) && !creature->GetTransport() && !(moved_to_resp = CreatureRespawnRelocation(creature)))
         {
             DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u ) can't be move to unloaded respawn grid.",creature->GetGUIDLow(),creature->GetEntry());
             return;
@@ -836,7 +839,7 @@ bool Map::CreatureCellRelocation(Creature *c, Cell new_cell)
     }
 
     // in diff. grids but active creature
-    if (c->isActiveObject())
+    if (c->isActiveObject() || c->GetTransport())
     {
         EnsureGridLoadedAtEnter(new_cell);
 
@@ -1349,7 +1352,7 @@ bool InstanceMap::CanEnter(Player *player)
 
     // cannot enter while players in the instance are in combat
     Group *pGroup = player->GetGroup();
-    if (GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
+    if (GetId() != 658 && GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
     {
     sLog.outError("MAP: Instance '%u' of map '%s' is locked. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
         return false;

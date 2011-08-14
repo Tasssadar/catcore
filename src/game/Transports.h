@@ -82,5 +82,7 @@ class Transport : public GameObject
         void UpdateForMap(Map const* map);
         void DoEventIfAny(WayPointMap::value_type const& node, bool departure);
         WayPointMap::const_iterator GetNextWayPoint();
+
+        uint32 currenttguid;
 };
 #endif

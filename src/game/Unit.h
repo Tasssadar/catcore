@@ -38,6 +38,8 @@
 #include "SpellMgr.h"
 #include <list>
 
+class Transport;
+
 enum SpellInterruptFlags
 {
     SPELL_INTERRUPT_FLAG_MOVEMENT     = 0x01,
@@ -1985,6 +1987,17 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void AddAndLinkAura(uint32 auraId, bool apply);
         Unit* m_attacking;
+
+        // Transports
+        Transport* GetTransport() const { return m_transport; }
+        void SetTransport(Transport * t) { m_transport = t; }
+
+        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
+        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
+        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
+        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
+        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
+        int8 GetTransSeat() const { return m_movementInfo.GetTransportSeat(); }
         
     protected:
         explicit Unit ();
@@ -2037,6 +2050,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint64  m_auraUpdateMask;
         uint64 m_vehicleGUID;
         int32 m_fearDispelHp;                              // hold hp remaining to fear dispel, filled in SetFeared(), calculating in RemoveSpellbyDamageTaken()
+
+        // Transports
+        Transport *m_transport;
 
     private:
         void CleanupDeletedAuras();

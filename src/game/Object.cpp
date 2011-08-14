@@ -289,7 +289,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
                 }
 
-                if (unit->GetVehicleGUID())
+                if (unit->GetVehicleGUID() || unit->GetTransport())
                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
 
                 if (unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == RANDOM_CIRCLE_MOTION_TYPE)

@@ -291,6 +291,7 @@ Unit::Unit()
     m_auraUpdateMask = 0;
     m_vehicleGUID = 0;
     m_fearDispelHp = 0;
+    m_transport = NULL;
 }
 
 Unit::~Unit()
@@ -11690,7 +11691,7 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                 !IsPositiveEffect(spellInfo->Id, index))                                  // Harmful
                 return true;
 
-        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850)))\
+        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850)))
             return true;
     }
 

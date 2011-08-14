@@ -2067,7 +2067,7 @@ void Creature::FarTeleportTo(Map* map, float X, float Y, float Z, float O)
     SetMap(map);
     AddToWorld();
 
-    SetPosition(X, Y, Z, O, true);
+    Relocate(X, Y, Z, O);
 }
 
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
