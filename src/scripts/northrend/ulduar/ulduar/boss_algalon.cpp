@@ -47,7 +47,9 @@ enum spells
     SPELL_COSMIC_SMASH_DBM    = 64598,
 
     //living constellation abillities
-    SPELL_ARCANE_BARRAGE = 64599
+    SPELL_ARCANE_BARRAGE = 64599,
+
+    SPELL_AZEROTH_BEAM   = 64367,
 };
 
 enum NPCs
@@ -59,7 +61,9 @@ enum NPCs
     NPC_UNLEASHED_DARK_MATTER = 34097,
     NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_01 = 33104,
     NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_02 = 33105,
-    NPC_BRANN_BRONZEBEARD = 34064
+    NPC_BRANN_BRONZEBEARD = 34064,
+
+    NPC_AZEROTH  = 34246,
 };
 
 enum GameObjects
@@ -125,13 +129,23 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
     //Black hole's abillities timers
     uint32 m_uiSummonUnleashedDarkMatterTimer;
 
+    uint32 m_uiDespawnCheck;
+    uint32 m_uiDespawnTime;
+    bool despawned;
+
+    uint32 m_uiIntroTimer;
+    uint8 m_uiIntroStep;
+    bool intro;
+
+    bool firstConst;
+
     void Reset()
     {
         m_uiPhaseTwo = false;
 
         m_uiQuantumStrikeTimer = urand(3000, 6000);
-        m_uiBigBangTimer = 110000;
-        m_uiBigBangPhaseOutEffectTimer = 118100;
+        m_uiBigBangTimer = 90000;
+        m_uiBigBangPhaseOutEffectTimer = 99000;
         m_uiPhasePunchTimer = 15000;
         m_uiSummonCollapsingStarTimer = 15000;
         m_uiSummonLivingConstellationTimer = 70000;
@@ -139,6 +153,18 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_uiCosmicSmashTimer = 30000;
         m_uiAlgalonsBerserkTimer = 360000;
         m_uiDualWieldTimer = 900;
+        m_uiDespawnCheck = 1000;
+        m_uiDespawnTime = 0;
+        despawned = false;
+        m_uiIntroTimer = 10000;
+        m_uiIntroStep = 0;
+        firstConst = true;
+        intro = (m_pInstance->GetData(TYPE_ALGALON_EVENT) == 0);
+        if(intro)
+        {
+            m_creature->SetVisibility(VISIBILITY_OFF);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        }
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -195,10 +221,6 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 200);
-        if (pGo)
-            pGo->SetGoState(GO_STATE_ACTIVE);
-
     /*   pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_ARCHIVUM, 200);
         if (pGo)
             pGo->SetGoState(GO_STATE_READY);
@@ -208,7 +230,25 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             pGo->SetGoState(GO_STATE_ACTIVE);*/
 
         m_pInstance->SetData(TYPE_ALGALON, IN_PROGRESS);
+        m_pInstance->SetData(TYPE_ALGALON_PULL_TIME, time(0));
         DoScriptText(SAY_AGGRO, m_creature);
+        
+    }
+
+    void EnterEvadeMode()
+    {
+        m_creature->InterruptNonMeleeSpells(false);
+        DoCast(m_creature, SPELL_WIPE);
+        m_uiAlgalonsBerserkTimer = 360000;
+        m_uiBigBangTimer = 90000;
+        ScriptedAI::EnterEvadeMode();
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if(despawned || intro)
+            return;
+        ScriptedAI::AttackStart(pWho);
     }
 
     void JustReachedHome()
@@ -232,6 +272,64 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if(despawned)
+            return;
+
+        if(m_uiDespawnCheck <= uiDiff)
+        {
+            if(!m_uiDespawnTime)
+                m_uiDespawnTime = m_pInstance->GetData(TYPE_ALGALON_PULL_TIME);
+            if(m_uiDespawnTime && m_uiDespawnTime <= time(0))
+            {
+                EnterEvadeMode();
+                m_creature->SetVisibility(VISIBILITY_OFF);
+                despawned = true;
+            }
+            m_uiDespawnCheck = 1000;
+        }else m_uiDespawnCheck -= uiDiff;
+
+        if(intro)
+        {
+            if(m_uiIntroTimer <= uiDiff)
+            {
+                switch(m_uiIntroStep)
+                {
+                    case 0:
+                        m_creature->SetVisibility(VISIBILITY_ON);
+                        m_uiIntroTimer = 1000;
+                        break;
+                    case 1:
+                    {
+                        float x, y, z;
+                        m_creature->GetPosition(x, y, z);
+                        x += cos(m_creature->GetOrientation())*5;
+                        y += sin(m_creature->GetOrientation())*5;
+                        m_creature->SummonCreature(NPC_AZEROTH, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
+                        m_uiIntroTimer = 4000;
+                        break;
+                    }
+                    case 2:
+                        m_creature->CastSpell(m_creature, SPELL_AZEROTH_BEAM, true);
+                        m_uiIntroTimer = 14000;
+                        break;
+                    case 3:
+                    {
+                        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 200);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_ACTIVE);
+                        m_uiIntroTimer = 18000;
+                        break
+                    }
+                    case 3:
+                        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        intro = false;
+                        break;
+                }
+                ++m_uiIntroStep;
+            }else m_uiIntroTimer -= uiDiff;
+            return;
+        }
+
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
@@ -269,7 +367,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         {
             m_creature->InterruptNonMeleeSpells(false);
             DoScriptText(SAY_BERSERK, m_creature);
-            DoCast(m_creature, SPELL_ALGALONS_BERSERK);
+            DoCast(m_creature, SPELL_ALGALONS_BERSERK, true);
+            DoCast(m_creature, SPELL_WIPE);
             m_uiAlgalonsBerserkTimer = 360000;
             m_uiBigBangTimer = 90000;
         }
@@ -343,10 +442,10 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     float x = 1632.25f + cos(angle) * urand(10, 38);
                     float y = -307.548f + sin(angle) * urand(10, 38);
 
-                    Creature* temp_creature = m_creature->SummonCreature(NPC_COLLAPSING_STAR, x, y, 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                    Creature* temp_creature = m_creature->SummonCreature(NPC_COLLAPSING_STAR, x, y, 428.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
                     m_lCollapsingStarsGUIDs.push_back(temp_creature->GetGUID());
                 }
-                m_uiSummonCollapsingStarTimer=60000;
+                m_uiSummonCollapsingStarTimer=m_uiBigBangTimer + 15000;
             }
             else
                 m_uiSummonCollapsingStarTimer -= uiDiff;
@@ -358,17 +457,18 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             if (m_uiSummonLivingConstellationTimer < uiDiff)
             {
                 float angle = 0;
-                for (uint8 i = 0; i < 3; ++i)
+                for (uint8 i = 0; i < firstConst ? 3 : 2; ++i)
                 {
                     angle += M_PI_F/2;
                     float x = 1632.25f + cos(angle)*38;
                     float y = -307.548f + sin(angle)*38;
 
-                    Creature* temp_constellation = m_creature->SummonCreature(NPC_LIVING_CONSTELLATION, x, y, 417.327f, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
+                    Creature* temp_constellation = m_creature->SummonCreature(NPC_LIVING_CONSTELLATION, x, y, 428.327f, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
                     temp_constellation->AI()->AttackStart(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0));
                     m_lLivingConstelationsGUIDs.push_back(temp_constellation->GetGUID());
                 }
                 m_uiSummonLivingConstellationTimer=50000;
+                firstConst = false;
             }
             else
                 m_uiSummonLivingConstellationTimer -= uiDiff;
@@ -574,15 +674,17 @@ CreatureAI* GetAI_mob_Algalon_Stalker_Asteroid_Target_02_AI(Creature* pCreature)
 
 /****************************************** Doors ***********************************************************/
 
-bool GOUse_go_Sigil_Door_01(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_planetarium_access(Player* pPlayer, GameObject* pGo)
 {
-    GameObject* sigilDoor02 = GetClosestGameObjectWithEntry(pGo, GO_SIGIL_DOOR_02, 100.0f);
-    sigilDoor02->Use(pPlayer);
+    if(pGo->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) == 0)
+    {
+        Creature *pAlgalon = m_creature->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+        pAlgalon->SetRespawnDelay(604800);
 
-    Creature* branBronzebeard = GetClosestCreatureWithEntry(pGo, NPC_BRANN_BRONZEBEARD, 200.0f);
-    branBronzebeard->SetVisibility(VISIBILITY_ON);
-    branBronzebeard->GetMotionMaster()->MoveWaypoint();
-
+        GameObject* sigilDoor02 = GetClosestGameObjectWithEntry(pGo, GO_SIGIL_DOOR_02, 100.0f);
+        sigilDoor02->Use(pPlayer);
+        pGo->GetInstanceData()->SetData(TYPE_ALGALON_EVENT, 1);
+    }
     return false;
 }
 
@@ -653,8 +755,8 @@ void AddSC_boss_algalon()
     NewScript->RegisterSelf();
 
     NewScript = new Script;
-    NewScript->Name = "go_sigil_door_01";
-    NewScript->pGOHello = &GOUse_go_Sigil_Door_01;
+    NewScript->Name = "go_planetarium_access";
+    NewScript->pGOHello = &GOUse_go_planetarium_access;
     NewScript->RegisterSelf();
 
     NewScript = new Script;

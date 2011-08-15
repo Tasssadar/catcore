@@ -255,4 +255,10 @@ void SpellMgr::ApplySpellHacks()
     sfix41->EffectImplicitTargetB[0] = 0;
     sfix41->EffectImplicitTargetA[1] = 28;
     sfix41->EffectImplicitTargetB[1] = 0;
+
+    SpellEntry *sfix42 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64417));
+    sfix42->Effect[2] = 6;
+    sfix42->EffectImplicitTargetA[2] = 1;
+    sfix42->EffectBasePoints[2] = 1900;
+    sfix42->EffectApplyAuraName[2] = 3;
 }
