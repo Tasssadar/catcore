@@ -964,6 +964,7 @@ void LfgGroup::SendRoleCheckFail(uint8 error)
         if (player->GetGUID() == GetLeaderGUID())
             sLfgMgr.SendJoinResult(player, LFG_JOIN_FAILED, error);
     }
+    sLfgMgr.RemoveRoleCheckGroup(this);
     sLfgMgr.AddCheckedGroup(this, false);
 }
 

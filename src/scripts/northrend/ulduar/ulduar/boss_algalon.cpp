@@ -38,10 +38,13 @@ enum spells
     SPELL_COSMIC_SMASH_VISUAL = 62300,
     SPELL_COSMIC_SMASH_DAMAGE = 62311,
     SPELL_DUAL_WIELD = 42459,
+    SPELL_WIPE = 64487,
 
     //Black hole's abillities
     SPELL_BLACK_HOLE_EXPLOSION = 64122,
     SPELL_CONSTELLATION_PHASE_EFFECT = 65509,
+    SPELL_SHADOW_FISURE         = 27810,
+    SPELL_COSMIC_SMASH_DBM    = 64598,
 
     //living constellation abillities
     SPELL_ARCANE_BARRAGE = 64599
@@ -95,7 +98,8 @@ enum Says
 
 struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 {
-    instance_ulduar* m_pInstance;
+    typedef std::list<uint64> GUIDList;
+    ScriptedInstance* m_pInstance;
 
     //Creatures lists
     GUIDList m_lLivingConstelationsGUIDs;
@@ -126,20 +130,20 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_uiPhaseTwo = false;
 
         m_uiQuantumStrikeTimer = urand(3000, 6000);
-        m_uiBigBangTimer = 90000;
-        m_uiBigBangPhaseOutEffectTimer = 98100;
+        m_uiBigBangTimer = 110000;
+        m_uiBigBangPhaseOutEffectTimer = 118100;
         m_uiPhasePunchTimer = 15000;
         m_uiSummonCollapsingStarTimer = 15000;
-        m_uiSummonLivingConstellationTimer = 50000;
+        m_uiSummonLivingConstellationTimer = 70000;
         m_uiSummonUnleashedDarkMatterTimer = 5000;
-        m_uiCosmicSmashTimer = 25000;
+        m_uiCosmicSmashTimer = 30000;
         m_uiAlgalonsBerserkTimer = 360000;
         m_uiDualWieldTimer = 900;
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (instance_ulduar*)pCreature->GetInstanceData();
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         Reset();
     }
 
@@ -263,9 +267,11 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         //Berserk
         if (m_uiAlgalonsBerserkTimer < uiDiff)
         {
+            m_creature->InterruptNonMeleeSpells(false);
             DoScriptText(SAY_BERSERK, m_creature);
-            DoCastSpellIfCan(m_creature, SPELL_ALGALONS_BERSERK);
+            DoCast(m_creature, SPELL_ALGALONS_BERSERK);
             m_uiAlgalonsBerserkTimer = 360000;
+            m_uiBigBangTimer = 90000;
         }
         else
             m_uiAlgalonsBerserkTimer -= uiDiff;
@@ -287,7 +293,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 case 0: DoScriptText(SAY_BIG_BANG_1, m_creature); break;
                 case 1: DoScriptText(SAY_BIG_BANG_2, m_creature); break;
             }
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_BIGBANG);
+            m_creature->InterruptNonMeleeSpells(false);
+            DoCast(m_creature->getVictim(), SPELL_BIGBANG);
             m_uiBigBangTimer = 90000;
         }
         else
@@ -317,6 +324,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
             m_creature->SummonCreature(NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_02,
                 target->GetPositionX(), target->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_TIMED_DESPAWN, 5500);
+            m_creature->CastSpell(target, SPELL_SHADOW_FISURE, true);
             m_uiCosmicSmashTimer = 25000;
         }
         else
@@ -336,7 +344,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     float y = -307.548f + sin(angle) * urand(10, 38);
 
                     Creature* temp_creature = m_creature->SummonCreature(NPC_COLLAPSING_STAR, x, y, 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                    m_lCollapsingStarsGUIDs.push_back(temp_creature->GetObjectGuid());
+                    m_lCollapsingStarsGUIDs.push_back(temp_creature->GetGUID());
                 }
                 m_uiSummonCollapsingStarTimer=60000;
             }
@@ -350,7 +358,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             if (m_uiSummonLivingConstellationTimer < uiDiff)
             {
                 float angle = 0;
-                for (uint8 i = 0; i < 4; ++i)
+                for (uint8 i = 0; i < 3; ++i)
                 {
                     angle += M_PI_F/2;
                     float x = 1632.25f + cos(angle)*38;
@@ -358,9 +366,9 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
                     Creature* temp_constellation = m_creature->SummonCreature(NPC_LIVING_CONSTELLATION, x, y, 417.327f, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
                     temp_constellation->AI()->AttackStart(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0));
-                    m_lLivingConstelationsGUIDs.push_back(temp_constellation->GetObjectGuid());
+                    m_lLivingConstelationsGUIDs.push_back(temp_constellation->GetGUID());
                 }
-                m_uiSummonLivingConstellationTimer=60000;
+                m_uiSummonLivingConstellationTimer=50000;
             }
             else
                 m_uiSummonLivingConstellationTimer -= uiDiff;
@@ -380,7 +388,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     float y = -307.548f + sin(angle)*15;
                     Creature* temp_dark_matter = m_creature->SummonCreature(NPC_UNLEASHED_DARK_MATTER, x, y, 417.327f, 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
                     temp_dark_matter->AI()->AttackStart(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0));
-                    m_lDarkMattersGUIDs.push_back(temp_dark_matter->GetObjectGuid());
+                    m_lDarkMattersGUIDs.push_back(temp_dark_matter->GetGUID());
                 }
                 m_uiSummonUnleashedDarkMatterTimer = 30000;
             }
@@ -389,7 +397,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         }
 
         //Update threat list
-        ThreatList const& tList = m_creature->getThreatManager().getThreatList();
+       /* ThreatList const& tList = m_creature->getThreatManager().getThreatList();
         for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
         {
             Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
@@ -397,7 +405,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             if (pUnit && m_creature->getThreatManager().getThreat(pUnit))
                 if (pUnit->GetPhaseMask() == 16)
                     m_creature->getThreatManager().modifyThreatPercent(pUnit, -100);
-        }
+        }*/
 
         DoMeleeAttackIfReady();
     }
@@ -422,6 +430,11 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
     void Reset()
     {
         m_uiSetHealthTimer = 1000;
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+
     }
 
     void JustDied(Unit* pKiller)
@@ -538,15 +551,15 @@ struct MANGOS_DLL_DECL mob_Algalon_Stalker_Asteroid_Target_02_AI : public Script
 
     void Reset()
     {
-        m_uiCosmicSmashDamageTimer = 5000;
+        m_uiCosmicSmashDamageTimer = 4000;
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
         if (m_uiCosmicSmashDamageTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_COSMIC_SMASH_DAMAGE);
-            m_uiCosmicSmashDamageTimer = 5000;
+            DoCast(m_creature, SPELL_COSMIC_SMASH_MISSILE, true);
+            m_uiCosmicSmashDamageTimer = 4000;
         }
         else
             m_uiCosmicSmashDamageTimer -= uiDiff;
@@ -641,7 +654,7 @@ void AddSC_boss_algalon()
 
     NewScript = new Script;
     NewScript->Name = "go_sigil_door_01";
-    NewScript->pGOUse = &GOUse_go_Sigil_Door_01;
+    NewScript->pGOHello = &GOUse_go_Sigil_Door_01;
     NewScript->RegisterSelf();
 
     NewScript = new Script;

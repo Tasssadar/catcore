@@ -500,7 +500,7 @@ struct MANGOS_DLL_DECL mob_shadow_issureAI : public ScriptedAI
             if (m_uiShadowIssure_Timer < uiDiff)
             {
                 Map *map = m_creature->GetMap();
-                if (map->IsDungeon())
+                if (map->IsDungeon() && GetMapId() != 603)
                 {
                     Map::PlayerList const &PlayerList = map->GetPlayers();
 
