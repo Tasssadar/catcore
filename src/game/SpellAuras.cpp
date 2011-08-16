@@ -1530,7 +1530,7 @@ bool Aura::IsEffectStacking()
             return false;
         case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
             // Trauma / Mangle (Trauma has SPELLFAMILY_GENERIC and no flags)
-            if (GetSpellProto()->Id == 46856 || GetSpellProto()->Id == 46857) ||
+            if (GetSpellProto()->Id == 46856 || GetSpellProto()->Id == 46857 ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
                 return false;
             break;

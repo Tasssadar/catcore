@@ -1584,6 +1584,16 @@ struct SpellEntry
         return false;
     }
 
+    bool IsFitToFamilyMask(uint64 familyFlags, uint32 familyFlags2 = 0) const
+    {
+        return (SpellFamilyFlags & familyFlags) || (SpellFamilyFlags2 & familyFlags2);
+    }
+    
+    bool IsFitToFamily(SpellFamilyNames family, uint64 familyFlags, uint32 familyFlags2 = 0) const
+    {
+        return SpellFamilyNames(SpellFamilyName) == family && IsFitToFamilyMask(familyFlags, familyFlags2);
+    }
+
     private:
         // prevent creating custom entries (copy data from original in fact)
         SpellEntry(SpellEntry const&);                      // DON'T must have implementation

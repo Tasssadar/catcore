@@ -138,6 +138,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
     uint8 m_uiIntroStep;
     bool intro;
 
+    uint32 m_uiPhaseDmgTimer;
+
     bool firstConst;
 
     void Reset()
@@ -160,6 +162,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_uiIntroTimer = 10000;
         m_uiIntroStep = 0;
         firstConst = true;
+        m_uiPhaseDmgTimer = 2000;
         intro = (m_pInstance->GetData(TYPE_ALGALON_EVENT) == 0);
         if(intro)
         {
@@ -268,6 +271,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         DespawnAll();
         PhaseOutAll();
         m_pInstance->SetData(TYPE_ALGALON, FAIL);
+        m_pInstance->SetData(TYPE_ALGALON_EVENT, 0);
         ((TemporarySummon*)m_creature)->UnSummon();
     }
 
@@ -316,7 +320,6 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     case 0:
                         m_creature->SetVisibility(VISIBILITY_ON);
                         m_uiIntroTimer = 1000;
-                        m_pInstance->SetData(TYPE_ALGALON_EVENT, 0);
                         break;
                     case 1:
                     {
@@ -409,7 +412,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         else
              m_uiQuantumStrikeTimer -= uiDiff;
 
-        if()
+        if(m_uiPhaseDmgTimer <= uiDiff)
         {
             Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
             for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
@@ -417,10 +420,11 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 if (Player* pPlayer = itr->getSource())
                 {
                     if(pPlayer->IsInWorld() && pPlayer->isAlive() && pPlayer->GetPhaseMask() == 16)
-                        m_creature->DealDamage(pPlayer, 2000, NULL, SPELL_DIRECT_DAMAGE, 64, NULL, true);
+                        m_creature->DealDamage(pPlayer, 2000, NULL, SPELL_DIRECT_DAMAGE, SpellSchoolMask(64), NULL, true);
                 }
             }
-        }
+            m_uiPhaseDmgTimer = 2000;
+        }else m_uiPhaseDmgTimer -= uiDiff;
 
         //Big Bang
         if (m_uiBigBangTimer < uiDiff)
@@ -764,7 +768,7 @@ CreatureAI* GetAI_mob_Brann_Bronzebeard_AI(Creature* pCreature)
 bool GossipHello_mob_brann_open(Player* pPlayer, Creature* pCreature)
 {
     bool m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-    if(pCreature->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) != 0 && m_pInstance->GetData(TYPE_ALGALON) != DONE)
+    if(pCreature->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) != 0 && pCreature->GetInstanceData()->GetData(TYPE_ALGALON) != DONE)
         return false;
 
     bool hasItem = false;
@@ -787,6 +791,10 @@ bool GossipHello_mob_brann_open(Player* pPlayer, Creature* pCreature)
 
 bool GossipSelect_mob_brann_open(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
 {
+    pPlayer->CLOSE_GOSSIP_MENU();
+    if(pCreature->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) != 0)
+        return false;
+
     bool m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
 
     bool hasItem = false;
