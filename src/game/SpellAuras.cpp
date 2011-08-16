@@ -1437,15 +1437,38 @@ bool Aura::IsEffectStacking()
 
     switch(GetModifier()->m_auraname)
     {
-        // case SPELL_AURA_MOD_DAMAGE_DONE:
-        // case SPELL_AURA_MOD_HEALING_DONE:
-            // break;
+        case SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE:
+            // Winter's Chill / Improved Scorch / Improved Shadow Bolt
+            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK)
+                return false;
+            break;
+        case SPELL_AURA_MOD_DAMAGE_PERCENT_DONE:
+        case SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE:
+            // Sanctified Retribution
+            // Heart of the Crusader / Totem of Wrath
+            if (GetSpellProto()->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x0000000020000008)))
+            {
+                return false;
+            }
+            break;
+        case SPELL_AURA_MOD_DAMAGE_DONE:
+        case SPELL_AURA_MOD_HEALING_DONE:
+            // Demonic Pact
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+                return false;
+            break;
         case SPELL_AURA_MOD_STAT:
             // Horn of Winter / Arcane Intellect / Divine Spirit
             if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 &&
                 (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_PRIEST) )
+                return false;
+            break;
+        case SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE:
+            // Blessing of Kings / Blessing of Sanctuary
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
                 return false;
             break;
         case SPELL_AURA_MOD_CRIT_PERCENT:
@@ -1506,8 +1529,8 @@ bool Aura::IsEffectStacking()
             // Commanding Shout
             return false;
         case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
-            // Trauma / Mangle
-            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR ||
+            // Trauma / Mangle (Trauma has SPELLFAMILY_GENERIC and no flags)
+            if (GetSpellProto()->Id == 46856 || GetSpellProto()->Id == 46857) ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
                 return false;
             break;
@@ -6281,9 +6304,9 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     {
         if (m_modifier.m_miscvalue == i || m_modifier.m_miscvalue == -1)
         {
-            target->HandleStatModifier(UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply);
-            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet())
-                target->ApplyStatPercentBuffMod(Stats(i), float(m_modifier.m_amount), apply );
+            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply, 0, i+1);
+            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet() && change != 0)
+                target->ApplyStatPercentBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply );
         }
     }
 

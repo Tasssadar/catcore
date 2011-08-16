@@ -4544,6 +4544,12 @@ bool Unit::AddAura(Aura *Aur)
                         break;
                 }
 
+                // Do not stack Judgements
+                if (GetSpellSpecific(aurSpellInfo->Id) == SPELL_JUDGEMENT)
+                {
+                    RemoveAura(i2,AURA_REMOVE_BY_STACK);
+                    stop = true;
+                }
                 if (stop)
                     break;
             }
