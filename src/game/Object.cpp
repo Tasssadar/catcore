@@ -268,7 +268,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 {
                     // (ok) most seem to have this
                     //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
                     if (!((Creature*)unit)->canWalk()
                         || !unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ()))
                     {

@@ -131,6 +131,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     uint32 m_uiDespawnCheck;
     uint32 m_uiDespawnTime;
+    uint32 m_uiEvadeTimer;
     bool despawned;
 
     uint32 m_uiIntroTimer;
@@ -165,6 +166,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_creature->SetVisibility(VISIBILITY_OFF);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
+        m_uiEvadeTimer = 0;
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -237,11 +239,18 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void EnterEvadeMode()
     {
+        DespawnAll();
+        PhaseOutAll();
+        m_creature->RemoveAllAuras();
+        m_creature->DeleteThreatList();
+        m_creature->CombatStop(true);
+
         m_creature->InterruptNonMeleeSpells(false);
         DoCast(m_creature, SPELL_WIPE);
         m_uiAlgalonsBerserkTimer = 360000;
         m_uiBigBangTimer = 90000;
-        ScriptedAI::EnterEvadeMode();
+        m_uiEvadeTimer = 5000;
+        //ScriptedAI::EnterEvadeMode();
     }
 
     void AttackStart(Unit* pWho)
@@ -259,6 +268,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         DespawnAll();
         PhaseOutAll();
         m_pInstance->SetData(TYPE_ALGALON, FAIL);
+        ((TemporarySummon*)m_creature)->UnSummon();
     }
 
     void KilledUnit()
@@ -274,6 +284,15 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
     {
         if(despawned)
             return;
+
+        if(m_uiEvadeTimer)
+        {
+            if(m_uiEvadeTimer <= uiDiff)
+            {
+                ScriptedAI::EnterEvadeMode();
+                m_uiEvadeTimer = 0;
+            }else m_uiEvadeTimer -= uiDiff;
+        }
 
         if(m_uiDespawnCheck <= uiDiff)
         {
@@ -297,13 +316,14 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                     case 0:
                         m_creature->SetVisibility(VISIBILITY_ON);
                         m_uiIntroTimer = 1000;
+                        m_pInstance->SetData(TYPE_ALGALON_EVENT, 0);
                         break;
                     case 1:
                     {
                         float x, y, z;
                         m_creature->GetPosition(x, y, z);
-                        x += cos(m_creature->GetOrientation())*5;
-                        y += sin(m_creature->GetOrientation())*5;
+                        x += cos(m_creature->GetOrientation())*15;
+                        y += sin(m_creature->GetOrientation())*15;
                         m_creature->SummonCreature(NPC_AZEROTH, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
                         m_uiIntroTimer = 4000;
                         break;
@@ -317,10 +337,15 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 200);
                         if (pGo)
                             pGo->SetGoState(GO_STATE_ACTIVE);
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_CELESTIAL, 200);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_ACTIVE);
                         m_uiIntroTimer = 18000;
-                        break
+                        break;
                     }
-                    case 3:
+                    case 4:
+                        m_creature->InterruptNonMeleeSpells(false);
+                        m_creature->RemoveAllAuras();
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         intro = false;
                         break;
@@ -383,6 +408,19 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         }
         else
              m_uiQuantumStrikeTimer -= uiDiff;
+
+        if()
+        {
+            Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
+            for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+            {
+                if (Player* pPlayer = itr->getSource())
+                {
+                    if(pPlayer->IsInWorld() && pPlayer->isAlive() && pPlayer->GetPhaseMask() == 16)
+                        m_creature->DealDamage(pPlayer, 2000, NULL, SPELL_DIRECT_DAMAGE, 64, NULL, true);
+                }
+            }
+        }
 
         //Big Bang
         if (m_uiBigBangTimer < uiDiff)
@@ -457,7 +495,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             if (m_uiSummonLivingConstellationTimer < uiDiff)
             {
                 float angle = 0;
-                for (uint8 i = 0; i < firstConst ? 3 : 2; ++i)
+                for (uint8 i = 0; i < (firstConst ? 3 : 2); ++i)
                 {
                     angle += M_PI_F/2;
                     float x = 1632.25f + cos(angle)*38;
@@ -676,20 +714,20 @@ CreatureAI* GetAI_mob_Algalon_Stalker_Asteroid_Target_02_AI(Creature* pCreature)
 
 bool GOUse_go_planetarium_access(Player* pPlayer, GameObject* pGo)
 {
-    if(pGo->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) == 0)
+    /*if(pGo->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) == 0)
     {
-        Creature *pAlgalon = m_creature->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+        Creature *pAlgalon = pGo->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
         pAlgalon->SetRespawnDelay(604800);
 
         GameObject* sigilDoor02 = GetClosestGameObjectWithEntry(pGo, GO_SIGIL_DOOR_02, 100.0f);
         sigilDoor02->Use(pPlayer);
         pGo->GetInstanceData()->SetData(TYPE_ALGALON_EVENT, 1);
-    }
+    }*/
     return false;
 }
 
 /****************************************** Brann Bronzebeard ***********************************************/
-
+/*
 struct MANGOS_DLL_DECL mob_Brann_Bronzebeard_AI : public ScriptedAI
 {
     mob_Brann_Bronzebeard_AI (Creature* pCreature) : ScriptedAI(pCreature)
@@ -721,6 +759,59 @@ struct MANGOS_DLL_DECL mob_Brann_Bronzebeard_AI : public ScriptedAI
 CreatureAI* GetAI_mob_Brann_Bronzebeard_AI(Creature* pCreature)
 {
     return new mob_Brann_Bronzebeard_AI(pCreature);
+}*/
+
+bool GossipHello_mob_brann_open(Player* pPlayer, Creature* pCreature)
+{
+    bool m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+    if(pCreature->GetInstanceData()->GetData(TYPE_ALGALON_EVENT) != 0 && m_pInstance->GetData(TYPE_ALGALON) != DONE)
+        return false;
+
+    bool hasItem = false;
+    if (m_bIsRegularMode)
+    {
+        if(pPlayer->HasItemCount(45796, 1) || pPlayer->HasItemCount(45798, 1))
+            hasItem = true;
+    }else{
+        if(pPlayer->HasItemCount(45798, 1))
+            hasItem = true;
+    }
+    if(!hasItem)
+        return false;
+
+    
+    pPlayer->ADD_GOSSIP_ITEM(0, "We are ready", GOSSIP_SENDER_MAIN, 1);
+    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
+    return true;
+}
+
+bool GossipSelect_mob_brann_open(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+{
+    bool m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+
+    bool hasItem = false;
+    if (m_bIsRegularMode)
+    {
+        if(pPlayer->HasItemCount(45796, 1) || pPlayer->HasItemCount(45798, 1))
+            hasItem = true;
+    }else{
+        if(pPlayer->HasItemCount(45798, 1))
+            hasItem = true;
+    }
+    if(!hasItem)
+        return false;
+
+    if (uiAction == 1)
+    {
+        Creature *pAlgalon = pCreature->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+        pAlgalon->SetRespawnDelay(604800);
+
+        GameObject* sigilDoor02 = GetClosestGameObjectWithEntry(pCreature, GO_CELESTIAL_DOOR, 100.0f);
+        sigilDoor02->Use(pPlayer);
+        pCreature->GetInstanceData()->SetData(TYPE_ALGALON_EVENT, 1);
+    }
+
+    return true;
 }
 
 /****************************************** Add scripts *****************************************************/
@@ -761,6 +852,8 @@ void AddSC_boss_algalon()
 
     NewScript = new Script;
     NewScript->Name = "mob_Brann_Bronzebeard";
-    NewScript->GetAI = &GetAI_mob_Brann_Bronzebeard_AI;
+    //NewScript->GetAI = &GetAI_mob_Brann_Bronzebeard_AI;
+    NewScript->pGossipHello = &GossipHello_mob_brann_open;
+    NewScript->pGossipSelect = &GossipSelect_mob_brann_open;
     NewScript->RegisterSelf();
 }

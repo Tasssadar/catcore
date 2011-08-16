@@ -211,13 +211,13 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         // Archivum
         m_uiIronCouncilDoorGUID = 0;
         m_uiArchivumDoorGUID    = 0;
-        m_uiArchivumDoorGUID3   = 0;
         m_uiArchivumConsoleGUID = 0;
         m_uiUniverseFloorArchivumGUID = 0;
 
         // Celestial planetarium
         m_uiCelestialDoorGUID   = 0;
         m_uiCelestialDoor2GUID  = 0;
+        m_uiCelestialDoor3GUID  = 0;
         m_uiCelestialConsoleGUID = 0;
         m_uiUniverseFloorCelestialGUID = 0;
         m_uiAzerothGlobeGUID    = 0;
@@ -429,7 +429,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                 m_uiCelestialConsoleGUID = pGo->GetGUID();
                 if(m_uiAlgalonEvent == 1)
                 {
-                    Creature *pAlgalon = m_creature->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                    Creature *pAlgalon = pGo->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
                     pAlgalon->SetRespawnDelay(604800);
                 }
                 break;
@@ -437,13 +437,13 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             {
                 m_uiCelestialDoorGUID = pGo->GetGUID();
                 if(m_uiAlgalonEvent == 1)
-                    DoUseDoorOrButton(pGo->GetGUID());
+                    OpenDoor(pGo->GetGUID());
                 break;
             }
             case GO_CELESTIAL_DOOR_2:
                 m_uiCelestialDoor2GUID = pGo->GetGUID();
                 if(m_uiAlgalonEvent == 1)
-                    DoUseDoorOrButton(pGo->GetGUID());
+                    OpenDoor(pGo->GetGUID());
                 break;
             case GO_CELESTIAL_DOOR_3:
                 m_uiCelestialDoor3GUID = pGo->GetGUID();
@@ -818,8 +818,11 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                     if (uiData == DONE)
                         DoRespawnGameObject(m_uiAlagonLootGUID, 30*MINUTE);
                 }*/
-                HandleDoorsByData(m_uiCelestialDoorGUID, uiData);
-                HandleDoorsByData(m_uiCelestialDoor2GUID, uiData);
+                if(uiData != FAIL)
+                {
+                    HandleDoorsByData(m_uiCelestialDoorGUID, uiData);
+                    HandleDoorsByData(m_uiCelestialDoor2GUID, uiData);
+                }
                 HandleDoorsByData(m_uiCelestialDoor3GUID, uiData);
                 //if (uiData == DONE)
                 //    DoRespawnGameObject(m_uiAlagonLootGUID, 30*MINUTE);
@@ -935,11 +938,11 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                 }
                 if(algalonPullTime)
                 {
-                    uint32 time = algalonPullTime > time(0) ? (algalonPullTime - time)/60 : 0;
-                    if(time)
+                    uint32 time_remain = algalonPullTime > time(0) ? (algalonPullTime - time(0))/60 : 0;
+                    if(time_remain)
                     {
                         DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
-                        DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time);
+                        DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
                     }
                 }
                 break;
@@ -1285,11 +1288,11 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         {
             if(algalonPullTime)
             {
-                uint32 time = algalonPullTime > time(0) ? (algalonPullTime - time)/60 : 0;
-                if(time)
+                uint32 time_remain = algalonPullTime > time(0) ? (algalonPullTime - time(0))/60 : 0;
+                if(time_remain)
                 {
                     DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
-                    DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time);
+                    DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
                 }
             }
             m_stateUpdateTimer = 60000;
