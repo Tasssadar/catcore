@@ -630,7 +630,7 @@ void Transport::DoEventIfAny(WayPointMap::value_type const& node, bool departure
 
 uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, float z, float o, uint32 anim)
 {
-    Map* map = GetMap();
+   /* Map* map = GetMap();
     Creature* pCreature = new Creature;
 
     if (!pCreature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, GetPhaseMask(), entry, 0, NULL))
@@ -672,12 +672,13 @@ uint32 Transport::AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, 
     }
     else
         currenttguid = std::max(tguid, currenttguid);
-
-    return tguid;
+   */
+    return 0;
 }
 
 void Transport::UpdateNPCPositions()
 {
+    /*
     for (CreatureSet::iterator itr = m_NPCPassengerSet.begin(); itr != m_NPCPassengerSet.end(); ++itr)
     {
         Creature* npc = *itr;
@@ -690,5 +691,5 @@ void Transport::UpdateNPCPositions()
         npc->SetSummonPoint(x, y, z, o);
         GetMap()->CreatureRelocation(npc, x, y, z, o);
     }
-    
+    */
 }
