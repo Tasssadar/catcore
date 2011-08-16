@@ -1355,13 +1355,13 @@ bool InstanceMap::CanEnter(Player *player)
     Group *pGroup = player->GetGroup();
     if (GetId() != 658 && GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
     {
-    sLog.outError("MAP: Instance '%u' of map '%s' is locked. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
+        sLog.outError("MAP: Instance '%u' of map '%s' is locked. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
         return false;
-        }
+    }
 
     if (GetId() != 658 && pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
     {
-    sLog.outError("MAP: Instance '%u' of map '%s' is in combat. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
+        sLog.outError("MAP: Instance '%u' of map '%s' is in combat. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
         player->SendTransferAborted(GetId(), TRANSFER_ABORT_ZONE_IN_COMBAT);
         return false;
     }
