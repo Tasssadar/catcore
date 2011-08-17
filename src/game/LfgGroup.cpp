@@ -943,7 +943,11 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     }
     m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     SendUpdate();
-    sLfgMgr.AddCheckedGroup(this, true);
+    sLfgMgr.RemoveRoleCheckGroup(this);
+    if(GetMembersCount() == LFG_GROUP)
+        TeleportToDungeon();
+    else
+        sLfgMgr.AddCheckedGroup(this, true);
 }
 
 void LfgGroup::SendRoleCheckFail(uint8 error)
@@ -960,6 +964,7 @@ void LfgGroup::SendRoleCheckFail(uint8 error)
         if (player->GetGUID() == GetLeaderGUID())
             sLfgMgr.SendJoinResult(player, LFG_JOIN_FAILED, error);
     }
+    sLfgMgr.RemoveRoleCheckGroup(this);
     sLfgMgr.AddCheckedGroup(this, false);
 }
 

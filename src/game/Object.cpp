@@ -264,21 +264,15 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
                     unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
 
-                if (((Creature*)unit)->canFly() && !(((Creature*)unit)->canWalk()
-                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
+                if (((Creature*)unit)->canFly())
                 {
                     // (ok) most seem to have this
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
-
-                    // Add flying effect. This should be in db, but...
-                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
-                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-
-                    if (!((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    if (!((Creature*)unit)->canWalk()
+                        || !unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ()))
                     {
-                        // (ok) possibly some "hover" mode
-                        //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT); //problems sometimes...
+                        unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     }
                 }
 
@@ -295,7 +289,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
                 }
 
-                if (unit->GetVehicleGUID())
+                if (unit->GetVehicleGUID() || unit->GetTransport())
                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
 
                 if (unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == RANDOM_CIRCLE_MOTION_TYPE)
@@ -1628,7 +1622,7 @@ bool WorldObject::IsPositionValid() const
 bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
 {
     float groundZ = GetTerrain()->GetHeight(x, y, z, true, 50);
-    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
+    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 5.0f)
         return false;
     return true;
 }
@@ -1901,6 +1895,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     }
 
     v->Relocate(x, y, z, ang);
+    v->SetSummonPoint(x, y, z, ang);
 
     if (!v->IsPositionValid())
     {

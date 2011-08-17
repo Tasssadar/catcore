@@ -103,8 +103,8 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         {
             if (group->isRaidGroup())
                 error = LFG_JOIN_MIXED_RAID_DUNGEON;
-            else if (group->GetMembersCount() == 5)
-                error = LFG_JOIN_GROUPFULL;
+            //else if (group->GetMembersCount() == 5)
+            //    error = LFG_JOIN_GROUPFULL;
             else
             {
                 Group::member_citerator citr, citr_next;

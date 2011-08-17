@@ -420,8 +420,6 @@ UpdateMask Player::updateVisualBits;
 
 Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputationMgr(this), m_mover(this), m_camera(this)
 {
-    m_transport = 0;
-
     m_speakTime = 0;
     m_speakCount = 0;
 
@@ -8312,9 +8310,12 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
                 permission = NONE_PERMISSION;
             break;
         }
+        case HIGHGUID_VEHICLE:
         case HIGHGUID_UNIT:
         {
             Creature *creature = GetMap()->GetCreature(guid);
+            if(guid.GetHigh() == HIGHGUID_VEHICLE)
+                creature = GetMap()->GetVehicle(guid);
 
             // must be in range and creature must be alive for pickpocket and must be dead for another loot
             if (!creature || creature->isAlive()!=(loot_type == LOOT_PICKPOCKETING) || !creature->IsWithinDistInMap(this,INTERACTION_DISTANCE))

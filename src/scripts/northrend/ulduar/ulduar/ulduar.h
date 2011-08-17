@@ -60,6 +60,9 @@ enum
     TYPE_YOGG_PHASE             = 24,
     TYPE_VISION_PHASE           = 25,
 
+    TYPE_ALGALON_PULL_TIME      = 26,
+    TYPE_ALGALON_EVENT          = 27,
+
     // siege
     NPC_LEVIATHAN               = 33113,
     NPC_IGNIS                   = 33118,
@@ -174,6 +177,7 @@ enum
     GO_CELESTIAL_ACCES_H        = 194752,
     GO_CELESTIAL_DOOR           = 194767,
     GO_CELESTIAL_DOOR_2         = 194911,
+    GO_CELESTIAL_DOOR_3         = 194910,
     GO_UNIVERSE_FLOOR_ARCHIVUM  = 194715,
     GO_UNIVERSE_FLOOR_CELESTIAL = 194716,
     GO_AZEROTH_GLOBE            = 194148,
@@ -255,7 +259,10 @@ enum
     LOOT_THORIM_H               = 194315,
     LOOT_THORIM_HARD_H          = 1000011,
     LOOT_VEZAX_HARD             = 1000002,
-    LOOT_VEZAX_HARD_H           = 1000012
+    LOOT_VEZAX_HARD_H           = 1000012,
+
+    WORLD_STATE_ALGALON         = 4132,
+    WORLD_STATE_ALGALON_TIME    = 4131,
 };
 
 #endif

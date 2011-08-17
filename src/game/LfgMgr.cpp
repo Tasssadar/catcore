@@ -309,7 +309,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
 
 void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
 {
-    rolecheckGroups.erase(group);
+    //rolecheckGroups.erase(group);
     if (!toQueue)
     {
         LfgLog("Group %u UpdateRoleCheck fail", group->GetId());

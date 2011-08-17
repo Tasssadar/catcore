@@ -145,10 +145,10 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 m_uiSoulstormTimer = 600000;
             }else m_uiSoulstormTimer -= uiDiff;
 
-            if (shouldHaveSoulStorm && !m_creature->HasAura(SPELL_SOULSTORM))
+            if(shouldHaveSoulStorm && !m_creature->HasAura(SPELL_SOULSTORM))
                 DoCast(m_creature, SPELL_SOULSTORM, true);
 
-            if (m_uiFearTimer <= uiDiff)
+            if(m_uiFearTimer <= uiDiff)
             {
                 shouldHaveSoulStorm = true;
                 Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
@@ -202,7 +202,7 @@ struct MANGOS_DLL_DECL boss_bronjahmAI : public ScriptedAI
                 if (!(*itr) || !(*itr)->IsInWorld())
                     continue;
                 
-                if ((*itr)->IsWithinDistInMap(m_creature, 2.0f))
+                if((*itr)->IsWithinDistInMap(m_creature, 2.0f))
                 {
                     (*itr)->ForcedDespawn();
                     DoCast(m_creature, m_bIsRegularMode ? SPELL_CONSUME_SOUL : SPELL_CONSUME_SOUL_H, true);

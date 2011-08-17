@@ -118,6 +118,28 @@ namespace VMAP
         }
     }
 
+    void VMapManager2::preventLoSFromBeingUsed(const char* pMapIdString)
+    {
+        iIgnoreLoSIds.clear();
+        if (pMapIdString != NULL)
+        {
+            std::string map_str;
+            std::stringstream map_ss;
+            map_ss.str(std::string(pMapIdString));
+            while (std::getline(map_ss, map_str, ','))
+            {
+                std::stringstream ss2(map_str);
+                int map_num = -1;
+                ss2 >> map_num;
+                if (map_num >= 0)
+                {
+                    DETAIL_LOG("Ignoring Map %i for LoS", map_num);
+                    iIgnoreLoSIds[map_num] = true;
+                }
+            }
+        }
+    }
+
     //=========================================================
 
     int VMapManager2::loadMap(const char* pBasePath, unsigned int pMapId, int x, int y)
@@ -186,7 +208,7 @@ namespace VMAP
 
     bool VMapManager2::isInLineOfSight(unsigned int pMapId, float x1, float y1, float z1, float x2, float y2, float z2)
     {
-        if (!isLineOfSightCalcEnabled()) return true;
+        if (!isLineOfSightCalcEnabled() || iIgnoreLoSIds.count(pMapId)) return true;
         bool result = true;
         InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
         if (instanceTree != iInstanceMapTrees.end())

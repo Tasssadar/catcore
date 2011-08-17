@@ -385,6 +385,17 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             damage -= distance * float(500);
                         break;
                     }
+                    case 62311:
+                    {
+                        float distance = unitTarget->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY());
+                        if(distance < 4.0f)
+                            break;
+                        if (distance >= 20.0f)
+                            damage = 2000;
+                        else
+                            damage -= distance * float(2000);
+                        break;
+                    }
                     // Pulsing Shockwave (Loken's spell)
                     case 52942:
                     case 59837:
@@ -3008,10 +3019,17 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
 
             return;
         }
+       
         default:
             break;
     }
 
+    if(m_spellInfo->Id == 69232 && (triggered_spell_id == 69238 || triggered_spell_id == 69628))
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
+        unitTarget->CastSpell(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spellInfo, true, m_CastItem, 0);
+        return;
+    }
     // normal case
     SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
 
@@ -3191,7 +3209,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
         return;
 
     //Remove from lfg
-    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (unitTarget->GetTypeId() == TYPEID_PLAYER && m_spellInfo->Id != 70525 && m_spellInfo->Id != 70639)
     {
         if (Group *group = ((Player*)unitTarget)->GetGroup())
         {
@@ -3392,6 +3410,17 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     if (m_spellInfo->Id == 60430 && (unitTarget->GetTypeId() != TYPEID_UNIT || unitTarget->GetEntry() != 30643))
         return;
 
+    // Algalon - Phase Punch
+    if (m_spellInfo->Id == 64412)
+    {
+        Aura* aura = unitTarget->GetAura(64412, EFFECT_INDEX_0);
+        if (aura && (aura->GetStackAmount() == 4))
+        {
+            unitTarget->RemoveAura(64412, EFFECT_INDEX_0);
+            m_caster->CastSpell(unitTarget, 65509, true);
+            return;
+        }
+    }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
     Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem, this);
@@ -4758,7 +4787,7 @@ void Spell::EffectDualWield(SpellEffectIndex /*eff_idx*/)
         ((Player*)unitTarget)->SetCanDualWield(true);
 }
 
-void Spell::EffectPull(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectPull(SpellEffectIndex /*ef42459f_idx*/)
 {
     // TODO: create a proper pull towards distract spell center for distract
     DEBUG_LOG("WORLD: Spell Effect DUMMY");
@@ -8031,13 +8060,6 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         float angle = unitTarget->GetOrientation();
         unitTarget->GetPosition(cx,cy,cz);
 
-        //Check use of vamps//
-        bool useVmap = false;
-        bool swapZone = true;
-
-        if ( unitTarget->GetTerrain()->GetHeight(cx, cy, cz, false) <  unitTarget->GetTerrain()->GetHeight(cx, cy, cz, true) )
-            useVmap = true;
-
         const int itr = int(dis/0.5f);
         const float _dx = 0.5f * cos(angle);
         const float _dy = 0.5f * sin(angle);
@@ -8079,23 +8101,9 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             }
             else
             {
-                //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
-                if (swapZone)
-                {
-                    //so... change use of vamp and go back 1 step backward and recheck again.
-                    swapZone = false;
-                    useVmap = !useVmap;
-                    //i-=0.5f;
-                    --i;
-                    dx -= _dx;
-                    dy -= _dy;
-                }
-                else
-                {
-                    //bad recheck result... so break this and use last good coord for teleport player...
-                    dz += 0.5f;
-                    break;
-                }
+                //bad recheck result... so break this and use last good coord for teleport player...
+                dz += 0.5f;
+                break;
             }
         }
 

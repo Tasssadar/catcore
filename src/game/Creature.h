@@ -673,6 +673,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void SetHardModeKill(bool set_to) { m_isHardModeKill = set_to; }
         bool IsLoggable() const { return GetCreatureInfo()->cat_flags & CREATURE_CATFLAGS_LOGGABLE; }
 
+        void FarTeleportTo(Map* map, float X, float Y, float Z, float O);
+
     protected:
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);

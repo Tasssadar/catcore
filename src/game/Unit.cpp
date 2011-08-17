@@ -291,6 +291,7 @@ Unit::Unit()
     m_auraUpdateMask = 0;
     m_vehicleGUID = 0;
     m_fearDispelHp = 0;
+    m_transport = NULL;
 }
 
 Unit::~Unit()
@@ -493,6 +494,18 @@ void Unit::SendTrajMonsterMove(float x, float y, float z, bool knockback, float 
     data << uint32(1);
     data << x << y << z;
     SendMessageToSet(&data, true);
+}
+
+void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time)
+{
+    PointPath pointPath;
+    pointPath.resize(2);
+    GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+    pointPath[1].x = x;
+    pointPath[1].y = y;
+    pointPath[1].z = z;
+    GetMotionMaster()->MoveCharge(pointPath, time, 1, 1);
+    SendTrajMonsterMove(x, y, z, knockback, velocity, time, SPLINETYPE_NORMAL);
 }
 
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
@@ -875,6 +888,18 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         }
     }
 
+    // Overlords brand
+    if(HasAura(69172))
+    {
+        Aura *aura = GetAura(69172, EFFECT_INDEX_0);
+        Unit *caster = aura->GetCaster();
+        if(caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->getVictim())
+        {
+            int32 basepoints[3] = { (damage+absorb), 0, 0 };
+            CastCustomSpell(((Creature*)caster)->getVictim(), 69189, &basepoints[0], &basepoints[1], &basepoints[2], true, NULL, aura);
+        }
+    }
+
     if (health <= damage)
     {
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamage: victim just died");
@@ -1013,7 +1038,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         }
 
         // 10% durability loss on death
-        // clean InHateListOf
+        // clean InHateListOff
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
         {
             // only if not player and not controlled by player pet. And not at BG
@@ -4520,6 +4545,12 @@ bool Unit::AddAura(Aura *Aur)
                         break;
                 }
 
+                // Do not stack Judgements
+                if (GetSpellSpecific(aurSpellInfo->Id) == SPELL_JUDGEMENT)
+                {
+                    RemoveAura(i2,AURA_REMOVE_BY_STACK);
+                    stop = true;
+                }
                 if (stop)
                     break;
             }
@@ -9591,6 +9622,10 @@ bool Unit::IsHostileTo(Unit const* unit) const
     if (((Unit*)this)->getVictim()==unit || ((Unit*)unit)->getVictim()==this)
         return true;
 
+    if(GetTypeId() == TYPEID_UNIT && GetEntry() == 36731 &&
+      (unit->GetTypeId() != TYPEID_UNIT || unit->GetEntry() != 36731))
+        return true;
+
     // test pet/charm masters instead pers/charmeds
     Unit *testerOwner = GetCharmerOrOwner();
     Unit *targetOwner = unit->GetCharmerOrOwner();
@@ -10362,6 +10397,18 @@ int32 Unit::DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellPro
         ((Player*)pVictim)->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HEALING_RECEIVED, addhealth);
     }
 
+    // Overlords brand
+    if(HasAura(69172))
+    {
+        Aura *aura = GetAura(69172, EFFECT_INDEX_0);
+        Unit *caster = aura->GetCaster();
+        if(caster && caster->GetTypeId() == TYPEID_UNIT)
+        {
+            int32 basepoints[3] = { addhealth*2, 0, 0 };
+            CastCustomSpell(caster, 69190, &basepoints[0], &basepoints[1], &basepoints[2], true, NULL, aura);
+        }
+    }
+
     return gain;
 }
 
@@ -10375,6 +10422,9 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
     {
         Unit::AuraList const& magnetAuras = victim->GetAurasByType(SPELL_AURA_SPELL_MAGNET);
         for(Unit::AuraList::const_iterator itr = magnetAuras.begin(); itr != magnetAuras.end(); ++itr)
+        {
+            if(!(*itr))
+                continue;
             if (Unit* magnet = (*itr)->GetCaster())
                 if (magnet->IsWithinLOSInMap(this) && magnet->isAlive())
                 {
@@ -10383,12 +10433,16 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
                          magnet->CastSpell(magnet, 5, true);
                     return magnet;
                 }
+        }
     }
     // Normal case
     else
     {
         AuraList const& hitTriggerAuras = victim->GetAurasByType(SPELL_AURA_ADD_CASTER_HIT_TRIGGER);
         for(AuraList::const_iterator i = hitTriggerAuras.begin(); i != hitTriggerAuras.end(); ++i)
+        {
+            if(!(*i))
+                continue;
             if (Unit* magnet = (*i)->GetCaster())
                 if (magnet->isAlive() && magnet->IsWithinLOSInMap(this))
                     if (roll_chance_i((*i)->GetModifier()->m_amount))
@@ -10398,6 +10452,7 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
                                 victim->RemoveAura((*i),AURA_REMOVE_BY_DEFAULT);
                             return magnet;
                         }
+        }
     }
 
     return victim;
@@ -11519,6 +11574,9 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
     if (!spellInfo)
         return false;
 
+    if(spellInfo->Id == 69238 || spellInfo->Id == 69628)
+        return false;
+    
     //TODO add spellEffect immunity checks!, player with flag in bg is imune to imunity buffs from other friendly players!
     //SpellImmuneList const& dispelList = m_spellImmune[IMMUNITY_EFFECT];
 
@@ -11564,6 +11622,14 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
         }
     }
 
+    if((HasAura(69029) || HasAura(70850)))
+    {
+        bool im = false;
+        for(uint8 i = 0; i < 3 && !im; ++i)
+            im = IsImmunedToSpellEffect( spellInfo, SpellEffectIndex(i));
+        return im;
+    }
+
     return false;
 }
 
@@ -11571,6 +11637,9 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 {
     if (spellInfo->Id == 63337)
         return false;
+
+    if(GetTypeId() == TYPEID_UNIT && (spellInfo->Id == 69238 || spellInfo->Id == 69628))
+        return (index != EFFECT_INDEX_0); 
 
     // CUSTOM HANDELING DUE TO GENERAL VEZAX'S AURA OF DESPAIR BEGIN
     if (HasAuraType(SPELL_AURA_OF_DESPAIR))
@@ -11631,7 +11700,8 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
             else if ((*iter)->GetModifier()->m_miscvalue & (1 << (mechanic-1)))
                 return true;
         }
-
+        if(spellInfo->Effect[index] == SPELL_EFFECT_ATTACK_ME && (HasAura(69029) || HasAura(70850)))
+            return true;
     }
 
     if (uint32 aura = spellInfo->EffectApplyAuraName[index])
@@ -11648,6 +11718,9 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                 ((*iter)->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellInfo)) &&  // Check school
                 !IsPositiveEffect(spellInfo->Id, index))                                  // Harmful
                 return true;
+
+        if(aura == SPELL_AURA_MOD_TAUNT && (HasAura(69029) || HasAura(70850)))
+            return true;
     }
 
     return false;
@@ -13169,7 +13242,7 @@ bool Unit::CanHaveThreatList() const
         return false;
 
     // vehicles can not have threat list
-    if ( ((Creature*)this)->isVehicle() )
+    if ( ((Creature*)this)->isVehicle() && IS_PLAYER_GUID(((Pet*)this)->GetOwnerGUID()))
         return false;
 
     // pets can not have a threat list, unless they are controlled by a creature
@@ -13387,7 +13460,7 @@ bool Unit::SelectHostileTarget()
     }
 
     // enter in evade mode in other case
-    if (!((Creature*)this)->isVehicle())
+    if (!((Creature*)this)->isVehicle() && !GetCharmerGUID())
         ((Creature*)this)->AI()->EnterEvadeMode();
 
     return false;
@@ -16146,6 +16219,10 @@ void Unit::ExitVehicle()
             ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
             ((Player*)this)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
         }
+        
+        WorldPacket heart;
+        BuildHeartBeatMsg(&heart);
+        SendMessageToSet(&heart, true);
 
         float x = GetPositionX();
         float y = GetPositionY();
@@ -16387,6 +16464,8 @@ void Unit::SendThreatClear()
 
 void Unit::SendThreatRemove(HostileReference* pHostileReference)
 {
+    if((GetTypeId() == TYPEID_UNIT) && ((Creature*)this)->isVehicle())
+        return;
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Send SMSG_THREAT_REMOVE Message");
     WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
     data << GetPackGUID();

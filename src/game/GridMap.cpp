@@ -936,6 +936,8 @@ uint32 TerrainInfo::GetAreaId(float x, float y, float z) const
 
 uint32 TerrainInfo::GetZoneId(float x, float y, float z) const
 {
+    if(!this)
+        return 0;
     return TerrainManager::GetZoneIdByAreaFlag(GetAreaFlag(x,y,z),m_mapId);
 }
 

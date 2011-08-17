@@ -746,7 +746,7 @@ void Vehicle::InstallAllAccessories()
                 }
                 entry = data->id;
             }     
-            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, 0))
+            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, ALLIANCE))
             {
                 delete pPassenger;
                 continue;
@@ -768,6 +768,7 @@ void Vehicle::InstallAllAccessories()
             pPassenger->Relocate(GetPositionX(), GetPositionY(), GetPositionZ());
             GetMap()->Add(pPassenger);
             pPassenger->AIM_Initialize();
+            pPassenger->SetSummonPoint(GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
         }
         else
             pPassenger = (Creature*)SummonVehicle(cPassanger->entry, GetPositionX(), GetPositionY(), GetPositionZ(), 0, 0, this, cPassanger->seat_idx);

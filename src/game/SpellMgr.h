@@ -43,7 +43,7 @@ enum SpellCategories
     SPELLCATEGORY_DEVOUR_MAGIC        = 12,
     SPELLCATEGORY_JUDGEMENT           = 1210,               // Judgement (seal trigger)
 };
-
+/*
 enum SpellFamilyNames
 {
     SPELLFAMILY_GENERIC     = 0,
@@ -65,7 +65,7 @@ enum SpellFamilyNames
     // 16 - unused
     SPELLFAMILY_PET         = 17
 };
-
+*/
 //Some SpellFamilyFlags
 #define SPELLFAMILYFLAG_ROGUE_VANISH            UI64LIT(0x0000000000000800)
 #define SPELLFAMILYFLAG_ROGUE_STEALTH           UI64LIT(0x0000000000400000)

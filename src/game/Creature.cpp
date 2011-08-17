@@ -1494,7 +1494,7 @@ bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIn
         return true;
 
     // Taunt immunity special flag check
-    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE)
+    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE || HasAura(70850))
     {
         // Taunt aura apply check
         if (spellInfo->Effect[index] == SPELL_EFFECT_APPLY_AURA)
@@ -2058,6 +2058,26 @@ void Creature::_AddCreatureSpellCooldown(uint32 spell_id, time_t end_time)
 void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
 {
     m_CreatureCategoryCooldowns[category] = apply_time;
+}
+
+void Creature::FarTeleportTo(Map* map, float X, float Y, float Z, float O)
+{
+    InterruptNonMeleeSpells(true);
+    CombatStop();
+    DeleteThreatList();
+    GetMotionMaster()->Clear(false);
+    
+    WorldPacket data(SMSG_DESTROY_OBJECT, 8 + 1);
+    data << uint64(GetGUID());
+    data << uint8(0);
+    SendMessageToSet(&data, false);
+
+    RemoveFromWorld();
+    ResetMap();
+    SetMap(map);
+    AddToWorld();
+
+    Relocate(X, Y, Z, O);
 }
 
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
