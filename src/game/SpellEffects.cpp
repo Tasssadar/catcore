@@ -387,13 +387,13 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     }
                     case 62311:
                     {
-                        float distance = unitTarget->GetDistance2d(m_caster);
-                        if(distance < 6.0f)
+                        float distance = unitTarget->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY());
+                        if(distance < 4.0f)
                             break;
-                        if (distance >= 25.0f)
-                            damage = 100;
+                        if (distance >= 20.0f)
+                            damage = 2000;
                         else
-                            damage -= distance * float(1500);
+                            damage -= distance * float(2000);
                         break;
                     }
                     // Pulsing Shockwave (Loken's spell)
@@ -4787,7 +4787,7 @@ void Spell::EffectDualWield(SpellEffectIndex /*eff_idx*/)
         ((Player*)unitTarget)->SetCanDualWield(true);
 }
 
-void Spell::EffectPull(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectPull(SpellEffectIndex /*ef42459f_idx*/)
 {
     // TODO: create a proper pull towards distract spell center for distract
     DEBUG_LOG("WORLD: Spell Effect DUMMY");

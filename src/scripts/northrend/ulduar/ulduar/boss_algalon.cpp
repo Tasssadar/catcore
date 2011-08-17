@@ -73,29 +73,27 @@ enum GameObjects
 
 enum Says
 {
-    SAY_INTRO_1                         = -1603106,
-    SAY_INTRO_2                         = -1603107,
-    SAY_INTRO_3                         = -1603108,
+    SAY_INTRO_1                         = -1603501,
+    SAY_INTRO_2                         = -1603502,
+    SAY_INTRO_3                         = -1603503,
 
-    SAY_ENGAGE                          = -1603109,
-    SAY_AGGRO                           = -1603110,
-    SAY_SLAY_1                          = -1603111,
-    SAY_SLAY_2                          = -1603112,
-    SAY_SUMMON_STAR                     = -1603113,
-    SAY_BIG_BANG_1                      = -1603114,
-    SAY_BIG_BANG_2                      = -1603115,
-    SAY_PHASE_2                         = -1603116,
-    SAY_BERSERK                         = -1603117,
+    SAY_ENGAGE                          = -1603504,
+    SAY_AGGRO                           = -1603505,
+    SAY_SLAY_1                          = -1603511,
+    SAY_SLAY_2                          = -1603510,
+    SAY_SUMMON_STAR                     = -1603506,
+    SAY_BIG_BANG_1                      = -1603507,
+    SAY_BIG_BANG_2                      = -1603508,
+    SAY_PHASE_2                         = -1603509,
+    SAY_BERSERK                         = -1603512,
 
-    SAY_DESPAWN_1                       = -1603118,
-    SAY_DESPAWN_2                       = -1603119,
-    SAY_DESPAWN_3                       = -1603120,
+    SAY_DESPAWN_1                       = -1603513,
+    SAY_DESPAWN_2                       = -1603514,
+    SAY_DESPAWN_3                       = -1603515,
 
-    SAY_OUTRO_1                         = -1603121,
-    SAY_OUTRO_2                         = -1603122,
-    SAY_OUTRO_3                         = -1603123,
-    SAY_OUTRO_4                         = -1603124,
-    SAY_OUTRO_5                         = -1603125,
+    SAY_OUTRO_1                         = -1603516,
+    SAY_OUTRO_2                         = -1603517,
+    SAY_OUTRO_3                         = -1603518,
 };
 
 /************************************************ Algalon ***************************************************/
@@ -142,6 +140,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     bool firstConst;
 
+    bool beaten;
+
     void Reset()
     {
         m_uiPhaseTwo = false;
@@ -159,17 +159,18 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_uiDespawnCheck = 1000;
         m_uiDespawnTime = 0;
         despawned = false;
-        m_uiIntroTimer = 10000;
+        m_uiIntroTimer = 0;
         m_uiIntroStep = 0;
         firstConst = true;
         m_uiPhaseDmgTimer = 2000;
-        intro = (m_pInstance->GetData(TYPE_ALGALON_EVENT) == 0);
+        intro = (m_pInstance->GetData(TYPE_ALGALON_EVENT) == 0 && m_pInstance->GetData(TYPE_ALGALON_EVENT) == 0);
         if(intro)
         {
             m_creature->SetVisibility(VISIBILITY_OFF);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
         m_uiEvadeTimer = 0;
+        beaten = false;
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -206,6 +207,33 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         lVoidZones.clear();
     }
 
+    void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
+    {
+        if (beaten)
+        {
+            uiDamage = 0;
+            return;
+        }
+
+        if (!beaten && uiDamage >= m_creature->GetHealth())
+        {
+            beaten = true;
+            uiDamage = 0;
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->RemoveAllAuras();
+            m_creature->InterruptNonMeleeSpells(true);
+            m_creature->SetHealth(10000);
+
+            SetCombatMovement(false);
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveIdle();
+            DespawnAll();
+            PhaseOutAll();
+            m_uiIntroStep = 0;
+            m_uiIntroTimer = 1000;
+        }
+    }
+
     void PhaseOutAll()
     {
         Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
@@ -214,14 +242,16 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 pPlayer->SetPhaseMask(1, true);
     }
 
+    void MoveInLineOfSight(Unit* pWho)
+    {
+        if(m_uiIntroTimer == 0)
+            m_uiIntroTimer = 10000;
+        ScriptedAI::MoveInLineOfSight(pWho);
+    }
+
     void JustDied(Unit* pKiller)
     {
-        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, INTERACTION_DISTANCE);
-        if (pGo)
-            pGo->SetGoState(GO_STATE_READY);
-        DespawnAll();
-        PhaseOutAll();
-        m_pInstance->SetData(TYPE_ALGALON, DONE);
+        
     }
 
     void Aggro(Unit* pWho)
@@ -265,7 +295,13 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, INTERACTION_DISTANCE);
+        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 180);
+        if (pGo)
+            pGo->SetGoState(GO_STATE_READY);
+        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_ARCHIVUM, 180);
+        if (pGo)
+            pGo->SetGoState(GO_STATE_ACTIVE);
+        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_CELESTIAL, 200);
         if (pGo)
             pGo->SetGoState(GO_STATE_READY);
         DespawnAll();
@@ -286,8 +322,79 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
+        if(despawned && m_uiIntroTimer)
+        {
+            if(m_uiIntroTimer <= uiDiff)
+            {
+                switch(m_uiIntroStep)
+                {
+                    case 0:
+                        DoScriptText(SAY_DESPAWN_1, m_creature);
+                        m_uiIntroTimer = 13000;
+                        break;
+                    case 1:
+                        DoScriptText(SAY_DESPAWN_2, m_creature);
+                        m_uiIntroTimer = 10000;
+                        break;
+                    case 2:
+                        DoScriptText(SAY_DESPAWN_3, m_creature);
+                        m_uiIntroTimer = 9000;
+                        break;
+                    case 3:
+                        m_uiIntroTimer = 0;
+                        ((TemporarySummon*)m_creature)->UnSummon();
+                        break;
+                }
+                ++m_uiIntroStep;
+            }else m_uiIntroTimer -= uiDiff;
+            return;
+        }
         if(despawned)
             return;
+
+        if(beaten)
+        {
+            if(m_uiIntroTimer <= uiDiff)
+            {
+                switch(m_uiIntroStep)
+                {
+                    case 0:
+                        DoScriptText(SAY_OUTRO_1, m_creature);
+                        m_uiIntroTimer = 40000;
+                        break;
+                    case 1:
+                        DoScriptText(SAY_OUTRO_2, m_creature);
+                        m_uiIntroTimer = 17000;
+                        break;
+                    case 2:
+                        DoScriptText(SAY_OUTRO_3, m_creature);
+                        m_uiIntroTimer = 11000;
+                        break;
+                    case 3:
+                    {
+                        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 180);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_READY);
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_ARCHIVUM, 180);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_ACTIVE);
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_CELESTIAL, 200);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_READY);
+                        float x, y, z;
+                        m_creature->GetPosition(x, y, z);
+                        m_creature->SummonGameobject(194821, x, y, z, 0, 604800);
+                        m_pInstance->SetData(TYPE_ALGALON, DONE);
+                        m_pInstance->DoCompleteAchievement(3036);
+                        ((TemporarySummon*)m_creature)->UnSummon();
+                        break;
+                    }
+                }
+                ++m_uiIntroStep;
+            }else m_uiIntroTimer -= uiDiff;
+            return;
+
+        }
 
         if(m_uiEvadeTimer)
         {
@@ -304,14 +411,22 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 m_uiDespawnTime = m_pInstance->GetData(TYPE_ALGALON_PULL_TIME);
             if(m_uiDespawnTime && m_uiDespawnTime <= time(0))
             {
-                EnterEvadeMode();
-                m_creature->SetVisibility(VISIBILITY_OFF);
+                m_creature->SetVisibility(VISIBILITY_ON);
+                SetCombatMovement(false);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                DespawnAll();
+                PhaseOutAll();
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                m_creature->RemoveAllAuras();
                 despawned = true;
+                m_uiIntroTimer = 1000;
+                m_uiIntroStep = 0;
             }
             m_uiDespawnCheck = 1000;
         }else m_uiDespawnCheck -= uiDiff;
 
-        if(intro)
+        if(intro && m_uiIntroTimer)
         {
             if(m_uiIntroTimer <= uiDiff)
             {
@@ -322,35 +437,59 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         m_uiIntroTimer = 1000;
                         break;
                     case 1:
+                        DoScriptText(SAY_INTRO_1, m_creature);
+                        m_uiIntroTimer = 8000;
+                        break;
+                    case 2:
                     {
                         float x, y, z;
                         m_creature->GetPosition(x, y, z);
                         x += cos(m_creature->GetOrientation())*15;
                         y += sin(m_creature->GetOrientation())*15;
                         m_creature->SummonCreature(NPC_AZEROTH, x, y, z, 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
-                        m_uiIntroTimer = 4000;
+                        m_uiIntroTimer = 2000;
                         break;
                     }
-                    case 2:
-                        m_creature->CastSpell(m_creature, SPELL_AZEROTH_BEAM, true);
-                        m_uiIntroTimer = 14000;
-                        break;
                     case 3:
+                        m_creature->CastSpell(m_creature, SPELL_AZEROTH_BEAM, false);
+                        DoScriptText(SAY_INTRO_2, m_creature);
+                        m_uiIntroTimer = 7000;
+                        break;
+                    case 4:
                     {
+                        DoScriptText(SAY_INTRO_3, m_creature);
                         GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 200);
                         if (pGo)
                             pGo->SetGoState(GO_STATE_ACTIVE);
                         pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_CELESTIAL, 200);
                         if (pGo)
                             pGo->SetGoState(GO_STATE_ACTIVE);
-                        m_uiIntroTimer = 18000;
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_ARCHIVUM, 180);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_READY);
+                        m_uiIntroTimer = 11000;
                         break;
                     }
-                    case 4:
+                    case 5:
                         m_creature->InterruptNonMeleeSpells(false);
                         m_creature->RemoveAllAuras();
+                        
+                        if(m_pInstance->GetData(TYPE_ALGALON_PULL_TIME) == 0)
+                        {
+                            DoScriptText(SAY_ENGAGE, m_creature);
+                            m_uiIntroTimer = 12000;
+                        }
+                        else
+                        {
+                            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            intro = false;
+                            m_uiIntroTimer = 0;
+                        }
+                        break;
+                    case 6:
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         intro = false;
+                        m_uiIntroTimer= 0;
                         break;
                 }
                 ++m_uiIntroStep;
@@ -412,7 +551,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         else
              m_uiQuantumStrikeTimer -= uiDiff;
 
-        if(m_uiPhaseDmgTimer <= uiDiff)
+       /* if(m_uiPhaseDmgTimer <= uiDiff)
         {
             Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
             for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
@@ -424,7 +563,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 }
             }
             m_uiPhaseDmgTimer = 2000;
-        }else m_uiPhaseDmgTimer -= uiDiff;
+        }else m_uiPhaseDmgTimer -= uiDiff;*/
 
         //Big Bang
         if (m_uiBigBangTimer < uiDiff)
@@ -465,6 +604,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
             m_creature->SummonCreature(NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_02,
                 target->GetPositionX(), target->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_TIMED_DESPAWN, 5500);
+            m_creature->CastSpell(target, SPELL_COSMIC_SMASH_DBM, true);
             m_creature->CastSpell(target, SPELL_SHADOW_FISURE, true);
             m_uiCosmicSmashTimer = 25000;
         }

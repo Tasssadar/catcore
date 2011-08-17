@@ -426,12 +426,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
 
             // Celestial Planetarium
             case GO_CELESTIAL_ACCES:
-                m_uiCelestialConsoleGUID = pGo->GetGUID();
-                if(m_uiAlgalonEvent == 1)
-                {
-                    Creature *pAlgalon = pGo->SummonCreature(NPC_ALGALON, 1632.25f, -307.548f, 417.327f, 1.5f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                    pAlgalon->SetRespawnDelay(604800);
-                }
+                 m_uiCelestialConsoleGUID = pGo->GetGUID();
                 break;
             case GO_CELESTIAL_DOOR:
             {
@@ -804,8 +799,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             // Celestial Planetarium
             case TYPE_ALGALON:
                 m_auiEncounter[13] = uiData;
-                DoUseDoorOrButton(m_uiUniverseFloorCelestialGUID);
-                DoUseDoorOrButton(m_uiUniverseFloorArchivumGUID);
+                //DoUseDoorOrButton(m_uiUniverseFloorCelestialGUID);
+                //DoUseDoorOrButton(m_uiUniverseFloorArchivumGUID);
                 /*if (uiData == IN_PROGRESS)
                 {
                     CloseDoor(m_uiCelestialDoorGUID);
@@ -970,7 +965,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                  << m_auiHardBoss[7] << " " << m_auiHardBoss[8] << " " << m_auiUlduarKeepers[0] << " "
                  << m_auiUlduarKeepers[1] << " " << m_auiUlduarKeepers[2] << " " << m_auiUlduarKeepers[3] << " "
                  << m_auiUlduarTeleporters[0] << " " << m_auiUlduarTeleporters[1] << " " << m_auiUlduarTeleporters[2] << " "
-                 << algalonPullTime << " " << m_uiAlgalonEvent;
+                 << algalonPullTime;
  
              m_strInstData = saveStream.str();
  
@@ -1195,7 +1190,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         >> m_auiHardBoss[2] >> m_auiHardBoss[3] >> m_auiHardBoss[4] >> m_auiHardBoss[5]
         >> m_auiHardBoss[6] >> m_auiHardBoss[7] >> m_auiHardBoss[8] >> m_auiUlduarKeepers[0]
         >> m_auiUlduarKeepers[1] >> m_auiUlduarKeepers[2] >> m_auiUlduarKeepers[3] >> m_auiUlduarTeleporters[0]
-        >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2] >> algalonPullTime >> m_uiAlgalonEvent;
+        >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2] >> algalonPullTime;
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; i++)
         {

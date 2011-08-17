@@ -263,4 +263,12 @@ void SpellMgr::ApplySpellHacks()
     sfix42->EffectBasePoints[1] = 1900;
     sfix42->EffectRadiusIndex[1] = 29;
     sfix42->EffectApplyAuraName[1] = 3;
+    sfix42->EffectAmplitude[1] = 2000;
+
+    
+    SpellEntry *sfix43 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64598));
+    sfix43->Effect[0] = 6;
+    sfix43->Effect[1] = 0;
+    sfix43->Effect[2] = 0;
+    sfix43->EffectApplyAuraName[0] = 4;
 }
