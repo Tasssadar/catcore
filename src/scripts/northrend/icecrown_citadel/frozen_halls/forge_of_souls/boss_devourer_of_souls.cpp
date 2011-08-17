@@ -49,6 +49,12 @@ enum
 ## boss_bronjahm
 ######*/
 
+static const float wps[][4] =
+{
+    {5620.47, 2454.46, 705.9, 0.89},
+    {5632.42, 2471.18, 708.7, 0},
+};
+
 struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
 {
     boss_devourer_of_soulsAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -87,6 +93,9 @@ struct MANGOS_DLL_DECL boss_devourer_of_soulsAI : public ScriptedAI
     void JustDied(Unit* pKiller)
     {
         DoScriptText(SAY_DEATH, m_creature);
+        Creature *pGuide = m_creature->SummonCreature(m_pInstance->GetDate(TYPE_FACTION) ? NPC_SYLVANAS : NPC_JAINA, wps[0][0], wps[0][1], wps[0][2],
+                                                      wps[0][3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        pGuide->GetMotionMaster()->MovePoint(1, wps[0][0], wps[0][1], wps[0][2]);
     }
 
     void KilledUnit(Unit* pVictim)
