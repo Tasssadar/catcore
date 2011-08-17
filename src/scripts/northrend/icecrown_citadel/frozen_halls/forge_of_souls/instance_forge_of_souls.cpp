@@ -28,14 +28,20 @@ const float guidePos [4] = { 4903.63, 2207.12, 638.75, 0.442 };//{ 441.39f, 213.
 
 struct MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
 {
-    instance_pit_of_saron(Map* pMap) : ScriptedInstance(pMap) {Initialize();};
+    instance_forge_of_souls(Map* pMap) : ScriptedInstance(pMap) {Initialize();};
+
+    std::string strInstData;
 
     uint32 m_uiFaction;
     uint32 m_eventState;
 
+    bool summoned;
+
     void Initialize()
     {
         m_uiFaction = 3;
+        m_eventState = 0;
+        summoned = false;
     }
 
     void OnPlayerEnter(Player *plr)
@@ -47,13 +53,14 @@ struct MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
             else
                 m_uiFaction = 0;
         }
-        if(m_eventState == 0)
+        if(m_eventState == 0 && !summoned)
         {
-            Creature *pGuide = m_creature->SummonCreature(m_uiFaction ? NPC_SYLVANAS : NPC_JAINA, guidePos[0], guidePos[1], guidePos[2],
+            summoned = true;
+            Creature *pGuide = plr->SummonCreature(m_uiFaction ? NPC_SYLVANAS : NPC_JAINA, guidePos[0], guidePos[1], guidePos[2],
                                                           guidePos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            float x = guidePos[0] + cos(guidePos[4])*15.0f;
-            float y = guidePos[1] + sin(guidePos[4])*15.0f;
-            pGuide->GetMotionMaster()->MovePoint(1, x, y, z);
+            float x = guidePos[0] + cos(guidePos[3])*25.0f;
+            float y = guidePos[1] + sin(guidePos[3])*25.0f;
+            pGuide->GetMotionMaster()->MovePoint(1, x, y, guidePos[2]);
         }
     }
 
@@ -101,14 +108,6 @@ struct MANGOS_DLL_DECL instance_forge_of_souls : public ScriptedInstance
 
         std::istringstream loadStream(chrIn);
         loadStream >> m_uiFaction >> m_eventState;
-
-        for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-        {
-            if (m_auiEncounter[i] == IN_PROGRESS)
-                m_auiEncounter[i] = NOT_STARTED;
-        }
-        if (m_auiEncounter[1] == DONE && m_auiEncounter[0] == DONE)
-            DoUseDoorOrButton(m_uiIceWallGUID);
 
         OUT_LOAD_INST_DATA_COMPLETE;
     }

@@ -426,7 +426,7 @@ struct MANGOS_DLL_DECL boss_leviathan_mkAI : public boss_mimiron_vehicleAI
             // Napalm Shell
             if (HandleTimer(m_uiNapalmTimer,uiDiff))
             {
-                if (Unit* pTarget = SelectRandomPlayerPreferInRange(1, 15))
+                if (Unit* pTarget = SelectRandomPlayerPreferRanged(1, 15))
                 {
                     DoCast(pTarget, m_bIsRegularMode ? SPELL_NAPALM_SHELL : SPELL_NAPALM_SHELL_H);
                     m_uiNapalmTimer = 6000;

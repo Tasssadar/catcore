@@ -458,6 +458,9 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
                 DoRandomFlight();
                 break;
             case ACTION_END:
+                m_creature->RemoveAllAuras();
+                m_creature->DeleteThreatList();
+                m_creature->CombatStop(true);
                 m_creature->SetVisibility(VISIBILITY_OFF);
                 m_end = true;
                 break;

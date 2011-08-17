@@ -281,7 +281,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         // Shadow Crash
         if (m_uiShadowCrash_Timer < diff)
         {
-            if (Unit* target = SelectRandomPlayerPreferInRange(m_bIsRegularMode ? 4 : 9, 15))
+            if (Unit* target = SelectRandomPlayerPreferRanged(m_bIsRegularMode ? 4 : 9, 15))
                 DoCast(target, SPELL_SHADOW_CRASH);
             m_uiShadowCrash_Timer = urand(20,25)*IN_MILLISECONDS;
         }else m_uiShadowCrash_Timer -= diff;
@@ -289,7 +289,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         // Mark Of Faceless
         if (m_uiMarkOfFaceless_Timer < diff)
         {
-            if (Unit* target = SelectRandomPlayerPreferInRange(m_bIsRegularMode ? 4 : 9, 15))
+            if (Unit* target = SelectRandomPlayerPreferRanged(m_bIsRegularMode ? 4 : 9, 15))
                 DoCast(target, SPELL_MARK_OF_FACELESS);
             m_uiMarkOfFaceless_Timer = urand(10,45)*IN_MILLISECONDS;
         }else m_uiMarkOfFaceless_Timer -= diff;

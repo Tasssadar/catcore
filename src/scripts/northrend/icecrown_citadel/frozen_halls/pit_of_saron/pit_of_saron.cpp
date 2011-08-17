@@ -566,6 +566,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                                              spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
         m_uiEventTimer = 5000;
         eventStateInternal = 0;
+        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
      }
 
     void SetEventState(uint32 state)
@@ -581,8 +582,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         {
             tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], spawnPos[0], spawnPos[1], spawnPos[2],
                                              spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->SetSpeedRate(MOVE_RUN, 1.5, true);
-            tmp->SetSpeedRate(MOVE_WALK, 1.5, true);
+            tmp->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             tmp->GetMotionMaster()->MovePoint(1, outroPos[i][0], outroPos[i][1], outroPos[i][2]);
             herosList.push_back(tmp);
         }
