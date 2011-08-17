@@ -521,9 +521,8 @@ void Creature::Update(uint32 diff)
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
 
-                if (m_TimerMgr)
-                    if (SelectHostileTarget() && getVictim())
-                        m_TimerMgr->UpdateTimers(diff);
+                if (m_TimerMgr && getVictim())
+                    m_TimerMgr->UpdateTimers(diff);
 
                 i_AI->UpdateAI(diff);
                 m_AI_locked = false;
@@ -2444,6 +2443,7 @@ void Creature::LogKill(Unit *killer, int32 icomments)
 
 SpellTimerMgr* Creature::CreateTimerMgr()
 {
-    m_TimerMgr = new SpellTimerMgr((Unit*)this);
+    if(!m_TimerMgr)
+        m_TimerMgr = new SpellTimerMgr((Unit*)this);
     return m_TimerMgr;
 }
