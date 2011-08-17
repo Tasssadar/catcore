@@ -17077,7 +17077,10 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
 void Unit::AddAndLinkAura(uint32 auraId, bool apply)
 {
     if (apply)
-        CastSpell(this, auraId, true);
+    {
+        if (!HasAura(auraId))
+            CastSpell(this, auraId, true);
+    }
     else
         RemoveAurasDueToSpell(auraId);
 
