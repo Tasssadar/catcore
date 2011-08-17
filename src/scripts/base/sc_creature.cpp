@@ -607,18 +607,18 @@ PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool not_select_current_victim
     return pList;
 }
 
-PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, float min_range, bool not_select_current_victim)
+PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range, bool not_select_current_victim)
 {
     // fill list of all player
     PlrList fullList = GetAttackingPlayers(not_select_current_victim);
     
-    PlrList distantList;
+    PlrList inRangeList;
     // fill list of players in range
     for(PlrList::iterator itr = fullList.begin(); itr != fullList.end(); ++itr)
-        if (m_creature->GetDistance(*itr) > min_range)
-            distantList.push_back(*itr);
+        if (m_creature->IsInRange(m_creature, min_range, max_range))
+            inRangeList.push_back(*itr);
 
-    PlrList& finalList = (distantList.size() < min_count) ? fullList : distantList;
+    PlrList& finalList = (inRangeList.size() < min_count) ? fullList : inRangeList;
     uint8 erase_count = (finalList.size() > count) ? (finalList.size() - count) : 0;
     for(uint8 i = 0; i < erase_count; ++i)
     {
@@ -630,7 +630,7 @@ PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, f
     return finalList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
-    return *(GetRandomPlayersPreferRanged(1, min_ranged_count, min_range, not_select_current_victim).begin());
+    return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
 }
