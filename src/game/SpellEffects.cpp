@@ -8060,13 +8060,6 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         float angle = unitTarget->GetOrientation();
         unitTarget->GetPosition(cx,cy,cz);
 
-        //Check use of vamps//
-        bool useVmap = false;
-        bool swapZone = true;
-
-        if ( unitTarget->GetTerrain()->GetHeight(cx, cy, cz, false) <  unitTarget->GetTerrain()->GetHeight(cx, cy, cz, true) )
-            useVmap = true;
-
         const int itr = int(dis/0.5f);
         const float _dx = 0.5f * cos(angle);
         const float _dy = 0.5f * sin(angle);
@@ -8108,23 +8101,9 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             }
             else
             {
-                //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
-                if (swapZone)
-                {
-                    //so... change use of vamp and go back 1 step backward and recheck again.
-                    swapZone = false;
-                    useVmap = !useVmap;
-                    //i-=0.5f;
-                    --i;
-                    dx -= _dx;
-                    dy -= _dy;
-                }
-                else
-                {
-                    //bad recheck result... so break this and use last good coord for teleport player...
-                    dz += 0.5f;
-                    break;
-                }
+                //bad recheck result... so break this and use last good coord for teleport player...
+                dz += 0.5f;
+                break;
             }
         }
 
