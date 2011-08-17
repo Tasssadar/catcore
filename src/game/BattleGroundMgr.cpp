@@ -2069,7 +2069,7 @@ void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, B
     //we will use only 1 number created of bgTypeId and bracket_id
     uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
     bool found = false;
-    for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); i++)
+    for (uint32 i = 0; i < m_QueueUpdateScheduler.size(); i++)
     {
         if (m_QueueUpdateScheduler[i] == schedule_id)
         {
