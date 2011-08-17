@@ -132,6 +132,7 @@ m_DoNotInsertToInstanceCombatList(false)
     m_CreatureCategoryCooldowns.clear();
 
     m_splineFlags = SPLINEFLAG_WALKMODE;
+    m_TimerMgr = NULL;
 }
 
 Creature::~Creature()
@@ -517,12 +518,13 @@ void Creature::Update(uint32 diff)
 
             if (!IsInEvadeMode())
             {
-                //if (m_TimerMgr)
-                //    if (SelectHostileTarget() && getVictim())
-                //        m_TimerMgr->UpdateTimers(diff);
-
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
+
+                if (m_TimerMgr)
+                    if (SelectHostileTarget() && getVictim())
+                        m_TimerMgr->UpdateTimers(diff);
+
                 i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
