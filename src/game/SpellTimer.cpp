@@ -140,8 +140,12 @@ void SpellTimer::Cooldown(uint32 cd, bool permanent)
 
 bool SpellTimer::Finish(Unit *target)
 {
+    // timer can be also used without spell cast in the end, for such case set spellId to NULL
+    if (!spellId_m)
+        return true;
+
     // if timer for not existing spell, dont even try to finish it
-    SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId_m);
     if (!spellInfo)
         return false;
 

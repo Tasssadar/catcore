@@ -17,7 +17,8 @@ enum CastType
 {
     CAST_TYPE_NONCAST = 0,      // if there is currently any spell casted, do nothing
     CAST_TYPE_QUEUE,            // if there is currently any spell casted, put cast into queue
-    CAST_TYPE_FORCE             // if there is currently any spell casted, interrupt that spell a cast this one instead
+    CAST_TYPE_FORCE,            // if there is currently any spell casted, interrupt that spell a cast this one instead
+    CAST_TYPE_IGNORE            // dont check cast
 };
 
 enum TimerValues

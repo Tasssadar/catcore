@@ -7079,6 +7079,12 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
             if (m_spellInfo->SpellDifficultyId == 344)
                 m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
 
+            // Twin's Pact
+            else if (m_spellInfo->SpellDifficultyId == 467)
+                unitTarget->CastSpell(unitTarget, 65916, true);
+            else if (m_spellInfo->SpellDifficultyId == 466)
+                unitTarget->CastSpell(unitTarget, 65916, true);
+
             break;
         }
         case SPELLFAMILY_WARLOCK:

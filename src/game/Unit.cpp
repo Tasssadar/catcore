@@ -5632,6 +5632,19 @@ bool Unit::HasAura(uint32 spellId) const
     return false;
 }
 
+bool Unit::HasAuraOnDifficulty(uint32 spellId)
+{
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    if (!spellInfo)
+        return false;
+
+    if (!spellInfo->SpellDifficultyId)
+        return HasAura(spellId);
+
+    SpellEntry const* spellInfoDiff = GetSpellEntryByDifficulty(spellInfo->SpellDifficultyId, GetMap()->GetDifficulty());
+    return HasAura(spellInfoDiff->Id);
+}
+
 bool Unit::HasAuras(SpellFamilyNames familyName, uint64 familyFlags) const
 {
     Unit::AuraMap const& targetauras = GetAuras();
