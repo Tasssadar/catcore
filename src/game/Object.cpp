@@ -268,12 +268,21 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 {
                     // (ok) most seem to have this
                     //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+                    if(((Creature*)unit)->isVehicle())
+                    {
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                    }
+                    else
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+
                     if (!((Creature*)unit)->canWalk()
                         || !unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ()))
                     {
                         unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     }
+                    else
+                        unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
                 }
 
                 // swimming creature

@@ -553,11 +553,11 @@ void Unit::ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags,
     // destination
     data << path[path.size()-1].x << path[path.size()-1].y << path[path.size()-1].z;
     // all other points are relative to the center of the path
-    float mid_X = (cx + path[path.size()-1].x.x) * 0.5f;
-    float mid_Y = (cy + path[path.size()-1].x.y) * 0.5f;
-    float mid_Z = (cz + path[path.size()-1].x.z) * 0.5f;
+    float mid_X = (cx + path[path.size()-1].x) * 0.5f;
+    float mid_Y = (cy + path[path.size()-1].y) * 0.5f;
+    float mid_Z = (cz + path[path.size()-1].z) * 0.5f;
     for (uint32 i = 1; i < (path.size() - 1); ++i)
-        data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
+        data.appendPackXYZ(mid_X - path[i].x, mid_Y - path[i].y, mid_Z - path[i].z);
 
     SendMessageToSet(&data, true);
     
@@ -16223,7 +16223,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
         (veSeat->m_attachmentOffsetX + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
         (veSeat->m_attachmentOffsetY + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
         (veSeat->m_attachmentOffsetZ + v->GetObjectBoundingRadius()) * GetFloatValue(OBJECT_FIELD_SCALE_X),
-        veSeat->m_passengerYaw, v->GetCreationTime(), seat_id, veSeat->m_ID,
+        0, (GetTypeId() == TYPEID_PLAYER) ? 1 : 0, seat_id, veSeat->m_ID,
         sObjectMgr.GetSeatFlags(veSeat->m_ID), v->GetVehicleFlags());
 
     addUnitState(UNIT_STAT_ON_VEHICLE);
