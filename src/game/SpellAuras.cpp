@@ -9487,7 +9487,7 @@ void Aura::PeriodicDummyTick()
                 uint32 healId = 66125;
                 uint32 dmgId = 66240;
                 float  leachMultiplier = m_spellProto->CalculateSimpleValue(m_effIndex)/100.f;
-                uint32 leachAmount = target->GetHealth()*leachMultiplier;
+                int32 leachAmount = target->GetHealth()*leachMultiplier;
                 if (leachAmount < 250)
                     leachAmount = 250;
 

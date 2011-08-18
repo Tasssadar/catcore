@@ -1245,11 +1245,6 @@ void Player::Update( uint32 p_time )
         setAttackTimer(RANGED_ATTACK, (p_time >= ranged_att ? 0 : ranged_att - p_time) );
     }
 
-    if (uint32 off_att = getAttackTimer(OFF_ATTACK))
-    {
-        setAttackTimer(OFF_ATTACK, (p_time >= off_att ? 0 : off_att - p_time) );
-    }
-
     UpdatePvPFlag(now);
 
     UpdateContestedPvP(p_time);

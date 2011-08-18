@@ -141,14 +141,22 @@ void ScriptedAI::DoStartNoMovement(Unit* pVictim)
 
 void ScriptedAI::DoMeleeAttackIfReady()
 {
-    //Make sure our attack is ready before checking distance
-    if (m_creature->isAttackReady())
+    if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
     {
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->haveOffhandWeapon() && m_creature->isAttackReady(OFF_ATTACK))
+        {
+            if(m_creature->isAttackReady())
+                m_creature->setAttackTimer(OFF_ATTACK, m_creature->GetCreatureInfo()->offattacktime/2);
+            else
+            { 
+                m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
+                m_creature->resetAttackTimer(OFF_ATTACK);
+            }
+        }
+
+        if (m_creature->isAttackReady())
         {
             m_creature->AttackerStateUpdate(m_creature->getVictim());
-            m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
             m_creature->resetAttackTimer();
         }
     }
