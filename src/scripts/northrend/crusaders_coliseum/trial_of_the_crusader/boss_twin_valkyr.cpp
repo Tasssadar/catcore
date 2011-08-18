@@ -217,7 +217,14 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
         y += distance*sin(angle);
         uint32 time = (distance/70)*10000;
 
-        m_creature->TrajMonsterMove(x,y,z, false, 0,time);
+        PointPath path;
+        path.resize(2);
+        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
+        path.set(1, PathNode(x, y, z));
+
+        m_creature->GetMotionMaster()->Clear();
+        m_creature->GetMotionMaster()->MoveCharge(path, time, 1,1);
+        m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), time);
     }
 
     void MoveInLineOfSight(Unit * pWho)
