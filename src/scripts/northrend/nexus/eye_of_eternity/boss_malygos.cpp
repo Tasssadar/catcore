@@ -531,10 +531,9 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             path.resize(2);
             path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
             path.set(1, PathNode(x, y, z));
-            if (time == 0)
+            if (!time)
                 time = m_creature->GetDistance(x, y, z)/(10.0f*0.001f);
-            m_creature->GetMotionMaster()->MoveCharge(path, time ? time : (m_creature->GetDistance(x, y, z)/(10.0f*0.001f)), 1, 1);
-            m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), time);
+            m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), time);
         }
     }
 

@@ -8280,7 +8280,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
     uint32 start = 1;
     uint32 end = pointPath.size();
-    uint32 pathSize = end - start;
 
     // normalize mmap Z result
     if(m_caster->GetMap()->GetTerrain()->VmapLoaded(x, y))
@@ -8361,9 +8360,6 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
     uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
-    uint32 start = 1;
-    uint32 end = pointPath.size();
-    uint32 pathSize = end - start;
 
     m_caster->ChargeMonsterMove(pointPath, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, unitTarget->GetGUID());
 
