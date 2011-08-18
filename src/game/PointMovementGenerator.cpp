@@ -42,9 +42,8 @@ void PointMovementGenerator<T>::Initialize(T &unit)
         PointPath pointPath = path.getFullPath();
 
         float speed = traveller.Speed() * 0.001f; // in ms
-        uint32 traveltime = uint32(pointPath.GetTotalLength() / speed);
         SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
-        unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
+        unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, GetTotalTravelTime());
     }
 
     if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->canFly() &&
