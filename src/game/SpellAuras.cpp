@@ -9034,6 +9034,7 @@ void Aura::PeriodicDummyTick()
     switch (spell->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
+        {
             switch (spell->Id)
             {
                 // Drink
@@ -9476,8 +9477,25 @@ void Aura::PeriodicDummyTick()
                     if (target->GetCurrentSpell(CurrentSpellTypes(i)))
                         target->CastSpell(target, 66359, true);
             }
-            break;            
+            // Leeching Swarm
+            else if (spell->SpellDifficultyId == 609)
+            {
+                Unit* caster = GetCaster();
+                if (!caster)
+                    return;
 
+                uint32 healId = 66125;
+                uint32 dmgId = 66240;
+                float  leachMultiplier = m_spellProto->CalculateSimpleValue(m_effIndex)/100.f;
+                uint32 leachAmount = target->GetHealth()*leachMultiplier;
+                if (leachAmount < 250)
+                    leachAmount = 250;
+
+                caster->CastCustomSpell(target, dmgId, &leachAmount, 0, 0, true);
+                target->CastCustomSpell(caster, healId, &leachAmount, 0, 0, true);
+            }
+            break;
+        }
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image
