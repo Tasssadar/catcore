@@ -508,6 +508,63 @@ void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velo
     SendTrajMonsterMove(x, y, z, knockback, velocity, time, SPLINETYPE_NORMAL);
 }
 
+void Unit::ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags, uint32 Time, ...)
+{
+    if(path.empty())
+        return;
+
+    float cx, cy, cz;
+    GetPosition(cx, cy, cz);
+
+    va_list vargs;
+    va_start(vargs,type);
+    
+    WorldPacket data( SMSG_MONSTER_MOVE );
+    data << GetPackGUID();
+    data << uint8(0);
+    data << cx << cy << cz;
+    data << uint32(getMSTime());
+    data << uint8(type);
+    switch(type)
+    {
+        case SPLINETYPE_NORMAL:                             // normal packet
+            break;
+        case SPLINETYPE_STOP:                               // stop packet (raw pos?)
+            va_end(vargs);
+            SendMessageToSet( &data, true );
+            return;
+        case SPLINETYPE_FACINGSPOT:                         // facing spot, not used currently
+        {
+            data << float(va_arg(vargs,double));
+            data << float(va_arg(vargs,double));
+            data << float(va_arg(vargs,double));
+            break;
+        }
+        case SPLINETYPE_FACINGTARGET:
+            data << uint64(va_arg(vargs,uint64));
+            break;
+        case SPLINETYPE_FACINGANGLE:                        // not used currently
+            data << float(va_arg(vargs,double));            // facing angle
+            break;
+    }
+    data << uint32(flags);
+    data << uint32(Time);
+    data << uint32(path.size()-1);
+    // destination
+    data << path[path.size()-1].x << path[path.size()-1].y << path[path.size()-1].z;
+    // all other points are relative to the center of the path
+    float mid_X = (cx + path[path.size()-1].x.x) * 0.5f;
+    float mid_Y = (cy + path[path.size()-1].x.y) * 0.5f;
+    float mid_Z = (cz + path[path.size()-1].x.z) * 0.5f;
+    for (uint32 i = 1; i < (path.size() - 1); ++i)
+        data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
+
+    SendMessageToSet(&data, true);
+    
+    if (GetTypeId() != TYPEID_PLAYER)
+        GetMotionMaster()->MoveCharge(path, Time+(1000.0f/(path.size()-1)), 1, path.size()-1);
+}
+
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
 {
     if (!transitTime)
