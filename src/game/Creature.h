@@ -666,6 +666,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void DoNotTriggerInstanceLock() { m_DoNotInsertToInstanceCombatList = true; }
 
         SpellTimerMgr* CreateTimerMgr();
+        SpellTimerMgr* GetTimerMgr() const { return m_TimerMgr; }
 
         uint32 SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float o, bool relocate = false);
 
