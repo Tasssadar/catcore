@@ -1595,13 +1595,13 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 68509:                                 // Penetrating Cold (10 man heroic)
                     unMaxTargets = 2;
                     break;
-                case 29213: // Curse of the Plaguebringer
-                case 28796: // Poison Bolt Volley
-                case 31298:
-                case 60936: // Surge of power 25 man version
+                case 29213:                                 // Curse of the Plaguebringer
+                case 28796:                                 // Poison Bolt Volley
+                case 31298:                                 // Sleep (Anetheron - Hyjal)
+                case 60936:                                 // Surge of power 25 man version
                     unMaxTargets = 3;
                     break;
-                case 30843:
+                case 30843:                                 // Enfeeble (Prince Malchezaar - Karazhan)
                 case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
                 case 55665:                                 // Life Drain (h)
                 case 67700:                                 // Penetrating Cold (25 man)
