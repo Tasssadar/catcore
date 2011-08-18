@@ -477,7 +477,7 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
 
     void MovementInform(uint32 uiMoveType, uint32 uiPointId)
     {
-        if(uiMoveTy pe != POINT_MOTION_TYPE || m_creature->GetMapId() != 632 || uiPointId != 3)
+        if(uiMoveType != POINT_MOTION_TYPE || m_creature->GetMapId() != 632 || uiPointId != 3)
             return;
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveIdle();
