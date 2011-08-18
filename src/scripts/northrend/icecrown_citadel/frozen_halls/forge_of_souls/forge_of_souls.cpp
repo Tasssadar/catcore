@@ -24,6 +24,35 @@ static const float wps[][3] =
     {5683.90, 2534.93, 715.7},
 };
 
+const float mobPos[][3] =
+{
+   {5618.667, 2467.045, 706.439}, // left
+   {5620.421, 2465.423, 706.481}, // left
+   {5622.290, 2467.568, 707.298}, // left
+   {5620.356, 2469.232, 707.219}, // left
+   {5624.031, 2469.501, 708.034}, // left
+   {5622.113, 2471.150, 707.956}, // left
+   {5625.774, 2471.318, 708.696}, // left
+   {5624.202, 2473.573, 708.696}, // left
+   {5630.368, 2456.928, 706.335}, // right
+   {5632.578, 2455.501, 706.294}, // right
+   {5631.958, 2459.274, 707.150}, // right
+   {5634.169, 2457.740, 707.077}, // right
+   {5633.394, 2461.349, 707.866}, // right
+   {5635.500, 2460.072, 707.840}, // right
+   {5634.972, 2463.736, 708.677}, // right
+   {5637.096, 2462.733, 708.696}, // right
+};
+
+const uint32 heroIds [][2] =
+{
+    {37498, 37587},
+    {37496, 37584},
+    {37497, 37588},
+};
+
+#define MOB_COUNT 16
+
 struct MANGOS_DLL_DECL mob_fos_guideAI : public ScriptedAI
 {
     mob_fos_guideAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -42,6 +71,7 @@ struct MANGOS_DLL_DECL mob_fos_guideAI : public ScriptedAI
     uint8 eventStateInternal;
     bool stopped;
 
+    std::vector<Creature*> mobList;
     void Reset()
     {
         if(!m_pInstance)
@@ -61,6 +91,7 @@ struct MANGOS_DLL_DECL mob_fos_guideAI : public ScriptedAI
                 m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
                 eventStateInternal = 10;
                 m_uiEventTimer = 5000;
+                Spawn();
                 break;
         }
         
@@ -76,6 +107,18 @@ struct MANGOS_DLL_DECL mob_fos_guideAI : public ScriptedAI
     void AttackStart(Unit* pWho)
     {
         return;
+    }
+
+    void Spawn()
+    {
+        Creature *tmp;
+        for(uint8 i = 0; i < MOB_COUNT; ++i)
+        {
+            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], mobPos[i][0], mobPos[i][1], mobPos[i][2],
+                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+            mobList.push_back(tmp);
+            tmp->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        }
     }
 
     void MovementInform(uint32 uiMoveType, uint32 uiPointId)
@@ -143,6 +186,8 @@ struct MANGOS_DLL_DECL mob_fos_guideAI : public ScriptedAI
                 case 11:
                     m_creature->GetMotionMaster()->Clear(false, true);
                     m_creature->GetMotionMaster()->MovePoint(3, wps[1][0], wps[1][1], wps[1][2]);
+                    for(std::vector<Creature*>::iterator itr = mobList.begin(); itr != mobList.end(); ++itr)
+                        (*itr)->GetMotionMaster()->MovePoint(3, wps[3][0], wps[3][1], wps[3][2]);
                     stopped = true;
                     return;
             }

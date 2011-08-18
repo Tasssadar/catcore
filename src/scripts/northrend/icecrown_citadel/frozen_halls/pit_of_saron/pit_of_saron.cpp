@@ -475,6 +475,16 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
             SetCombatMovement(action);
     }
 
+    void MovementInform(uint32 uiMoveType, uint32 uiPointId)
+    {
+        if(uiMoveType != POINT_MOTION_TYPE || m_creature->GetMapId() != 632)
+            return;
+        m_creature->GetMotionMaster()->Clear(false, true);
+        m_creature->GetMotionMaster()->MoveIdle();
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        
+    }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
