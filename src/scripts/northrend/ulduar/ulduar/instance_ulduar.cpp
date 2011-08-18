@@ -1283,11 +1283,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             if(algalonPullTime)
             {
                 uint32 time_remain = algalonPullTime > time(0) ? (algalonPullTime - time(0))/60 : 0;
-                if(time_remain)
-                {
-                    DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
-                    DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
-                }
+                DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
+                DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
             }
             m_stateUpdateTimer = 60000;
         }else m_stateUpdateTimer -= uiDiff;
