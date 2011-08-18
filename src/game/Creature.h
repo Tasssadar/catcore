@@ -92,6 +92,11 @@ struct CreatureInfo
     uint32  attackpower;
     float   dmg_multiplier;
     uint32  baseattacktime;
+    float   minoffdmg;
+    float   maxoffdmg;
+    uint32  dmgoffschool;
+    float   dmg_offmultiplier;
+    uint32  offattacktime;
     uint32  rangeattacktime;
     uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
     uint32  unit_flags;                                     // enum UnitFlags mask values

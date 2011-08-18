@@ -382,6 +382,11 @@ void Unit::Update( uint32 p_time )
         setAttackTimer(BASE_ATTACK, (p_time >= base_att ? 0 : base_att - p_time) );
     }
 
+    if (uint32 off_att = getAttackTimer(OFF_ATTACK))
+    {
+        setAttackTimer(OFF_ATTACK, (p_time >= off_att ? 0 : off_att - p_time) );
+    }
+
     // update abilities available only for fraction of time
     UpdateReactives( p_time );
 
@@ -394,10 +399,12 @@ void Unit::Update( uint32 p_time )
 
 bool Unit::haveOffhandWeapon() const
 {
-    if (GetTypeId() == TYPEID_PLAYER && IsUseEquipedWeapon(OFF_ATTACK))
-        return ((Player*)this)->GetWeaponForAttack(OFF_ATTACK,true,true);
-    else
-        return false;
+    switch(GetTypeId())
+    {
+        case TYPEID_PLAYER: return ((Player*)this)->GetWeaponForAttack(OFF_ATTACK,true,true);
+        case TYPEID_UNIT: return (((Creature*)this)->GetCreatureInfo()->offattacktime);
+        default: return false;
+    }
 }
 
 void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, SplineType type, SplineFlags flags, uint32 Time, Player* player, ...)

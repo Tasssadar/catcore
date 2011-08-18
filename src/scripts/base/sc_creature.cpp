@@ -148,6 +148,7 @@ void ScriptedAI::DoMeleeAttackIfReady()
         if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
         {
             m_creature->AttackerStateUpdate(m_creature->getVictim());
+            m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
             m_creature->resetAttackTimer();
         }
     }

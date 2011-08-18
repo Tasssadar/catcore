@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ALTER TABLE `creature_template` ADD `minoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `baseattacktime` ,
+ADD `maxoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `minoffdmg` ,
+ADD `dmgoffschool` TINYINT NOT NULL DEFAULT '4' AFTER `maxoffdmg` ,
+ADD `dmg_offmultiplier` FLOAT NOT NULL DEFAULT '1' AFTER `dmgoffschool` ,
+ADD `offattacktime` INT( 10 ) NOT NULL DEFAULT '0' AFTER `dmg_offmultiplier`
  */
 
 #include "Common.h"
@@ -314,7 +319,7 @@ bool Creature::UpdateEntry(uint32 Entry, uint32 team, const CreatureData *data, 
     SetUInt32Value(UNIT_NPC_FLAGS,GetCreatureInfo()->npcflag);
 
     SetAttackTime(BASE_ATTACK,  GetCreatureInfo()->baseattacktime);
-    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->baseattacktime);
+    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->offattacktime);
     SetAttackTime(RANGED_ATTACK,GetCreatureInfo()->rangeattacktime);
 
     uint32 unitFlags = GetCreatureInfo()->unit_flags;
@@ -1067,6 +1072,9 @@ void Creature::SelectLevel(const CreatureInfo *cinfo, float percentHealth, float
 
     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, cinfo->mindmg * damagemod);
     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, cinfo->maxdmg * damagemod);
+
+    SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, cinfo->minoffdmg * damagemod);
+    SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, cinfo->maxoffdmg * damagemod);
 
     SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE,cinfo->minrangedmg * damagemod);
     SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE,cinfo->maxrangedmg * damagemod);
