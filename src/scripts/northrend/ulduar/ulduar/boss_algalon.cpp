@@ -341,9 +341,20 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         m_uiIntroTimer = 9000;
                         break;
                     case 3:
+                    {
                         m_uiIntroTimer = 0;
+                        GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_AZEROTH_GLOBE, 180);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_READY);
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_ARCHIVUM, 180);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_ACTIVE);
+                        pGo = GetClosestGameObjectWithEntry(m_creature, GO_UNIVERSE_FLOOR_CELESTIAL, 200);
+                        if (pGo)
+                            pGo->SetGoState(GO_STATE_READY);
                         ((TemporarySummon*)m_creature)->UnSummon();
                         break;
+                    }
                 }
                 ++m_uiIntroStep;
             }else m_uiIntroTimer -= uiDiff;
