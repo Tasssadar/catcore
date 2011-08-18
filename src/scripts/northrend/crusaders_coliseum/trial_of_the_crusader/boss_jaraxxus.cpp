@@ -264,17 +264,19 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        isHeroic = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     Difficulty m_dDifficulty;
+    bool isHeroic;
 
     void Reset()
     {
         m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000, UNIT_SELECT_VICTIM);
         m_TimerMgr->AddTimer(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
-        if (m_dDifficulty == RAID_DIFFICULTY_10MAN_HEROIC || m_dDifficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+        if (isHeroic)
             m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000);
     }
 
