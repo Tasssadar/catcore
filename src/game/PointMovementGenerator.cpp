@@ -44,7 +44,7 @@ void PointMovementGenerator<T>::Initialize(T &unit)
         SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
         m_pointTime = traveltime/(pointPath.size()-1);
-        while(m_pointTime < 150)
+        while(m_pointTime < 100)
         {
             PointPath tmpPath = pointPath;
             pointPath.clear();
@@ -122,12 +122,13 @@ bool PointMovementGenerator<T>::Update(T &unit, const uint32 &diff)
         if(i_nextMoveTime.Passed())
         {
             i_nextMoveTime.Reset(m_pointTime);
-            if(unit.GetTypeId == TYPEID_UNIT)
+            if(unit.GetTypeId() == TYPEID_UNIT)
             {
                 float angle = unit.GetAngle(pointPath[curPoint].x,pointPath[curPoint].y);
                 unit.GetMap()->CreatureRelocation((Creature*)(&unit), pointPath[curPoint].x, pointPath[curPoint].y, pointPath[curPoint].z, angle);
             }
-            if(curPoint >= pointPath.size())
+
+            if(curPoint >= (pointPath.size()-1))
             {
                 unit.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
                 MovementInform(unit);
