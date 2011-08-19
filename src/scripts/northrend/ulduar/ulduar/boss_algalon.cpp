@@ -617,7 +617,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
             m_creature->SummonCreature(NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_02,
                 target->GetPositionX(), target->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_TIMED_DESPAWN, 5500);
-            m_creature->CastSpell(target, SPELL_COSMIC_SMASH_DBM, true);
+            m_creature->CastSpell(target, SPELL_COSMIC_SMASH_DBM, false);
             m_creature->CastSpell(target, SPELL_SHADOW_FISURE, true);
             m_uiCosmicSmashTimer = 25000;
         }
