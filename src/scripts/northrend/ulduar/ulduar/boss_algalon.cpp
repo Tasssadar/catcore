@@ -224,6 +224,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_creature->InterruptNonMeleeSpells(true);
             m_creature->SetHealth(100000);
             m_creature->SendMeleeAttackStop(m_creature->getVictim());
+            m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
 
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
@@ -424,8 +425,14 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 m_uiDespawnTime = m_pInstance->GetData(TYPE_ALGALON_PULL_TIME);
             if(m_uiDespawnTime && m_uiDespawnTime <= time(0))
             {
+                if(m_creature->getVictim())
+                {
+                    m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
+                    m_creature->SendMeleeAttackStop(m_creature->getVictim());
+                }
                 m_creature->SetVisibility(VISIBILITY_ON);
                 SetCombatMovement(false);
+                m_creature->SetHealth(m_creature->GetMaxHealth());
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveIdle();
                 DespawnAll();
