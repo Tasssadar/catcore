@@ -222,7 +222,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveAllAuras();
             m_creature->InterruptNonMeleeSpells(true);
-            m_creature->SetHealth(10000);
+            m_creature->SetHealth(100000);
+            m_creature->SendMeleeAttackStop(m_creature->getVictim());
 
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
@@ -397,6 +398,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         m_creature->SummonGameobject(194821, x, y, z, 0, 604800);
                         m_pInstance->SetData(TYPE_ALGALON, DONE);
                         m_pInstance->DoCompleteAchievement(3036);
+                        m_creature->LogKill(m_creature->getVictim());
                         ((TemporarySummon*)m_creature)->UnSummon();
                         break;
                     }
