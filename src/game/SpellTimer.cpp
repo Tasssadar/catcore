@@ -18,6 +18,7 @@ void SpellTimer::Reset(TimerValues value)
             spellId_m = initialSpellId_m;
             timer_m = initialTimer_m;
             updateAllowed_m = true;
+            shouldDeleteWhenFinish_m = false;
             break;
         case TIMER_VALUE_COOLDOWN:
             cooldown_m = initialCooldown_m;
@@ -30,6 +31,9 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_UPDATEABLE:
             updateAllowed_m = true;
+        case TIMER_VALUE_DELETE_AT_FINISH:
+            shouldDeleteWhenFinish_m = false;
+            break;
         default:
             break;
     }
@@ -49,10 +53,26 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
             timer_m = newValue;
             break;
         case TIMER_VALUE_UPDATEABLE:
-            updateAllowed_m = bool(newValue);
+            updateAllowed_m = newValue;
+            break;
+        case TIMER_VALUE_DELETE_AT_FINISH:
+            shouldDeleteWhenFinish_m = newValue;
             break;
         default:
             break;
+    }
+}
+
+uint32 SpellTimer::GetValue(TimerValues value)
+{
+    switch (value)
+    {
+        case TIMER_VALUE_COOLDOWN:      return cooldown_m;
+        case TIMER_VALUE_SPELLID:       return spellId_m;
+        case TIMER_VALUE_TIMER:         return timer_m;
+        case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
+        case TIMER_VALUE_DELETE_AT_FINISH: return shouldDeleteWhenFinish_m;
+        default:                        return 0;
     }
 }
 
@@ -69,6 +89,9 @@ void SpellTimer::SetInitialCooldown(int32 cooldown)
 
 void SpellTimer::Update(uint32 diff)
 {
+    if (!timer_m)
+        return;
+
     if (timer_m < diff)
         timer_m = 0;
     else
