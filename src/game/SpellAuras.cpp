@@ -2245,6 +2245,14 @@ void Aura::TriggerSpell()
                 return;
             }
         }
+
+        // Impale - Anu'barak encounter
+        if (triggeredSpellInfo->SpellDifficultyId == 722)
+        {
+            // if has Permafrost aura cast one more spell
+            if (triggerTarget->HasAura(66193))
+                triggerTarget->CastSpell(triggerTarget, 66181, true, NULL, this, casterGUID);
+        }
     }
 
     // some triggered spells require specific equipment
