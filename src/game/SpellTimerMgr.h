@@ -16,6 +16,9 @@ struct SpellTimerMgr
         SpellTimerMgr(Unit* unit);
         ~SpellTimerMgr();
 
+        SpellTimer* operator[] (uint32 timerId) { return m_TimerMap[timerId]; }
+        bool operator() (uint32 timerId) { return CheckTimer(timerId, NULL); }
+
         void AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
         void RemoveTimer(uint32 timerId);               // not safe to use right now
         SpellTimer* GetTimer(uint32 timerId);

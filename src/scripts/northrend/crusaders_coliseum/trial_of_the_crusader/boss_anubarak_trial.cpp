@@ -214,7 +214,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         m_creature->DeleteThreatList();
         m_creature->GetMotionMaster()->Clear();
 
-        if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
+        if (SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES])
             tSpikes->Reset(TIMER_VALUE_ALL);
         else
             m_TimerMgr->AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
@@ -277,11 +277,11 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_TimerMgr->CheckTimer(TIMER_SPIKES))
+        if (m_TimerMgr(TIMER_SPIKES))
         {
             ++speedLevel;
 
-            SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES);
+            SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES];
             if (tSpikes)
             {
                 if (tSpikes->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
