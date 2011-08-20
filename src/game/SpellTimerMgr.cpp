@@ -35,6 +35,10 @@ void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initi
 
 void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, uint64 targetInfo, Unit *target)
 {
+    // target must be set right away
+    if (targetType == UNIT_SELECT_NONE && !target)
+        return;
+
     uint32 timerId = 0;
     if (m_IdToBeCasted.empty())
         timerId = QUEUE_TIMER_ID;
@@ -60,11 +64,6 @@ void SpellTimerMgr::RemoveTimer(uint32 timerId)
 {
     delete m_TimerMap[timerId];
     m_TimerMap.erase(timerId);
-}
-
-SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
-{
-    return m_TimerMap[timerId];
 }
 
 void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
@@ -93,22 +92,50 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 
 bool SpellTimerMgr::IsReady(uint32 timerId)
 {
-    return m_TimerMap[timerId]->IsReady();
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        return timer->IsReady();
+
+    return false;
 }
 
-uint32 SpellTimerMgr::GetSpellId(uint32 timerId)
+SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
-    return m_TimerMap[timerId]->GetValue(TIMER_VALUE_SPELLID);
+    return m_TimerMap[timerId];
+}
+
+void SpellTimerMgr::Reset(uint32 timerId, TimerValues value)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->Reset(value);
+}
+
+void SpellTimerMgr::SetValue(uint32 timerId, TimerValues value, uint32 newValue)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->SetValue(value, newValue);
+}
+
+uint32 SpellTimerMgr::GetValue(uint32 timerId, TimerValues value)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        return timer->GetValue(value);
+
+    return 0;
 }
 
 void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)
 {
-    m_TimerMap[timerId]->Cooldown(changedCD, permanent);
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->Cooldown(changedCD, permanent);
 }
 
 bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
 {
-    if (m_TimerMap[timerId]->getCaster() != m_owner)
+    SpellTimer* timer = m_TimerMap[timerId];
+    if (!timer)
+        return false;
+
+    if (timer->getCaster() != m_owner)
         return true;
 
     if (m_owner->IsNonMeleeSpellCasted(false))

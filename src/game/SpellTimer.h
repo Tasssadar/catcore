@@ -38,7 +38,6 @@ struct SpellTimer
     SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = NULL, Unit* caster = NULL);
 
     public:
-        void SetSpellEntry();
         void SetInitialCooldown(int32 cooldown);
 
         void Reset(TimerValues value);

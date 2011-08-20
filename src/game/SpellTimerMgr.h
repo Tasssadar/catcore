@@ -27,7 +27,10 @@ struct SpellTimerMgr
 
         void Cooldown(uint32 timerId, uint32 changedCD = NULL, bool permanent = false);
         bool IsReady(uint32 timerId);
-        uint32 GetSpellId(uint32 timerId);
+
+        void Reset(uint32 timerId, TimerValues value);
+        void SetValue(uint32 timerId, TimerValues value, uint32 newValue);
+        uint32 GetValue(uint32 timerId, TimerValues value);
 
         bool CanBeTimerFinished(uint32 timerId);
         bool FinishTimer(uint32 timerId);
