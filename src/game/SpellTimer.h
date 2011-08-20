@@ -57,6 +57,7 @@ struct SpellTimer
         Unit* getTarget(Unit* target = NULL);
         Unit* getCaster()       const { return caster_m; }
         uint32 getSpellId()     const { return spellId_m; }
+        uint32 timer()          const { return timer_m; }
         bool isUpdateable()     const { return updateAllowed_m; }
         bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
         CastType getCastType()  const { return castType_m; }

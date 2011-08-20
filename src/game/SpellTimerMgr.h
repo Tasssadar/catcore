@@ -30,6 +30,8 @@ struct SpellTimerMgr
         bool CanBeTimerFinished(uint32 timerId);
         bool FinishTimer(uint32 timerId);
 
+        void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs);
+
     private:
         SpellTimerMap m_TimerMap;
         TimerIdList m_IdToBeCasted;

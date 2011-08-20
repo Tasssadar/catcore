@@ -97,11 +97,6 @@ void ScriptedAI::UpdateAI(const uint32 uiDiff)
             m_creature->resetAttackTimer();
         }
     }
-
-    //if (!m_lCastTimerList.empty())
-    //    for (SpellCastTimerList::iterator itr = m_lCastTimerList.begin(); itr != m_lCastTimerList.end(); ++itr)
-    //        if ((*itr)->CheckAndUpdate(uiDiff))
-    //            HandleTimedSpellCast((*itr)->target, (*itr)->SpellId);
 }
 
 void ScriptedAI::EnterEvadeMode()

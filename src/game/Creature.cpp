@@ -2455,3 +2455,10 @@ SpellTimerMgr* Creature::CreateTimerMgr()
         m_TimerMgr = new SpellTimerMgr((Unit*)this);
     return m_TimerMgr;
 }
+
+void Creature::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs )
+{
+    // currently handled only in m_TimerMgr, not full core support
+    if (m_TimerMgr)
+        m_TimerMgr->ProhibitSpellSchool(idSchoolMask, unTimeMs);
+}

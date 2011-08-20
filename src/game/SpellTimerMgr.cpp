@@ -132,3 +132,21 @@ bool SpellTimerMgr::FinishTimer(uint32 timerId)
 
     return false;
 }
+
+void SpellTimerMgr::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
+{
+    // no timers
+    if (m_TimerMap.empty())
+        return;
+
+    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
+    {
+        SpellTimer* tmr = itr->second;
+        SpellEntry const* spellInfo = sSpellStore.LookupEntry(tmr->getSpellId());
+
+        if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) &&  tmr->timer() < unTimeMs)
+        {
+            tmr->Cooldown(unTimeMs);
+        }
+    }
+}

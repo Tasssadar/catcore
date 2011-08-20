@@ -521,6 +521,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void AddCreatureSpellCooldown(uint32 spellid);
         bool HasSpellCooldown(uint32 spell_id) const;
         bool HasCategoryCooldown(uint32 spell_id) const;
+        void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs );
 
         bool HasSpell(uint32 spellID) const;
 
