@@ -27,7 +27,8 @@ enum TimerValues
     TIMER_VALUE_COOLDOWN    = 0,
     TIMER_VALUE_SPELLID     = 1,
     TIMER_VALUE_TIMER       = 2,
-    TIMER_VALUE_UPDATEABLE  = 3
+    TIMER_VALUE_UPDATEABLE  = 3,
+    TIMER_VALUE_DELETE_AT_FINISH=4
 };
 
 #define DBC_COOLDOWN 0
@@ -42,8 +43,10 @@ struct SpellTimer
 
         void Reset(TimerValues value);
         void SetValue(TimerValues value, uint32 newValue);
+        uint32 GetValue(TimerValues value);
 
         void Cooldown(uint32 cd = NULL, bool permanent = false);
+        void SetTarget(Unit* target) { target_m = target; }
 
         bool IsReady();
         bool IsCastable();
@@ -52,16 +55,12 @@ struct SpellTimer
 
         bool Finish(Unit* target = NULL);
 
-        void SetTarget(Unit* target) { target_m = target; }
-
+        Unit* getCaster()        const { return caster_m; }
         Unit* getTarget(Unit* target = NULL);
-        Unit* getCaster()       const { return caster_m; }
-        uint32 getSpellId()     const { return spellId_m; }
-        uint32 timer()          const { return timer_m; }
-        bool isUpdateable()     const { return updateAllowed_m; }
-        bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
-        CastType getCastType()  const { return castType_m; }
+
         uint32 getGCD();
+        CastType getCastType()   const { return castType_m; }
+        bool  isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
 
     private:
         Unit* caster_m;
@@ -80,6 +79,7 @@ struct SpellTimer
         uint64 targetInfo_m;
 
         bool updateAllowed_m;
+        bool shouldDeleteWhenFinish_m;
 };
 
 #endif // SPELLTIMER_H
