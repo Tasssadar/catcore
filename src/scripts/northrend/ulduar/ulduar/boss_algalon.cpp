@@ -222,7 +222,9 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveAllAuras();
             m_creature->InterruptNonMeleeSpells(true);
-            m_creature->SetHealth(10000);
+            m_creature->SetHealth(100000);
+            m_creature->SendMeleeAttackStop(m_creature->getVictim());
+            m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
 
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
@@ -397,6 +399,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         m_creature->SummonGameobject(194821, x, y, z, 0, 604800);
                         m_pInstance->SetData(TYPE_ALGALON, DONE);
                         m_pInstance->DoCompleteAchievement(3036);
+                        m_creature->LogKill(m_creature->getVictim());
                         ((TemporarySummon*)m_creature)->UnSummon();
                         break;
                     }
@@ -422,8 +425,14 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 m_uiDespawnTime = m_pInstance->GetData(TYPE_ALGALON_PULL_TIME);
             if(m_uiDespawnTime && m_uiDespawnTime <= time(0))
             {
+                if(m_creature->getVictim())
+                {
+                    m_creature->SetUInt64Value(UNIT_FIELD_TARGET, 0);
+                    m_creature->SendMeleeAttackStop(m_creature->getVictim());
+                }
                 m_creature->SetVisibility(VISIBILITY_ON);
                 SetCombatMovement(false);
+                m_creature->SetHealth(m_creature->GetMaxHealth());
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveIdle();
                 DespawnAll();
@@ -615,7 +624,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
             m_creature->SummonCreature(NPC_MOB_ALGALON_STALKER_ASTEROID_TARGET_02,
                 target->GetPositionX(), target->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_TIMED_DESPAWN, 5500);
-            m_creature->CastSpell(target, SPELL_COSMIC_SMASH_DBM, true);
+            m_creature->CastSpell(target, SPELL_COSMIC_SMASH_DBM, false);
             m_creature->CastSpell(target, SPELL_SHADOW_FISURE, true);
             m_uiCosmicSmashTimer = 25000;
         }

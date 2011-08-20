@@ -1159,12 +1159,12 @@ struct LFGDungeonEntry
     uint32  recmaxlevel;                                    // 23
     uint32  map;                                            // 24
     uint32  heroic;                                         // 25
-    uint32  unk;                                            // 26 0 = raid or zone, 3 = dungeon, 15 = world event
+    uint32  flags;                                          // 26 0 = raid or zone, 3 = dungeon, 15 = world event
     uint32  type;                                           // 27
-    //uint32  unk2;                                         // 28
-    //char*   unk3;                                         // 29
+    //uint32  faction;                                      // 28
+    //char*   textureFilename;                              // 29
     uint32  expansion;                                      // 30
-    //uint32  unk4;                                         // 31
+    //uint32  order_index;                                  // 31
     uint32  grouptype;                                      // 32
     //char*   desc[16];                                     // 32-47 Description
     //uint32 descflags;                                     // 48 
