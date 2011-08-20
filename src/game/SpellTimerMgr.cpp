@@ -48,7 +48,7 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
     ASSERT(timerId != 0);
 
     SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo);
-    m_TimerMgr[timerId] = timer;
+    m_TimerMap[timerId] = timer;
 
     if (target)
         timer->SetTarget(target);

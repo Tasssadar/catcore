@@ -156,9 +156,9 @@ Unit* SpellTimer::getTarget(Unit* target)
 void SpellTimer::Cooldown(uint32 cd, bool permanent)
 {
     if (cd && permanent)
-        cooldown_m = cd;
+        SetValue(TIMER_VALUE_COOLDOWN, cd);
 
-    timer_m = cd ? cd : cooldown_m;
+    SetValue(TIMER_VALUE_TIMER, cd ? cd : cooldown_m);
 }
 
 bool SpellTimer::Finish(Unit *target)
