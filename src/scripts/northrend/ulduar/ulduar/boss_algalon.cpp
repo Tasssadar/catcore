@@ -142,6 +142,11 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
     bool beaten;
 
+    uint32 fightLength;
+    uint32 percent;
+    std::stringstream names;
+    Player* tank;
+
     void Reset()
     {
         m_uiPhaseTwo = false;
@@ -171,11 +176,30 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         }
         m_uiEvadeTimer = 0;
         beaten = false;
+
+        if (fightLength && percent && tank)
+        {
+            if (names.str().empty())
+                sLog.outCatLog("Algalon:: Player %s tried to slay algalon but he wiped at %u percent after %u seconds of fight. %s",
+                               tank->GetName(), percent, fightLength/1000, tank->isGameMaster() ? "Player is GameMaster" : "Player is NOT GameMaster !!!");
+            else
+                sLog.outCatLog("Algalon:: Group of players (%s) tried to slay algalon, he wiped the group on %u percent of health after %u seconds of fight",
+                               names.str().c_str(), percent, fightLength/1000);
+
+            fightLength = 0;
+            percent = 0;
+            names.clear();
+            tank = NULL;
+        }
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        fightLength = 0;
+        percent = 0;
+        names.clear();
+        tank = NULL;
         Reset();
     }
 
@@ -234,6 +258,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_uiIntroStep = 0;
             m_uiIntroTimer = 1000;
         }
+
+        percent = m_creature->GetHealthPercent();
     }
 
     void PhaseOutAll()
@@ -269,7 +295,24 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         m_pInstance->SetData(TYPE_ALGALON, IN_PROGRESS);
         m_pInstance->SetData(TYPE_ALGALON_PULL_TIME, time(0));
         DoScriptText(SAY_AGGRO, m_creature);
-        
+
+        if (pWho && pWho->GetTypeId() == TYPEID_PLAYER)
+        {
+            tank = (Player*)pWho;
+            if (Group* grp =tank->GetGroup())
+            {
+                for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+                {
+                    Player* member = itr->getSource();
+                    if (!member)
+                        continue;
+
+                    names << member->GetName();
+                    if (itr->next() != NULL)
+                        names << " ";
+                }
+            }
+        }
     }
 
     void EnterEvadeMode()
@@ -520,6 +563,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        fightLength += uiDiff;
+
         //Dual wield
         if (m_uiDualWieldTimer < uiDiff)
         {
@@ -535,8 +580,6 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_uiPhaseTwo = true;
             DoScriptText(SAY_PHASE_2, m_creature);
             DespawnAll();
-            Creature* temp_black_hole = NULL;
-            Creature* temp_void_zone = NULL;
 
             float angle = 0;
             for (uint8 i = 0; i < 4; ++i)
