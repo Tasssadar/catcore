@@ -39,6 +39,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     uint32 m_auiUlduarTeleporters[3];
     uint32 m_auiMiniBoss[6];
 
+    uint32 algalonPullTime;
+
     // boss phases which need to be used inside the instance script
     uint32 m_uiMimironPhase;
     uint32 m_uiYoggPhase;
@@ -90,6 +92,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     // Celestial planetarium
     uint64 m_uiCelestialDoorGUID;
     uint64 m_uiCelestialDoor2GUID;
+    uint64 m_uiCelestialDoor3GUID;
     uint64 m_uiCelestialConsoleGUID;
     uint64 m_uiUniverseFloorCelestialGUID;
     uint64 m_uiAzerothGlobeGUID;
@@ -137,6 +140,9 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
     uint64 m_uiMimironHardLootGUID;
     uint64 m_uiAlagonLootGUID;
 
+    uint32 m_stateUpdateTimer;
+    uint32 m_uiAlgalonEvent;
+
     void Initialize()
     {
         memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
@@ -149,6 +155,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
 
         for(uint8 i = 0; i < 9; i++)
             m_uiMimironTelGUID[i] = 0;
+
+        algalonPullTime         = 0;
 
         m_uiMimironPhase        = 0;
         m_uiYoggPhase           = 0;
@@ -209,6 +217,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         // Celestial planetarium
         m_uiCelestialDoorGUID   = 0;
         m_uiCelestialDoor2GUID  = 0;
+        m_uiCelestialDoor3GUID  = 0;
         m_uiCelestialConsoleGUID = 0;
         m_uiUniverseFloorCelestialGUID = 0;
         m_uiAzerothGlobeGUID    = 0;
@@ -244,6 +253,9 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         m_uiBrainDoor1GUID      = 0;
         m_uiBrainDoor2GUID      = 0;
         m_uiBrainDoor3GUID      = 0;
+
+        m_stateUpdateTimer      = 60000;
+        m_uiAlgalonEvent        = 0;
     }
 
     /*bool IsEncounterInProgress() const
@@ -414,13 +426,22 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
 
             // Celestial Planetarium
             case GO_CELESTIAL_ACCES:
-                m_uiCelestialConsoleGUID = pGo->GetGUID();
+                 m_uiCelestialConsoleGUID = pGo->GetGUID();
                 break;
             case GO_CELESTIAL_DOOR:
+            {
                 m_uiCelestialDoorGUID = pGo->GetGUID();
+                if(m_uiAlgalonEvent == 1)
+                    OpenDoor(pGo->GetGUID());
                 break;
+            }
             case GO_CELESTIAL_DOOR_2:
                 m_uiCelestialDoor2GUID = pGo->GetGUID();
+                if(m_uiAlgalonEvent == 1)
+                    OpenDoor(pGo->GetGUID());
+                break;
+            case GO_CELESTIAL_DOOR_3:
+                m_uiCelestialDoor3GUID = pGo->GetGUID();
                 break;
             case GO_UNIVERSE_FLOOR_CELESTIAL:
                 m_uiUniverseFloorCelestialGUID = pGo->GetGUID();
@@ -777,7 +798,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             // Celestial Planetarium
             case TYPE_ALGALON:
                 m_auiEncounter[13] = uiData;
-                DoUseDoorOrButton(m_uiUniverseFloorCelestialGUID);
+                //DoUseDoorOrButton(m_uiUniverseFloorCelestialGUID);
+                //DoUseDoorOrButton(m_uiUniverseFloorArchivumGUID);
                 /*if (uiData == IN_PROGRESS)
                 {
                     CloseDoor(m_uiCelestialDoorGUID);
@@ -790,8 +812,12 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                     if (uiData == DONE)
                         DoRespawnGameObject(m_uiAlagonLootGUID, 30*MINUTE);
                 }*/
-                HandleDoorsByData(m_uiCelestialDoorGUID, uiData);
-                HandleDoorsByData(m_uiCelestialDoor2GUID, uiData);
+                if(uiData != FAIL)
+                {
+                    HandleDoorsByData(m_uiCelestialDoorGUID, uiData);
+                    HandleDoorsByData(m_uiCelestialDoor2GUID, uiData);
+                }
+                HandleDoorsByData(m_uiCelestialDoor3GUID, uiData);
                 //if (uiData == DONE)
                 //    DoRespawnGameObject(m_uiAlagonLootGUID, 30*MINUTE);
                 break;
@@ -897,9 +923,32 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
             case TYPE_VISION_PHASE:
                 m_uiVisionPhase = uiData;
                 break;
+            case TYPE_ALGALON_PULL_TIME:
+            {
+                if(!algalonPullTime)
+                {
+                    m_stateUpdateTimer = 60000;
+                    algalonPullTime = uiData + 3600;
+                }
+                if(algalonPullTime)
+                {
+                    uint32 time_remain = algalonPullTime > time(0) ? (algalonPullTime - time(0))/60 : 0;
+                    if(time_remain)
+                    {
+                        DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
+                        DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
+                    }
+                }
+                break;
+            }
+            case TYPE_ALGALON_EVENT:
+            {
+                m_uiAlgalonEvent = uiData;
+                break;
+            }
          }
          
-         if (uiData == DONE || uiData == FAIL)
+         if (uiData == DONE || uiData == FAIL || uiType == TYPE_ALGALON_PULL_TIME || uiType == TYPE_ALGALON_EVENT)
          {
              OUT_SAVE_INST_DATA;
              
@@ -914,7 +963,8 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                  << m_auiHardBoss[4] << " " << m_auiHardBoss[5] << " " << m_auiHardBoss[6] << " "
                  << m_auiHardBoss[7] << " " << m_auiHardBoss[8] << " " << m_auiUlduarKeepers[0] << " "
                  << m_auiUlduarKeepers[1] << " " << m_auiUlduarKeepers[2] << " " << m_auiUlduarKeepers[3] << " "
-                 << m_auiUlduarTeleporters[0] << " " << m_auiUlduarTeleporters[1] << " " << m_auiUlduarTeleporters[2];
+                 << m_auiUlduarTeleporters[0] << " " << m_auiUlduarTeleporters[1] << " " << m_auiUlduarTeleporters[2] << " "
+                 << algalonPullTime;
  
              m_strInstData = saveStream.str();
  
@@ -1107,6 +1157,10 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
                 return m_uiYoggPhase;
             case TYPE_VISION_PHASE:
                 return m_uiVisionPhase;
+            case TYPE_ALGALON_PULL_TIME:
+                return algalonPullTime;
+            case TYPE_ALGALON_EVENT:
+                return m_uiAlgalonEvent;
          }
 
         return 0;
@@ -1135,7 +1189,7 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         >> m_auiHardBoss[2] >> m_auiHardBoss[3] >> m_auiHardBoss[4] >> m_auiHardBoss[5]
         >> m_auiHardBoss[6] >> m_auiHardBoss[7] >> m_auiHardBoss[8] >> m_auiUlduarKeepers[0]
         >> m_auiUlduarKeepers[1] >> m_auiUlduarKeepers[2] >> m_auiUlduarKeepers[3] >> m_auiUlduarTeleporters[0]
-        >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2];
+        >> m_auiUlduarTeleporters[1] >> m_auiUlduarTeleporters[2] >> algalonPullTime;
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; i++)
         {
@@ -1220,6 +1274,20 @@ struct MANGOS_DLL_DECL instance_ulduar : public ScriptedInstance
         // Freya
         if (m_auiEncounter[10] == DONE)
             pPlayer->SummonCreature(NPC_FREYA_IMAGE, m_aKeepersSpawnLocs[0].m_fX, m_aKeepersSpawnLocs[0].m_fY, m_aKeepersSpawnLocs[0].m_fZ, m_aKeepersSpawnLocs[0].m_fO, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 10000);
+    }
+
+    void Update(uint32 uiDiff)
+    {
+        if(m_stateUpdateTimer <= uiDiff)
+        {
+            if(algalonPullTime)
+            {
+                uint32 time_remain = algalonPullTime > time(0) ? (algalonPullTime - time(0))/60 : 0;
+                DoUpdateWorldState(WORLD_STATE_ALGALON, 1);
+                DoUpdateWorldState(WORLD_STATE_ALGALON_TIME, time_remain);
+            }
+            m_stateUpdateTimer = 60000;
+        }else m_stateUpdateTimer -= uiDiff;
     }
  };
 

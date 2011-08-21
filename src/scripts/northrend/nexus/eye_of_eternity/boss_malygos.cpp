@@ -362,10 +362,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         m_uiSurgeOfPowerTimer = 30000;
         
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-        m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
-        m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-        m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetSpeedRate(MOVE_FLIGHT, 3.5f, true);
         m_creature->SetSpeedRate(MOVE_RUN, 3.5f, true);
         m_creature->SetSpeedRate(MOVE_WALK, 3.5f, true);
@@ -534,10 +531,9 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             path.resize(2);
             path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
             path.set(1, PathNode(x, y, z));
-            if (time == 0)
+            if (!time)
                 time = m_creature->GetDistance(x, y, z)/(10.0f*0.001f);
-            m_creature->GetMotionMaster()->MoveCharge(path, time ? time : (m_creature->GetDistance(x, y, z)/(10.0f*0.001f)), 1, 1);
-            m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), time);
+            m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), time);
         }
     }
 
@@ -563,13 +559,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         m_creature->SendMessageToSet(&data, false);
         m_creature->GetMap()->CreatureRelocation(m_creature, cx, cy, z, m_creature->GetOrientation());
 
-        if (takeoff){
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
-        }else{
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_0, 0);
-            m_creature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
-        }
+        if (takeoff)
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        else
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
     }
 
     void DoVortex(uint8 phase)
@@ -678,7 +671,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                 {
                     if (pTemp->isAlive())
                     {
-                        if (action == 2)
+                        if(action == 2)
                             pTemp->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
                         else
                         {
@@ -1258,8 +1251,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
                 if (Creature *pTemp = m_creature->SummonCreature(NPC_ALEXSTRASZA, OtherLoc[3].x, OtherLoc[3].y, OtherLoc[3].z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
-                    pTemp->SetUInt32Value(UNIT_FIELD_BYTES_0, 50331648);
-                    pTemp->SetUInt32Value(UNIT_FIELD_BYTES_1, 50331648);
+                    pTemp->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     m_creature->SetFacingToObject(pTemp);
                     pTemp->SetFacingToObject(m_creature);
                     pTemp->SetVisibility(VISIBILITY_OFF);
@@ -1390,7 +1382,7 @@ struct MANGOS_DLL_DECL mob_power_sparkAI : public ScriptedAI
         {
             if (pMalygos && pMalygos->isAlive() && m_creature->GetVisibility() == VISIBILITY_ON && !isDead)
             {
-                if (m_creature->IsWithinDist(pMalygos, 4.0f, false))
+                if(m_creature->IsWithinDist(pMalygos, 6.0f, false))
                 {
                     ((boss_malygosAI*)pMalygos->AI())->m_lSparkGUIDList.clear();
                     m_creature->CastSpell(pMalygos, SPELL_POWER_SPARK, true);

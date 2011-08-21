@@ -380,6 +380,13 @@ extern void AddSC_boss_ichoron();
 extern void AddSC_boss_cyanigosa();
 extern void AddSC_boss_bronjahm();                         // Forge of souls
 extern void AddSC_boss_devourer_of_souls();
+extern void AddSC_forge_of_souls();
+extern void AddSC_instance_forge_of_souls();
+extern void AddSC_boss_forgemaster_gafrost();              // Pit of Saron
+extern void AddSC_boss_ick_and_krick();
+extern void AddSC_boss_scourgelord_tyrannus();
+extern void AddSC_pit_of_saron();
+extern void AddSC_instance_pit_of_saron();
 
 extern void AddSC_borean_tundra();
 extern void AddSC_dalaran();
@@ -846,6 +853,13 @@ void AddScripts()
     AddSC_boss_cyanigosa();
     AddSC_boss_bronjahm();                                  // Forge of souls
     AddSC_boss_devourer_of_souls();
+    AddSC_forge_of_souls();
+    AddSC_instance_forge_of_souls();
+    AddSC_boss_forgemaster_gafrost();                       // Pit of Saron
+    AddSC_boss_ick_and_krick();
+    AddSC_boss_scourgelord_tyrannus();
+    AddSC_pit_of_saron();
+    AddSC_instance_pit_of_saron();
 
     AddSC_borean_tundra();
     AddSC_dalaran();

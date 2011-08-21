@@ -18,7 +18,8 @@ struct TSpellSummary
 ScriptedAI::ScriptedAI(Creature* pCreature) : CreatureAI(pCreature),
     m_bCombatMovement(true),
     m_uiEvadeCheckCooldown(2500),
-    m_bAttackEnabled(true)
+    m_bAttackEnabled(true),
+    m_TimerMgr(pCreature->CreateTimerMgr())
 {}
 
 bool ScriptedAI::IsVisible(Unit* pWho) const
@@ -96,11 +97,6 @@ void ScriptedAI::UpdateAI(const uint32 uiDiff)
             m_creature->resetAttackTimer();
         }
     }
-
-    //if (!m_lCastTimerList.empty())
-    //    for (SpellCastTimerList::iterator itr = m_lCastTimerList.begin(); itr != m_lCastTimerList.end(); ++itr)
-    //        if ((*itr)->CheckAndUpdate(uiDiff))
-    //            HandleTimedSpellCast((*itr)->target, (*itr)->SpellId);
 }
 
 void ScriptedAI::EnterEvadeMode()
@@ -140,11 +136,20 @@ void ScriptedAI::DoStartNoMovement(Unit* pVictim)
 
 void ScriptedAI::DoMeleeAttackIfReady()
 {
-    //Make sure our attack is ready before checking distance
-    if (m_creature->isAttackReady())
+    if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
     {
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->haveOffhandWeapon() && m_creature->isAttackReady(OFF_ATTACK))
+        {
+            if(m_creature->isAttackReady())
+                m_creature->setAttackTimer(OFF_ATTACK, m_creature->GetCreatureInfo()->offattacktime/2);
+            else
+            { 
+                m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
+                m_creature->resetAttackTimer(OFF_ATTACK);
+            }
+        }
+
+        if (m_creature->isAttackReady())
         {
             m_creature->AttackerStateUpdate(m_creature->getVictim());
             m_creature->resetAttackTimer();
@@ -606,18 +611,18 @@ PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool not_select_current_victim
     return pList;
 }
 
-PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, float min_range, bool not_select_current_victim)
+PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range, bool not_select_current_victim)
 {
     // fill list of all player
     PlrList fullList = GetAttackingPlayers(not_select_current_victim);
     
-    PlrList distantList;
+    PlrList inRangeList;
     // fill list of players in range
     for(PlrList::iterator itr = fullList.begin(); itr != fullList.end(); ++itr)
-        if (m_creature->GetDistance(*itr) > min_range)
-            distantList.push_back(*itr);
+        if (m_creature->IsInRange(m_creature, min_range, max_range))
+            inRangeList.push_back(*itr);
 
-    PlrList& finalList = (distantList.size() < min_count) ? fullList : distantList;
+    PlrList& finalList = (inRangeList.size() < min_count) ? fullList : inRangeList;
     uint8 erase_count = (finalList.size() > count) ? (finalList.size() - count) : 0;
     for(uint8 i = 0; i < erase_count; ++i)
     {
@@ -629,7 +634,7 @@ PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, f
     return finalList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
-    return *(GetRandomPlayersPreferRanged(1, min_ranged_count, min_range, not_select_current_victim).begin());
+    return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
 }

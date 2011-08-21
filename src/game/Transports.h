@@ -38,6 +38,11 @@ class Transport : public GameObject
 
         typedef std::set<Player*> PlayerSet;
         PlayerSet const& GetPassengers() const { return m_passengers; }
+        uint32 AddNPCPassenger(uint32 tguid, uint32 entry, float x, float y, float z, float o, uint32 anim);
+        void UpdateNPCPositions();
+
+        typedef std::set<Creature*> CreatureSet;
+        CreatureSet m_NPCPassengerSet;
 
     private:
         struct WayPoint
@@ -77,5 +82,7 @@ class Transport : public GameObject
         void UpdateForMap(Map const* map);
         void DoEventIfAny(WayPointMap::value_type const& node, bool departure);
         WayPointMap::const_iterator GetNextWayPoint();
+
+        uint32 currenttguid;
 };
 #endif

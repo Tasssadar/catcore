@@ -1441,15 +1441,38 @@ bool Aura::IsEffectStacking()
 
     switch(GetModifier()->m_auraname)
     {
-        // case SPELL_AURA_MOD_DAMAGE_DONE:
-        // case SPELL_AURA_MOD_HEALING_DONE:
-            // break;
+        case SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE:
+            // Winter's Chill / Improved Scorch / Improved Shadow Bolt
+            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK)
+                return false;
+            break;
+        case SPELL_AURA_MOD_DAMAGE_PERCENT_DONE:
+        case SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE:
+            // Sanctified Retribution
+            // Heart of the Crusader / Totem of Wrath
+            if (GetSpellProto()->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x0000000020000008)))
+            {
+                return false;
+            }
+            break;
+        case SPELL_AURA_MOD_DAMAGE_DONE:
+        case SPELL_AURA_MOD_HEALING_DONE:
+            // Demonic Pact
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+                return false;
+            break;
         case SPELL_AURA_MOD_STAT:
             // Horn of Winter / Arcane Intellect / Divine Spirit
             if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 &&
                 (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_PRIEST) )
+                return false;
+            break;
+        case SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE:
+            // Blessing of Kings / Blessing of Sanctuary
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
                 return false;
             break;
         case SPELL_AURA_MOD_CRIT_PERCENT:
@@ -1510,8 +1533,8 @@ bool Aura::IsEffectStacking()
             // Commanding Shout
             return false;
         case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
-            // Trauma / Mangle
-            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR ||
+            // Trauma / Mangle (Trauma has SPELLFAMILY_GENERIC and no flags)
+            if (GetSpellProto()->Id == 46856 || GetSpellProto()->Id == 46857 ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
                 return false;
             break;
@@ -2221,6 +2244,14 @@ void Aura::TriggerSpell()
                 // hopefuly handled in boss script
                 return;
             }
+        }
+
+        // Impale - Anu'barak encounter
+        if (triggeredSpellInfo->SpellDifficultyId == 722)
+        {
+            // if has Permafrost aura cast one more spell
+            if (triggerTarget->HasAura(66193))
+                triggerTarget->CastSpell(triggerTarget, 66181, true, NULL, this, casterGUID);
         }
     }
 
@@ -6194,7 +6225,8 @@ void Aura::HandleAuraModStat(bool apply, bool /*Real*/)
         if (m_modifier.m_miscvalue < 0 || m_modifier.m_miscvalue == i)
         {
             //m_target->ApplyStatMod(Stats(i), m_modifier.m_amount,apply);
-            float change = GetTarget()->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply, 0, i+1);
+            // Do not check miscvalue in "CheckAuraStackingAndApply", does not work properly for all stats modifiers and it is not needed
+            float change = GetTarget()->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply);
             if((GetTarget()->GetTypeId() == TYPEID_PLAYER || ((Creature*)GetTarget())->isPet()) && change != 0)
                 GetTarget()->ApplyStatBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply);
         }
@@ -6296,9 +6328,9 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     {
         if (m_modifier.m_miscvalue == i || m_modifier.m_miscvalue == -1)
         {
-            target->HandleStatModifier(UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply);
-            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet())
-                target->ApplyStatPercentBuffMod(Stats(i), float(m_modifier.m_amount), apply );
+            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply, 0, i+1);
+            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet() && change != 0)
+                target->ApplyStatPercentBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply );
         }
     }
 
@@ -9010,6 +9042,7 @@ void Aura::PeriodicDummyTick()
     switch (spell->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
+        {
             switch (spell->Id)
             {
                 // Drink
@@ -9452,8 +9485,25 @@ void Aura::PeriodicDummyTick()
                     if (target->GetCurrentSpell(CurrentSpellTypes(i)))
                         target->CastSpell(target, 66359, true);
             }
-            break;            
+            // Leeching Swarm
+            else if (spell->SpellDifficultyId == 609)
+            {
+                Unit* caster = GetCaster();
+                if (!caster)
+                    return;
 
+                uint32 healId = 66125;
+                uint32 dmgId = 66240;
+                float  leachMultiplier = m_spellProto->CalculateSimpleValue(m_effIndex)/100.f;
+                int32 leachAmount = target->GetHealth()*leachMultiplier;
+                if (leachAmount < 250)
+                    leachAmount = 250;
+
+                caster->CastCustomSpell(target, dmgId, &leachAmount, 0, 0, true);
+                target->CastCustomSpell(caster, healId, &leachAmount, 0, 0, true);
+            }
+            break;
+        }
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image

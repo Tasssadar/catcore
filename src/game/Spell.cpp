@@ -1595,13 +1595,13 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 68509:                                 // Penetrating Cold (10 man heroic)
                     unMaxTargets = 2;
                     break;
-                case 29213: // Curse of the Plaguebringer
-                case 28796: // Poison Bolt Volley
-                case 31298:
-                case 60936: // Surge of power 25 man version
+                case 29213:                                 // Curse of the Plaguebringer
+                case 28796:                                 // Poison Bolt Volley
+                case 31298:                                 // Sleep (Anetheron - Hyjal)
+                case 60936:                                 // Surge of power 25 man version
                     unMaxTargets = 3;
                     break;
-                case 30843:
+                case 30843:                                 // Enfeeble (Prince Malchezaar - Karazhan)
                 case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
                 case 55665:                                 // Life Drain (h)
                 case 67700:                                 // Penetrating Cold (25 man)
@@ -1917,8 +1917,23 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ALL_ENEMY_IN_AREA:
+        {
             FillAreaTargets(targetUnitMap, m_targets.m_destX, m_targets.m_destY, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
+
+            //Algalon - living constelation's arcane barrage
+            if (m_spellInfo->Id == 64599)
+            {
+                if (targetUnitMap.size() > 0)
+                {
+                    uint8 j = rand() % targetUnitMap.size();
+                    for (uint8 i = 0; i < j; i++)
+                        targetUnitMap.pop_front();
+                    for (uint8 i = j+1; i < targetUnitMap.size(); i++)
+                        targetUnitMap.pop_back();
+                }
+            }
             break;
+        }
         case TARGET_AREAEFFECT_INSTANT:
         {
             SpellTargets targetB = SPELL_TARGETS_AOE_DAMAGE;
@@ -2073,6 +2088,36 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                     // exclude caster (this can be important if this not original caster)
                     targetUnitMap.remove(m_caster);
+
+                    // Permafrost should not hit if behind saronite boulder
+                    if(m_spellInfo->Id == 68786 || m_spellInfo->Id == 70336)
+                    {
+                        std::list<Unit*> tmpMap = targetUnitMap;
+                        GameObject *pGo = NULL;
+                        for(std::list<Unit*>::iterator itr = tmpMap.begin(); itr != tmpMap.end(); ++itr)
+                        {
+                            pGo = NULL;
+                            MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*(*itr), 196485, 15.0f);
+                            MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(*itr, pGo, go_check);
+
+                            Cell::VisitGridObjects(*itr, searcher, 15.0f);
+                            if(!pGo)
+                                continue;
+
+                            float angle =  pGo->GetAngle(m_caster) + M_PI_F;
+                            angle = angle > M_PI_F*2 ? angle - M_PI_F*2 : angle;
+                            float angle_min = angle - M_PI_F*0.4f;
+                            float angle_max = angle + M_PI_F*0.4f;
+                            angle_min = angle_min < 0 ? angle_min + M_PI_F*2 : angle_min;
+                            angle_max = angle_max > M_PI_F*2 ? angle_max - M_PI_F*2 : angle_max;
+
+                            angle = pGo->GetAngle(*itr);
+                            if(angle_min < angle_max && angle > angle_min && angle < angle_max)
+                                targetUnitMap.remove(*itr);
+                            else if(angle_min > angle_max && (angle < angle_max || angle > angle_min))
+                                targetUnitMap.remove(*itr);
+                        }
+                    }
                     break;
             }
             break;
@@ -2868,6 +2913,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         if (Corpse *corpse = m_caster->GetMap()->GetCorpse(m_targets.getCorpseTargetGUID()))
                             if (Player* owner = ObjectAccessor::FindPlayer(corpse->GetOwnerGUID()))
                                 targetUnitMap.push_back(owner);
+                    }
+                    break;
+                case SPELL_EFFECT_PERSISTENT_AREA_AURA:
+                    if(m_spellInfo->EffectImplicitTargetB[effIndex] == 88)
+                    {
+                        SetTargetMap(effIndex, TARGET_ALL_ENEMY_IN_AREA, targetUnitMap);
                     }
                     break;
 

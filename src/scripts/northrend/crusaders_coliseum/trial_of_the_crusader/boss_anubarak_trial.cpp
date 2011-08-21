@@ -21,418 +21,287 @@ SDComment: by /dev/rsa
 SDCategory:
 EndScriptData */
 
-// Anubarak - underground phase partially not worked, timers need correct
-// Burrower - underground phase not implemented, buff not worked.
-// Leecheng Swarm spell not worked - awaiting core support
-// Anubarak spike aura worked only after 9750
-
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-enum Summons
+enum Timers
 {
-    NPC_FROST_SPHERE     = 34606,
-    NPC_BURROWER         = 34607,
-    NPC_SCARAB           = 34605,
-    NPC_SPIKE            = 34660,
+    TIMER_SLASH = 0,
+    TIMER_COLD,
+    TIMER_PHASE,
+
+
+    TIMER_SPIKES
 };
 
-enum BossSpells
+enum Spells
 {
-SPELL_COLD              = 66013,
-SPELL_MARK              = 67574,
-SPELL_LEECHING_SWARM    = 66118,
-SPELL_LEECHING_HEAL     = 66125,
-SPELL_LEECHING_DAMAGE   = 66240,
-SPELL_IMPALE            = 65920,
-SPELL_SPIKE_CALL        = 66169,
-SPELL_POUND             = 66012,
-SPELL_SHOUT             = 67730,
-SPELL_SUBMERGE_0        = 53421,
-SPELL_SUBMERGE_1        = 67322,
-SPELL_SUMMON_BEATLES    = 66339,
-SPELL_DETERMINATION     = 66092,
-SPELL_ACID_MANDIBLE     = 67861,
-SPELL_SPIDER_FRENZY     = 66129,
-SPELL_EXPOSE_WEAKNESS   = 67847,
-SUMMON_SCARAB           = NPC_SCARAB,
-SUMMON_BORROWER         = NPC_BURROWER,
-SUMMON_FROSTSPHERE      = NPC_FROST_SPHERE,
-SPELL_BERSERK           = 26662,
-SPELL_PERMAFROST        = 66193,
+    // anubarak
+    BOSS_ANUBARAK           = 34564,
+    SPELL_FREEZING_SLASH    = 66012, // phase 1,3 ---- just timer, target victim
+    SPELL_PENETRATING_COLD  = 66013, // phase 1,3 ---- handled in core, just timer, target self
+    SPELL_LEECHING_SWARM    = 66118, // phase 3 -- just timer, casted on self, queued on start of phase 3
+    //66170 -- effect teleport, implicit script, implicit to spike npc, used to keep up boss with spikes (atleast i hope so)
+    //SPELL_LEECHING_HEAL     = 66125,
+    //SPELL_LEECHING_DAMAGE   = 66240,
+
+    SPELL_PURSUING_SPIKES_TEL=66170,
+
+    SPELL_ROLLING_THROW     = 67730,
+    SPELL_ROLLING_THROW_VEH = 67731,
+    SPELL_SUBMERGE_BOSS     = 53421,
+    SPELL_EMERGE_BOSS       = 53500,
+
+    SPELL_BERSERK           = 26662,
+
+    // npc
+    // frost sphere
+    NPC_FROST_SPHERE        = 34606,
+
+    SPELL_PERMAFROST        = 66193,
+
+    // burrower
+    NPC_BURROWER            = 34607,
+
+    SPELL_NERUBIAN_BURROWER = 66332, // phase 1,2, hc + phase 3
+    SPELL_NERUB_BURR_PROC   = 66333,
+
+    SPELL_EXPOSE_WEAKNESS   = 67847,
+    SPELL_SPIDER_FRENZY     = 66129,
+    SPELL_SUBMERGE_1        = 67322,
+    SPELL_SHADOW_STRIKE     = 66134, // hero 10, hero 25
+    SPELL_SUMMON_PLAYER     = 21150, // hero 25
+
+    // scarab
+    NPC_SCARAB              = 34605,
+
+    SPELL_SUMMON_SCARAB     = 66339, // phase 2
+    SPELL_SUMMON_SCARAB_PROC= 66340,
+
+    SPELL_ACID_MANDIBLE     = 65775,
+    SPELL_DETERMINATION     = 66092,
+    SPELL_SCARAB_ACHI_10    = 68186, // 10 man
+    SPELL_SCARAB_ACHI_25    = 68515, // 25 man
+
+    // spike
+    NPC_SPIKE               = 34660,
+    SPELL_SPIKE_CALL        = 66169,
+
+    SPELL_PURSUED           = 67574, // phase 2 --- casted by "Anubarak 2", handled in burrow
+    SPELL_PURSUING_SPIKES_1 = 65920, // phase 2 --- casted by "Anubarak 2", handled in burrow
+    SPELL_PURSUING_SPIKES_2 = 65922,
+    SPELL_PURSUING_SPIKES_3 = 65923,
+    SPELL_PURSUING_SPIKES_D = 65921,
+
 };
-/*
-struct MANGOS_DLL_DECL boss_anubarak_trialAI : public BSWScriptedAI
+
+struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 {
-    boss_anubarak_trialAI(Creature* pCreature) : BSWScriptedAI(pCreature)
+    boss_anubarak_toc(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        isHc = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
-    uint8 stage;
-    bool intro;
-    Unit* pTarget;
+    Difficulty m_dDifficulty;
+    bool isHC;
 
-    void Reset() {
-        if (!m_pInstance) return;
-        stage = 0;
-        intro = true;
-        m_creature->SetRespawnDelay(DAY);
-        pTarget = NULL;
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-    }
+    uint8 currentPhase;
+    bool m_bIsSubmerged;
 
-
-    void KilledUnit(Unit* pVictim)
+    void Reset()
     {
-        DoScriptText(-1713563,m_creature);
-    }
+        currentPhase = 0;
 
-    void MoveInLineOfSight(Unit* pWho) 
-    {
-        if (!intro) return;
-        DoScriptText(-1713554,m_creature);
-        intro = false;
-        m_creature->SetInCombatWithZone();
-    }
-
-    void JustReachedHome()
-    {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
-//            m_creature->ForcedDespawn();
-    }
-
-    void JustDied(Unit* pKiller)
-    {
-        if (!m_pInstance) return;
-            DoScriptText(-1713564,m_creature);
-            m_pInstance->SetData(TYPE_ANUBARAK, DONE);
     }
 
     void Aggro(Unit* pWho)
     {
-        if (!intro) DoScriptText(-1713555,m_creature);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->SetInCombatWithZone();
-        m_pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!pWho)
             return;
 
-        switch(stage)
+        currentPhase = 1;
+    }
+
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
+    {
+        if (currentPhase == 2)
         {
-            case 0: {
-                timedCast(SPELL_POUND, uiDiff);
-                timedCast(SPELL_COLD, uiDiff);
-                if (timedQuery(SUMMON_BORROWER, uiDiff)) {
-                        doCast(SUMMON_BORROWER);
-                        DoScriptText(-1713556,m_creature);
-                        };
-                if (timedQuery(SPELL_SUBMERGE_0, uiDiff)) stage = 1;
-
-                    break;}
-            case 1: {
-                    doCast(SPELL_SUBMERGE_0);
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    stage = 2;
-                    DoScriptText(-1713557,m_creature);
-                    break;}
-            case 2: {
-                    if (timedQuery(SPELL_SPIKE_CALL, uiDiff)) {
-                         pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
-//                         doCast(SPELL_SPIKE_CALL);
-//                         This summon not supported in database. Temporary override.
-                         Unit* spike = doSummon(NPC_SPIKE,TEMPSUMMON_TIMED_DESPAWN,60000);
-                         if (spike) { spike->AddThreat(pTarget, 1000.0f);
-                                      DoScriptText(-1713558,m_creature,pTarget);
-                                      doCast(SPELL_MARK,pTarget);
-                                      spike->GetMotionMaster()->MoveChase(pTarget);
-                                     }
-                         };
-                    if (timedQuery(SPELL_SUMMON_BEATLES, uiDiff)) {
-                            doCast(SPELL_SUMMON_BEATLES);
-                            doCast(SUMMON_SCARAB);
-                            DoScriptText(-1713560,m_creature);
-                         };
-                    if (timedQuery(SPELL_SUBMERGE_0, uiDiff)) stage = 3;
-                    break;}
-            case 3: {
-                    stage = 0;
-                    DoScriptText(-1713559,m_creature);
-                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    doRemove(SPELL_SUBMERGE_0,m_creature);
-                    break;}
-            case 4: {
-                            doCast(SPELL_LEECHING_SWARM);
-                            DoScriptText(-1713561,m_creature);
-                    stage = 5;
-                    break;}
-            case 5: {
-                        timedCast(SPELL_POUND, uiDiff);
-                        timedCast(SPELL_COLD, uiDiff);
-                        break;}
-
+            // am i sure ?
+            //uiDamage = 0;
         }
-        timedCast(SUMMON_FROSTSPHERE, uiDiff);
-
-        timedCast(SPELL_BERSERK, uiDiff);
-
-        if (m_creature->GetHealthPercent() < 30.0f && stage == 0) stage = 4;
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_boss_anubarak_trial(Creature* pCreature)
-{
-    return new boss_anubarak_trialAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL mob_swarm_scarabAI : public BSWScriptedAI
-{
-    mob_swarm_scarabAI(Creature* pCreature) : BSWScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
+        else if (currentPhase == 1 &&
+                 m_creature->GetHealth()-uiDamage < m_creature->GetMaxHealth()*0.3f)
+        {
+            SwitchPhase(true);
+        }
     }
 
-    ScriptedInstance* m_pInstance;
-
-    void Reset()
+    void MergeSwitch()
     {
-        m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(DAY);
+        if (m_bIsSubmerged)
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_BOSS);
+            m_creature->CastSpell(SPELL_EMERGE_BOSS);
+            m_bIsSubmerged = false;
+        }
+        else
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_EMERGE_BOSS);
+            m_creature->CastSpell(SPELL_SUBMERGE_BOSS);
+            m_bIsSubmerged = true;
+        }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void SwitchPhase(bool three = false)
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER) return;
-    }
+        if (three)
+            currentPhase = 3;
 
-    void JustDied(Unit* Killer)
-    {
-    }
+        // this shout switch bethween phases 1 and 2 preety easily
+        currentPhase = currentPhase%2+1;
 
-    void Aggro(Unit *who)
-    {
-        if (!m_pInstance) return;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_ANUBARAK) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        timedCast(SPELL_DETERMINATION, uiDiff);
-
-        timedCast(SPELL_ACID_MANDIBLE, uiDiff);
-
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_mob_swarm_scarab(Creature* pCreature)
-{
-    return new mob_swarm_scarabAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL mob_nerubian_borrowerAI : public BSWScriptedAI
-{
-    mob_nerubian_borrowerAI(Creature* pCreature) : BSWScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    bool submerged;
-    Unit* currentTarget;
-
-    void Reset()
-    {
-        m_creature->SetInCombatWithZone();
-        m_creature->SetRespawnDelay(DAY);
-        submerged = false;
-        currentTarget = NULL;
-    }
-
-    void KilledUnit(Unit* pVictim)
-    {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER) return;
-    }
-
-    void JustDied(Unit* Killer)
-    {
-    }
-
-    void Aggro(Unit *who)
-    {
-        if (!m_pInstance) return;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_ANUBARAK) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        timedCast(SPELL_EXPOSE_WEAKNESS, uiDiff);
-
-        if (timedQuery(SPELL_SPIDER_FRENZY, uiDiff))
-            if (Creature* pTemp = GetClosestCreatureWithEntry(m_creature, NPC_BURROWER, 50.0f))
+        switch(currentPhase)
+        {
+            case 1:
             {
-            currentTarget = pTemp;
-            doCast(SPELL_SPIDER_FRENZY);
-            };
-
-        if (m_creature->GetHealthPercent() < 20.0f && timedQuery(SPELL_SUBMERGE_1, uiDiff) && !submerged)
-           {
-            doCast(SPELL_SUBMERGE_1);
-            submerged = true;
-            DoScriptText(-1713557,m_creature);
-            };
-
-        if (m_creature->GetHealthPercent() > 50.0f && submerged)
+                // timers for phase 1
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                MergeSwitch();
+                break;
+            }
+            case 2:
             {
-             doRemove(SPELL_SUBMERGE_1,m_creature);
-             submerged = false;
-             DoScriptText(-1713559,m_creature);
-             };
+                // timers for phase 2
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB, UNIT_SELECT_SELF);
 
-        DoMeleeAttackIfReady();
-    }
-};
-
-CreatureAI* GetAI_mob_nerubian_borrower(Creature* pCreature)
-{
-    return new mob_nerubian_borrowerAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL mob_frost_sphereAI : public BSWScriptedAI
-{
-    mob_frost_sphereAI(Creature* pCreature) : BSWScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    void Reset()
-    {
-        m_creature->SetRespawnDelay(DAY);
-        m_creature->SetSpeedRate(MOVE_RUN, 0.1f);
-        m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-        m_creature->GetMotionMaster()->MoveRandom();
-    }
-
-    void EnterCombat(Unit* attacker)
-    {
-        doCast(SPELL_PERMAFROST);
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_ANUBARAK) != IN_PROGRESS) 
-           m_creature->ForcedDespawn();
-    }
-};
-
-CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
-{
-    return new mob_frost_sphereAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public BSWScriptedAI
-{
-    mob_anubarak_spikeAI(Creature* pCreature) : BSWScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    Unit* defaultTarget;
-
-    void Reset()
-    {
-        m_creature->SetRespawnDelay(DAY);
-        m_creature->SetSpeedRate(MOVE_RUN, 0.5f);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        defaultTarget = NULL;
-    }
-
-    void Aggro(Unit *who)
-    {
-        if (!m_pInstance) return;
-        doCast(SPELL_IMPALE);
-        defaultTarget = who;
-    }
-
-    void UpdateAI(const uint32 uiDiff)
-    {
-        if (m_pInstance && m_pInstance->GetData(TYPE_ANUBARAK) != IN_PROGRESS) 
-            m_creature->ForcedDespawn();
-        if (defaultTarget)
-            if (!defaultTarget->isAlive() || !hasAura(SPELL_MARK,defaultTarget))
-                 m_creature->ForcedDespawn();
-
-        if (timedQuery(SPELL_IMPALE,uiDiff)) {
-        if (m_creature->IsWithinDist(m_creature->getVictim(), 4.0f)
-            && !hasAura(SPELL_PERMAFROST,m_creature->getVictim()))
-           {
-              doCast(SPELL_IMPALE);
-           }  else doRemove(SPELL_IMPALE);
+                MergeSwitch();
+                break;
+            }
+            case 3:
+            {
+                // timers for phase 3
+                // add to queue leeching swarm
+                m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
+                break;
+            }
+            default:
+                return;
         }
     }
 };
 
-CreatureAI* GetAI_mob_anubarak_spike(Creature* pCreature)
+struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 {
-    return new mob_anubarak_spikeAI(pCreature);
-};*/
+    mob_anubarak_spikeAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    }
+
+    ScriptedInstance* m_pInstance;
+    uint8 speedLevel;
+    uint32 timeOnTarget;
+
+    void Reset()
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
+        speedLevel = 0;
+        timeOnTarget = 0;
+        m_creature->DeleteThreatList();
+        m_creature->GetMotionMaster()->Clear();
+
+        if (SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES])
+            tSpikes->Reset(TIMER_VALUE_ALL);
+        else
+            m_TimerMgr->AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+
+        if (Creature* anub = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
+            anub->CastSpell(m_creature, SPELL_PURSUING_SPIKES_TEL, false);
+    }
+
+    uint32 pursuingId()
+    {
+        switch(speedLevel)
+        {
+            case 0: return SPELL_PURSUING_SPIKES_D;
+            case 1: return SPELL_PURSUING_SPIKES_1;
+            case 2: return SPELL_PURSUING_SPIKES_2;
+            case 3: return SPELL_PURSUING_SPIKES_3;
+            default:return SPELL_PURSUING_SPIKES_3;
+        }
+    }
+
+    void SetTarget(Unit* pWho)
+    {
+        m_uiTargetGUID = pWho->GetGUID();
+        DoCast(pWho, SPELL_MARK);
+        m_creature->SetSpeed(MOVE_RUN, 0.5f);
+        AttackStart(pWho);
+    }
+
+    void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
+    {
+        uiDamage = 0;
+    }
+
+    /*void SpellHitTarget(Unit* pWho, const SpellEntry *spellInfo)
+    {
+        if (spellInfo->Id == SPELL_MARK)
+            SetTarget(pWho);
+    }*/
+
+    void CastFinished(const SpellEntry *spellInfo)
+    {
+        if (spellInfo->Id == SPELL_PERMAFROST &&
+            timeOnTarget > 4000)
+            Reset();
+    }
+
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho, 99999.f);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+            m_creature->GetMotionMaster()->MoveChase(pWho);
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_TimerMgr(TIMER_SPIKES))
+        {
+            ++speedLevel;
+
+            SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES];
+            if (tSpikes)
+            {
+                if (tSpikes->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
+                {
+                    if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
+                        SetTarget(plr);
+                }
+                else
+                    tSpikes->Cooldown(7000, true);
+
+                tSpikes->SetValue(TIMER_VALUE_SPELLID, pursuingId());
+            }
+        }
+
+        timeOnTarget += uiDiff;
+    }
+};
 
 void AddSC_boss_anubarak_trial()
 {
-    /*Script* newscript;
-
-    newscript = new Script;
-    newscript->Name = "boss_anubarak_trial";
-    newscript->GetAI = &GetAI_boss_anubarak_trial;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_swarm_scarab";
-    newscript->GetAI = &GetAI_mob_swarm_scarab;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_nerubian_borrower";
-    newscript->GetAI = &GetAI_mob_nerubian_borrower;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_anubarak_spike";
-    newscript->GetAI = &GetAI_mob_anubarak_spike;
-    newscript->RegisterSelf();
-
-    newscript = new Script;
-    newscript->Name = "mob_frost_sphere";
-    newscript->GetAI = &GetAI_mob_frost_sphere;
-    newscript->RegisterSelf();*/
+    Script* newscript;
 
 }

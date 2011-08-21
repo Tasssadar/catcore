@@ -174,10 +174,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     PlrList GetRandomPlayers(uint8 count, bool not_select_current_victim = false);
 
     // select random players prefer ranged (list of Players)
-    PlrList GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, float min_range, bool not_select_current_victim = false);
+    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
 
     // select random player prefer ranged (Player)
-    Player* SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim = false);
+    Player* SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
 
     // fill players list from threatlist
     PlrList GetAttackingPlayers(bool not_select_current_victim = false);
@@ -188,10 +188,14 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
 
+    // Pointer to spell timer manager of creature
+    SpellTimerMgr* m_TimerMgr;
+
     private:
         bool   m_bCombatMovement;
         uint32 m_uiEvadeCheckCooldown;
         bool   m_bAttackEnabled;
+
 };
 
 struct MANGOS_DLL_DECL Scripted_NoMovementAI : public ScriptedAI

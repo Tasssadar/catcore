@@ -167,6 +167,9 @@ bool DynamicObject::isVisibleForInState(Player const* u, WorldObject const* view
 
 bool DynamicObject::IsHostileTo( Unit const* unit ) const
 {
+    if((m_spellId == 69238 || m_spellId == 69628) && m_effIndex == EFFECT_INDEX_0)
+        return true;
+
     if (Unit* owner = GetCaster())
         return owner->IsHostileTo(unit);
     else

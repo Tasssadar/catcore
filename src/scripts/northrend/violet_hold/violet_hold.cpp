@@ -42,10 +42,8 @@ const float BossPortal[4]=
 
 const float CyanigosaPortal[2][4]= // portal + her coordinates
 {
-    /*{1936.07f, 803.198f, 53.3749f, 3.12414f},
-    {1930.07f, 803.198f, 53.3749f, 3.12414f} upper, no jump -> spawn her down instead*/
-    {1905.40f, 803.012f, 38.64513f, 3.12414f},
-    {1896.11f, 803.063f, 38.49596f, 3.12414f}
+    {1936.07f, 803.198f, 53.3749f, 3.12414f},
+    {1930.07f, 803.198f, 53.3749f, 3.12414f}
 };
 
 const float SinclariWP[5][4]=
@@ -1333,6 +1331,7 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
                         Portal->AI()->DoAction(CYANIGOSA);
                     if (Creature* Cyanigosa = m_creature->SummonCreature(C_CYANIGOSA,CyanigosaPortal[1][0],CyanigosaPortal[1][1],CyanigosaPortal[1][2],CyanigosaPortal[1][3],TEMPSUMMON_CORPSE_TIMED_DESPAWN,60000))
                     {
+                        Cyanigosa->setFaction(35);
                         Cyanigosa->AI()->DoAction(BOSS_PULL);
                     }
                     PortalSpawnTimer=(uint32)-1;

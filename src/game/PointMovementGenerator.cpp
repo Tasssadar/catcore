@@ -32,20 +32,32 @@ void PointMovementGenerator<T>::Initialize(T &unit)
         unit.StopMoving();
 
     unit.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
-
     Traveller<T> traveller(unit);
-    i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
-
+    
     if(m_usePathfinding)
     {
         PathInfo path(&unit, i_x, i_y, i_z);
-        PointPath pointPath = path.getFullPath();
+        pointPath = path.getFullPath();
 
         float speed = traveller.Speed() * 0.001f; // in ms
         uint32 traveltime = uint32(pointPath.GetTotalLength() / speed);
         SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
+        m_pointTime = traveltime/(pointPath.size()-1);
+        while(m_pointTime < 100)
+        {
+            PointPath tmpPath = pointPath;
+            pointPath.clear();
+            pointPath.resize(tmpPath.size()/2);
+            for(uint16 i = 1; i < tmpPath.size(); i+=2)
+                pointPath.set(i, tmpPath[i]);
+            pointPath.set(pointPath.size()-1, tmpPath[tmpPath.size()-1]);
+            m_pointTime = traveltime/(pointPath.size()-1);
+        }
+        i_nextMoveTime.Reset(m_pointTime);
     }
+    else
+        i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
 
     if (unit.GetTypeId() == TYPEID_UNIT && ((Creature*)&unit)->canFly() &&
         !(((Creature*)&unit)->canWalk() && ((Creature*)&unit)->IsAtGroundLevel(i_x, i_y, i_z)))
@@ -87,18 +99,43 @@ bool PointMovementGenerator<T>::Update(T &unit, const uint32 &diff)
 
     unit.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
-    Traveller<T> traveller(unit);
-    if (i_destinationHolder.UpdateTraveller(traveller, diff, false))
+    if(!m_usePathfinding)
     {
-        if (!IsActive(unit))                                // force stop processing (movement can move out active zone with cleanup movegens list)
-            return true;                                    // not expire now, but already lost
-    }
+        Traveller<T> traveller(unit);
+        if (i_destinationHolder.UpdateTraveller(traveller, diff, false))
+        {
+            if (!IsActive(unit))                                // force stop processing (movement can move out active zone with cleanup movegens list)
+                return true;                                    // not expire now, but already lost
+        }
 
-    if (i_destinationHolder.HasArrived())
+        if (i_destinationHolder.HasArrived())
+        {
+            unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);
+            MovementInform(unit);
+            return false;
+        }
+    }
+    else
     {
-        unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);
-        MovementInform(unit);
-        return false;
+        i_nextMoveTime.Update(diff);
+
+        if(i_nextMoveTime.Passed())
+        {
+            i_nextMoveTime.Reset(m_pointTime);
+            if(unit.GetTypeId() == TYPEID_UNIT)
+            {
+                float angle = unit.GetAngle(pointPath[curPoint].x,pointPath[curPoint].y);
+                unit.GetMap()->CreatureRelocation((Creature*)(&unit), pointPath[curPoint].x, pointPath[curPoint].y, pointPath[curPoint].z, angle);
+            }
+
+            if(curPoint >= (pointPath.size()-1))
+            {
+                unit.clearUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
+                MovementInform(unit);
+                return false;
+            }
+            ++curPoint;
+        }
     }
 
     return true;

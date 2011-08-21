@@ -69,6 +69,7 @@ namespace VMAP
             InstanceTreeMap iInstanceMapTrees;
             // UNORDERED_MAP<unsigned int , bool> iMapsSplitIntoTiles;
             UNORDERED_MAP<unsigned int , bool> iIgnoreMapIds;
+            UNORDERED_MAP<unsigned int , bool> iIgnoreLoSIds;
 
             bool _loadMap(uint32 pMapId, const std::string &basePath, uint32 tileX, uint32 tileY);
             /* void _unloadMap(uint32 pMapId, uint32 x, uint32 y); */
@@ -92,6 +93,11 @@ namespace VMAP
                 return iIgnoreMapIds.count(id);
             }
 
+            bool isLoSIgnored(uint id)
+            {
+                return iIgnoreLoSIds.count(id);
+            }
+
             bool isInLineOfSight(unsigned int pMapId, float x1, float y1, float z1, float x2, float y2, float z2) ;
             /**
             fill the hit pos and return true, if an object was hit
@@ -102,6 +108,7 @@ namespace VMAP
             bool processCommand(char *pCommand) { return false; }      // for debug and extensions
 
             void preventMapsFromBeingUsed(const char* pMapIdString);
+            void preventLoSFromBeingUsed(const char* pMapIdString);
             bool getAreaInfo(unsigned int pMapId, float x, float y, float &z, uint32 &flags, int32 &adtId, int32 &rootId, int32 &groupId) const;
             bool GetLiquidLevel(uint32 pMapId, float x, float y, float z, uint8 ReqLiquidType, float &level, float &floor, uint32 &type) const;
 

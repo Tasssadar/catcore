@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ALTER TABLE `creature_template` ADD `minoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `baseattacktime` ,
+ADD `maxoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `minoffdmg` ,
+ADD `dmgoffschool` TINYINT NOT NULL DEFAULT '4' AFTER `maxoffdmg` ,
+ADD `dmg_offmultiplier` FLOAT NOT NULL DEFAULT '1' AFTER `dmgoffschool` ,
+ADD `offattacktime` INT( 10 ) NOT NULL DEFAULT '0' AFTER `dmg_offmultiplier`
  */
 
 #include "Common.h"
@@ -132,6 +137,7 @@ m_DoNotInsertToInstanceCombatList(false)
     m_CreatureCategoryCooldowns.clear();
 
     m_splineFlags = SPLINEFLAG_WALKMODE;
+    m_TimerMgr = NULL;
 }
 
 Creature::~Creature()
@@ -142,6 +148,12 @@ Creature::~Creature()
 
     delete i_AI;
     i_AI = NULL;
+
+    if (m_TimerMgr)
+    {
+        delete m_TimerMgr;
+        m_TimerMgr = NULL;
+    }
 }
 
 void Creature::AddToWorld()
@@ -307,7 +319,7 @@ bool Creature::UpdateEntry(uint32 Entry, uint32 team, const CreatureData *data, 
     SetUInt32Value(UNIT_NPC_FLAGS,GetCreatureInfo()->npcflag);
 
     SetAttackTime(BASE_ATTACK,  GetCreatureInfo()->baseattacktime);
-    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->baseattacktime);
+    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->offattacktime);
     SetAttackTime(RANGED_ATTACK,GetCreatureInfo()->rangeattacktime);
 
     uint32 unitFlags = GetCreatureInfo()->unit_flags;
@@ -513,7 +525,10 @@ void Creature::Update(uint32 diff)
             {
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
-                i_AI->UpdateTimers(diff);
+
+                if (m_TimerMgr && getVictim())
+                    m_TimerMgr->UpdateTimers(diff);
+
                 i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
@@ -1058,6 +1073,9 @@ void Creature::SelectLevel(const CreatureInfo *cinfo, float percentHealth, float
     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, cinfo->mindmg * damagemod);
     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, cinfo->maxdmg * damagemod);
 
+    SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, cinfo->minoffdmg * damagemod);
+    SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, cinfo->maxoffdmg * damagemod);
+
     SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE,cinfo->minrangedmg * damagemod);
     SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE,cinfo->maxrangedmg * damagemod);
 
@@ -1485,7 +1503,7 @@ bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIn
         return true;
 
     // Taunt immunity special flag check
-    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE)
+    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE || HasAura(70850))
     {
         // Taunt aura apply check
         if (spellInfo->Effect[index] == SPELL_EFFECT_APPLY_AURA)
@@ -2051,6 +2069,26 @@ void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
     m_CreatureCategoryCooldowns[category] = apply_time;
 }
 
+void Creature::FarTeleportTo(Map* map, float X, float Y, float Z, float O)
+{
+    InterruptNonMeleeSpells(true);
+    CombatStop();
+    DeleteThreatList();
+    GetMotionMaster()->Clear(false);
+    
+    WorldPacket data(SMSG_DESTROY_OBJECT, 8 + 1);
+    data << uint64(GetGUID());
+    data << uint8(0);
+    SendMessageToSet(&data, false);
+
+    RemoveFromWorld();
+    ResetMap();
+    SetMap(map);
+    AddToWorld();
+
+    Relocate(X, Y, Z, O);
+}
+
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
@@ -2409,4 +2447,18 @@ void Creature::LogKill(Unit *killer, int32 icomments)
         << icomments << "')";
 
     CharacterDatabase.Execute(sql.str().c_str());
+}
+
+SpellTimerMgr* Creature::CreateTimerMgr()
+{
+    if(!m_TimerMgr)
+        m_TimerMgr = new SpellTimerMgr((Unit*)this);
+    return m_TimerMgr;
+}
+
+void Creature::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs )
+{
+    // currently handled only in m_TimerMgr, not full core support
+    if (m_TimerMgr)
+        m_TimerMgr->ProhibitSpellSchool(idSchoolMask, unTimeMs);
 }

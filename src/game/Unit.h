@@ -38,6 +38,8 @@
 #include "SpellMgr.h"
 #include <list>
 
+class Transport;
+
 enum SpellInterruptFlags
 {
     SPELL_INTERRUPT_FLAG_MOVEMENT     = 0x01,
@@ -160,7 +162,7 @@ enum UnitStandFlags
 enum UnitBytes1_Flags
 {
     UNIT_BYTE1_FLAG_ALWAYS_STAND = 0x01,
-    UNIT_BYTE1_FLAG_UNK_2        = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
+    UNIT_BYTE1_FLAG_FLY_ANIM     = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
     UNIT_BYTE1_FLAG_UNTRACKABLE  = 0x04,
     UNIT_BYTE1_FLAG_ALL          = 0xFF
 };
@@ -1441,6 +1443,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             return m_Auras.find(spellEffectPair(spellId, effIndex)) != m_Auras.end();
         }
         bool HasAura(uint32 spellId) const;
+        bool HasAuraOnDifficulty(uint32 spellId);
         bool HasAuras(SpellFamilyNames familyName, uint64 familyFlags) const;
 
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
@@ -1503,7 +1506,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0, Player* player = NULL);
         void SendSplineMove(SplineWayPointMap *pWps, SplineType type, SplineFlags flags, uint32 time, Player* player, ...);
         void SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...);
-
+        void TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time);
+        void ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags, uint32 Time, ...);
         template<typename PathElem, typename PathNode>
         void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
 
@@ -1985,6 +1989,17 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void AddAndLinkAura(uint32 auraId, bool apply);
         Unit* m_attacking;
+
+        // Transports
+        Transport* GetTransport() const { return m_transport; }
+        void SetTransport(Transport * t) { m_transport = t; }
+
+        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
+        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
+        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
+        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
+        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
+        int8 GetTransSeat() const { return m_movementInfo.GetTransportSeat(); }
         
     protected:
         explicit Unit ();
@@ -2037,6 +2052,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint64  m_auraUpdateMask;
         uint64 m_vehicleGUID;
         int32 m_fearDispelHp;                              // hold hp remaining to fear dispel, filled in SetFeared(), calculating in RemoveSpellbyDamageTaken()
+
+        // Transports
+        Transport *m_transport;
 
     private:
         void CleanupDeletedAuras();

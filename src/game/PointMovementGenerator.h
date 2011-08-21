@@ -31,7 +31,8 @@ class MANGOS_DLL_SPEC PointMovementGenerator
 {
     public:
         PointMovementGenerator(uint32 _id, float _x, float _y, float _z, bool _usePathfinding) : id(_id),
-            i_x(_x), i_y(_y), i_z(_z), i_nextMoveTime(0), m_usePathfinding(_usePathfinding) {}
+            i_x(_x), i_y(_y), i_z(_z), i_nextMoveTime(0), m_usePathfinding(_usePathfinding),
+            curPoint(1),m_pointTime(0) {}
 
         void Initialize(T &);
         void Finalize(T &);
@@ -50,6 +51,10 @@ class MANGOS_DLL_SPEC PointMovementGenerator
         bool m_usePathfinding;
         TimeTracker i_nextMoveTime;
         DestinationHolder< Traveller<T> > i_destinationHolder;
+        PointPath pointPath;
+
+        uint32 curPoint;
+        uint32 m_pointTime;
 };
 
 class MANGOS_DLL_SPEC AssistanceMovementGenerator

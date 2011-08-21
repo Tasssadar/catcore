@@ -709,15 +709,20 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     }
                     case 2:
                     {
-                        float x, y, z, ang;
-                        m_creature->GetPosition(x, y, z);
+                        float ang;
+                        PointPath pointPath;
+                        pointPath.resize(2);
+                        m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+                        m_creature->GetPosition(pointPath[1].x, pointPath[1].y, pointPath[1].z);
+                        
                         ang = m_creature->GetFixedOrientation() + M_PI_F;
                         ang = ang > M_PI_F*2 ? ang - M_PI_F*2 : ang;
-                        x += cos(ang)*35.0f;
-                        y += sin(ang)*35.0f;
+                        pointPath[1].x += cos(ang)*35.0f;
+                        pointPath[1].y += sin(ang)*35.0f;
                         m_chargeTargetPos->x += cos(ang)*8;
                         m_chargeTargetPos->y += sin(ang)*8;
-                        m_creature->SendTrajMonsterMove(x, y, z, true, 100.0f, 1000, SPLINETYPE_FACINGANGLE, m_creature->GetFixedOrientation());
+                        m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
+                        m_creature->SendTrajMonsterMove(pointPath[1].x, pointPath[1].y, pointPath[1].z, true, 100.0f, 1000, SPLINETYPE_FACINGANGLE, m_creature->GetFixedOrientation());
                         m_uiChargeStepTimer = 4500;
                         break;
                     }

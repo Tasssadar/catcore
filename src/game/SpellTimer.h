@@ -17,7 +17,8 @@ enum CastType
 {
     CAST_TYPE_NONCAST = 0,      // if there is currently any spell casted, do nothing
     CAST_TYPE_QUEUE,            // if there is currently any spell casted, put cast into queue
-    CAST_TYPE_FORCE             // if there is currently any spell casted, interrupt that spell a cast this one instead
+    CAST_TYPE_FORCE,            // if there is currently any spell casted, interrupt that spell a cast this one instead
+    CAST_TYPE_IGNORE            // dont check cast
 };
 
 enum TimerValues
@@ -26,7 +27,8 @@ enum TimerValues
     TIMER_VALUE_COOLDOWN    = 0,
     TIMER_VALUE_SPELLID     = 1,
     TIMER_VALUE_TIMER       = 2,
-    TIMER_VALUE_UPDATEABLE  = 3
+    TIMER_VALUE_UPDATEABLE  = 3,
+    TIMER_VALUE_DELETE_AT_FINISH=4
 };
 
 #define DBC_COOLDOWN 0
@@ -36,13 +38,14 @@ struct SpellTimer
     SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = NULL, Unit* caster = NULL);
 
     public:
-        void SetSpellEntry();
         void SetInitialCooldown(int32 cooldown);
 
         void Reset(TimerValues value);
         void SetValue(TimerValues value, uint32 newValue);
+        uint32 GetValue(TimerValues value);
 
         void Cooldown(uint32 cd = NULL, bool permanent = false);
+        void SetTarget(Unit* target) { target_m = target; }
 
         bool IsReady();
         bool IsCastable();
@@ -51,15 +54,12 @@ struct SpellTimer
 
         bool Finish(Unit* target = NULL);
 
-        void SetTarget(Unit* target) { target_m = target; }
-
+        Unit* getCaster()        const { return caster_m; }
         Unit* getTarget(Unit* target = NULL);
-        Unit* getCaster()       const { return caster_m; }
-        uint32 getSpellId()     const { return spellId_m; }
-        bool isUpdateable()     const { return updateAllowed_m; }
-        bool isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
-        CastType getCastType()  const { return castType_m; }
-        uint32 getGCD()         const { return spellInfo_m ? spellInfo_m->StartRecoveryTime : 0; }
+
+        uint32 getGCD();
+        CastType getCastType()   const { return castType_m; }
+        bool  isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
 
     private:
         Unit* caster_m;
@@ -68,7 +68,6 @@ struct SpellTimer
         uint32 timer_m;
         uint32 cooldown_m;
         uint32 spellId_m;
-        SpellEntry* const spellInfo_m;
 
         uint32 initialTimer_m;
         uint32 initialSpellId_m;
@@ -79,6 +78,7 @@ struct SpellTimer
         uint64 targetInfo_m;
 
         bool updateAllowed_m;
+        bool shouldDeleteWhenFinish_m;
 };
 
 #endif // SPELLTIMER_H

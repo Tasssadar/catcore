@@ -3,9 +3,8 @@
 #include "Map.h"
 
 SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
-    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
+    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster), target_m(NULL)
 {
-    spellInfo_m = sSpellStore.LookupEntry(spellId_m);
     SetInitialCooldown(initialCooldown);
     Reset(TIMER_VALUE_ALL);
 }
@@ -19,6 +18,7 @@ void SpellTimer::Reset(TimerValues value)
             spellId_m = initialSpellId_m;
             timer_m = initialTimer_m;
             updateAllowed_m = true;
+            shouldDeleteWhenFinish_m = false;
             break;
         case TIMER_VALUE_COOLDOWN:
             cooldown_m = initialCooldown_m;
@@ -31,6 +31,9 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_UPDATEABLE:
             updateAllowed_m = true;
+        case TIMER_VALUE_DELETE_AT_FINISH:
+            shouldDeleteWhenFinish_m = false;
+            break;
         default:
             break;
     }
@@ -50,23 +53,45 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
             timer_m = newValue;
             break;
         case TIMER_VALUE_UPDATEABLE:
-            updateAllowed_m = bool(newValue);
+            updateAllowed_m = newValue;
+            break;
+        case TIMER_VALUE_DELETE_AT_FINISH:
+            shouldDeleteWhenFinish_m = newValue;
             break;
         default:
             break;
     }
 }
 
+uint32 SpellTimer::GetValue(TimerValues value)
+{
+    switch (value)
+    {
+        case TIMER_VALUE_COOLDOWN:      return cooldown_m;
+        case TIMER_VALUE_SPELLID:       return spellId_m;
+        case TIMER_VALUE_TIMER:         return timer_m;
+        case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
+        case TIMER_VALUE_DELETE_AT_FINISH: return shouldDeleteWhenFinish_m;
+        default:                        return 0;
+    }
+}
+
 void SpellTimer::SetInitialCooldown(int32 cooldown)
 {
     if (cooldown <= DBC_COOLDOWN)
-        initialCooldown_m = spellEntry_m->RecoveryTime;
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        initialCooldown_m = spellInfo ? spellInfo->RecoveryTime : 0;
+    }
     else
         initialCooldown_m = cooldown;
 }
 
 void SpellTimer::Update(uint32 diff)
 {
+    if (!timer_m)
+        return;
+
     if (timer_m < diff)
         timer_m = 0;
     else
@@ -76,6 +101,14 @@ void SpellTimer::Update(uint32 diff)
 bool SpellTimer::IsReady()
 {
     return timer_m == 0;
+}
+
+uint32 SpellTimer::getGCD()
+{
+    if (SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m))
+        return spellInfo->StartRecoveryTime;
+
+    return NULL;
 }
 
 Unit* SpellTimer::getTarget(Unit* target)
@@ -109,8 +142,12 @@ Unit* SpellTimer::getTarget(Unit* target)
     if (!target_m)
     {
         // here could be used specific targets types for finding right target from implicitTargets
-        if (sSpellMgr.IsSelfOnlyCast(spellInfo_m))
-            SetTarget(caster_m);
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
+        if (spellInfo)
+        {
+            if (sSpellMgr.IsSelfOnlyCast(spellInfo))
+                SetTarget(caster_m);
+        }
     }
 
     return target_m;
@@ -119,28 +156,33 @@ Unit* SpellTimer::getTarget(Unit* target)
 void SpellTimer::Cooldown(uint32 cd, bool permanent)
 {
     if (cd && permanent)
-        cooldown_m = cd;
+        SetValue(TIMER_VALUE_COOLDOWN, cd);
 
-    timer_m = cd ? cd : cooldown_m;
+    SetValue(TIMER_VALUE_TIMER, cd ? cd : cooldown_m);
 }
 
 bool SpellTimer::Finish(Unit *target)
 {
+    // timer can be also used without spell cast in the end, for such case set spellId to NULL
+    if (!spellId_m)
+        return true;
+
     // if timer for not existing spell, dont even try to finish it
-    if (!spellInfo_m)
+    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId_m);
+    if (!spellInfo)
         return false;
 
-    Unit* c = getCaster();
-    Unit* t = getTarget(target);
+    Unit* uCaster = getCaster();
+    Unit* uTarget = getTarget(target);
 
     // checking just target, caster checked in getTarget()
-    if (!t || !t->IsInWorld())
+    if (!uTarget || !uTarget->IsInWorld())
         return false;
 
     if (castType_m == CAST_TYPE_FORCE)
-        c->InterruptNonMeleeSpells(false);
+        uCaster->InterruptNonMeleeSpells(false);
 
-    c->CastSpell(t, GetSpellId(), false);
+    uCaster->CastSpell(uTarget, spellInfo, false);
     Cooldown();
     SetTarget(NULL);
     return true;
@@ -160,5 +202,3 @@ bool SpellTimer::IsCastable()
 
     return true;
 }
-
-

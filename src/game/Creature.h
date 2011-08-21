@@ -27,7 +27,7 @@
 #include "DBCEnums.h"
 #include "Database/DatabaseEnv.h"
 #include "Cell.h"
-
+#include "SpellTimerMgr.h"
 #include <list>
 
 struct SpellEntry;
@@ -92,6 +92,11 @@ struct CreatureInfo
     uint32  attackpower;
     float   dmg_multiplier;
     uint32  baseattacktime;
+    float   minoffdmg;
+    float   maxoffdmg;
+    uint32  dmgoffschool;
+    float   dmg_offmultiplier;
+    uint32  offattacktime;
     uint32  rangeattacktime;
     uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
     uint32  unit_flags;                                     // enum UnitFlags mask values
@@ -516,6 +521,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void AddCreatureSpellCooldown(uint32 spellid);
         bool HasSpellCooldown(uint32 spell_id) const;
         bool HasCategoryCooldown(uint32 spell_id) const;
+        void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs );
 
         bool HasSpell(uint32 spellID) const;
 
@@ -665,11 +671,16 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void DoNotTriggerInstanceLock() { m_DoNotInsertToInstanceCombatList = true; }
 
+        SpellTimerMgr* CreateTimerMgr();
+        SpellTimerMgr* GetTimerMgr() const { return m_TimerMgr; }
+
         uint32 SendMonsterMoveWithSpeedAndAngle(float x, float y, float z, float o, bool relocate = false);
 
         void LogKill(Unit* killer, int32 icomments = 0);
         void SetHardModeKill(bool set_to) { m_isHardModeKill = set_to; }
         bool IsLoggable() const { return GetCreatureInfo()->cat_flags & CREATURE_CATFLAGS_LOGGABLE; }
+
+        void FarTeleportTo(Map* map, float X, float Y, float Z, float O);
 
     protected:
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
@@ -726,6 +737,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         bool m_DoNotInsertToInstanceCombatList;
         uint32 m_CombatWithPlayerIntervalCheck;
+
+        SpellTimerMgr* m_TimerMgr;
 
     private:
         GridReference<Creature> m_gridRef;

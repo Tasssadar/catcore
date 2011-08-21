@@ -227,4 +227,46 @@ void SpellMgr::ApplySpellHacks()
     sfix36->Effect[1] = 0;
     SpellEntry *sfix37 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65761));
     sfix37->Effect[1] = 0;
+
+    // Wrong target type...
+    SpellEntry *sfix38 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+    sfix38->EffectImplicitTargetA[0] = 6;
+    sfix38->EffectImplicitTargetA[0] = 0;
+    sfix38->EffectImplicitTargetA[1] = 6;
+    sfix38->EffectImplicitTargetB[1] = 0;
+    sfix38->EffectImplicitTargetA[2] = 1;
+
+    
+    // Wrong target type...
+    SpellEntry *sfix39 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69232));
+    sfix39->EffectTriggerSpell[0] = 69233;
+    sfix39->EffectTriggerSpell[1] = 69238;
+
+    SpellEntry *sfix40 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69238));
+    sfix40->EffectImplicitTargetA[0] = 28;
+    sfix40->EffectImplicitTargetB[0] = 0;
+    sfix40->EffectImplicitTargetA[1] = 28;
+    sfix40->EffectImplicitTargetB[1] = 0;
+
+    SpellEntry *sfix41 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69628));
+    sfix41->EffectImplicitTargetA[0] = 28;
+    sfix41->EffectImplicitTargetB[0] = 0;
+    sfix41->EffectImplicitTargetA[1] = 28;
+    sfix41->EffectImplicitTargetB[1] = 0;
+
+    SpellEntry *sfix42 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65509));
+    sfix42->Effect[1] = 6;
+    sfix42->EffectImplicitTargetA[1] = 22;
+    sfix42->EffectImplicitTargetB[1] = 7;
+    sfix42->EffectBasePoints[1] = 1900;
+    sfix42->EffectRadiusIndex[1] = 29;
+    sfix42->EffectApplyAuraName[1] = 3;
+    sfix42->EffectAmplitude[1] = 2000;
+
+    
+    SpellEntry *sfix43 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64598));
+    sfix43->Effect[0] = 6;
+    sfix43->Effect[1] = 0;
+    sfix43->Effect[2] = 0;
+    sfix43->EffectApplyAuraName[0] = 4;
 }

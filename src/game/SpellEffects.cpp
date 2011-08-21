@@ -385,6 +385,17 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             damage -= distance * float(500);
                         break;
                     }
+                    case 62311:
+                    {
+                        float distance = unitTarget->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY());
+                        if(distance < 4.0f)
+                            break;
+                        if (distance >= 20.0f)
+                            damage = 2000;
+                        else
+                            damage -= distance * float(2000);
+                        break;
+                    }
                     // Pulsing Shockwave (Loken's spell)
                     case 52942:
                     case 59837:
@@ -3008,10 +3019,17 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
 
             return;
         }
+       
         default:
             break;
     }
 
+    if(m_spellInfo->Id == 69232 && (triggered_spell_id == 69238 || triggered_spell_id == 69628))
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
+        unitTarget->CastSpell(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spellInfo, true, m_CastItem, 0);
+        return;
+    }
     // normal case
     SpellEntry const *spellInfo = sSpellStore.LookupEntry( triggered_spell_id );
 
@@ -3191,7 +3209,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
         return;
 
     //Remove from lfg
-    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (unitTarget->GetTypeId() == TYPEID_PLAYER && m_spellInfo->Id != 70525 && m_spellInfo->Id != 70639)
     {
         if (Group *group = ((Player*)unitTarget)->GetGroup())
         {
@@ -3392,6 +3410,17 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     if (m_spellInfo->Id == 60430 && (unitTarget->GetTypeId() != TYPEID_UNIT || unitTarget->GetEntry() != 30643))
         return;
 
+    // Algalon - Phase Punch
+    if (m_spellInfo->Id == 64412)
+    {
+        Aura* aura = unitTarget->GetAura(64412, EFFECT_INDEX_0);
+        if (aura && (aura->GetStackAmount() == 4))
+        {
+            unitTarget->RemoveAura(64412, EFFECT_INDEX_0);
+            m_caster->CastSpell(unitTarget, 65509, true);
+            return;
+        }
+    }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
     Aura* Aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], unitTarget, caster, m_CastItem, this);
@@ -4758,7 +4787,7 @@ void Spell::EffectDualWield(SpellEffectIndex /*eff_idx*/)
         ((Player*)unitTarget)->SetCanDualWield(true);
 }
 
-void Spell::EffectPull(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectPull(SpellEffectIndex /*ef42459f_idx*/)
 {
     // TODO: create a proper pull towards distract spell center for distract
     DEBUG_LOG("WORLD: Spell Effect DUMMY");
@@ -7050,6 +7079,12 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
             if (m_spellInfo->SpellDifficultyId == 344)
                 m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
 
+            // Twin's Pact
+            else if (m_spellInfo->SpellDifficultyId == 467)
+                unitTarget->CastSpell(unitTarget, 65916, true);
+            else if (m_spellInfo->SpellDifficultyId == 466)
+                unitTarget->CastSpell(unitTarget, 65916, true);
+
             break;
         }
         case SPELLFAMILY_WARLOCK:
@@ -8031,13 +8066,6 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         float angle = unitTarget->GetOrientation();
         unitTarget->GetPosition(cx,cy,cz);
 
-        //Check use of vamps//
-        bool useVmap = false;
-        bool swapZone = true;
-
-        if ( unitTarget->GetTerrain()->GetHeight(cx, cy, cz, false) <  unitTarget->GetTerrain()->GetHeight(cx, cy, cz, true) )
-            useVmap = true;
-
         const int itr = int(dis/0.5f);
         const float _dx = 0.5f * cos(angle);
         const float _dy = 0.5f * sin(angle);
@@ -8079,23 +8107,9 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             }
             else
             {
-                //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
-                if (swapZone)
-                {
-                    //so... change use of vamp and go back 1 step backward and recheck again.
-                    swapZone = false;
-                    useVmap = !useVmap;
-                    //i-=0.5f;
-                    --i;
-                    dx -= _dx;
-                    dy -= _dy;
-                }
-                else
-                {
-                    //bad recheck result... so break this and use last good coord for teleport player...
-                    dz += 0.5f;
-                    break;
-                }
+                //bad recheck result... so break this and use last good coord for teleport player...
+                dz += 0.5f;
+                break;
             }
         }
 
@@ -8266,7 +8280,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
     uint32 start = 1;
     uint32 end = pointPath.size();
-    uint32 pathSize = end - start;
 
     // normalize mmap Z result
     if(m_caster->GetMap()->GetTerrain()->VmapLoaded(x, y))
@@ -8298,47 +8311,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     pointPath[end-1].y = y;
     pointPath[end-1].z = z;
 
-    float cx,cy,cz;
-    m_caster->GetPosition(cx,cy,cz);
-    if (pathSize < 1)
-        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
-    else if (pathSize == 1)
-    {
-        x = pointPath[start].x;
-        y = pointPath[start].y;
-        z = pointPath[start].z;
-        m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
-    }
-    else
-    {
-        x = pointPath[end-1].x;
-        y = pointPath[end-1].y;
-        z = pointPath[end-1].z;
-
-        uint32 packSize = 4*3 + (pathSize-1)*4;
-        WorldPacket data( SMSG_MONSTER_MOVE, (m_caster->GetPackGUID().size()+30+packSize) );
-        data << m_caster->GetPackGUID();
-        data << uint8(0);
-        data << cx << cy << cz;
-        data << uint32(getMSTime());
-        data << uint8(SPLINETYPE_FACINGTARGET);
-        data << uint64(unitTarget->GetGUID());
-        data << uint32(SPLINEFLAG_WALKMODE);
-        data << uint32(traveltime);
-        data << uint32(pathSize);
-        // destination
-        data << x << y << z;
-        // all other points are relative to the center of the path
-        float mid_X = (cx + pointPath[end-1].x) * 0.5f;
-        float mid_Y = (cy + pointPath[end-1].y) * 0.5f;
-        float mid_Z = (cz + pointPath[end-1].z) * 0.5f;
-        for (uint32 i = start; i < end - 1; ++i)
-            data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
-
-        m_caster->SendMessageToSet(&data, true);
-    }
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
+    m_caster->ChargeMonsterMove(pointPath, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, unitTarget->GetGUID());
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
@@ -8387,51 +8360,8 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     PathInfo path(m_caster, x, y, z, false);
     PointPath pointPath = path.getFullPath();
     uint32 traveltime = uint32(pointPath.GetTotalLength()/float(25));
-    uint32 start = 1;
-    uint32 end = pointPath.size();
-    uint32 pathSize = end - start;
 
-    float cx,cy,cz;
-    m_caster->GetPosition(cx,cy,cz);
-    if (pathSize < 1)
-        m_caster->SendMonsterMove(cx, cy, cz, SPLINETYPE_STOP, SPLINEFLAG_WALKMODE, 0);
-    else if (pathSize == 1)
-    {
-        x = pointPath[start].x;
-        y = pointPath[start].y;
-        z = pointPath[start].z;
-        m_caster->SendMonsterMove(x, y, z, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, NULL, unitTarget->GetGUID());
-    }
-    else
-    {
-        x = pointPath[end-1].x;
-        y = pointPath[end-1].y;
-        z = pointPath[end-1].z;
-
-        uint32 packSize = 4*3 + (pathSize-1)*4;
-        WorldPacket data( SMSG_MONSTER_MOVE, (m_caster->GetPackGUID().size()+30+packSize) );
-        data << m_caster->GetPackGUID();
-        data << uint8(0);
-        data << cx << cy << cz;
-        data << uint32(getMSTime());
-        data << uint8(SPLINETYPE_FACINGTARGET);
-        data << uint64(unitTarget->GetGUID());
-        data << uint32(SPLINEFLAG_WALKMODE);
-        data << uint32(traveltime);
-        data << uint32(pathSize);
-        // destination
-        data << x << y << z;
-        // all other points are relative to the center of the path
-        float mid_X = (cx + pointPath[end-1].x) * 0.5f;
-        float mid_Y = (cy + pointPath[end-1].y) * 0.5f;
-        float mid_Z = (cz + pointPath[end-1].z) * 0.5f;
-        for (uint32 i = start; i < end - 1; ++i)
-            data.appendPackXYZ(mid_X - pointPath[i].x, mid_Y - pointPath[i].y, mid_Z - pointPath[i].z);
-
-        m_caster->SendMessageToSet(&data, true);
-    }
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        m_caster->GetMotionMaster()->MoveCharge(pointPath, traveltime+(1000.0f/pathSize), start, (end > 1) ? end-1 : end);
+    m_caster->ChargeMonsterMove(pointPath, SPLINETYPE_FACINGTARGET, SPLINEFLAG_WALKMODE, traveltime, unitTarget->GetGUID());
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
