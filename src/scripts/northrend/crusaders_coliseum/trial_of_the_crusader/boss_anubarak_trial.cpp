@@ -101,7 +101,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        isHc = pCreature->GetMap()->IsHeroicRaid();
+        isHC = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
 
@@ -145,13 +145,13 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         if (m_bIsSubmerged)
         {
             m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_BOSS);
-            m_creature->CastSpell(SPELL_EMERGE_BOSS);
+            m_creature->CastSpell(m_creature, SPELL_EMERGE_BOSS, false);
             m_bIsSubmerged = false;
         }
         else
         {
             m_creature->RemoveAurasDueToSpell(SPELL_EMERGE_BOSS);
-            m_creature->CastSpell(SPELL_SUBMERGE_BOSS);
+            m_creature->CastSpell(m_creature, SPELL_SUBMERGE_BOSS, false);
             m_bIsSubmerged = true;
         }
     }
@@ -214,7 +214,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         m_creature->DeleteThreatList();
         m_creature->GetMotionMaster()->Clear();
 
-        if (SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES])
+        if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
             tSpikes->Reset(TIMER_VALUE_ALL);
         else
             m_TimerMgr->AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
@@ -237,9 +237,8 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void SetTarget(Unit* pWho)
     {
-        m_uiTargetGUID = pWho->GetGUID();
-        DoCast(pWho, SPELL_MARK);
-        m_creature->SetSpeed(MOVE_RUN, 0.5f);
+        DoCast(pWho, SPELL_PURSUED);
+        m_creature->SetSpeedRate(MOVE_RUN, 0.5f);
         AttackStart(pWho);
     }
 
@@ -250,7 +249,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     /*void SpellHitTarget(Unit* pWho, const SpellEntry *spellInfo)
     {
-        if (spellInfo->Id == SPELL_MARK)
+        if (spellInfo->Id == SPELL_PURSUED)
             SetTarget(pWho);
     }*/
 
@@ -277,12 +276,11 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_TimerMgr(TIMER_SPIKES))
+        if (m_TimerMgr->CheckTimer(TIMER_SPIKES))
         {
             ++speedLevel;
 
-            SpellTimer* tSpikes = m_TimerMgr[TIMER_SPIKES];
-            if (tSpikes)
+            if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
             {
                 if (tSpikes->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
                 {
