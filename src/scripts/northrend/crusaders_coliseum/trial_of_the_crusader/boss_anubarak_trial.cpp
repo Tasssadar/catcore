@@ -26,12 +26,16 @@ EndScriptData */
 
 enum Timers
 {
+    // boss
     TIMER_SLASH = 0,
     TIMER_COLD,
     TIMER_PHASE,
 
+    // spike
+    TIMER_SPIKES,
 
-    TIMER_SPIKES
+    // burrower
+    TIMER_SUBMERGE,
 };
 
 enum Spells
@@ -49,8 +53,8 @@ enum Spells
 
     SPELL_ROLLING_THROW     = 67730,
     SPELL_ROLLING_THROW_VEH = 67731,
-    SPELL_SUBMERGE_BOSS     = 53421,
-    SPELL_EMERGE_BOSS       = 53500,
+    SPELL_SUBMERGE_BOSS     = 65981,
+    //SPELL_EMERGE_BOSS       = 65982,
 
     SPELL_BERSERK           = 26662,
 
@@ -68,9 +72,15 @@ enum Spells
     SPELL_NERUBIAN_BURROWER = 66332, // phase 1,2, hc + phase 3
     SPELL_NERUB_BURR_PROC   = 66333,
 
-    SPELL_EXPOSE_WEAKNESS   = 67847,
-    SPELL_SPIDER_FRENZY     = 66129,
-    SPELL_SUBMERGE_1        = 67322,
+    //SPELL_EXPOSE_WEAKNESS   = 67721,
+    SPELL_EXPOSER_WEAKNESS_A= 67720,
+    //SPELL_SPIDER_FRENZY     = 66129,
+    SPELL_SPIDER_FRENZY_AURA= 66128,
+
+    SPELL_SUBMERGE_BURR_D   = 67322,
+    //SPELL_SUBMERGE_BURR_S   = 66845,
+    //SPELL_EMERGE_BURR       = 65982,
+
     SPELL_SHADOW_STRIKE     = 66134, // hero 10, hero 25
     SPELL_SUMMON_PLAYER     = 21150, // hero 25
 
@@ -80,8 +90,9 @@ enum Spells
     SPELL_SUMMON_SCARAB     = 66339, // phase 2
     SPELL_SUMMON_SCARAB_PROC= 66340,
 
-    SPELL_ACID_MANDIBLE     = 65775,
-    SPELL_DETERMINATION     = 66092,
+    //SPELL_ACID_MANDIBLE     = 65775,
+    SPELL_ACID_MANIBLE_AURA = 65774,
+    SPELL_DETERMINATION     = 66092, // enrage
     SPELL_SCARAB_ACHI_10    = 68186, // 10 man
     SPELL_SCARAB_ACHI_25    = 68515, // 25 man
 
@@ -112,11 +123,14 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
     bool isHC;
 
     uint8 currentPhase;
-    bool m_bIsSubmerged;
 
     void Reset()
     {
         currentPhase = 0;
+
+        m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
+        m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(TIMER_PHASE, 0, 80000, 60000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
 
     }
 
@@ -128,33 +142,26 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         currentPhase = 1;
     }
 
+    void AttackStart(Unit* pWho)
+    {
+        if (currentPhase == 2)
+            return;
+
+        ScriptedAI::AttackStart(pWho);
+    }
+
     void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
     {
         if (currentPhase == 2)
         {
             // am i sure ?
-            //uiDamage = 0;
+            // yes i am
+            uiDamage = 0;
         }
         else if (currentPhase == 1 &&
                  m_creature->GetHealth()-uiDamage < m_creature->GetMaxHealth()*0.3f)
         {
             SwitchPhase(true);
-        }
-    }
-
-    void MergeSwitch()
-    {
-        if (m_bIsSubmerged)
-        {
-            m_creature->RemoveAurasDueToSpell(SPELL_SUBMERGE_BOSS);
-            m_creature->CastSpell(m_creature, SPELL_EMERGE_BOSS, false);
-            m_bIsSubmerged = false;
-        }
-        else
-        {
-            m_creature->RemoveAurasDueToSpell(SPELL_EMERGE_BOSS);
-            m_creature->CastSpell(m_creature, SPELL_SUBMERGE_BOSS, false);
-            m_bIsSubmerged = true;
         }
     }
 
@@ -166,22 +173,28 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         // this shout switch bethween phases 1 and 2 preety easily
         currentPhase = currentPhase%2+1;
 
+        // custom handlers for switch to concrete phase
         switch(currentPhase)
         {
             case 1:
             {
                 // timers for phase 1
+                m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, false);
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                MergeSwitch();
+                m_TimerMgr->Cooldown(TIMER_PHASE, 80000);
+                m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, true);
+                m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, true);
                 break;
             }
             case 2:
             {
                 // timers for phase 2
+                m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                m_TimerMgr->Cooldown(TIMER_PHASE, 60000);
                 m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB, UNIT_SELECT_SELF);
-
-                MergeSwitch();
+                m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, false);
+                m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
                 break;
             }
             case 3:
@@ -195,17 +208,90 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
                 return;
         }
     }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        // phase switcher
+        if (m_TimerMgr->CheckTimer(TIMER_PHASE))
+        {
+            SwitchPhase();
+            return;
+        }
+
+        // Freezing Slash
+        m_TimerMgr->CheckTimer(TIMER_SLASH);
+
+        // Penetrating Cold
+        m_TimerMgr->CheckTimer(TIMER_COLD);
+    }
+};
+
+struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
+{
+    mob_burrowerAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    bool isSubmerged;
+
+    void Reset()
+    {
+        // submerge handling
+        m_TimerMgr->AddTimer(TIMER_SUBMERGE, 0, 2000, 2000, UNIT_SELECT_NONE);
+
+        m_TimerMgr->AddSpellToQueue(SPELL_SPIDER_FRENZY_AURA, UNIT_SELECT_SELF);
+        m_TimerMgr->AddSpellToQueue(SPELL_EXPOSER_WEAKNESS_A, UNIT_SELECT_SELF);
+        isSubmerged = false;
+    }
+
+    void AttackStart(Unit * pWho)
+    {
+        if (isSubmerged)
+            return;
+
+        ScriptedAI::AttackStart(pWho);
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        // submerge handling
+        if (m_TimerMgr->CheckTimer(TIMER_SUBMERGE))
+        {
+            if (isSubmerged)
+            {
+                uint32 healthToAdd = 5 * m_creature->GetMaxHealth()/100;
+                if (m_creature->GetHealth()+healthToAdd > m_creature->GetMaxHealth())
+                {
+                    m_creature->SetHealth(m_creature->GetMaxHealth());
+                    isSubmerged = false;
+                    m_creature->AddAndLinkAura(SPELL_SUBMERGE_BURR_D, isSubmerged);
+                }
+                m_creature->SetHealth(m_creature->GetHealth()+healthToAdd);
+            }
+            else
+            {
+                if ( m_creature->GetHealthPercent() < 75 &&
+                    !m_creature->HasAura(SPELL_PERMAFROST))
+                {
+                    isSubmerged = true;
+                    m_creature->AddAndLinkAura(SPELL_SUBMERGE_BURR_D, isSubmerged);
+                }
+            }
+        }
+    }
 };
 
 #define POINT_OF_MOVE 123
 
-struct mob_frost_sphereAI : public ScriptedAI
+struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
 {
-    mob_frost_sphereAI(Creature* creature) : ScriptedAI(creature)
-    {
-    }
+    mob_frost_sphereAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
 
-    bool   isDead;
+    bool isDead;
 
     void Reset()
     {
@@ -221,7 +307,7 @@ struct mob_frost_sphereAI : public ScriptedAI
     }
 
     void AttackStart(Unit *){}
-    void DamageTaken(Unit* /*who*/, uint32& uiDamage)
+    void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
     {
         if (isDead)
         {
@@ -269,6 +355,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
     mob_anubarak_spikeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        Reset();
     }
 
     ScriptedInstance* m_pInstance;

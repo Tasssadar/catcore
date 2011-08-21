@@ -1924,6 +1924,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         unitTarget->RemoveGuardian(gargoyle);
                     return;
                 }
+                case 67322:                                 // Submerge - burrower
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 66845, true);
+                    return;
+                }
             }
             break;
         }

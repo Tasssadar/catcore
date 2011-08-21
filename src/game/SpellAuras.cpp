@@ -4811,21 +4811,39 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             caster->CastSpell(target,spellInfo,true,NULL,this);
             return;
         }
-        // Stone Grip
-        else if (GetId() == 62056 || GetId() == 63981)
+
+        switch(GetId())
         {
-            WorldPacket data(12);
-            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
-            data << target->GetPackGUID();
-            data << uint32(0);
-            target->SendMessageToSet(&data, true);
-        }
-        // Surge of Adrenaline
-        else if (GetId() == 66683)
-        {
-            if (target->GetMap() && !target->GetMap()->IsHeroicRaid())
-                target->CastSpell(target, 68667, true);
-            return;
+            // Stone Grip
+            case 62056:
+            case 63981:
+            {
+                WorldPacket data(12);
+                data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                data << target->GetPackGUID();
+                data << uint32(0);
+                target->SendMessageToSet(&data, true);
+                break;
+            }
+            // Surge of Adrenaline
+            case 66683:
+            {
+                if (Map* map = target->GetMap())
+                    if (!map->IsHeroicRaid())
+                        target->CastSpell(target, 68667, true);
+                break;
+            }
+            // Submerge Anub'arak
+            case 65981:
+            // Submerge - Burrower
+            case 67322:
+            {
+                // on submerge aura drop, emerge
+                target->CastSpell(target, 65982, true);
+                break;
+            }
+            default:
+                break;
         }
     }
 }
