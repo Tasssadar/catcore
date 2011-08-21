@@ -140,7 +140,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         if (HandleTimer(m_uiSnoboldsTimer, uiDiff, true))
         {
             DoCast(m_creature, SPELL_RISING_ANGER);
-            Player* plr = SelectRandomPlayerPreferRanged(3, 15, true);
+            Player* plr = SelectRandomPlayerInRange(3, 15, true);
             if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetLocation(), TEMPSUMMON_CORPSE_DESPAWN, 0))
             {
                 crt->AI()->AttackStart(plr);
