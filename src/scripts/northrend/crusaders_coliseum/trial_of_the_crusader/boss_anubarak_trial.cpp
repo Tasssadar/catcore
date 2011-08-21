@@ -58,7 +58,9 @@ enum Spells
     // frost sphere
     NPC_FROST_SPHERE        = 34606,
 
+    SPELL_FROST_SPHERE      = 67539,
     SPELL_PERMAFROST        = 66193,
+    SPELL_PERMAFROST_VISUAL = 65882,
 
     // burrower
     NPC_BURROWER            = 34607,
@@ -191,6 +193,73 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
             }
             default:
                 return;
+        }
+    }
+};
+
+#define POINT_OF_MOVE 123
+
+struct mob_frost_sphereAI : public ScriptedAI
+{
+    mob_frost_sphereAI(Creature* creature) : ScriptedAI(creature)
+    {
+    }
+
+    bool   isDead;
+
+    void Reset()
+    {
+        isDead = false;
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->SetSplineFlags(SPLINEFLAG_FLYING);
+        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+        m_creature->SetSpeedRate(MOVE_FLIGHT, 1.f, true);
+        m_creature->SetDisplayId(25144);
+        m_creature->SetSpeedRate(MOVE_RUN, 0.5, false);
+        m_creature->GetMotionMaster()->MoveRandom(20.0f);
+        DoCast(SPELL_FROST_SPHERE);
+    }
+
+    void AttackStart(Unit *){}
+    void DamageTaken(Unit* /*who*/, uint32& uiDamage)
+    {
+        if (isDead)
+        {
+            uiDamage = 0;
+            return;
+        }
+
+        if (m_creature->GetHealth() < uiDamage)
+        {
+            uiDamage = 0;
+            isDead = true;
+
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+            m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+            m_creature->GetMotionMaster()->Clear();
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            //At hit the ground
+            WorldLocation loc = m_creature->GetLocation();
+            loc.coord_z = m_creature->GetTerrain()->GetHeight(x, y, 130.f, true, 30.f);
+            m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, loc.coord_x, loc.coord_y, loc.coord_z);
+        }
+    }
+
+    void MovementInform(uint32 uiType, uint32 uiPointId)
+    {
+        if (uiType != POINT_MOTION_TYPE)
+            return;
+
+        if (uiPointId == POINT_OF_MOVE)
+        {
+            m_creature->GetMotionMaster()->Clear();
+            m_creature->GetMotionMaster()->MoveIdle();
+            m_creature->RemoveAurasDueToSpell(SPELL_FROST_SPHERE);
+            m_creature->SetDisplayId(11686);
+            m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.0f);
+            m_TimerMgr->AddSpellToQueue(SPELL_PERMAFROST_VISUAL, UNIT_SELECT_SELF);
+            m_TimerMgr->AddSpellToQueue(SPELL_PERMAFROST, UNIT_SELECT_SELF);
         }
     }
 };
