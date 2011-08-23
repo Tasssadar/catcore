@@ -298,12 +298,13 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         isDead = false;
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetSplineFlags(SPLINEFLAG_FLYING);
-        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
         m_creature->SetSpeedRate(MOVE_FLIGHT, 1.f, true);
         m_creature->SetDisplayId(25144);
         m_creature->SetSpeedRate(MOVE_RUN, 0.5, false);
-        m_creature->GetMotionMaster()->MoveRandom(20.0f);
-        DoCast(SPELL_FROST_SPHERE);
+        m_creature->GetMotionMaster()->MoveRandom();
+        DoCast(m_creature, SPELL_FROST_SPHERE);
     }
 
     void AttackStart(Unit *){}
@@ -322,12 +323,13 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
 
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
-            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
             WorldLocation loc = m_creature->GetLocation();
-            loc.coord_z = m_creature->GetTerrain()->GetHeight(x, y, 130.f, true, 30.f);
+            loc.coord_z = m_creature->GetTerrain()->GetHeight(loc.coord_x, loc.coord_y, 130.f, true, 30.f);
             m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, loc.coord_x, loc.coord_y, loc.coord_z);
         }
     }
