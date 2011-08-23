@@ -191,6 +191,13 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // despawns all creatures or gameobject in range with target entry
     void DespawnAllWithEntry(uint32 entry, TypeID type = TYPEID_OBJECT);
 
+    //****************
+    // Timer specific
+    //****************
+
+    // creating timer only for summon
+    void AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown);
+
     // Pointer to spell timer manager of creature
     SpellTimerMgr* m_TimerMgr;
 

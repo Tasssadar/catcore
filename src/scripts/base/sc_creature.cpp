@@ -656,3 +656,8 @@ void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)
             (*itr)->Delete();
     }
 }
+
+void ScriptedAI::AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown)
+{
+    m_TimerMgr->AddTimer(timerId, 0, initialTimer, cooldown, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+}

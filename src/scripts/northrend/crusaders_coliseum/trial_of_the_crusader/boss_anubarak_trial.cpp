@@ -143,11 +143,13 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 
         m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
         m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_PHASE, 0, 80000, 60000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
-        m_TimerMgr->AddTimer(TIMER_BURROWER_SPAWN, 0, urand(5000,15000), urand(80000,90000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+        AddNonCastTimer(TIMER_PHASE, 80000, 60000);
+        AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
 
         if (isHC)
-            m_TimerMgr->AddTimer(TIMER_BURROWER_STRIKE, 0, urand(25000,30000), 30000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+            AddNonCastTimer(TIMER_BURROWER_STRIKE, urand(25000,30000), 30000);
+        else
+            AddNonCastTimer(TIMER_FROST_SPHERE, 30000, 90000);
 
         DespawnAllWithEntry(NPC_BURROWER, TYPEID_UNIT);
         DespawnAllWithEntry(NPC_SCARAB, TYPEID_UNIT);
@@ -308,7 +310,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
     void Reset()
     {
         // submerge handling
-        m_TimerMgr->AddTimer(TIMER_SUBMERGE, 0, 2000, 2000, UNIT_SELECT_NONE);
+        AddNonCastTimer(TIMER_SUBMERGE, 2000, 2000);
 
         m_TimerMgr->AddSpellToQueue(SPELL_SPIDER_FRENZY_AURA, UNIT_SELECT_SELF);
         m_TimerMgr->AddSpellToQueue(SPELL_EXPOSER_WEAKNESS_A, UNIT_SELECT_SELF);
