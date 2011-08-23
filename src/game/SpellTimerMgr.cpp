@@ -108,13 +108,13 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
                     else
                     {
                         sLog.outCatLog("SpellTimerMgr:: QueueUpdate: Queue accesing for non-existing timer in TimerMgr of creature %u, wrong timerId is %u, spell is beeing deleted from queue...", m_owner->GetEntry(), timerId);
-                        m_TimerMap.erase(queueitr);
+                        m_IdToBeCasted.erase(queueitr);
                     }
                 }
                 else
                 {
                     sLog.outCatLog("SpellTimerMgr:: QueueUpdate: In cast queue in TimerMgr of creature %u save non-existing id, deleteing iterator", m_owner->GetEntry());
-                    m_TimerMap.erase(queueitr);
+                    m_IdToBeCasted.erase(queueitr);
                 }
             }
         }
