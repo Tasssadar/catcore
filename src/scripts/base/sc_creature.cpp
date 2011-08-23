@@ -634,7 +634,7 @@ PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float 
     return finalList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
     return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
 }

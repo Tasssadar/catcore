@@ -174,10 +174,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     PlrList GetRandomPlayers(uint8 count, bool not_select_current_victim = false);
 
     // select random players prefer ranged (list of Players)
-    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
+    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // select random player prefer ranged (Player)
-    Player* SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
+    Player* SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // fill players list from threatlist
     PlrList GetAttackingPlayers(bool not_select_current_victim = false);

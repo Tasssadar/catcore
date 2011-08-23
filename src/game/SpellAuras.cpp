@@ -4811,21 +4811,39 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             caster->CastSpell(target,spellInfo,true,NULL,this);
             return;
         }
-        // Stone Grip
-        else if (GetId() == 62056 || GetId() == 63981)
+
+        switch(GetId())
         {
-            WorldPacket data(12);
-            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
-            data << target->GetPackGUID();
-            data << uint32(0);
-            target->SendMessageToSet(&data, true);
-        }
-        // Surge of Adrenaline
-        else if (GetId() == 66683)
-        {
-            if (target->GetMap() && !target->GetMap()->IsHeroicRaid())
-                target->CastSpell(target, 68667, true);
-            return;
+            // Stone Grip
+            case 62056:
+            case 63981:
+            {
+                WorldPacket data(12);
+                data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                data << target->GetPackGUID();
+                data << uint32(0);
+                target->SendMessageToSet(&data, true);
+                break;
+            }
+            // Surge of Adrenaline
+            case 66683:
+            {
+                if (Map* map = target->GetMap())
+                    if (!map->IsHeroicRaid())
+                        target->CastSpell(target, 68667, true);
+                break;
+            }
+            // Submerge Anub'arak
+            case 65981:
+            // Submerge - Burrower
+            case 67322:
+            {
+                // on submerge aura drop, emerge
+                target->CastSpell(target, 65982, true);
+                break;
+            }
+            default:
+                break;
         }
     }
 }
@@ -6225,8 +6243,7 @@ void Aura::HandleAuraModStat(bool apply, bool /*Real*/)
         if (m_modifier.m_miscvalue < 0 || m_modifier.m_miscvalue == i)
         {
             //m_target->ApplyStatMod(Stats(i), m_modifier.m_amount,apply);
-            // Do not check miscvalue in "CheckAuraStackingAndApply", does not work properly for all stats modifiers and it is not needed
-            float change = GetTarget()->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply);
+            float change = GetTarget()->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_VALUE, float(m_modifier.m_amount), apply, 0, i+1);
             if((GetTarget()->GetTypeId() == TYPEID_PLAYER || ((Creature*)GetTarget())->isPet()) && change != 0)
                 GetTarget()->ApplyStatBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply);
         }
@@ -6328,7 +6345,8 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     {
         if (m_modifier.m_miscvalue == i || m_modifier.m_miscvalue == -1)
         {
-            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply, 0, i+1);
+            // Do not check miscvalue in "CheckAuraStackingAndApply", does not work properly for all stats modifiers and it is not needed
+            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply);
             if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet() && change != 0)
                 target->ApplyStatPercentBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply );
         }
