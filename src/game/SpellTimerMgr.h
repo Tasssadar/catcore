@@ -40,6 +40,9 @@ struct SpellTimerMgr
 
         void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs);
 
+        void SetUpdatable(bool update) { isUpdatable = update; }
+        bool IsUpdatable() const { return isUpdatable; }
+
     private:
         SpellTimerMap m_TimerMap;
         TimerIdList m_IdToBeCasted;
@@ -47,6 +50,8 @@ struct SpellTimerMgr
         SpellTimer* m_GCD;
 
         Unit* m_owner;
+
+        bool isUpdatable;
 };
 
 #endif // CREATURECASTMGR_H

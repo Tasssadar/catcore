@@ -148,6 +148,11 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 
         if (isHC)
             m_TimerMgr->AddTimer(TIMER_BURROWER_STRIKE, 0, urand(25000,30000), 30000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+
+        DespawnAllWithEntry(NPC_BURROWER, TYPEID_UNIT);
+        DespawnAllWithEntry(NPC_SCARAB, TYPEID_UNIT);
+        DespawnAllWithEntry(NPC_FROST_SPHERE, TYPEID_UNIT);
+        DespawnAllWithEntry(NPC_SPIKE, TYPEID_UNIT);
     }
 
     void Aggro(Unit* pWho)
@@ -219,7 +224,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
             {
                 // timers for phase 3
                 // add to queue leeching swarm
-                if (!isHc)
+                if (!isHC)
                     m_TimerMgr->SetValue(TIMER_BURROWER_SPAWN, TIMER_VALUE_UPDATEABLE, false);
 
                 m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
@@ -347,6 +352,29 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
                 }
             }
         }
+    }
+};
+
+struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
+{
+    mob_scarab_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    void Reset()
+    {
+        m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
+        m_TimerMgr->AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+    }
+
+    void UpdateAI(const uint32 /*uiDiff*/)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        // Determination
+        m_TimerMgr->CheckTimer(TIMER_DETERMINATION);
     }
 };
 
