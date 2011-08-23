@@ -188,6 +188,9 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
 
+    // despawns all creatures or gameobject in range with target entry
+    bool DespawnAllWithEntry(uint32 entry, TypeID type = TYPEID_OBJECT);
+
     // Pointer to spell timer manager of creature
     SpellTimerMgr* m_TimerMgr;
 

@@ -30,12 +30,17 @@ enum Timers
     TIMER_SLASH = 0,
     TIMER_COLD,
     TIMER_PHASE,
+    TIMER_BURROWER_SPAWN,
+    TIMER_BURROWER_STRIKE,
 
     // spike
     TIMER_SPIKES,
 
     // burrower
     TIMER_SUBMERGE,
+
+    // scarab
+    TIMER_DETERMINATION,
 };
 
 enum Spells
@@ -108,6 +113,14 @@ enum Spells
 
 };
 
+const WorldLocation BurrowerLoc[]=
+{
+    WorldLocation(0, 694.886353f, 102.484665f, 142.119614f),
+    WorldLocation(0, 694.500671f, 185.363968f, 142.117905f),
+    WorldLocation(0, 731.987244f, 83.3824690f, 142.119614f),
+    WorldLocation(0, 740.184509f, 193.443390f, 142.117584f),
+};
+
 struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 {
     boss_anubarak_toc(Creature* pCreature) : ScriptedAI(pCreature)
@@ -131,7 +144,10 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
         m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
         m_TimerMgr->AddTimer(TIMER_PHASE, 0, 80000, 60000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+        m_TimerMgr->AddTimer(TIMER_BURROWER_SPAWN, 0, urand(5000,15000), urand(80000,90000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
 
+        if (isHC)
+            m_TimerMgr->AddTimer(TIMER_BURROWER_STRIKE, 0, urand(25000,30000), 30000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
     }
 
     void Aggro(Unit* pWho)
@@ -184,6 +200,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
                 m_TimerMgr->Cooldown(TIMER_PHASE, 80000);
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, true);
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, true);
+                m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, true);
                 break;
             }
             case 2:
@@ -195,12 +212,16 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
                 m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB, UNIT_SELECT_SELF);
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
+                m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, false);
                 break;
             }
             case 3:
             {
                 // timers for phase 3
                 // add to queue leeching swarm
+                if (!isHc)
+                    m_TimerMgr->SetValue(TIMER_BURROWER_SPAWN, TIMER_VALUE_UPDATEABLE, false);
+
                 m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
                 break;
             }
@@ -226,6 +247,50 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 
         // Penetrating Cold
         m_TimerMgr->CheckTimer(TIMER_COLD);
+
+        // Burrower Spawn
+        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_SPAWN))
+        {
+            uint8 index[] = {0, 1, 2, 3};
+            uint8 count = 0;
+            switch(m_dDifficulty)
+            {
+                case RAID_DIFFICULTY_10MAN_NORMAL:
+                    index[0] = urand(0,3);
+                    count = 1;
+                    break;
+                case RAID_DIFFICULTY_25MAN_NORMAL:
+                case RAID_DIFFICULTY_10MAN_HEROIC:
+                    index[0] = urand(0,3);
+                    index[1] = index[0]+urand(1,3);
+                    count = 2;
+                    break;
+                case RAID_DIFFICULTY_25MAN_HEROIC:
+                    count = 4;
+                    break;
+                default:
+                    break;
+            }
+
+            for(uint8 i = 0; i < count; ++i)
+            {
+                if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], TEMPSUMMON_CORPSE_DESPAWN, 0))
+                {
+                    if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
+                        crt->AI()->AttackStart(target);
+                }
+            }
+        }
+
+        // Burrower Strike
+        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_STRIKE))
+        {
+            CreatureList list;
+            GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
+            for (CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+                if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
+                    (*itr)->CastSpell(target, SPELL_SHADOW_STRIKE, false);
+        }
     }
 };
 
@@ -298,12 +363,13 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         isDead = false;
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetSplineFlags(SPLINEFLAG_FLYING);
-        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
         m_creature->SetSpeedRate(MOVE_FLIGHT, 1.f, true);
         m_creature->SetDisplayId(25144);
         m_creature->SetSpeedRate(MOVE_RUN, 0.5, false);
-        m_creature->GetMotionMaster()->MoveRandom(20.0f);
-        DoCast(SPELL_FROST_SPHERE);
+        m_creature->GetMotionMaster()->MoveRandom();
+        DoCast(m_creature, SPELL_FROST_SPHERE);
     }
 
     void AttackStart(Unit *){}
@@ -322,12 +388,13 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
 
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
-            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING);
+            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
             WorldLocation loc = m_creature->GetLocation();
-            loc.coord_z = m_creature->GetTerrain()->GetHeight(x, y, 130.f, true, 30.f);
+            loc.coord_z = m_creature->GetTerrain()->GetHeight(loc.coord_x, loc.coord_y, 130.f, true, 30.f);
             m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, loc.coord_x, loc.coord_y, loc.coord_z);
         }
     }

@@ -638,3 +638,21 @@ Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_
 {
     return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
 }
+
+void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)
+{
+    if (!type || type == TYPEID_UNIT)
+    {
+        CreatureList list;
+        GetCreatureListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->ForcedDespawn();
+    }
+    if (!type || type == TYPEID_GAMEOBJECT)
+    {
+        GameObjectList list;
+        GetGameObjectListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(GameObjectList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->Delete();
+    }
+}
