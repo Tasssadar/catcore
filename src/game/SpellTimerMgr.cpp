@@ -58,6 +58,8 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
         timer->SetTarget(target);
 
     timer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+
+    m_IdToBeCasted.push_back(timerId);
 }
 
 void SpellTimerMgr::RemoveTimer(uint32 timerId)
@@ -68,13 +70,17 @@ void SpellTimerMgr::RemoveTimer(uint32 timerId)
 
 void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 {
+    if (!isUpdatable)
+        return;
+
     m_GCD->Update(uiDiff);
 
     if (!m_TimerMap.empty())
     {
         for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
-            if (itr->second->GetValue(TIMER_VALUE_UPDATEABLE))
-                itr->second->Update(uiDiff);
+            if (SpellTimer* timer = itr->second)
+                if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
+                    timer->Update(uiDiff);
 
         if (!m_IdToBeCasted.empty())
         {

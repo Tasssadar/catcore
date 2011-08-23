@@ -526,7 +526,7 @@ void Creature::Update(uint32 diff)
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
 
-                if (m_TimerMgr && m_TimerMgr->IsUpdatable())
+                if (m_TimerMgr)
                     m_TimerMgr->UpdateTimers(diff);
 
                 i_AI->UpdateAI(diff);
