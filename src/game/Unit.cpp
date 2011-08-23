@@ -17156,7 +17156,7 @@ void Unit::AddAndLinkAura(uint32 auraId, bool apply)
     if (apply)
     {
         if (!HasAura(auraId))
-            CastSpell(this, auraId, true);
+            CastSpell(this, auraId, false);
     }
     else
         RemoveAurasDueToSpell(auraId);

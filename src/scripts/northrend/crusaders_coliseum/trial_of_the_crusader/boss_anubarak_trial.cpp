@@ -167,6 +167,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         DespawnAllWithEntry(NPC_SCARAB, TYPEID_UNIT);
         DespawnAllWithEntry(NPC_FROST_SPHERE, TYPEID_UNIT);
         DespawnAllWithEntry(NPC_SPIKE, TYPEID_UNIT);
+
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
     }
 
     void Aggro(Unit* pWho)
@@ -317,8 +319,13 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         // Frost Sphere spawn
         if (m_TimerMgr->TimerFinished(TIMER_FROST_SPHERE))
         {
-            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], TEMPSUMMON_MANUAL_DESPAWN, 0);
+            CreatureList list;
+            GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
+            if (list.size() < 6)
+                m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], TEMPSUMMON_MANUAL_DESPAWN, 0);
         }
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -375,6 +382,8 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
                 }
             }
         }
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -407,6 +416,8 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
 
         // Determination
         m_TimerMgr->TimerFinished(TIMER_DETERMINATION);
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -423,12 +434,11 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         isDead = false;
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetSplineFlags(SPLINEFLAG_FLYING);
-        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-        m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
         m_creature->SetSpeedRate(MOVE_FLIGHT, 1.f, true);
         m_creature->SetDisplayId(25144);
         m_creature->SetSpeedRate(MOVE_RUN, 0.5, false);
         m_creature->GetMotionMaster()->MoveRandom();
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         DoCast(m_creature, SPELL_FROST_SPHERE);
     }
 
@@ -448,8 +458,6 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
 
             m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
-            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
-            m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
             m_creature->SetSpeedRate(MOVE_FLIGHT, 4.f, true);
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
