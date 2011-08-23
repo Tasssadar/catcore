@@ -207,9 +207,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
     {
         if (three)
             currentPhase = 3;
-
-        // this shout switch bethween phases 1 and 2 preety easily
-        currentPhase = currentPhase%2+1;
+        else
+            currentPhase = currentPhase%2+1; // this shout switch bethween phases 1 and 2 preety easily
 
         // custom handlers for switch to concrete phase
         switch(currentPhase)
@@ -299,7 +298,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             {
                 if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
-                    if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
+                    if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         crt->AI()->AttackStart(target);
                 }
             }
@@ -451,6 +450,7 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
             m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
             m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+            m_creature->SetSpeedRate(MOVE_FLIGHT, 4.f, true);
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
@@ -637,6 +637,9 @@ void AddSC_boss_anubarak_trial()
 }
 
 /*
-UPDATE creature_template SET
-
+UPDATE creature_template SET ScriptName = 'boss_anubarak_toc' WHERE entry = 34564;
+UPDATE creature_template SET ScriptName = 'mob_burrower' WHERE entry = 34607;
+UPDATE creature_template SET ScriptName = 'mob_scarab_toc' WHERE entry = 34605;
+UPDATE creature_template SET ScriptName = 'mob_frost_sphere', InhibitType = 7 WHERE entry = 34606;
+UPDATE creature_template SET ScriptName = 'mob_anubarak_spike' WHERE entry = 34660;
 */
