@@ -241,20 +241,20 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
             return;
 
         // phase switcher
-        if (m_TimerMgr->CheckTimer(TIMER_PHASE))
+        if (m_TimerMgr->TimerFinished(TIMER_PHASE))
         {
             SwitchPhase();
             return;
         }
 
         // Freezing Slash
-        m_TimerMgr->CheckTimer(TIMER_SLASH);
+        m_TimerMgr->TimerFinished(TIMER_SLASH);
 
         // Penetrating Cold
-        m_TimerMgr->CheckTimer(TIMER_COLD);
+        m_TimerMgr->TimerFinished(TIMER_COLD);
 
         // Burrower Spawn
-        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_SPAWN))
+        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_SPAWN))
         {
             uint8 index[] = {0, 1, 2, 3};
             uint8 count = 0;
@@ -288,7 +288,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         }
 
         // Burrower Strike
-        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_STRIKE))
+        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_STRIKE))
         {
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
@@ -329,7 +329,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
             return;
 
         // submerge handling
-        if (m_TimerMgr->CheckTimer(TIMER_SUBMERGE))
+        if (m_TimerMgr->TimerFinished(TIMER_SUBMERGE))
         {
             if (isSubmerged)
             {
@@ -374,7 +374,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
             return;
 
         // Determination
-        m_TimerMgr->CheckTimer(TIMER_DETERMINATION);
+        m_TimerMgr->TimerFinished(TIMER_DETERMINATION);
     }
 };
 
@@ -527,7 +527,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_TimerMgr->CheckTimer(TIMER_SPIKES))
+        if (m_TimerMgr->TimerFinished(TIMER_SPIKES))
         {
             ++speedLevel;
 

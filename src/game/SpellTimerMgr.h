@@ -17,14 +17,14 @@ struct SpellTimerMgr
         ~SpellTimerMgr();
 
         SpellTimer* operator[] (uint32 timerId) { return m_TimerMap[timerId]; }
-        bool operator() (uint32 timerId) { return CheckTimer(timerId, NULL); }
+        bool operator() (uint32 timerId) { return TimerFinished(timerId, NULL); }
 
         void AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
         void RemoveTimer(uint32 timerId);               // not safe to use right now
         SpellTimer* GetTimer(uint32 timerId);
 
         void UpdateTimers(uint32 const uiDiff);
-        bool CheckTimer(uint32 timerId, Unit* target = NULL);
+        bool TimerFinished(uint32 timerId, Unit* target = NULL);
         void AddToCastQueue(uint32 timerId) { m_IdToBeCasted.push_back(timerId); }
         void AddSpellToQueue(uint32 spellId, UnitSelectType targetType = UNIT_SELECT_NONE, uint64 targetInfo = 0, Unit* target = NULL);
 
