@@ -133,9 +133,9 @@ const WorldLocation SphereLoc[] =
     WorldLocation(0, 706.6383f, 161.5266f, 155.6701f),
 };
 
-struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
+struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 {
-    boss_anubarak_toc(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_anubarak_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -153,8 +153,8 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
     {
         currentPhase = 0;
 
-        m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
-        m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
         AddNonCastTimer(TIMER_PHASE, 80000, 60000);
         AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
 
@@ -235,6 +235,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, false);
+                m_TimerMgr->AddSpellToQueue(SPELL_SPIKE_CALL, UNIT_SELECT_SELF);
                 break;
             }
             case 3:
@@ -388,7 +389,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
     void Reset()
     {
         m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* boss = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
         {
@@ -497,10 +498,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         m_creature->DeleteThreatList();
         m_creature->GetMotionMaster()->Clear();
 
-        if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
-            tSpikes->Reset(TIMER_VALUE_ALL);
-        else
-            m_TimerMgr->AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* anub = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
             anub->CastSpell(m_creature, SPELL_PURSUING_SPIKES_TEL, false);
@@ -583,8 +581,62 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
     }
 };
 
+CreatureAI* GetAI_boss_anubarak_toc(Creature* pCreature)
+{
+    return new boss_anubarak_tocAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_burrower(Creature* pCreature)
+{
+    return new mob_burrowerAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_scarab_toc(Creature* pCreature)
+{
+    return new mob_scarab_tocAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
+{
+    return new mob_frost_sphereAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_anubarak_spike(Creature* pCreature)
+{
+    return new mob_anubarak_spikeAI(pCreature);
+}
+
 void AddSC_boss_anubarak_trial()
 {
     Script* newscript;
 
+    newscript = new Script;
+    newscript->Name = "boss_anubarak_toc";
+    newscript->GetAI = &GetAI_boss_anubarak_toc;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_burrower";
+    newscript->GetAI = &GetAI_mob_burrower;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_scarab_toc";
+    newscript->GetAI = &GetAI_mob_scarab_toc;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_frost_sphere";
+    newscript->GetAI = &GetAI_mob_frost_sphere;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_anubarak_spike";
+    newscript->GetAI = &GetAI_mob_anubarak_spike;
+    newscript->RegisterSelf();
 }
+
+/*
+UPDATE creature_template SET
+
+*/
