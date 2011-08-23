@@ -133,9 +133,9 @@ const WorldLocation SphereLoc[] =
     WorldLocation(0, 706.6383f, 161.5266f, 155.6701f),
 };
 
-struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
+struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 {
-    boss_anubarak_toc(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_anubarak_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -235,6 +235,7 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, false);
+                m_TimerMgr->AddSpellToQueue(SPELL_SPIKE_CALL, UNIT_SELECT_SELF);
                 break;
             }
             case 3:
@@ -580,8 +581,62 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
     }
 };
 
+CreatureAI* GetAI_boss_anubarak_toc(Creature* pCreature)
+{
+    return new boss_anubarak_tocAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_burrower(Creature* pCreature)
+{
+    return new mob_burrowerAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_scarab_toc(Creature* pCreature)
+{
+    return new mob_scarab_tocAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_frost_sphere(Creature* pCreature)
+{
+    return new mob_frost_sphereAI(pCreature);
+}
+
+CreatureAI* GetAI_mob_anubarak_spike(Creature* pCreature)
+{
+    return new mob_anubarak_spikeAI(pCreature);
+}
+
 void AddSC_boss_anubarak_trial()
 {
     Script* newscript;
 
+    newscript = new Script;
+    newscript->Name = "boss_anubarak_toc";
+    newscript->GetAI = &GetAI_boss_anubarak_toc;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_burrower";
+    newscript->GetAI = &GetAI_mob_burrower;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_scarab_toc";
+    newscript->GetAI = &GetAI_mob_scarab_toc;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_frost_sphere";
+    newscript->GetAI = &GetAI_mob_frost_sphere;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_anubarak_spike";
+    newscript->GetAI = &GetAI_mob_anubarak_spike;
+    newscript->RegisterSelf();
 }
+
+/*
+UPDATE creature_template SET
+
+*/
