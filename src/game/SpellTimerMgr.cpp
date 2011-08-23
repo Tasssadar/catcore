@@ -77,44 +77,44 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 
     if (!m_TimerMap.empty())
     {
-        for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
+        for(SpellTimerMap::iterator updateitr = m_TimerMap.begin(); updateitr != m_TimerMap.end(); ++updateitr)
         {
-            if (SpellTimer* timer = itr->second)
+            if (SpellTimer* timer = updateitr->second)
             {
                 if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
                     timer->Update(uiDiff);
             }
             else
             {
-                uint32 timerId = itr->first;
+                uint32 timerId = updateitr->first;
                 sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager  for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
-                m_TimerMap.erase(itr);
+                m_TimerMap.erase(updateitr);
             }
 
         }
 
         if (!m_IdToBeCasted.empty())
         {
-            for(TimerIdList::iterator itr = m_IdToBeCasted.begin(); itr != m_IdToBeCasted.end(); ++itr)
+            for(TimerIdList::iterator queueitr = m_IdToBeCasted.begin(); queueitr != m_IdToBeCasted.end(); ++queueitr)
             {
-                if (uint32 timerId = *itr)
+                if (uint32 timerId = *queueitr)
                 {
                     if (m_TimerMap[timerId])
                     {
                         if (CanBeTimerFinished(timerId))
                             if (FinishTimer(timerId))
-                                m_IdToBeCasted.erase(itr);
+                                m_IdToBeCasted.erase(queueitr);
                     }
                     else
                     {
                         sLog.outCatLog("SpellTimerMgr:: QueueUpdate: Queue accesing for non-existing timer in TimerMgr of creature %u, wrong timerId is %u, spell is beeing deleted from queue...", m_owner->GetEntry(), timerId);
-                        m_TimerMap.erase(itr);
+                        m_TimerMap.erase(queueitr);
                     }
                 }
                 else
                 {
                     sLog.outCatLog("SpellTimerMgr:: QueueUpdate: In cast queue in TimerMgr of creature %u save non-existing id, deleteing iterator", m_owner->GetEntry());
-                    m_TimerMap.erase(itr);
+                    m_TimerMap.erase(queueitr);
                 }
             }
         }
