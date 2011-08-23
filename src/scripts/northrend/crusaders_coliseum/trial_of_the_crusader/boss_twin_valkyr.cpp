@@ -133,14 +133,14 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
         bool specialCasted = false;
 
         // shield + heal
-        if (m_TimerMgr->CheckTimer(TIMER_SHIELD))
+        if (m_TimerMgr->TimerFinished(TIMER_SHIELD))
         {
             m_TimerMgr->AddToCastQueue(TIMER_HEAL);
             specialCasted = true;
         }
 
         // vortex
-        if (m_TimerMgr->CheckTimer(TIMER_VORTEX))
+        if (m_TimerMgr->TimerFinished(TIMER_VORTEX))
             specialCasted = true;
 
         if (specialCasted)
@@ -155,13 +155,13 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
         }
 
         // Twin Spike
-        m_TimerMgr->CheckTimer(TIMER_SPIKE);
+        m_TimerMgr->TimerFinished(TIMER_SPIKE);
 
         // Touch of Light/Darkness
-        m_TimerMgr->CheckTimer(TIMER_TOUCH);
+        m_TimerMgr->TimerFinished(TIMER_TOUCH);
 
         // summon Concentrated
-        if (m_TimerMgr->CheckTimer(TIMER_CONCENTRATED))
+        if (m_TimerMgr->TimerFinished(TIMER_CONCENTRATED))
         {
             WorldLocation loc(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 0);
             float radius = 35.0f;

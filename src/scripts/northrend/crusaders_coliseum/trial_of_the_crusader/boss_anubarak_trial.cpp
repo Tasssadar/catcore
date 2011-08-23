@@ -32,6 +32,7 @@ enum Timers
     TIMER_PHASE,
     TIMER_BURROWER_SPAWN,
     TIMER_BURROWER_STRIKE,
+    TIMER_FROST_SPHERE,
 
     // spike
     TIMER_SPIKES,
@@ -40,7 +41,7 @@ enum Timers
     TIMER_SUBMERGE,
 
     // scarab
-    TIMER_DETERMINATION,
+    TIMER_DETERMINATION
 };
 
 enum Spells
@@ -110,6 +111,7 @@ enum Spells
     SPELL_PURSUING_SPIKES_2 = 65922,
     SPELL_PURSUING_SPIKES_3 = 65923,
     SPELL_PURSUING_SPIKES_D = 65921,
+    SPELL_PURSUING_SPIKES_F = 66181
 
 };
 
@@ -119,6 +121,16 @@ const WorldLocation BurrowerLoc[]=
     WorldLocation(0, 694.500671f, 185.363968f, 142.117905f),
     WorldLocation(0, 731.987244f, 83.3824690f, 142.119614f),
     WorldLocation(0, 740.184509f, 193.443390f, 142.117584f),
+};
+
+const WorldLocation SphereLoc[] =
+{
+    WorldLocation(0, 786.6439f, 108.2498f, 155.6701f),
+    WorldLocation(0, 806.8429f, 150.5902f, 155.6701f),
+    WorldLocation(0, 759.1386f, 163.9654f, 155.6701f),
+    WorldLocation(0, 744.3701f, 119.5211f, 155.6701f),
+    WorldLocation(0, 710.0211f, 120.8152f, 155.6701f),
+    WorldLocation(0, 706.6383f, 161.5266f, 155.6701f),
 };
 
 struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
@@ -143,11 +155,13 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
 
         m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
         m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_PHASE, 0, 80000, 60000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
-        m_TimerMgr->AddTimer(TIMER_BURROWER_SPAWN, 0, urand(5000,15000), urand(80000,90000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+        AddNonCastTimer(TIMER_PHASE, 80000, 60000);
+        AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
 
         if (isHC)
-            m_TimerMgr->AddTimer(TIMER_BURROWER_STRIKE, 0, urand(25000,30000), 30000, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+            AddNonCastTimer(TIMER_BURROWER_STRIKE, urand(25000,30000), 30000);
+        else
+            AddNonCastTimer(TIMER_FROST_SPHERE, 30000, 90000);
 
         DespawnAllWithEntry(NPC_BURROWER, TYPEID_UNIT);
         DespawnAllWithEntry(NPC_SCARAB, TYPEID_UNIT);
@@ -161,6 +175,9 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
             return;
 
         currentPhase = 1;
+
+        for(uint8 i = 0; i < 6; ++i)
+            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], TEMPSUMMON_MANUAL_DESPAWN, 0);
     }
 
     void AttackStart(Unit* pWho)
@@ -241,20 +258,20 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
             return;
 
         // phase switcher
-        if (m_TimerMgr->CheckTimer(TIMER_PHASE))
+        if (m_TimerMgr->TimerFinished(TIMER_PHASE))
         {
             SwitchPhase();
             return;
         }
 
         // Freezing Slash
-        m_TimerMgr->CheckTimer(TIMER_SLASH);
+        m_TimerMgr->TimerFinished(TIMER_SLASH);
 
         // Penetrating Cold
-        m_TimerMgr->CheckTimer(TIMER_COLD);
+        m_TimerMgr->TimerFinished(TIMER_COLD);
 
-        // Burrower Spawn
-        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_SPAWN))
+        // Burrower spawn
+        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_SPAWN))
         {
             uint8 index[] = {0, 1, 2, 3};
             uint8 count = 0;
@@ -288,13 +305,19 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
         }
 
         // Burrower Strike
-        if (m_TimerMgr->CheckTimer(TIMER_BURROWER_STRIKE))
+        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_STRIKE))
         {
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
             for (CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
                 if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
                     (*itr)->CastSpell(target, SPELL_SHADOW_STRIKE, false);
+        }
+
+        // Frost Sphere spawn
+        if (m_TimerMgr->TimerFinished(TIMER_FROST_SPHERE))
+        {
+            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], TEMPSUMMON_MANUAL_DESPAWN, 0);
         }
     }
 };
@@ -308,7 +331,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
     void Reset()
     {
         // submerge handling
-        m_TimerMgr->AddTimer(TIMER_SUBMERGE, 0, 2000, 2000, UNIT_SELECT_NONE);
+        AddNonCastTimer(TIMER_SUBMERGE, 2000, 2000);
 
         m_TimerMgr->AddSpellToQueue(SPELL_SPIDER_FRENZY_AURA, UNIT_SELECT_SELF);
         m_TimerMgr->AddSpellToQueue(SPELL_EXPOSER_WEAKNESS_A, UNIT_SELECT_SELF);
@@ -329,7 +352,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
             return;
 
         // submerge handling
-        if (m_TimerMgr->CheckTimer(TIMER_SUBMERGE))
+        if (m_TimerMgr->TimerFinished(TIMER_SUBMERGE))
         {
             if (isSubmerged)
             {
@@ -366,6 +389,15 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
     {
         m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
         m_TimerMgr->AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+
+        if (Creature* boss = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
+        {
+            if (Unit* target = boss->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1))
+            {
+                AttackStart(target);
+                m_creature->AddThreat(target, 20000.f);
+            }
+        }
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -374,7 +406,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
             return;
 
         // Determination
-        m_TimerMgr->CheckTimer(TIMER_DETERMINATION);
+        m_TimerMgr->TimerFinished(TIMER_DETERMINATION);
     }
 };
 
@@ -506,9 +538,14 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void CastFinished(const SpellEntry *spellInfo)
     {
-        if (spellInfo->Id == SPELL_PERMAFROST &&
+        if (spellInfo->Id == SPELL_PURSUING_SPIKES_F &&
             timeOnTarget > 4000)
+        {
+            if (Creature* crt = GetClosestCreatureWithEntry(m_creature, NPC_FROST_SPHERE, 20.f))
+                crt->ForcedDespawn();
+
             Reset();
+        }
     }
 
     void AttackStart(Unit* pWho)
@@ -516,18 +553,15 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         if (!pWho)
             return;
 
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho, 99999.f);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            m_creature->GetMotionMaster()->MoveChase(pWho);
-        }
+        m_creature->AddThreat(pWho, 99999.f);
+        m_creature->SetInCombatWith(pWho);
+        pWho->SetInCombatWith(m_creature);
+        m_creature->GetMotionMaster()->MoveChase(pWho);
     }
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_TimerMgr->CheckTimer(TIMER_SPIKES))
+        if (m_TimerMgr->TimerFinished(TIMER_SPIKES))
         {
             ++speedLevel;
 

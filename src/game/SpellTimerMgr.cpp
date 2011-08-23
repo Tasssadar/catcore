@@ -147,7 +147,7 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-bool SpellTimerMgr::CheckTimer(uint32 timerId, Unit *target)
+bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
     SpellTimer* timer = m_TimerMap[timerId];
 
