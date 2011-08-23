@@ -153,8 +153,8 @@ struct MANGOS_DLL_DECL boss_anubarak_toc : public ScriptedAI
     {
         currentPhase = 0;
 
-        m_TimerMgr->AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
-        m_TimerMgr->AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
         AddNonCastTimer(TIMER_PHASE, 80000, 60000);
         AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
 
@@ -388,7 +388,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
     void Reset()
     {
         m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* boss = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
         {
@@ -497,10 +497,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         m_creature->DeleteThreatList();
         m_creature->GetMotionMaster()->Clear();
 
-        if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
-            tSpikes->Reset(TIMER_VALUE_ALL);
-        else
-            m_TimerMgr->AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_SPIKES, pursuingId(), 1000, 3000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* anub = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
             anub->CastSpell(m_creature, SPELL_PURSUING_SPIKES_TEL, false);
