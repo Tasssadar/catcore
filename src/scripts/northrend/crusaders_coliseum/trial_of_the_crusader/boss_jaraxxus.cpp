@@ -152,9 +152,9 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         m_TimerMgr->TimerFinished(TIMER_FEL_LIGHTNING);
 
         // Incinerate Flesh
-        if (m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH))
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH))
         {
-            if (Unit* target = m_TimerMgr->GetTimer(TIMER_INCINERATE_FLESH)->getTarget())
+            if (Unit* target = timer->getTarget())
                 DoScriptText(EMOTE_INCINERATE, m_creature, target);
 
             DoScriptText(SAY_INCINERATE, m_creature);
@@ -162,9 +162,9 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
 
         // Legion Flame
-        if (m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME))
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME))
         {
-            if (Unit* target = m_TimerMgr->GetTimer(TIMER_LEGION_FLAME)->getTarget())
+            if (Unit* target = timer->getTarget())
                 DoScriptText(EMOTE_LEGION_FLAME, m_creature, target);
         }
 

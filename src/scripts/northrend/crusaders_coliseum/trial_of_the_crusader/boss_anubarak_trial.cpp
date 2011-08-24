@@ -614,22 +614,19 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (m_TimerMgr->TimerFinished(TIMER_SPIKES))
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_SPIKES))
         {
             ++speedLevel;
 
-            if (SpellTimer* tSpikes = m_TimerMgr->GetTimer(TIMER_SPIKES))
+            if (timer->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
             {
-                if (tSpikes->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
-                {
-                    if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
-                        SetTarget(plr);
-                }
-                else
-                    tSpikes->Cooldown(7000, true);
-
-                tSpikes->SetValue(TIMER_VALUE_SPELLID, pursuingId());
+                if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
+                    SetTarget(plr);
             }
+            else
+                timer->Cooldown(7000, true);
+
+            timer->SetValue(TIMER_VALUE_SPELLID, pursuingId());
         }
 
         timeOnTarget += uiDiff;

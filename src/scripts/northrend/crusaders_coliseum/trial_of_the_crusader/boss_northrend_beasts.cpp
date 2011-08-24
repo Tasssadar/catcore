@@ -682,21 +682,24 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_TimerMgr->TimerFinished(TIMER_WHIRL);
 
         // Arctic Breath
-        if (m_TimerMgr->TimerFinished(TIMER_BREATH))
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_BREATH))
         {
             if (!isCastingBreath)
             {
-                if (Unit* target = m_TimerMgr->GetTimer(TIMER_BREATH)->getTarget())
+                if (Unit* target = timer->getTarget())
                     m_creature->FixOrientation(m_creature->GetAngle(target));
+
+                timer->SetValue(TIMER_VALUE_SPELLID, 0);
+                timer->Cooldown(TIMER_BREATH, 5000);
                 isCastingBreath = true;
             }
             else
             {
                 m_creature->FixOrientation();
                 isCastingBreath = false;
+                timer->Reset(TIMER_VALUE_SPELLID);
+                timer->Cooldown(TIMER_BREATH, 15000);
             }
-
-            m_TimerMgr->Cooldown(TIMER_BREATH, isCastingBreath ? 5000 : 15000);
         }
 
         // Massive Crash
