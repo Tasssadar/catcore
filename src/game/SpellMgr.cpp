@@ -667,6 +667,7 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
         case 52988:                                         // Penance heal effect trigger - Rank 4
         case 64844:                                         // Divine Hymn
         case 64904:                                         // Hymn of Hope
+        case 66129:                                         // Spider Frenzy
             return true;
         case 56266:
         case 63355:

@@ -62,20 +62,20 @@ struct SpellTimer
         bool  isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
 
     private:
-        Unit* caster_m;
-        Unit* target_m;
-
         uint32 timer_m;
         uint32 cooldown_m;
         uint32 spellId_m;
 
-        uint32 initialTimer_m;
         uint32 initialSpellId_m;
+        uint32 initialTimer_m;
         uint32 initialCooldown_m;
 
         UnitSelectType targetType_m;
         CastType castType_m;
+
         uint64 targetInfo_m;
+        Unit* caster_m;
+        Unit* target_m;
 
         bool updateAllowed_m;
         bool shouldDeleteWhenFinish_m;
