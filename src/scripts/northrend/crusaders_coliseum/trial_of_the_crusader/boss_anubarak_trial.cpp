@@ -46,6 +46,19 @@ enum Timers
     TIMER_DETERMINATION
 };
 
+enum Say
+{
+    SAY_INTRO               = -1649055, // say at unborrow
+    SAY_AGGRO               = -1649056,
+    SAY_KILL1               = -1649057,
+    SAY_KILL2               = -1649058,
+    SAY_DEATH               = -1649059,
+    EMOTE_SPIKE             = -1649060,
+    SAY_BURROWER            = -1649061,
+    EMOTE_LEECHING_SWARM    = -1649062,
+    SAY_LEECHING_SWARM      = -1649063
+};
+
 enum Spells
 {
     // anubarak
@@ -182,6 +195,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
         for(uint8 i = 0; i < 6; ++i)
             m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
+
+        DoScriptText(SAY_AGGRO, m_creature);
     }
 
     void AttackStart(Unit* pWho)
@@ -190,6 +205,12 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             return;
 
         ScriptedAI::AttackStart(pWho);
+    }
+
+    void KilledUnit(Unit * pWho)
+    {
+        if (pWho->GetTypeId() == TYPEID_PLAYER)
+            DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
@@ -205,6 +226,11 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         {
             SwitchPhase(true);
         }
+    }
+
+    void JustDied(Unit * /*pWho*/)
+    {
+        DoScriptText(SAY_DEATH, m_creature);
     }
 
     void SwitchPhase(bool three = false)
@@ -239,6 +265,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->AddSpellToQueue(SPELL_SPIKE_CALL, UNIT_SELECT_SELF);
+                DoScriptText(SAY_BURROWER, m_creature);
                 break;
             }
             case 3:
@@ -249,6 +276,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
                     m_TimerMgr->SetValue(TIMER_BURROWER_SPAWN, TIMER_VALUE_UPDATEABLE, false);
 
                 m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
+                DoScriptText(EMOTE_LEECHING_SWARM, m_creature);
+                DoScriptText(SAY_LEECHING_SWARM, m_creature);
                 break;
             }
             default:
@@ -544,6 +573,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         DoCast(pWho, SPELL_PURSUED);
         m_creature->SetSpeedRate(MOVE_RUN, 0.5f);
         AttackStart(pWho);
+        DoScriptText(EMOTE_SPIKE, m_creature, pWho);
     }
 
     void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
@@ -577,6 +607,8 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         m_creature->AddThreat(pWho, 99999.f);
         m_creature->SetInCombatWith(pWho);
         pWho->SetInCombatWith(m_creature);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        m_creature->SetSpeedRate(MOVE_RUN, 1.0f, true);
         m_creature->GetMotionMaster()->MoveChase(pWho);
     }
 
@@ -658,11 +690,3 @@ void AddSC_boss_anubarak_trial()
     newscript->GetAI = &GetAI_mob_anubarak_spike;
     newscript->RegisterSelf();
 }
-
-/*
-UPDATE creature_template SET ScriptName = 'boss_anubarak_toc' WHERE entry = 34564;
-UPDATE creature_template SET ScriptName = 'mob_burrower' WHERE entry = 34607;
-UPDATE creature_template SET ScriptName = 'mob_scarab_toc' WHERE entry = 34605;
-UPDATE creature_template SET ScriptName = 'mob_frost_sphere', InhibitType = 7 WHERE entry = 34606;
-UPDATE creature_template SET ScriptName = 'mob_anubarak_spike' WHERE entry = 34660;
-*/

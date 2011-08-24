@@ -24,6 +24,21 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
+enum Say
+{
+    SAY_AGGRO           = -1649040,
+    SAY_DEATH           = -1649041,
+    SAY_BERSERK         = -1649042,
+    EMOTE_SHIELD        = -1649043,
+    SAY_SHIELD          = -1649044,
+    SAY_KILL1           = -1649045,
+    SAY_KILL2           = -1649046,
+    EMOTE_LIGHT_VORTEX  = -1649047,
+    SAY_LIGHT_VORTEX    = -1649048,
+    EMOTE_DARK_VORTEX   = -1649049,
+    SAY_DARK_VORTEX     = -1649050
+};
+
 enum Timers
 {
     TIMER_ESSENCE = 0,
@@ -34,7 +49,8 @@ enum Timers
     TIMER_POWER_OF_TWINS,
     TIMER_VORTEX,
     TIMER_CONCENTRATED,
-    TIMER_TOUCH
+    TIMER_TOUCH,
+    TIMER_BERSERK
 };
 
 enum Spells
@@ -53,6 +69,7 @@ enum Spells
     SPELL_SURGE_OF_DARKNESS     = 65768,
     SPELL_TWIN_SPIKE_L          = 66075,
     SPELL_TWIN_SPIKE_D          = 66069,
+    SPELL_BERSERK               = 64238,
     //SPELL_SUMM_CONC             = 66077,
 
     SPELL_REMOVE_TOUCH          = 68084,
@@ -72,9 +89,9 @@ enum Spells
 
 const uint8 m_uiConcCount[MAX_DIFFICULTY] = {10, 15, 25, 35};
 
-struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
+struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 {
-    boss_twin_valkyr(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_twin_valkyrAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -93,25 +110,34 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
     bool isLight;
     bool isDark;
 
+    Creature* sis;
+
     void Reset()
     {
         //m_TimerMgr->AddTimer(TIMER_ESSENCE, FL_LIGHT_VORTEX, 0, 0,UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_SPIKE, isLight ? SPELL_TWIN_SPIKE_L : SPELL_TWIN_SPIKE_D, 10000, urand(15000,20000), UNIT_SELECT_VICTIM);
-        m_TimerMgr->AddTimer(TIMER_SURGE, isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS, 0, 0, UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_SHIELD, isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS, urand(40000,50000), urand(40000,50000), UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_HEAL, isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D, 0, 0, UNIT_SELECT_SELF);
+        AddTimer(TIMER_SPIKE, isLight ? SPELL_TWIN_SPIKE_L : SPELL_TWIN_SPIKE_D, 10000, urand(15000,20000), UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_SURGE, isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS, 0, 0, UNIT_SELECT_SELF);
+        AddTimer(TIMER_SHIELD, isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS, urand(40000,50000), urand(40000,50000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_HEAL, isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D, 0, 0, UNIT_SELECT_SELF);
         //m_TimerMgr->AddTimer(TIMER_POWER_OF_TWINS, isLight ? SPELL_POWER_OF_THE_TWINS_L : SPELL_POWER_OF_THE_TWINS_D, 0,0,UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_VORTEX, isLight ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX, urand(40000,50000),urand(40000,50000), UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_CONCENTRATED, 0, urand(15000,20000), urand(40000,50000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+        AddTimer(TIMER_VORTEX, isLight ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX, urand(40000,50000),urand(40000,50000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_CONCENTRATED, 0, urand(15000,20000), urand(40000,50000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
         if (isHeroic)
-            m_TimerMgr->AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, urand(10000,15000), urand(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
+            AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, urand(10000,15000), urand(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
+
+        AddTimer(TIMER_BERSERK, SPELL_BERSERK, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         m_TimerMgr->AddToCastQueue(TIMER_SURGE);
+
+        sis = NULL;
     }
 
     Creature* GetSis()
     {
-        return GetClosestCreatureWithEntry(m_creature, isLight ? 34496 : 34497, DEFAULT_VISIBILITY_INSTANCE);
+        if (!sis)
+            sis = GetClosestCreatureWithEntry(m_creature, isLight ? 34496 : 34497, DEFAULT_VISIBILITY_INSTANCE);
+
+        return sis;
     }
 
     SpellTimerMgr* GetSisTimerMgr()
@@ -125,6 +151,30 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
         sis->SetHealth(sis->GetHealth()-uiDamage);
     }
 
+    void Aggro(Unit* pWho)
+    {
+        DoScriptText(SAY_AGGRO, m_creature);
+        AttackStart(pWho);
+        if (Creature* sis = GetSis())
+            sis->AI()->AttackStart(pWho);
+    }
+
+    void JustDied(Unit* /*pWho*/)
+    {
+        DoScriptText(SAY_DEATH, m_creature);
+        if (sis)
+        {
+            if (!sis->isAlive())
+            { /* complete*/ }
+        }
+    }
+
+    void KilledUnit(Unit* pWho)
+    {
+        if (pWho->GetTypeId() == TYPEID_PLAYER)
+            DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, me);
+    }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -132,25 +182,29 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
 
         bool specialCasted = false;
 
-        // shield + heal
-        if (m_TimerMgr->TimerFinished(TIMER_SHIELD))
+        if (m_TimerMgr->TimerFinished(TIMER_SHIELD)) // shield + heal
         {
             m_TimerMgr->AddToCastQueue(TIMER_HEAL);
+            DoScriptText(EMOTE_SHIELD, m_creature);
+            DoScriptText(SAY_SHIELD, m_creature);
             specialCasted = true;
         }
-
-        // vortex
-        if (m_TimerMgr->TimerFinished(TIMER_VORTEX))
+        else if (m_TimerMgr->TimerFinished(TIMER_VORTEX))// vortex
+        {
             specialCasted = true;
+            DoScriptText(isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX, m_creature);
+            DoScriptText(isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX, m_creature);
+        }
 
         if (specialCasted)
         {
-            m_TimerMgr->Cooldown(TIMER_SHIELD);
-            m_TimerMgr->Cooldown(TIMER_VORTEX);
+            // need to set cooldown manually, must me different value every time
+            m_TimerMgr->Cooldown(TIMER_SHIELD, urand(40000,50000));
+            m_TimerMgr->Cooldown(TIMER_VORTEX, urand(40000,50000));
             if (SpellTimerMgr* sisMgr = GetSisTimerMgr())
             {
-                sisMgr->Cooldown(TIMER_SHIELD);
-                sisMgr->Cooldown(TIMER_VORTEX);
+                sisMgr->Cooldown(TIMER_SHIELD, urand(40000,50000));
+                sisMgr->Cooldown(TIMER_VORTEX, urand(40000,50000));
             }
         }
 
@@ -174,13 +228,17 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
                     m_creature->SummonCreature(id[i], x, y, coord.z, 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
             }
         }
+
+        // Berserk
+        if (m_TimerMgr->TimerFinished(TIMER_BERSERK))
+            DoScriptText(SAY_BERSERK, m_creature);
     }
 };
 
 #define START_POINT 100
-struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
+struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
 {
-    npc_concentrated(Creature* pCreature) : ScriptedAI(pCreature)
+    npc_concentratedAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         isLight = m_creature->GetEntry() == 34630;
         isDark = m_creature->GetEntry() == 34628;
@@ -213,7 +271,6 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
         Coords coord = m_creature->GetPosition();
         coord.x += distance*cos(angle);
         coord.y += distance*sin(angle);
-        uint32 time = (distance/70)*10000;
 
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MovePoint(pointId, coord.x, coord.y, coord.z);
@@ -262,32 +319,27 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
             Ping();
     }*/
 };
+CreatureAI* GetAI_boss_twin_valkyr(Creature* pCreature)
+{
+    return new boss_twin_valkyrAI(pCreature);
+}
+
+CreatureAI* GetAI_npc_concentrated(Creature* pCreature)
+{
+    return new npc_concentratedAI(pCreature);
+}
 
 void AddSC_twin_valkyr()
 {
     Script* newscript;
 
-    /*newscript = new Script;
-    newscript->Name = "boss_fjola";
-    newscript->GetAI = &GetAI_boss_fjola;
+    newscript = new Script;
+    newscript->Name = "boss_twin_valkyr";
+    newscript->GetAI = &GetAI_boss_twin_valkyr;
     newscript->RegisterSelf();
 
     newscript = new Script;
-    newscript->Name = "boss_eydis";
-    newscript->GetAI = &GetAI_boss_eydis;
-    newscript->RegisterSelf();*/
-
+    newscript->Name = "npc_concentrated";
+    newscript->GetAI = &GetAI_npc_concentrated;
+    newscript->RegisterSelf();
 }
-/*
-script_target
--- light
-INSERT INTO spell_script_target VALUES (65876, 1, 34496);
-INSERT INTO spell_script_target VALUES (67306, 1, 34496);
-INSERT INTO spell_script_target VALUES (67307, 1, 34496);
-INSERT INTO spell_script_target VALUES (67308, 1, 34496);
--- dark
-INSERT INTO spell_script_target VALUES (65875, 1, 34497);
-INSERT INTO spell_script_target VALUES (67303, 1, 34497);
-INSERT INTO spell_script_target VALUES (67304, 1, 34497);
-INSERT INTO spell_script_target VALUES (67305, 1, 34497);
-*/
