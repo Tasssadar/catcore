@@ -82,8 +82,8 @@ enum Spells
 
     //SPELL_EXPOSE_WEAKNESS   = 67721,
     SPELL_EXPOSER_WEAKNESS_A= 67720,
-    //SPELL_SPIDER_FRENZY     = 66129,
     SPELL_SPIDER_FRENZY_AURA= 66128,
+    SPELL_SPIDER_FRENZY     = 66129,
 
     SPELL_SUBMERGE_BURR_D   = 67322,
     //SPELL_SUBMERGE_BURR_S   = 66845,
@@ -117,22 +117,22 @@ enum Spells
 
 };
 
-const WorldLocation BurrowerLoc[]=
+const Coords BurrowerLoc[]=
 {
-    WorldLocation(0, 694.886353f, 102.484665f, 142.119614f),
-    WorldLocation(0, 694.500671f, 185.363968f, 142.117905f),
-    WorldLocation(0, 731.987244f, 83.3824690f, 142.119614f),
-    WorldLocation(0, 740.184509f, 193.443390f, 142.117584f),
+    Coords(694.886353f, 102.484665f, 142.119614f),
+    Coords(694.500671f, 185.363968f, 142.117905f),
+    Coords(731.987244f, 83.3824690f, 142.119614f),
+    Coords(740.184509f, 193.443390f, 142.117584f),
 };
 
-const WorldLocation SphereLoc[] =
+const Coords SphereLoc[] =
 {
-    WorldLocation(0, 786.6439f, 108.2498f, 155.6701f),
-    WorldLocation(0, 806.8429f, 150.5902f, 155.6701f),
-    WorldLocation(0, 759.1386f, 163.9654f, 155.6701f),
-    WorldLocation(0, 744.3701f, 119.5211f, 155.6701f),
-    WorldLocation(0, 710.0211f, 120.8152f, 155.6701f),
-    WorldLocation(0, 706.6383f, 161.5266f, 155.6701f),
+    Coords(786.6439f, 108.2498f, 155.6701f),
+    Coords(806.8429f, 150.5902f, 155.6701f),
+    Coords(759.1386f, 163.9654f, 155.6701f),
+    Coords(744.3701f, 119.5211f, 155.6701f),
+    Coords(710.0211f, 120.8152f, 155.6701f),
+    Coords(706.6383f, 161.5266f, 155.6701f),
 };
 
 struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
@@ -181,7 +181,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         currentPhase = 1;
 
         for(uint8 i = 0; i < 6; ++i)
-            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], TEMPSUMMON_MANUAL_DESPAWN, 0);
+            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
     }
 
     void AttackStart(Unit* pWho)
@@ -300,7 +300,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
             for(uint8 i = 0; i < count; ++i)
             {
-                if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], TEMPSUMMON_CORPSE_DESPAWN, 0))
+                if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
                     if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         crt->AI()->AttackStart(target);
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
             if (list.size() < 6)
-                m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], TEMPSUMMON_MANUAL_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
         }
 
         DoMeleeAttackIfReady();
@@ -353,6 +353,23 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
             return;
 
         ScriptedAI::AttackStart(pWho);
+    }
+
+    void CastTargets(uint32 spellId, UnitList& targetList, SpellEffectIndex /*i*/)
+    {
+        if (spellId == SPELL_SPIDER_FRENZY)
+        {
+            for (UnitList::iterator itr = targetList.begin(); itr != targetList.end();)
+            {
+                if ((*itr)->GetEntry() != m_creature->GetEntry())
+                {
+                    itr = targetList.erase(itr);
+                    continue;
+                }
+                else
+                    ++itr;
+            }
+        }
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -444,16 +461,12 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         DoCast(m_creature, SPELL_FROST_SPHERE);
     }
 
-    void AttackStart(Unit *){}
+    void AttackStart(Unit *){return;}
     void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
     {
         if (isDead)
-        {
             uiDamage = 0;
-            return;
-        }
-
-        if (m_creature->GetHealth() < uiDamage)
+        else if (m_creature->GetHealth() < uiDamage)
         {
             uiDamage = 0;
             isDead = true;
@@ -461,9 +474,9 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
-            WorldLocation loc = m_creature->GetLocation();
-            loc.coord_z = m_creature->GetTerrain()->GetHeight(loc.coord_x, loc.coord_y, 130.f, true, 30.f);
-            m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, loc.coord_x, loc.coord_y, loc.coord_z);
+            Coords coord = m_creature->GetPosition();
+            coord.z = m_creature->GetTerrain()->GetHeight(coord.x, coord.y, 130.f, true, 30.f);
+            m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, coord.x, coord.y, coord.z);
         }
     }
 

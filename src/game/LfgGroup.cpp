@@ -484,17 +484,17 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
             if (plr->GetMap()->IsDungeon())
             {
                 if (const WorldSafeLocsEntry* entry = sObjectMgr.GetClosestGraveYard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId(), plr->GetTeam()))
-                    joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.0f);
+                    joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.f);
                 else
-                    joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+                    joinLoc = plr->GetLocation();
             }
             else
-                joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+                joinLoc = plr->GetLocation();
         }
         CharacterDatabase.PExecute("DELETE FROM group_member WHERE memberGuid='%u'", GUID_LOPART(plr->GetGUID()));
         CharacterDatabase.PExecute("INSERT INTO group_member(groupId,memberGuid,assistant,subgroup,lfg_join_x,lfg_join_y,lfg_join_z,lfg_join_o,lfg_join_map,taxi_start,taxi_end,mount_spell) "
             "VALUES('%u','%u','%u','%u','%f','%f','%f','%f','%u','%u','%u','%u')",
-            m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.coord_x, joinLoc.coord_y, joinLoc.coord_z, joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
+            m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.x(), joinLoc.y(), joinLoc.z(), joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
         
         //Set info to player
         plr->m_lookingForGroup.joinLoc = joinLoc;
@@ -1117,7 +1117,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
             victim->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
             victim->RemoveAurasDueToSpell(LFG_BOOST);
             WorldLocation teleLoc = victim->m_lookingForGroup.joinLoc;
-            if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+            if (!teleLoc.coords.isNULL())
                 victim->TeleportTo(teleLoc);
             else
                 victim->TeleportToHomebind();

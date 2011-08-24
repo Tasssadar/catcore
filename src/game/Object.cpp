@@ -1200,7 +1200,7 @@ void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
 
 WorldObject::WorldObject()
     : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL),
-    m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f), m_fOrientation(-1.0f)
+      m_coords(), m_orientation(0.0f), m_fOrientation(-1.0f)
 {
 }
 
@@ -1217,9 +1217,9 @@ void WorldObject::_Create( uint32 guidlow, HighGuid guidhigh, uint32 phaseMask )
 
 void WorldObject::Relocate(float x, float y, float z, float orientation)
 {
-    m_positionX = x;
-    m_positionY = y;
-    m_positionZ = z;
+    m_coords.x = x;
+    m_coords.y = y;
+    m_coords.z = z;
     m_orientation = HasFixedOrientation() ? m_fOrientation : orientation;
 
     if (isType(TYPEMASK_UNIT))
@@ -1232,16 +1232,7 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
 
 void WorldObject::Relocate(float x, float y, float z)
 {
-    m_positionX = x;
-    m_positionY = y;
-    m_positionZ = z;
-
-    if (isType(TYPEMASK_UNIT))
-    {
-        ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
-        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isVehicle())
-            ((Vehicle*)this)->RellocatePassengers(GetMap());
-    }
+    Relocate(x,y,z, 0);
 }
 
 void WorldObject::SetOrientation(float orientation)
@@ -1253,17 +1244,17 @@ void WorldObject::SetOrientation(float orientation)
 
 uint32 WorldObject::GetZoneId() const
 {
-    return GetTerrain()->GetZoneId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetZoneId(m_coords.x, m_coords.y, m_coords.z);
 }
 
 uint32 WorldObject::GetAreaId() const
 {
-    return GetTerrain()->GetAreaId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetAreaId(m_coords.x, m_coords.y, m_coords.z);
 }
 
 void WorldObject::GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const
 {
-    GetTerrain()->GetZoneAndAreaId(zoneid, areaid, m_positionX, m_positionY, m_positionZ);
+    GetTerrain()->GetZoneAndAreaId(zoneid, areaid, m_coords.x, m_coords.y, m_coords.z);
 }
 
 InstanceData* WorldObject::GetInstanceData() const
@@ -1502,7 +1493,7 @@ float WorldObject::GetAngle( const float x, const float y ) const
 bool WorldObject::HasInArc(const float arcangle, const float x, const float y) const
 {
     // always have self in arc
-    if(x == m_positionX && y == m_positionY)
+    if(x == m_coords.x && y == m_coords.y)
         return true;
 
         float arc = arcangle;
@@ -1625,7 +1616,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
 
 bool WorldObject::IsPositionValid() const
 {
-    return MaNGOS::IsValidMapCoord(m_positionX,m_positionY,m_positionZ,m_orientation);
+    return MaNGOS::IsValidMapCoord(m_coords.x, m_coords.y, m_coords.z,m_orientation);
 }
 
 bool WorldObject::IsAtGroundLevel(float x, float y, float z) const

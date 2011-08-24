@@ -128,13 +128,8 @@ class SpellCastTargets
 
             m_itemTargetEntry   = target.m_itemTargetEntry;
 
-            m_srcX = target.m_srcX;
-            m_srcY = target.m_srcY;
-            m_srcZ = target.m_srcZ;
-
-            m_destX = target.m_destX;
-            m_destY = target.m_destY;
-            m_destZ = target.m_destZ;
+            m_src = target.m_src;
+            m_dest = target.m_dest;
 
             m_strTarget = target.m_strTarget;
 
@@ -175,8 +170,9 @@ class SpellCastTargets
 
         void Update(Unit* caster);
 
-        float m_srcX, m_srcY, m_srcZ, m_srcO;
-        float m_destX, m_destY, m_destZ;
+        Coords m_src;
+        //float m_srcO; //probably old variable, is not set anywhere in code
+        Coords m_dest;
         float m_elevation, m_speed;
         std::string m_strTarget;
 
@@ -715,7 +711,7 @@ namespace MaNGOS
                 if ( i_originalCaster->IsFriendlyTo(pPlayer) )
                     continue;
 
-                if ( pPlayer->IsWithinDist3d(i_spell.m_targets.m_destX, i_spell.m_targets.m_destY, i_spell.m_targets.m_destZ,i_radius))
+                if ( pPlayer->IsWithinDist3d(i_spell.m_targets.m_dest.x, i_spell.m_targets.m_dest.y, i_spell.m_targets.m_dest.z,i_radius))
                     i_data.push_back(pPlayer);
             }
         }
@@ -834,7 +830,7 @@ namespace MaNGOS
                             i_data->push_back(itr->getSource());
                         break;
                     case PUSH_DEST_CENTER:
-                        if (itr->getSource()->IsWithinDist3d(i_spell.m_targets.m_destX, i_spell.m_targets.m_destY, i_spell.m_targets.m_destZ,i_radius))
+                        if (itr->getSource()->IsWithinDist3d(i_spell.m_targets.m_dest.x, i_spell.m_targets.m_dest.y, i_spell.m_targets.m_dest.z,i_radius))
                             i_data->push_back(itr->getSource());
                         break;
                     case PUSH_TARGET_CENTER:
@@ -842,12 +838,12 @@ namespace MaNGOS
                             i_data->push_back(itr->getSource());
                         break;
                     case PUSH_LINE:
-                        if (i_spell.GetCaster()->HasInArc(M_PI_F, itr->getSource(), i_spell.m_targets.m_srcO) &&
-                            itr->getSource()->IsWithinDist3d(i_spell.m_targets.m_destX, i_spell.m_targets.m_destY, i_spell.m_targets.m_destZ,i_radius))
+                        if (i_spell.GetCaster()->HasInArc(M_PI_F, itr->getSource(), 0) &&
+                            itr->getSource()->IsWithinDist3d(i_spell.m_targets.m_dest.x, i_spell.m_targets.m_dest.y, i_spell.m_targets.m_dest.z,i_radius))
                         {
                             float width = itr->getSource()->GetObjectBoundingRadius();
-                            float relativeAngle = itr->getSource()->GetAngle(i_spell.m_targets.m_destX, i_spell.m_targets.m_destY) - itr->getSource()->GetOrientation();
-                            if (abs(sin(relativeAngle)) * itr->getSource()->GetDistance2d(i_spell.m_targets.m_destX, i_spell.m_targets.m_destY) < width)
+                            float relativeAngle = itr->getSource()->GetAngle(i_spell.m_targets.m_dest.x, i_spell.m_targets.m_dest.y) - itr->getSource()->GetOrientation();
+                            if (abs(sin(relativeAngle)) * itr->getSource()->GetDistance2d(i_spell.m_targets.m_dest.x, i_spell.m_targets.m_dest.y) < width)
                                 i_data->push_back(itr->getSource());
                         }
                         break;

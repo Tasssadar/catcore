@@ -115,6 +115,10 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         void PlayerRelocation(Player *, float x, float y, float z, float angl);
         void CreatureRelocation(Creature *creature, float x, float y, float z, float orientation);
+        void CreatureRelocation(Creature *creature, Coords coord, float orientation)
+        {
+            CreatureRelocation(creature, coord.x, coord.y, coord.z, orientation);
+        }
 
         template<class T, class CONTAINER> void Visit(const Cell& cell, TypeContainerVisitor<T, CONTAINER> &visitor);
 

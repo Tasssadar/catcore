@@ -48,10 +48,10 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     WorldLocation &loc = GetPlayer()->GetTeleportDest();
 
     // possible errors in the coordinate validity check
-    if (!MapManager::IsValidMapCoord(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation))
+    if (!MapManager::IsValidMapCoord(loc.mapid, loc.x(), loc.y(), loc.z(), loc.orientation))
     {
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far to a not valid location. (map:%u, x:%f, y:%f, "
-            "z:%f) We port him to his homebind instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+            "z:%f) We port him to his homebind instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.x(), loc.y(), loc.z());
         // stop teleportation else we would try this again and again in LogoutPlayer...
         GetPlayer()->SetSemaphoreTeleportFar(false);
         // and teleport the player to a valid place
@@ -71,10 +71,10 @@ void WorldSession::HandleMoveWorldportAckOpcode()
 
     // relocate the player to the teleport destination
     GetPlayer()->SetMap(sMapMgr.CreateMap(loc.mapid, GetPlayer()));
-    GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
+    GetPlayer()->Relocate(loc.x(), loc.y(), loc.z(), loc.orientation);
 
     // mount allow check, must be before SendInitialPacketsBeforeAddToMap()
-    if (!GetPlayer()->GetTerrain()->IsOutdoors(loc.coord_x, loc.coord_y, loc.coord_z))
+    if (!GetPlayer()->GetTerrain()->IsOutdoors(loc.x(), loc.y(), loc.z()))
     {
         _player->RemoveSpellsCausingAura(SPELL_AURA_FLY);
         _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
@@ -89,7 +89,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         //GetPlayer()->ResetMap();
 
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far but couldn't be added to map. (map:%u, x:%f, y:%f, "
-            "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+            "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.x(), loc.y(), loc.z());
         // teleport to the graveyard
         GetPlayer()->RepopAtGraveyard();
         return;
@@ -200,7 +200,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
 
     WorldLocation const& dest = plMover->GetTeleportDest();
 
-    plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+    plMover->SetPosition(dest.x(), dest.y(), dest.z(), dest.orientation, true);
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);

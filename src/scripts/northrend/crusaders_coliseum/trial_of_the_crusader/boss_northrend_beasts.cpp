@@ -141,7 +141,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         {
             DoCast(m_creature, SPELL_RISING_ANGER);
             Player* plr = SelectRandomPlayerInRange(3, 15, true);
-            if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetLocation(), TEMPSUMMON_CORPSE_DESPAWN, 0))
+            if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
             {
                 crt->AI()->AttackStart(plr);
                 crt->CastSpell(plr, SPELL_SNOBOLLED, true);
@@ -476,12 +476,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
             m_bIsMobile = !m_bIsMobile;
             SetCombatMovement(m_bIsMobile);
 
-            WorldLocation loc = WorldLocation(m_creature->GetMapId(), 564,137, 396, 0);
+            Coords coord = Center;
             float rand_o = rand_norm_f()*2*M_PI_F;
             const float range = urand(0,30);
-            loc.coord_x += range*cos(rand_o);
-            loc.coord_y += range*sin(rand_o);
-            m_creature->NearTeleportTo(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
+            coord.x += range*cos(rand_o);
+            coord.y += range*sin(rand_o);
+            m_creature->NearTeleportTo(coord, 0);
         }
     }
     void UpdateAI(const uint32 uiDiff)
@@ -802,10 +802,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
             m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-            pointPath[1].x = SpawnLoc[1].x;
-            pointPath[1].y = SpawnLoc[1].y;
-            pointPath[1].z = SpawnLoc[1].z;
-            m_creature->SendMonsterMove(SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
+            pointPath[1].x = Center.x;
+            pointPath[1].y = Center.y;
+            pointPath[1].z = Center.z;
+            m_creature->SendMonsterMove(Center.x, Center.y, Center.z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
             m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
 
             m_uiChargeStepTimer = 1000;

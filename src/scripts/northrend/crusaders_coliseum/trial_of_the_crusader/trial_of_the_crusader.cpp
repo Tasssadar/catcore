@@ -422,7 +422,7 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
             {
                 if (WayPoint != WayPointList.end())
                 {
-                    m_creature->GetMotionMaster()->MovePoint(WayPoint->mapid, WayPoint->coord_x, WayPoint->coord_y, WayPoint->coord_z);
+                    m_creature->GetMotionMaster()->MovePoint(WayPoint->mapid, WayPoint->x(), WayPoint->y(), WayPoint->z());
                     WalkTimer = 0;
                 }
             }else WalkTimer -= diff;

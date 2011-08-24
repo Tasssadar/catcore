@@ -15796,7 +15796,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
             // move to bg enter point
             const WorldLocation& _loc = GetBattleGroundEntryPoint();
             SetLocationMapId(_loc.mapid);
-            Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
+            Relocate(_loc.x(), _loc.y(), _loc.z(), _loc.orientation);
 
             // We are not in BG anymore
             m_bgData.bgInstanceID = 0;
@@ -15811,7 +15811,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         {
             const WorldLocation& _loc = GetBattleGroundEntryPoint();
             SetLocationMapId(_loc.mapid);
-            Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
+            Relocate(_loc.x(), _loc.y(), _loc.z(), _loc.orientation);
         }
     }
 
@@ -17501,9 +17501,9 @@ void Player::SaveToDB()
     {
         ss << GetTeleportDest().mapid << ", "
         << (uint32)GetDungeonDifficulty() << ", "
-        << finiteAlways(GetTeleportDest().coord_x) << ", "
-        << finiteAlways(GetTeleportDest().coord_y) << ", "
-        << finiteAlways(GetTeleportDest().coord_z) << ", "
+        << finiteAlways(GetTeleportDest().x()) << ", "
+        << finiteAlways(GetTeleportDest().y()) << ", "
+        << finiteAlways(GetTeleportDest().z()) << ", "
         << finiteAlways(GetTeleportDest().orientation) << ", ";
     }
 
@@ -22820,7 +22820,7 @@ void Player::_SaveBGData()
     {
         /* guid, bgInstanceID, bgTeam, x, y, z, o, map, taxi[0], taxi[1], mountSpell */
         CharacterDatabase.PExecute("INSERT INTO character_battleground_data VALUES ('%u', '%u', '%u', '%f', '%f', '%f', '%f', '%u', '%u', '%u', '%u', '%u')",
-            GetGUIDLow(), m_bgData.bgInstanceID, m_bgData.bgTeam, m_bgData.joinPos.coord_x, m_bgData.joinPos.coord_y, m_bgData.joinPos.coord_z,
+            GetGUIDLow(), m_bgData.bgInstanceID, m_bgData.bgTeam, m_bgData.joinPos.x(), m_bgData.joinPos.y(), m_bgData.joinPos.z(),
             m_bgData.joinPos.orientation, m_bgData.joinPos.mapid, m_bgData.taxiPath[0], m_bgData.taxiPath[1], m_bgData.mountSpell, m_fakeTeam);
     }
 }
@@ -23106,9 +23106,9 @@ void Player::SetHomebindToLocation(WorldLocation const& loc, uint32 area_id)
 {
     m_homebindMapId = loc.mapid;
     m_homebindAreaId = area_id;
-    m_homebindX = loc.coord_x;
-    m_homebindY = loc.coord_y;
-    m_homebindZ = loc.coord_z;
+    m_homebindX = loc.x();
+    m_homebindY = loc.y();
+    m_homebindZ = loc.z();
 
     // update sql homebind
     CharacterDatabase.PExecute("UPDATE character_homebind SET map = '%u', zone = '%u', position_x = '%f', position_y = '%f', position_z = '%f' WHERE guid = '%u'",
