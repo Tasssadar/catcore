@@ -99,8 +99,6 @@ SpellCastTargets::SpellCastTargets()
     m_itemTargetGUID   = 0;
     m_itemTargetEntry  = 0;
 
-    m_src();
-    m_dest();
     m_elevation = m_speed = 0.0f;
     m_strTarget = "";
     m_targetMask = 0;
@@ -115,9 +113,7 @@ void SpellCastTargets::setUnitTarget(Unit *target)
     if (!target)
         return;
 
-    m_dest.x = target->GetPositionX();
-    m_dest.y = target->GetPositionY();
-    m_dest.z = target->GetPositionZ();
+    m_dest = target->GetPosition();
     m_unitTarget = target;
     m_unitTargetGUID = target->GetGUID();
     m_targetMask |= TARGET_FLAG_UNIT;

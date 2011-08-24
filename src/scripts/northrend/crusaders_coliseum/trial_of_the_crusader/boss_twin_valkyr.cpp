@@ -193,11 +193,11 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
 
     bool used;
 
-    Coords lastCoord;
+    //Coords lastCoord;
 
     void Reset()
     {
-        lastCoord = m_creature->GetLocation();
+        //lastCoord = m_creature->GetPosition();
         used = false;
         Ping(START_POINT);
     }
@@ -210,7 +210,7 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
 
         float gama = M_PI_F-2*addAngle;
         float distance = addAngle ? (35*sin(gama))/sin(addAngle) : 70;
-        Coords coord = m_creature->GetCoords();
+        Coords coord = m_creature->GetPosition();
         coord.x += distance*cos(angle);
         coord.y += distance*sin(angle);
         uint32 time = (distance/70)*10000;

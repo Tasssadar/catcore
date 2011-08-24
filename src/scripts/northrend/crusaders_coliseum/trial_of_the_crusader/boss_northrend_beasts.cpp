@@ -141,7 +141,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         {
             DoCast(m_creature, SPELL_RISING_ANGER);
             Player* plr = SelectRandomPlayerInRange(3, 15, true);
-            if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetLocation(), TEMPSUMMON_CORPSE_DESPAWN, 0))
+            if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
             {
                 crt->AI()->AttackStart(plr);
                 crt->CastSpell(plr, SPELL_SNOBOLLED, true);
@@ -481,7 +481,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
             const float range = urand(0,30);
             coord.x += range*cos(rand_o);
             coord.y += range*sin(rand_o);
-            m_creature->NearTeleportTo(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
+            m_creature->NearTeleportTo(coord, 0);
         }
     }
     void UpdateAI(const uint32 uiDiff)

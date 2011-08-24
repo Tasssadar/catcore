@@ -1043,7 +1043,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                     uint8 bombsCount = (m_bIsRegularMode ? 3 : 5)*m_uiBombSummonedCount++;
                     PlrList targetList = GetRandomPlayersInRange(bombsCount, 0, 0, 50);
                     for(PlrList::iterator itr = targetList.begin(); itr != targetList.end(); ++itr)
-                        m_creature->SummonCreature(NPC_NATURE_BOMB, (*itr)->GetLocation(), TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 20000);
+                        m_creature->SummonCreature(NPC_NATURE_BOMB, (*itr)->GetPosition(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 20000);
 
                     m_uiNatureBombTimer = urand(9500, 10500);
                 }

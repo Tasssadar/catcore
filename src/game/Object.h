@@ -77,23 +77,6 @@ class TerrainInfo;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
 
-struct WorldLocation
-{
-    uint32 mapid;
-    Coords coords;
-    float orientation;
-    explicit WorldLocation(uint32 _mapid = 0, float _x = 0, float _y = 0, float _z = 0, float _o = 0)
-        : mapid(_mapid), coords(_x,_y,_z), orientation(_o) {}
-    WorldLocation(uint32 _mapid = 0, Coords _coords, float _o)
-        : mapid(_mapid), coords(_coords), orientation(_o) {}
-    WorldLocation(WorldLocation const &loc)
-        : mapid(loc.mapid), coords(loc.coords), orientation(loc.orientation) {}
-
-    float x() const { return coords.x; }
-    float y() const { return coords.y; }
-    float z() const { return coords.z; }
-};
-
 struct Coords
 {
     float x;
@@ -102,9 +85,26 @@ struct Coords
     explicit Coords(float _x = 0, float _y = 0, float _z = 0)
         : x(_x), y(_y), z(_z) {}
     Coords(Coords const &coord)
-        : x(coord.x), coord_y(coord.y), coord_z(coord.z) {}
+        : x(coord.x), y(coord.y), z(coord.z) {}
 
     bool isNULL() const { return x == 0.f && y == 0.f && z == 0.f; }
+};
+
+struct WorldLocation
+{
+    uint32 mapid;
+    Coords coords;
+    float orientation;
+    explicit WorldLocation(uint32 _mapid = 0, float _x = 0, float _y = 0, float _z = 0, float _o = 0)
+        : mapid(_mapid), coords(_x,_y,_z), orientation(_o) {}
+    WorldLocation(uint32 _mapid, Coords _coords, float _o)
+        : mapid(_mapid), coords(_coords), orientation(_o) {}
+    WorldLocation(WorldLocation const &loc)
+        : mapid(loc.mapid), coords(loc.coords), orientation(loc.orientation) {}
+
+    float x() const { return coords.x; }
+    float y() const { return coords.y; }
+    float z() const { return coords.z; }
 };
 
 class MANGOS_DLL_SPEC Object

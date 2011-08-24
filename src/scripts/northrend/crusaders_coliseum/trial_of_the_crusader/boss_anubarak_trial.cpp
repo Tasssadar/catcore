@@ -181,7 +181,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         currentPhase = 1;
 
         for(uint8 i = 0; i < 6; ++i)
-            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], TEMPSUMMON_MANUAL_DESPAWN, 0);
+            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
     }
 
     void AttackStart(Unit* pWho)
@@ -300,7 +300,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
             for(uint8 i = 0; i < count; ++i)
             {
-                if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], TEMPSUMMON_CORPSE_DESPAWN, 0))
+                if (Creature* crt = m_creature->SummonCreature(NPC_BURROWER, BurrowerLoc[index[i]], 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
                     if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                         crt->AI()->AttackStart(target);
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
             if (list.size() < 6)
-                m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], TEMPSUMMON_MANUAL_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[urand(0,5)], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
         }
 
         DoMeleeAttackIfReady();
@@ -474,7 +474,7 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
-            Coords coord = m_creature->GetCoords();
+            Coords coord = m_creature->GetPosition();
             coord.z = m_creature->GetTerrain()->GetHeight(coord.x, coord.y, 130.f, true, 30.f);
             m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, coord.x, coord.y, coord.z);
         }

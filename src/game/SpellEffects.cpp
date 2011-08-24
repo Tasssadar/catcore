@@ -9093,7 +9093,7 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
             return;
         }
 
-        loc(st->target_mapId,st->target_X,st->target_Y,st->target_Y,st->target_Orientation);
+        loc = WorldLocation(st->target_mapId,st->target_X,st->target_Y,st->target_Y,st->target_Orientation);
         area_id = sTerrainMgr.GetAreaId(loc.mapid, loc.x(), loc.y(), loc.z());
     }
     else
