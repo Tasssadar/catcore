@@ -169,7 +169,7 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
+SpellTimer* SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
     // no key with this timerId found
     if (m_TimerMap.find(timerId) != m_TimerMap.end())

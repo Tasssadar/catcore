@@ -377,12 +377,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
         m_bIsMobile = mobile;
         SetCombatMovement(mobile);
 
-        m_TimerMgr->TimerFinished(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->TimerFinished(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->TimerFinished(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->TimerFinished(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !mobile);
-        m_TimerMgr->TimerFinished(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !mobile);
-        m_TimerMgr->TimerFinished(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !mobile);
     }
 
     boss_jormungarsAI* GetBroAI()
@@ -417,12 +417,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
         {
             EnableAttack(false);
             SetCombatMovement(false);
-            m_TimerMgr->TimerFinished(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->TimerFinished(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->TimerFinished(TIMER_BITE, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->TimerFinished(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->TimerFinished(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->TimerFinished(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, false);
 
             m_TimerMgr->Cooldown(TIMER_MERGING, 10000);
 
@@ -595,7 +595,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                 {
                     case 0:
                     {
-                        m_creature->CastSpell(m_creature, m_idMassiveCrash[m_dDifficulty], false);
+                        m_creature->CastSpell(m_creature, SPELL_MASSIVE_CRASH, false);
                         m_uiChargeStepTimer = 2500;
                         break;
                     }

@@ -172,7 +172,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
     void KilledUnit(Unit* pWho)
     {
         if (pWho->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, me);
+            DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
