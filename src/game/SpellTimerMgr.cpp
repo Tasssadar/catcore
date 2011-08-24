@@ -120,24 +120,27 @@ bool SpellTimerMgr::IsReady(uint32 timerId)
 
 SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
+    if (!m_TimerMap.count(timerId))
+        return NULL;
+
     return m_TimerMap[timerId];
 }
 
 void SpellTimerMgr::Reset(uint32 timerId, TimerValues value)
 {
-    if (SpellTimer* timer = m_TimerMap[timerId])
+    if (SpellTimer* timer = GetTimer(timerId))
         timer->Reset(value);
 }
 
 void SpellTimerMgr::SetValue(uint32 timerId, TimerValues value, uint32 newValue)
 {
-    if (SpellTimer* timer = m_TimerMap[timerId])
+    if (SpellTimer* timer = GetTimer(timerId))
         timer->SetValue(value, newValue);
 }
 
 uint32 SpellTimerMgr::GetValue(uint32 timerId, TimerValues value)
 {
-    if (SpellTimer* timer = m_TimerMap[timerId])
+    if (SpellTimer* timer = GetTimer(timerId))
         return timer->GetValue(value);
 
     return 0;
@@ -145,7 +148,7 @@ uint32 SpellTimerMgr::GetValue(uint32 timerId, TimerValues value)
 
 void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)
 {
-    if (SpellTimer* timer = m_TimerMap[timerId])
+    if (SpellTimer* timer = GetTimer(timerId))
         timer->Cooldown(changedCD, permanent);
 }
 
@@ -206,9 +209,12 @@ bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
     return FinishTimer(timerId);
 }
 
-bool SpellTimerMgr::FinishTimer(uint32 timerId)
+bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
 {
     SpellTimer* timer = m_TimerMap[timerId];
+
+    if (target)
+        timer->SetTarget(target);
 
     if (timer->Finish())
     {
