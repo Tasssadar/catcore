@@ -90,7 +90,6 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
                 sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
                 m_TimerMap.erase(itr);
             }
-
         }
 
         if (!m_IdToBeCasted.empty())
@@ -120,7 +119,7 @@ bool SpellTimerMgr::IsReady(uint32 timerId)
 
 SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
-    if (!m_TimerMap.count(timerId))
+    if (m_TimerMap.find(timerId) != m_TimerMap.end())
         return NULL;
 
     return m_TimerMap[timerId];
@@ -173,8 +172,8 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
 bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
     // no key with this timerId found
-    if (!m_TimerMap.count(timerId))
-        return false;
+    if (m_TimerMap.find(timerId) != m_TimerMap.end())
+        return NULL;
 
     SpellTimer* timer = m_TimerMap[timerId];
 
@@ -182,18 +181,18 @@ bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
     if (!timer)
     {
         m_TimerMap.erase(timerId);
-        return false;
+        return NULL;
     }
 
     //  if timer isn't ready
     if (!timer->IsReady())
-        return false;
+        return NULL;
 
     // custom handeling differed by cast type
     if (timer->getCastType() == CAST_TYPE_NONCAST)
     {
         if (!CanBeTimerFinished(timerId))
-            return false;
+            return NULL;
     }
     else if (timer->getCastType() == CAST_TYPE_QUEUE)
     {
@@ -201,12 +200,12 @@ bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
         {
             timer->SetTarget(target);
             m_IdToBeCasted.push_back(timerId);
-            return false;
+            return NULL;
         }
     }
 
     timer->SetTarget(target);
-    return FinishTimer(timerId);
+    return FinishTimer(timerId) ? timer : NULL;
 }
 
 bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)

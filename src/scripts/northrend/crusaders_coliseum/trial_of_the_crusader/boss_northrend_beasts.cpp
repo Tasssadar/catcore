@@ -13,9 +13,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-// Gormok - Firebomb not implemented, timers need correct
-// Snakes - Underground phase not worked, timers need correct
-// Icehowl - Trample&Crash event not implemented, timers need correct
 
 /* ScriptData
 SDName: northrend_beasts
@@ -28,46 +25,57 @@ EndScriptData */
 #include "trial_of_the_crusader.h"
 #include "PathFinder.h"
 
-const float center[3] = {564.45f, 138.25f, 395.67f};
+enum Say
+{
+    //Gormok
+    SAY_SNOBOLLED        = -1649000,
+    //Acidmaw & Dreadscale
+    SAY_SUBMERGE         = -1649010,
+    SAY_EMERGE           = -1649011,
+    SAY_BERSERK          = -1649012,
+    //Icehowl
+    SAY_TRAMPLE_STARE    = -1649020,
+    SAY_TRAMPLE_FAIL     = -1649021,
+    SAY_TRAMPLE_START    = -1649022,
+};
 
 ///////////////////////////
 /////     GORMOK      /////
 ///////////////////////////
 
-enum Gormok
+enum GormokTimers
 {
-    // Impale
-    SPELL_IMPALE_0          = 66331,
-    SPELL_IMPALE_1          = 67477,
-    SPELL_IMPALE_2          = 67478,
-    SPELL_IMPALE_3          = 67479,
+    TIMER_IMPALE=0,
+    TIMER_STAGGERING_STOMP,
+    TIMER_DO_SNOBOLDS
+};
 
-    // Staggering Stomp
-    SPELL_STAGGERING_STOMP_0= 66330,
-    SPELL_STAGGERING_STOMP_1= 67647,
-    SPELL_STAGGERING_STOMP_2= 67648,
-    SPELL_STAGGERING_STOMP_3= 67649,
+enum GormokSpells
+{
+
+    SPELL_IMPALE            = 66331, // Impale
+    SPELL_STAGGERING_STOMP  = 66330, // Staggering Stomp
 
     // Snobolds
     SPELL_RISING_ANGER      = 66636,
     SPELL_SNOBOLLED         = 66406,
     NPC_SNOBOLD_VASSAL      = 34800,
-    NPC_FIRE_BOMB           = 34854,
+    NPC_FIRE_BOMB           = 34854
 };
 
-enum Snobold
+enum SnoboldTimers
 {
-    // Batter
-    SPELL_BATTER            = 66408,
-    // Fire Bomb
-    SPELL_FIRE_BOMB         = 66313,
-    // Head Crack
-    SPELL_HEAD_CRACK        = 66407,
+    TIMER_BATTER = 0,
+    TIMER_FIRE_BOMB,
+    TIMER_HEAD_CRACK
 };
 
-// spells with difficulty
-const uint32 m_idImpale[4] = { SPELL_IMPALE_0, SPELL_IMPALE_1, SPELL_IMPALE_2, SPELL_IMPALE_3 };
-const uint32 m_idStaggeringStomp[4] = {SPELL_STAGGERING_STOMP_0, SPELL_STAGGERING_STOMP_1, SPELL_STAGGERING_STOMP_2, SPELL_STAGGERING_STOMP_3};
+enum SnoboldSpells
+{
+    SPELL_BATTER            = 66408, // Batter
+    SPELL_FIRE_BOMB         = 66313, // Fire Bomb
+    SPELL_HEAD_CRACK        = 66407  // Head Crack
+};
 
 struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
 {
@@ -75,21 +83,19 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        isHeroic = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     Difficulty m_dDifficulty;
-
-    uint32 m_uiImpaleTimer;
-    uint32 m_uiStaggeringStompTimer;
-    uint32 m_uiSnoboldsTimer;
+    bool isHeroic;
 
     void Reset()
     {
-        m_uiImpaleTimer = 10000;
-        m_uiStaggeringStompTimer = 15000;
-        m_uiSnoboldsTimer = 22000;
+        AddTimer(TIMER_IMPALE, SPELL_IMPALE, urand(9000,11000), urand(9000,11000), UNIT_SELECT_VICTIM, CAST_TYPE_QUEUE);
+        AddTimer(TIMER_STAGGERING_STOMP, SPELL_STAGGERING_STOMP, urand(13000,17000), urand(17000,22000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_DO_SNOBOLDS, SPELL_RISING_ANGER, urand(20000,25000), urand(17000,22000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
     }
 
     void JustDied(Unit* pKiller)
@@ -120,34 +126,23 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
             return;
 
         // Impale
-        if (HandleTimer(m_uiImpaleTimer, uiDiff, true))
-        {
-            if (m_creature->GetMap()->IsHeroicRaid() || !m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED))
-            {
-                DoCast(m_creature->getVictim(), m_idImpale[m_dDifficulty]);
-                m_uiImpaleTimer = 10000;
-            }
-        }
+        if (isHeroic || !m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED))
+            m_TimerMgr->TimerFinished(TIMER_IMPALE);
 
         // Staggering Stomp
-        if (HandleTimer(m_uiStaggeringStompTimer, uiDiff, true))
-        {
-            DoCast(m_creature, m_idStaggeringStomp[m_dDifficulty]);
-            m_uiStaggeringStompTimer = 20000;
-        }
+        m_TimerMgr->TimerFinished(TIMER_STAGGERING_STOMP);
 
         // Snobolds
-        if (HandleTimer(m_uiSnoboldsTimer, uiDiff, true))
+        if (m_TimerMgr->TimerFinished(TIMER_DO_SNOBOLDS))
         {
-            DoCast(m_creature, SPELL_RISING_ANGER);
-            Player* plr = SelectRandomPlayerInRange(3, 15, true);
-            if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            Player* plr = SelectRandomPlayerInRange(3, 15, DEFAULT_VISIBILITY_INSTANCE, true);
+            if (Creature* crt = plr->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
             {
                 crt->AI()->AttackStart(plr);
                 crt->CastSpell(plr, SPELL_SNOBOLLED, true);
             }
-            m_uiSnoboldsTimer = 20000;
 
+            DoScriptText(SAY_SNOBOLLED, m_creature);
         }
 
         DoMeleeAttackIfReady();
@@ -171,14 +166,44 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
     uint32 m_uiBatterTimer;
     uint32 m_uiFireBombTimer;
     uint32 m_uiHeadCrackTimer;
-    Unit* target;
+    Unit* fixTarget;
 
     void Reset()
     {
-        m_uiBatterTimer = 0;
-        m_uiFireBombTimer = 15000;
-        m_uiHeadCrackTimer = 22000;
-        target = NULL;
+        fixTarget = m_creature->GetCreator();
+        if (!fixTarget)
+            fixTarget = SelectNearestPlayer();
+
+        if (!fixTarget)
+        {
+            sLog.outCatLog("npc_snoboldAI::Reset: Fix target not found :-/");
+            return;
+        }
+
+        AddTimer(TIMER_BATTER, SPELL_BATTER, 0, 10000, UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
+        AddTimer(TIMER_FIRE_BOMB, SPELL_FIRE_BOMB, 15000, urand(25000,30000), UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
+        AddTimer(TIMER_HEAD_CRACK, SPELL_HEAD_CRACK, urand(20000,25000), urand(30000,40000), UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
+    }
+
+    Player* SelectNearestPlayer()
+    {
+        Player* nearest = NULL;
+        float neardist = 999.0f;
+        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+        {
+            Player* plr = itr->getSource();
+            if (!plr)
+                continue;
+
+            float currdist = plr->GetDistance(m_creature);
+            if (currdist < neardist)
+            {
+                nearest = plr;
+                neardist = currdist;
+            }
+        }
+        return nearest;
     }
 
     void AttackStart(Unit* pWho)
@@ -186,15 +211,12 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         if (!pWho)
             return;
 
-        if (!target)
-            target = pWho;
-
-        if (target != pWho)
-            return;
+        if (pWho != fixTarget)
+            pWho = fixTarget;
 
         if (m_creature->Attack(pWho, true))
         {
-            m_creature->AddThreat(pWho, 999999);
+            m_creature->AddThreat(pWho, 999999.f);
             m_creature->SetInCombatWith(pWho);
             pWho->SetInCombatWith(m_creature);
 
@@ -203,34 +225,20 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         // Batter
-        if (HandleTimer(m_uiBatterTimer, uiDiff))
-        {
-            if (target && target->IsNonMeleeSpellCasted(false))
-            {
-                DoCast(target, SPELL_BATTER);
-                m_uiBatterTimer = 10000;
-            }
-        }
+        if (fixTarget && fixTarget->IsNonMeleeSpellCasted(false))
+            m_TimerMgr->TimerFinished(TIMER_BATTER);
 
         // Fire Bomb
-        if (HandleTimer(m_uiFireBombTimer, uiDiff))
-        {
-            DoCast(target, SPELL_FIRE_BOMB);
-            m_uiFireBombTimer = 20000;
-        }
+        m_TimerMgr->TimerFinished(TIMER_FIRE_BOMB);
 
         // Head Crack
-        if (HandleTimer(m_uiHeadCrackTimer, uiDiff))
-        {
-            DoCast(target, SPELL_HEAD_CRACK);
-            m_uiHeadCrackTimer = 35000;
-        }
+        m_TimerMgr->TimerFinished(TIMER_HEAD_CRACK);
 
         DoMeleeAttackIfReady();
     }
@@ -246,134 +254,70 @@ CreatureAI* GetAI_npc_snobold(Creature* pCreature)
     return new npc_snoboldAI(pCreature);
 }
 
-/*
-INSERT INTO spell_script_target VALUES (66636, 1, 34796);
-UPDATE creature_template SET AIName = 'NullAI' WHERE entry = 34854;
-immune masky pro snobolda
-*/
-
 /////// END OF  GORMOK ////////
 
 ///////////////////////////
 /////   JORMUNGARS    /////
 ///////////////////////////
-enum Jormungars
+enum JormungarTimer
 {
-    // Enrage
-    SPELL_ENRAGE                = 68335,
-
-    ///// MOBILE /////
-    // Slime Pool
-    SPELL_SLIME_POOL_0          = 66883,
-    SPELL_SLIME_POOL_1          = 67641,
-    SPELL_SLIME_POOL_2          = 67642,
-    SPELL_SLIME_POOL_3          = 67643,
-    NPC_SLIME_POOL              = 35176,
-
-    //// STATIONARY ////
-    // Sweep
-    SPELL_SWEEP_0               = 66794,
-    SPELL_SWEEP_1               = 67644,
-    SPELL_SWEEP_2               = 67645,
-    SPELL_SWEEP_3               = 67646,
-
-    // there is more spell to be used, but who gives a shit
-    // ok i do
-    SPELL_SUBMERGE_0            = 66845,
-    SPELL_SUBMERGE_1            = 66948,
-    SPELL_EMERGE_0              = 66947,
-    SPELL_EMERGE_1              = 66949,
+    TIMER_SLIME_POOL,
+    TIMER_SPEW,
+    TIMER_BITE,
+    TIMER_SWEEP,
+    TIMER_SPIT,
+    TIMER_SPRAY,
+    TIMER_MERGING
 };
 
-enum Acidmaw
+enum JormungarSpell
 {
-    // Paralytic Toxin (probably unused)
-    SPELL_PARALYTIC_TOXIN_0     = 66823,
-    SPELL_PARALYTIC_TOXIN_1     = 67618,
-    SPELL_PARALYTIC_TOXIN_2     = 67619,
-    SPELL_PARALYTIC_TOXIN_3     = 67620,
+    SPELL_ENRAGE        = 68335, // Enrage
 
-    ///// MOBILE /////
-    // Acidic Spew
-    SPELL_ACID_SPEW             = 66818,
-    SPELL_ACID_SPEW_0           = 66819,
-    SPELL_ACID_SPEW_1           = 67609,
-    SPELL_ACID_SPEW_2           = 67610,
-    SPELL_ACID_SPEW_3           = 67611,
+    //**************
+    //* MOBILE ONLY
+    //**************
+    SPELL_SLIME_POOL    = 66883, // Slime Pool summon
+    NPC_SLIME_POOL      = 35176, // Slime Pool npc
 
-    // Paralytic Bite
-    SPELL_PARALYTIC_BITE_0      = 66824,
-    SPELL_PARALYTIC_BITE_1      = 67612,
-    SPELL_PARALYTIC_BITE_2      = 67613,
-    SPELL_PARALYTIC_BITE_3      = 67614,
+    //* Acidmaw
+    //**********
+    SPELL_ACID_SPEW     = 66818, // Acidic Spew
+    SPELL_PARALYTIC_BITE= 66824, // Paralytic Bite
 
-    //// STATIONARY ////
-    // Acid Spit
-    SPELL_ACID_SPIT_0           = 66880,
-    SPELL_ACID_SPIT_1           = 67606,
-    SPELL_ACID_SPIT_2           = 67607,
-    SPELL_ACID_SPIT_3           = 67608,
+    //* Dreadscale
+    //*************
+    SPELL_MOLTEN_SPEW   = 66821, // Molten Spew
+    SPELL_BURNING_BITE  = 66879, // Burning Bite
 
-    // Paralytic Spray
-    SPELL_PARALYTIC_SPRAY_0     = 66901,
-    SPELL_PARALYTIC_SPRAY_1     = 67615,
-    SPELL_PARALYTIC_SPRAY_2     = 67616,
-    SPELL_PARALYTIC_SPRAY_3     = 67617,
+
+    //******************
+    //* STATIONARY ONLY
+    //******************
+    SPELL_SWEEP         = 66794, // Sweep
+
+    //* Acidmaw
+    //**********
+    SPELL_ACID_SPIT     = 66880, // Acid Spit
+    SPELL_PARALYTIC_SPRAY=66901, // Paralytic Spray
+
+    //* Dreadscale
+    //*************
+    SPELL_FIRE_SPIT      = 66880, // Fire Spit
+    SPELL_BURNING_SPRAY  = 66901, // Burning Spray
+
+    // merging
+    SPELL_SUBMERGE_0     = 66845,
+    SPELL_SUBMERGE_1     = 66948,
+    SPELL_EMERGE_0       = 66947,
+    SPELL_EMERGE_1       = 66949
+
+    //SPELL_SLIME_POOL_PROC       = 66882, // Slime Pool proc
+    //SPELL_ACID_SPEW_PROC        = 66819, // Acidic Spew proc
+    //SPELL_PARALYTIC_TOXIN_PROC  = 66823, // Paralytic Bite - proc
+    //SPELL_MOLTEN_SPEW_PROC      = 66879, // Molten Spew proc
+    //SPELL_BURNING_BILE_PROC     = 66869, // Burning Bite proc
 };
-
-enum Dreadscale
-{
-    // Burning Bile (probably unused)
-    SPELL_BURNING_BILE_0        = 66879,
-    SPELL_BURNING_BILE_1        = 67624,
-    SPELL_BURNING_BILE_2        = 67625,
-    SPELL_BURNING_BILE_3        = 67626,
-
-    ///// MOBILE /////
-    // Molten Spew
-    SPELL_MOLTEN_SPEW           = 66821,
-    SPELL_MOLTEN_SPEW_0         = 66879,
-    SPELL_MOLTEN_SPEW_1         = 67624,
-    SPELL_MOLTEN_SPEW_2         = 67625,
-    SPELL_MOLTEN_SPEW_3         = 67626,
-
-    // Burning Bite
-    SPELL_BURNING_BITE_0        = 66879,
-    SPELL_BURNING_BITE_1        = 67624,
-    SPELL_BURNING_BITE_2        = 67625,
-    SPELL_BURNING_BITE_3        = 67626,
-
-    //// STATIONARY ////
-    // Fire Spit
-    SPELL_FIRE_SPIT_0           = 66880,
-    SPELL_FIRE_SPIT_1           = 67606,
-    SPELL_FIRE_SPIT_2           = 67607,
-    SPELL_FIRE_SPIT_3           = 67608,
-
-    // Burning Spray
-    SPELL_BURNING_SPRAY_0       = 66901,
-    SPELL_BURNING_SPRAY_1       = 67615,
-    SPELL_BURNING_SPRAY_2       = 67616,
-    SPELL_BURNING_SPRAY_3       = 67617,
-};
-
-//const float idASpew[MAX_DIFFICULTY] = {SPELL_ACID_SPEW_0, SPELL_ACID_SPEW_1, SPELL_ACID_SPEW_2, SPELL_ACID_SPEW_3};
-const uint32 idASpew[MAX_DIFFICULTY] = {SPELL_ACID_SPEW, SPELL_ACID_SPEW, SPELL_ACID_SPEW, SPELL_ACID_SPEW};
-const uint32 idABite[MAX_DIFFICULTY] = {SPELL_PARALYTIC_BITE_0, SPELL_PARALYTIC_BITE_1, SPELL_PARALYTIC_BITE_2, SPELL_PARALYTIC_BITE_3};
-const uint32 idASpit[MAX_DIFFICULTY] = {SPELL_ACID_SPIT_0, SPELL_ACID_SPIT_1, SPELL_ACID_SPIT_2, SPELL_ACID_SPIT_3};
-const uint32 idASpray[MAX_DIFFICULTY]= {SPELL_PARALYTIC_SPRAY_0, SPELL_ACID_SPEW_1, SPELL_ACID_SPEW_2, SPELL_ACID_SPEW_3};
-
-//const float idDSpew[MAX_DIFFICULTY] = {SPELL_MOLTEN_SPEW_0, SPELL_MOLTEN_SPEW_1, SPELL_MOLTEN_SPEW_2, SPELL_MOLTEN_SPEW_3 };
-const uint32 idDSpew[MAX_DIFFICULTY] = {SPELL_MOLTEN_SPEW, SPELL_MOLTEN_SPEW, SPELL_MOLTEN_SPEW, SPELL_MOLTEN_SPEW};
-const uint32 idDBite[MAX_DIFFICULTY] = {SPELL_BURNING_BITE_0, SPELL_BURNING_BITE_1, SPELL_BURNING_BITE_2, SPELL_BURNING_BITE_3 };
-const uint32 idDSpit[MAX_DIFFICULTY] = {SPELL_FIRE_SPIT_0, SPELL_FIRE_SPIT_1, SPELL_FIRE_SPIT_2, SPELL_FIRE_SPIT_3};
-const uint32 idDSpray[MAX_DIFFICULTY]= {SPELL_BURNING_SPRAY_0, SPELL_BURNING_SPRAY_1, SPELL_BURNING_SPRAY_2, SPELL_BURNING_SPRAY_3 };
-
-const uint32 idSMerging[2] = {SPELL_SUBMERGE_0, SPELL_EMERGE_0};
-const uint32 idMMerging[2] = {SPELL_SUBMERGE_1, SPELL_EMERGE_1};
-
-const uint32 idSlimePool[MAX_DIFFICULTY] = {SPELL_SLIME_POOL_0, SPELL_SLIME_POOL_1, SPELL_SLIME_POOL_2, SPELL_SLIME_POOL_3};
-const uint32 idSweep[MAX_DIFFICULTY] = {SPELL_SWEEP_0, SPELL_SWEEP_1, SPELL_SWEEP_2, SPELL_SWEEP_3};
 
 struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
 {
@@ -383,98 +327,111 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         Acidmaw = m_creature->GetEntry() == 35144;
         Dreadscale = m_creature->GetEntry() == 34799;
-        if (Acidmaw)
-        {
-            m_idSpew = idASpew;
-            m_idBite = idABite;			
-            m_idSpit = idASpit;
-            m_idSpray = idASpray;
-        }
-        else if (Dreadscale)
-        {
-            m_idSpew = idDSpew;
-            m_idBite = idDBite;			
-            m_idSpit = idDSpit;
-            m_idSpray = idDSpray;
-        }
+        if (!Acidmaw && !Dreadscale)
+            m_creature->ForcedDespawn();
         
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     Difficulty m_dDifficulty;
-    const uint32 *m_idSpew;
-    const uint32 *m_idBite;
-    const uint32 *m_idSpit;
-    const uint32 *m_idSpray;
+
     bool Acidmaw;
     bool Dreadscale;
 
-    bool m_bIsMobile;
     bool m_bIsSubmerged;
-
-    uint32 m_uiSpitTimer;
-
-    uint32 m_uiSpewTimer;
-    uint32 m_uiBiteTimer;
-    uint32 m_uiSprayTimer;
-
-    uint32 m_uiSlimePoolTimer;
-    uint32 m_uiSweepTimer;
-
-    uint32 m_uiSubmergeTimer;
+    bool m_bIsMobile;
 
     void Reset()
     {
-        // set mobility
-        m_bIsMobile = Dreadscale;
-        SetCombatMovement(m_bIsMobile);
+        AddTimer(TIMER_SLIME_POOL, SPELL_SLIME_POOL, urand(10000,12000),
+                 urand(30000,40000), UNIT_SELECT_NONE, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_SPEW, Acidmaw ? SPELL_ACID_SPEW : SPELL_MOLTEN_SPEW, urand(20000,22000),
+                 urand(20000,22000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_BITE, Acidmaw ?  SPELL_PARALYTIC_BITE : SPELL_BURNING_BITE,  Acidmaw ? urand (20000,25000) : urand(10000,15000),
+                 Acidmaw ? urand(23000,27000) : urand(13000, 17000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_SWEEP, SPELL_SWEEP, urand(15000,17000),
+                 urand(15000,19000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_SPIT, Acidmaw ? SPELL_ACID_SPIT : SPELL_FIRE_SPIT, 0,
+                 1000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
+        AddTimer(TIMER_SPRAY, Acidmaw ? SPELL_PARALYTIC_SPRAY : SPELL_BURNING_SPRAY, urand(20000,22000),
+                 urand(20000,24000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_FORCE, 0);
+        if (Acidmaw)
+            AddNonCastTimer(TIMER_MERGING, 45000, 45000);
 
+        SetMobility(Dreadscale);
         m_bIsSubmerged = false;
-
-        m_uiSpitTimer = 0;
- 
-        m_uiSlimePoolTimer = urand(10000,12000);
-        m_uiSweepTimer = urand(15000,17000);
-
-        m_uiSpewTimer = urand(20000,22000);
-        m_uiBiteTimer = Acidmaw ? urand (20000,25000) : urand(10000,15000);
-        m_uiSprayTimer = urand(20000,22000);
     }
     
-    Creature* GetOtherJormungar()
+    Creature* GetBro()
     {
-        Creature* crt;
-        crt = GetClosestCreatureWithEntry(m_creature, (Acidmaw ? 34799 : 35144), DEFAULT_VISIBILITY_INSTANCE);
-        if (!crt)
-            crt = (Creature*)Unit::GetUnit(*m_creature, m_pInstance->GetData64(Acidmaw ? NPC_DREADSCALE : NPC_ACIDMAW));
+        Creature* crt = GetClosestCreatureWithEntry(m_creature, Acidmaw ? 34799 : 35144, DEFAULT_VISIBILITY_INSTANCE);
+        if (!crt && m_pInstance)
+            crt = m_pInstance->GetCreature(Acidmaw ? NPC_DREADSCALE : NPC_ACIDMAW);
 
         return crt;
     }
 
-    void JustDied(Unit* killer)
+    void SetMobility(bool mobile)
     {
-        if (Creature* crt = GetOtherJormungar())
-            crt->CastSpell(crt, SPELL_ENRAGE, false);
+        m_bIsMobile = mobile;
+        SetCombatMovement(mobile);
+
+        m_TimerMgr->TimerFinished(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->TimerFinished(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->TimerFinished(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobile);
+        m_TimerMgr->TimerFinished(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->TimerFinished(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->TimerFinished(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !mobile);
     }
-    void Submerge(bool apply)
+
+    boss_jormungarsAI* GetBroAI()
     {
-        // spells
-        const uint32* ids = m_bIsMobile ? idMMerging : idSMerging;
-        uint32 spellId = ids[!apply];
-        m_creature->CastSpell(m_creature, spellId, false);
-        if (apply)
+        Creature* bro = GetBro();
+        if (!bro)
+            return NULL;
+
+        return (boss_jormungarsAI*)bro->AI();
+    }
+
+    void JustDied(Unit* /*killer*/)
+    {
+        if (Creature* crt = GetBro())
         {
-            //m_creature->SetVisibility(VISIBILITY_OFF);
+            crt->CastSpell(crt, SPELL_ENRAGE, false);
+            DoScriptText(SAY_BERSERK, crt);
+        }
+    }
+
+    void DamageTaken(Unit */*pDoneBy*/, uint32 &uiDamage)
+    {
+        if (m_bIsSubmerged)
+            uiDamage = 0;
+    }
+
+    void HandleMerging(bool submerge)
+    {
+        const uint32 spellId = m_bIsMobile ? SPELL_SUBMERGE_1 : SPELL_SUBMERGE_0;
+
+        if (submerge)
+        {
             EnableAttack(false);
             SetCombatMovement(false);
+            m_TimerMgr->TimerFinished(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->TimerFinished(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->TimerFinished(TIMER_BITE, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->TimerFinished(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->TimerFinished(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, false);
+            m_TimerMgr->TimerFinished(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, false);
+
+            m_TimerMgr->Cooldown(TIMER_MERGING, 10000);
+
+            DoScriptText(SAY_SUBMERGE, m_creature);
         }
         else
         {
-            //m_creature->SetVisibility(VISIBILITY_ON);
-            EnableAttack(true);
-            m_bIsMobile = !m_bIsMobile;
-            SetCombatMovement(m_bIsMobile);
+            SetMobility(!m_bIsMobile);
+            EnableAttack(m_bIsMobile);
 
             Coords coord = Center;
             float rand_o = rand_norm_f()*2*M_PI_F;
@@ -482,81 +439,48 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
             coord.x += range*cos(rand_o);
             coord.y += range*sin(rand_o);
             m_creature->NearTeleportTo(coord, 0);
-        }
-    }
-    void UpdateAI(const uint32 uiDiff)
-    {
-        // Submerge
-        if (HandleTimer(m_uiSubmergeTimer, uiDiff, true))
-        {
-            m_bIsSubmerged = !m_bIsSubmerged;
-            Submerge(m_bIsSubmerged);
-            // if submerged 10 sec after unsubmerge, else 45 sec to submerge
-            if (m_bIsSubmerged)
-                m_uiSubmergeTimer = 10000;
-            else
-                m_uiSubmergeTimer = 45000;
 
+            m_TimerMgr->Cooldown(TIMER_MERGING, 45000);
+
+            DoScriptText(SAY_EMERGE, m_creature);
         }
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_bIsSubmerged)
+
+        m_bIsSubmerged = submerge;
+        m_creature->AddAndLinkAura(spellId, submerge);
+    }
+    void UpdateAI(const uint32 /*uiDiff*/)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_bIsMobile)
+        // Merging
+        if (m_TimerMgr->TimerFinished(TIMER_MERGING))
         {
-            // Acidic Spew / Molten Spew
-            if (HandleTimer(m_uiSpewTimer, uiDiff))
-            {
-                DoCast(m_creature->getVictim(), m_idSpew[m_dDifficulty]);
-                m_uiSpewTimer = urand(20000,22000);
-            }
+            bool submerge = !m_bIsSubmerged; // switch submerge/emerge state
+            HandleMerging(submerge);
+            if (boss_jormungarsAI* ai = GetBroAI())
+                ai->HandleMerging(submerge);
+        }
 
-            // Paralytic Bite / Burning Bite
-            if (HandleTimer(m_uiBiteTimer, uiDiff))
-            {
-                DoCast(m_creature->getVictim(), m_idBite[m_dDifficulty]);
-                m_uiBiteTimer = (Acidmaw ? urand(23,27) : urand(13, 17))*IN_MILLISECONDS;
-            }
-            // Slime Pool
-            if (HandleTimer(m_uiSlimePoolTimer, uiDiff, true))
-            {
-                //TODO:: find spell effect, cast on sumoned 66882, handle dummy, probably best way is in sd2
-                DoCast(m_creature, idSlimePool[m_dDifficulty]);
+        // Spew
+        m_TimerMgr->TimerFinished(TIMER_SPEW);
 
-            }
-        }
-        else
-        {
-            // Paralytic Spray / Burning Spray
-            if (HandleTimer(m_uiSprayTimer, uiDiff))
-            {
-                if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                {
-                    m_creature->SetFacingToObject(target);
-                    DoCast(target, m_idSpray[m_dDifficulty]);
-                }
-                m_uiSprayTimer = urand(20000,24000);
-            }
-            // Sweep
-            if (HandleTimer(m_uiSweepTimer, uiDiff))
-            {
-                DoCast(m_creature, idSweep[m_dDifficulty]);
-                m_uiSweepTimer = urand(15000,19000);
-            }
-        }
-        
-        // using "spam" abilities
-        if (!m_bIsMobile)
-        {
-            // Spit
-            if (HandleTimer(m_uiSpitTimer, uiDiff))
-            {
-                if (Unit* target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM,0))
-                    DoCast(target, m_idSpit[m_dDifficulty]);
-                m_uiSpitTimer = 1000;
-            }
-        }
-        else
-            DoMeleeAttackIfReady();
+        // Bite
+        m_TimerMgr->TimerFinished(TIMER_BITE);
+
+        // Slime Pool
+        m_TimerMgr->TimerFinished(TIMER_SLIME_POOL);
+
+        // Spray
+        m_TimerMgr->TimerFinished(TIMER_SPRAY);
+
+        // Sweep
+        m_TimerMgr->TimerFinished(TIMER_SWEEP);
+
+        // Spit
+        m_TimerMgr->TimerFinished(TIMER_SPIT);
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -570,33 +494,25 @@ CreatureAI* GetAI_boss_jormungars(Creature* pCreature)
 //////////////////////////
 //////    ICEHOWL   //////
 //////////////////////////
-enum Icehowl
+
+enum IcehowlTimer
 {
-    SPELL_FEROCIOUS_BUTT_0      = 66770,
-    SPELL_FEROCIOUS_BUTT_1      = 67654,
-    SPELL_FEROCIOUS_BUTT_2      = 67655,
-    SPELL_FEROCIOUS_BUTT_3      = 67666,
-    SPELL_ARCTIC_BREATH_0       = 66689,
-    SPELL_ARCTIC_BREATH_1       = 67650,
-    SPELL_ARCTIC_BREATH_2       = 67651,
-    SPELL_ARCTIC_BREATH_3       = 67652,
-    SPELL_WHIRL_0               = 67345,
-    SPELL_WHIRL_1               = 67664,
-    SPELL_WHIRL_2               = 67663,
-    SPELL_WHIRL_3               = 67665,
-    SPELL_MASSIVE_CRASH_0       = 66683,
-    SPELL_MASSIVE_CRASH_1       = 67661,
-    SPELL_MASSIVE_CRASH_2       = 67660,
-    SPELL_MASSIVE_CRASH_3       = 67662,
+    TIMER_BUTT = 0,
+    TIMER_BREATH,
+    TIMER_WHIRL,
+    TIMER_MASSIVE_CRASH
+};
+
+enum IcehowlSpell
+{
+    SPELL_FEROCIOUS_BUTT        = 66770,
+    SPELL_ARCTIC_BREATH         = 66689,
+    SPELL_WHIRL                 = 67345,
+    SPELL_MASSIVE_CRASH         = 66683,
     SPELL_TRAMPLE               = 66734,
     SPELL_STAGGERED_DAZE        = 66758,
     SPELL_ENRAGE_ICE            = 66759
 };
-
-const uint32 m_idFerociousButt[4] = {SPELL_FEROCIOUS_BUTT_0, SPELL_FEROCIOUS_BUTT_1, SPELL_FEROCIOUS_BUTT_2, SPELL_FEROCIOUS_BUTT_3};
-const uint32 m_idArcticBreath[4] = {SPELL_ARCTIC_BREATH_0, SPELL_ARCTIC_BREATH_1, SPELL_ARCTIC_BREATH_2, SPELL_ARCTIC_BREATH_3};
-const uint32 m_idWhirl[4] = {SPELL_WHIRL_0, SPELL_WHIRL_1, SPELL_WHIRL_2, SPELL_WHIRL_3};
-const uint32 m_idMassiveCrash[4] = {SPELL_MASSIVE_CRASH_0, SPELL_MASSIVE_CRASH_1, SPELL_MASSIVE_CRASH_2, SPELL_MASSIVE_CRASH_3};
 
 struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 {
@@ -606,19 +522,14 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         Reset();
     }
-    // 0 odkopnuti // 4 emote  otoci se zarve // 6.5 spadne stun a odskočí // 8 charguje
 
     ScriptedInstance* m_pInstance;
     Difficulty m_dDifficulty;
 
     uint32 m_uiChargeStepTimer;
     int8 m_uiChargeStepCount;
-    uint32 m_uiFerociousButtTimer;
-    uint32 m_uiArcticBreathTimer;
-    uint32 m_uiWhirlTimer;
-    uint32 m_uiMassiveCrashTimer;
 
-    uint32 m_uiArcticBreathDefixTimer;
+    bool isCastingBreath;
 
     PathNode *m_chargeTargetPos;
     bool m_trample;
@@ -628,21 +539,24 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 
     void Reset()
     {
-        setInitTimers();
+        AddTimer(TIMER_BUTT, SPELL_FEROCIOUS_BUTT, 10000, 0, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_WHIRL, SPELL_WHIRL, 15000, 0, UNIT_SELECT_SELF);
+        AddTimer(TIMER_BREATH, SPELL_ARCTIC_BREATH, 20000, 0, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
+        AddNonCastTimer(TIMER_MASSIVE_CRASH, 35000, 0);
 
-        m_uiArcticBreathDefixTimer = 0;
+        isCastingBreath = false;
         m_uiChargeStepCount = -1;
         m_trample = false;
         m_creature->GetMotionMaster()->Clear(false, true);
         SetCombatMovement(true);
     }
 
-    void setInitTimers()
+    void setUpdatableForTimers(bool update)
     {
-        m_uiFerociousButtTimer = 10000;
-        m_uiArcticBreathTimer = 20000;
-        m_uiWhirlTimer = 15000;
-        m_uiMassiveCrashTimer = 35000;
+        m_TimerMgr->SetValue(TIMER_BUTT, TIMER_VALUE_UPDATEABLE, update);
+        m_TimerMgr->SetValue(TIMER_BREATH, TIMER_VALUE_UPDATEABLE, update);
+        m_TimerMgr->SetValue(TIMER_WHIRL, TIMER_VALUE_UPDATEABLE, update);
+        m_TimerMgr->SetValue(TIMER_MASSIVE_CRASH, TIMER_VALUE_UPDATEABLE, update);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -672,17 +586,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
             }else m_trampleTimer -= uiDiff;
         }
         
-        // remove target fix from arctic breath
-        if (m_uiArcticBreathDefixTimer)
-        {
-            if (m_uiArcticBreathDefixTimer < uiDiff)
-            {
-                m_creature->FixOrientation();
-                m_uiArcticBreathDefixTimer = 0;
-            }else m_uiArcticBreathDefixTimer -= uiDiff;
-            return;
-        }
-
         // handling steps of charge
         if (m_uiChargeStepCount != -1)
         {
@@ -702,6 +605,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         if (plr)
                             m_creature->FixOrientation(m_creature->GetAngle(plr));
                         m_creature->SetUInt64Value(UNIT_FIELD_TARGET, plr->GetGUID());
+                        DoScriptText(SAY_TRAMPLE_STARE, m_creature, plr);
                         //emote
                         m_chargeTargetPos = new PathNode(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
                         m_uiChargeStepTimer = 2500;
@@ -728,6 +632,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                     }
                     case 3:
                     {
+                        DoScriptText(SAY_TRAMPLE_START, m_creature);
                         PointPath pointPath;
                         pointPath.resize(2);
                         m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
@@ -752,9 +657,12 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
                         if (m_sombodyDied)
                             m_creature->CastSpell(m_creature, SPELL_ENRAGE_ICE, false);
                         else
+                        {
                             m_creature->CastSpell(m_creature, SPELL_STAGGERED_DAZE, false);
+                            DoScriptText(SAY_TRAMPLE_FAIL, m_creature);
+                        }
                         m_creature->FixOrientation();
-                        setInitTimers();
+                        setUpdatableForTimers(true);
                         break;
                     }
                 }
@@ -768,35 +676,37 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         }
 
         // Ferocious Butt
-        if (HandleTimer(m_uiFerociousButtTimer, uiDiff, true))
-        {
-            m_creature->CastSpell(m_creature->getVictim(), m_idFerociousButt[m_dDifficulty], false);
-            m_uiFerociousButtTimer = 10000;
-        }
+        m_TimerMgr->TimerFinished(TIMER_BUTT);
 
         // Whirl
-        if (HandleTimer(m_uiWhirlTimer, uiDiff, true))
-        {
-            m_creature->CastSpell(m_creature, m_idWhirl[m_dDifficulty], false);
-            m_uiWhirlTimer = 15000;
-        }
+        m_TimerMgr->TimerFinished(TIMER_WHIRL);
 
         // Arctic Breath
-        if (HandleTimer(m_uiArcticBreathTimer, uiDiff, true))
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_BREATH))
         {
-            if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
+            if (!isCastingBreath)
             {
-                m_creature->CastSpell(plr, m_idArcticBreath[m_dDifficulty], false);
-                m_creature->FixOrientation(m_creature->GetAngle(plr));
-            }
-            m_uiArcticBreathDefixTimer = 5000;
+                if (Unit* target = timer->getTarget())
+                    m_creature->FixOrientation(m_creature->GetAngle(target));
 
-            m_uiArcticBreathTimer = 20000;
+                timer->SetValue(TIMER_VALUE_SPELLID, 0);
+                timer->Cooldown(TIMER_BREATH, 5000);
+                isCastingBreath = true;
+            }
+            else
+            {
+                m_creature->FixOrientation();
+                isCastingBreath = false;
+                timer->Reset(TIMER_VALUE_SPELLID);
+                timer->Cooldown(TIMER_BREATH, 15000);
+            }
         }
 
         // Massive Crash
-        if (HandleTimer(m_uiMassiveCrashTimer, uiDiff, true))
+        if (m_TimerMgr->TimerFinished(TIMER_MASSIVE_CRASH))
         {
+            setUpdatableForTimers(false);
+
             PointPath pointPath;
             pointPath.resize(2);
             SetCombatMovement(false);
@@ -809,9 +719,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
             m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
 
             m_uiChargeStepTimer = 1000;
-            m_uiChargeStepCount = 0;
-
-            m_uiMassiveCrashTimer = 35000;
+            m_uiChargeStepCount = 0;            
         }
 
         DoMeleeAttackIfReady();
@@ -847,13 +755,3 @@ void AddSC_northrend_beasts()
     newscript->GetAI = &GetAI_boss_icehowl;
     newscript->RegisterSelf();
 }
-
-/*
-UPDATE creature SET spawnMask = 15 WHERE map = 649;
-UPDATE gameobject SET spawnMask = 15 WHERE map = 649;
-UPDATE creature_template SET ScriptName = 'boss_gormok' WHERE entry = 34796;
-UPDATE creature_template SET ScriptName = 'npc_snobold' WHERE entry = 34800;
-UPDATE creature_template SET ScriptName = 'boss_jormungars' WHERE entry = 35144;
-UPDATE creature_template SET ScriptName = 'boss_jormungars' WHERE entry = 34799;
-UPDATE creature_template SET ScriptName = 'boss_icehowl' WHERE entry = 34797;
-*/

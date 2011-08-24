@@ -24,109 +24,19 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-// boss spells
-enum Jaraxxus
+enum Say
 {
-    // Fel Fireball
-    SPELL_FEL_FIREBALL/*_0*/        = 66532,
-    //SPELL_FEL_FIREBALL_1        = 66963,
-    //SPELL_FEL_FIREBALL_2        = 66964,
-    //SPELL_FEL_FIREBALL_3        = 66965,
-
-    // Fel Lightning
-    SPELL_FEL_LIGHTNING/*_0*/       = 66528,
-    //SPELL_FEL_LIGHTNING_1       = 67029,
-    //SPELL_FEL_LIGHTNING_2       = 67030,
-    //SPELL_FEL_LIGHTNING_3       = 67031,
-
-    // Incinerate Flesh
-    SPELL_INCINERATE_FLESH/*_0*/    = 66237,
-    //SPELL_INCINERATE_FLESH_1    = 67049,
-    //SPELL_INCINERATE_FLESH_2    = 67050,
-    //SPELL_INCINERATE_FLESH_3    = 67051,
-
-    // Legion Flame
-    SPELL_LEGION_FLAME/*_0*/        = 66197,
-    //SPELL_LEGION_FLAME_1        = 68123,
-    //SPELL_LEGION_FLAME_2        = 68124,
-    //SPELL_LEGION_FLAME_3        = 68125,
-
-    // Infernal Eruption
-    SPELL_INFERNAL_ERUPTION/*_0*/   = 66258,
-    //SPELL_INFERNAL_ERUPTION_1   = 67901,
-    //SPELL_INFERNAL_ERUPTION_2   = 67902,
-    //SPELL_INFERNAL_ERUPTION_3   = 67903,
-
-    // Nether Portal
-    SPELL_NETHER_PORTAL/*_0*/       = 66269,
-    //SPELL_NETHER_PORTAL_1       = 67898,
-    //SPELL_NETHER_PORTAL_2       = 67899,
-    //SPELL_NETHER_PORTAL_3       = 67900,
-
-    // Nether Power
-    SPELL_NETHER_POWER          = 67009,
-
-    // Fel Lightning - gnom instakill
-    SPELL_FEL_LIGHTNING_IK      = 67888
-
+    SAY_INTRO               = -1649030,
+    SAY_AGGRO               = -1649031,
+    SAY_DEATH               = -1649032,
+    EMOTE_INCINERATE        = -1649033,
+    SAY_INCINERATE          = -1649034,
+    EMOTE_LEGION_FLAME      = -1649035,
+    EMOTE_NETHER_PORTAL     = -1649036,
+    SAY_NETHER_PORTAL       = -1649037,
+    EMOTE_INFERNAL_ERUPTION = -1649038,
+    SAY_INFERNAL_ERUPTION   = -1649039
 };
-
-/*const uint32 m_idFelFireball[4] = {SPELL_FEL_FIREBALL_0, SPELL_FEL_FIREBALL_1, SPELL_FEL_FIREBALL_2, SPELL_FEL_FIREBALL_3};
-const uint32 m_idFelLightning[4] = {SPELL_FEL_LIGHTNING_0, SPELL_FEL_LIGHTNING_1, SPELL_FEL_LIGHTNING_2, SPELL_FEL_LIGHTNING_3};
-const uint32 m_idIncinerateFlesh[4] = {SPELL_INCINERATE_FLESH_0, SPELL_INCINERATE_FLESH_1, SPELL_INCINERATE_FLESH_2, SPELL_INCINERATE_FLESH_3};
-const uint32 m_idLegionFlame[4] = {SPELL_LEGION_FLAME_0, SPELL_LEGION_FLAME_1, SPELL_LEGION_FLAME_2, SPELL_LEGION_FLAME_3};
-const uint32 m_idInfernalEruption[4] = {SPELL_INFERNAL_ERUPTION_0, SPELL_INFERNAL_ERUPTION_1, SPELL_INFERNAL_ERUPTION_2, SPELL_INFERNAL_ERUPTION_3};
-const uint32 m_idNetherPortal[4] = {SPELL_NETHER_PORTAL_0, SPELL_NETHER_PORTAL_1, SPELL_NETHER_PORTAL_2, SPELL_NETHER_PORTAL_3};*/
-
-enum Adds
-{
-    // Infernal
-    SPELL_FEL_STREAK            = 66494,
-    SPELL_FEL_STREAK_M          = 66493,
-    SPELL_FEL_INFERNO           = 67046,
-
-    // Mistress
-    SPELL_SHIVAN_SLASH/*_0*/        = 66378,
-    //SPELL_SHIVAN_SLASH_1        = 67097,
-    //SPELL_SHIVAN_SLASH_2        = 67098,
-    //SPELL_SHIVAN_SLASH_3        = 67099,
-
-    SPELL_SPINNING_PAIN_SPIKE   = 66283,
-
-    SPELL_MISTRESS_KISS         = 66336
-    //SPELL_MISTRESS_KISS_2       = 67077,
-    //SPELL_MISTRESS_KISS_3       = 67078,
-
-};
-
-/*const uint32 m_idShivanSlash[4] = {SPELL_SHIVAN_SLASH_0, SPELL_SHIVAN_SLASH_1, SPELL_SHIVAN_SLASH_2, SPELL_SHIVAN_SLASH_3 };*/
-/*const uint32 m_idMistressKiss[4] = {0,0, SPELL_MISTRESS_KISS_2, SPELL_MISTRESS_KISS_3 };*/
-
-// should be all handled in core
-
-enum Helpers
-{
-    // Legion Flame
-    SPELL_LEGION_FLAME_AURA     = 66201,
-
-    // Infernal Eruption
-    SPELL_INFERNAL_ERUPTION_A/*_0*/ = 66252,
-    //SPELL_INFERNAL_ERUPTION_A_1 = 67067,
-    //SPELL_INFERNAL_ERUPTION_A_2 = 67068,
-    //SPELL_INFERNAL_ERUPTION_A_3 = 67069,
-
-    // from aura trigger : 66253
-    // triggers missile: 66255
-
-    // Nether Portal
-    SPELL_NETHER_PORTAL_AURA/*_0*/  = 66263
-    //SPELL_NETHER_PORTAL_AURA_1  = 67103,
-    //SPELL_NETHER_PORTAL_AURA_2  = 67104,
-    //SPELL_NETHER_PORTAL_AURA_3  = 67105
-};
-
-//const uint32 m_idInfernalEruptionAura[4] = {SPELL_INFERNAL_ERUPTION_A_0, SPELL_INFERNAL_ERUPTION_A_1, SPELL_INFERNAL_ERUPTION_A_2, SPELL_INFERNAL_ERUPTION_A_3};
-//const uint32 m_idNetherPortalAura[4] = {SPELL_NETHER_PORTAL_AURA_0, SPELL_NETHER_PORTAL_AURA_1, SPELL_NETHER_PORTAL_AURA_2, SPELL_NETHER_PORTAL_AURA_3};
 
 enum TimerNames
 {
@@ -149,6 +59,40 @@ enum TimerNames
     TIMER_MISTRESS_KISS
 };
 
+// boss spells
+enum Jaraxxus
+{
+    SPELL_FEL_FIREBALL          = 66532, // Fel Fireball
+    SPELL_FEL_LIGHTNING         = 66528, // Fel Lightning
+    SPELL_INCINERATE_FLESH      = 66237, // Incinerate Flesh
+    SPELL_LEGION_FLAME          = 66197, // Legion Flame
+    SPELL_INFERNAL_ERUPTION     = 66258, // Infernal Eruption
+    SPELL_NETHER_PORTAL         = 66269, // Nether Portal
+    SPELL_NETHER_POWER          = 67009, // Nether Power
+    SPELL_FEL_LIGHTNING_IK      = 67888  // Fel Lightning - gnom instakill
+};
+
+enum Adds
+{
+    // Infernal
+    SPELL_FEL_STREAK            = 66494,
+    SPELL_FEL_STREAK_M          = 66493,
+    SPELL_FEL_INFERNO           = 67046,
+
+    // Mistress
+    SPELL_SHIVAN_SLASH          = 66378,
+    SPELL_SPINNING_PAIN_SPIKE   = 66283,
+    SPELL_MISTRESS_KISS         = 66336
+};
+
+enum Helpers
+{
+    SPELL_LEGION_FLAME_AURA     = 66201, // Legion Flame
+    SPELL_INFERNAL_ERUPTION_AURA= 66252, // Infernal Eruption
+    SPELL_NETHER_PORTAL_AURA    = 66263  // Nether Portal
+
+};
+
 struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 {
     boss_jaraxxusAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -163,20 +107,21 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->AddTimer(TIMER_FEL_FIRABALL, SPELL_FEL_FIREBALL, urand(4000,8000), urand(10000,15000), UNIT_SELECT_VICTIM);
-        m_TimerMgr->AddTimer(TIMER_FEL_LIGHTNING, SPELL_FEL_LIGHTNING, urand(6000,10000), urand(13000,17000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
-        m_TimerMgr->AddTimer(TIMER_INCINERATE_FLESH, SPELL_INCINERATE_FLESH, urand(13000,15000), urand(18000,22000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
-        m_TimerMgr->AddTimer(TIMER_LEGION_FLAME, SPELL_LEGION_FLAME, urand(10000,15000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
-        m_TimerMgr->AddTimer(TIMER_INFERNAL_ERUPTION, SPELL_INFERNAL_ERUPTION, urand(70000,90000), urand(110000,120000), UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_NETHER_PORTAL, SPELL_NETHER_PORTAL, urand(15000,25000), urand(110000,120000), UNIT_SELECT_SELF);
-        m_TimerMgr->AddTimer(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, 42000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_FEL_FIRABALL, SPELL_FEL_FIREBALL, urand(4000,8000), urand(10000,15000), UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_FEL_LIGHTNING, SPELL_FEL_LIGHTNING, urand(6000,10000), urand(13000,17000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        AddTimer(TIMER_INCINERATE_FLESH, SPELL_INCINERATE_FLESH, urand(13000,15000), urand(18000,22000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        AddTimer(TIMER_LEGION_FLAME, SPELL_LEGION_FLAME, urand(10000,15000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
+        AddTimer(TIMER_INFERNAL_ERUPTION, SPELL_INFERNAL_ERUPTION, urand(70000,90000), urand(110000,120000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_NETHER_PORTAL, SPELL_NETHER_PORTAL, urand(15000,25000), urand(110000,120000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, 42000, UNIT_SELECT_SELF);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (!m_pInstance)
             return;
 
+        DoScriptText(SAY_DEATH, m_creature);
         //m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_DONE);
     }
 
@@ -189,8 +134,9 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         m_creature->ForcedDespawn();
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
+        DoScriptText(SAY_AGGRO, m_creature);
         //m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_IN_PROGRESS);
     }
 
@@ -206,16 +152,35 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         m_TimerMgr->TimerFinished(TIMER_FEL_LIGHTNING);
 
         // Incinerate Flesh
-        m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH);
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH))
+        {
+            if (Unit* target = timer->getTarget())
+                DoScriptText(EMOTE_INCINERATE, m_creature, target);
+
+            DoScriptText(SAY_INCINERATE, m_creature);
+        }
+
 
         // Legion Flame
-        m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME);
+        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME))
+        {
+            if (Unit* target = timer->getTarget())
+                DoScriptText(EMOTE_LEGION_FLAME, m_creature, target);
+        }
 
         // Infernal Eruption
-        m_TimerMgr->TimerFinished(TIMER_INFERNAL_ERUPTION);
+        if (m_TimerMgr->TimerFinished(TIMER_INFERNAL_ERUPTION))
+        {
+            DoScriptText(EMOTE_INFERNAL_ERUPTION, m_creature);
+            DoScriptText(SAY_INFERNAL_ERUPTION, m_creature);
+        }
 
         // Nether Portal
-        m_TimerMgr->TimerFinished(TIMER_NETHER_PORTAL);
+        if (m_TimerMgr->TimerFinished(TIMER_NETHER_PORTAL))
+        {
+            DoScriptText(EMOTE_NETHER_PORTAL, m_creature);
+            DoScriptText(SAY_NETHER_PORTAL, m_creature);
+        }
 
         // Nether Power
         m_TimerMgr->TimerFinished(TIMER_NETHER_POWER);
@@ -238,8 +203,8 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->AddTimer(TIMER_FEL_STREAK, SPELL_FEL_STREAK, urand(8000,10000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
-        m_TimerMgr->AddTimer(TIMER_FEL_INFERNO, SPELL_FEL_INFERNO, urand(10000,20000), urand(15000,25000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_FEL_STREAK, SPELL_FEL_STREAK, urand(8000,10000), urand(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
+        AddTimer(TIMER_FEL_INFERNO, SPELL_FEL_INFERNO, urand(10000,20000), urand(15000,25000), UNIT_SELECT_SELF);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -274,10 +239,10 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000, UNIT_SELECT_VICTIM);
-        m_TimerMgr->AddTimer(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
+        AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
         if (isHeroic)
-            m_TimerMgr->AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000);
+            AddTimer(TIMER_MISTRESS_KISS, SPELL_MISTRESS_KISS, 15000, 15000, UNIT_SELECT_NONE, CAST_TYPE_FORCE);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -304,7 +269,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             PlrList::iterator itr = manaList.begin();
             std::advance(itr, urand(0, manaList.size()-1));
 
-            m_TimerMgr->GetTimer(TIMER_MISTRESS_KISS)->Finish(*itr);
+            m_TimerMgr->FinishTimer(TIMER_MISTRESS_KISS, *itr);
         }
 
         DoMeleeAttackIfReady();
@@ -344,9 +309,3 @@ void AddSC_boss_jaraxxus()
     newscript->GetAI = &GetAI_mistress_of_pain;
     newscript->RegisterSelf();
 }
-
-/*
-UPDATE creature_template SET ScriptName = 'boss_jaraxxus' WHERE entry=34780;
-UPDATE creature_template SET ScriptName = 'npc_felflame_infernal' WHERE entry=34815;
-UPDATE creature_template SET ScriptName = 'npc_mistress_of_pain' WHERE entry=34826;
-*/
