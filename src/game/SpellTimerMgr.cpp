@@ -109,20 +109,20 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
     }
 }
 
-bool SpellTimerMgr::IsReady(uint32 timerId)
-{
-    if (SpellTimer* timer = m_TimerMap[timerId])
-        return timer->IsReady();
-
-    return false;
-}
-
 SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
     if (m_TimerMap.find(timerId) != m_TimerMap.end())
-        return NULL;
+        return m_TimerMap[timerId];
 
-    return m_TimerMap[timerId];
+    return NULL;
+}
+
+bool SpellTimerMgr::IsReady(uint32 timerId)
+{
+    if (SpellTimer* timer = GetTimer(timerId))
+        return timer->IsReady();
+
+    return false;
 }
 
 void SpellTimerMgr::Reset(uint32 timerId, TimerValues value)
@@ -169,13 +169,9 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
+SpellTimer* SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
-    // no key with this timerId found
-    if (m_TimerMap.find(timerId) != m_TimerMap.end())
-        return NULL;
-
-    SpellTimer* timer = m_TimerMap[timerId];
+    SpellTimer* timer = GetTimer(timerId);
 
     // timer with timerId not found
     if (!timer)
@@ -205,7 +201,11 @@ bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
     }
 
     timer->SetTarget(target);
-    return FinishTimer(timerId) ? timer : NULL;
+
+    if (FinishTimer(timerId))
+        return timer;
+
+    return NULL;
 }
 
 bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
