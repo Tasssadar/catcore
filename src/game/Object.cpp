@@ -1840,10 +1840,13 @@ Creature* WorldObject::SummonCreature(uint32 id, Coords coord, float ori, TempSu
         GetClosePoint(coord.x, coord.y, coord.z, pCreature->GetObjectBoundingRadius());
 
     if (update_z)
-        UpdateGroundPositionZ(coord.x, coord.y, coord.z+5, 15.f);
+    {
+        coord.z += 5.f;
+        UpdateGroundPositionZ(coord.x, coord.y, coord.z, 15.f);
+    }
 
-    pCreature->Relocate(coord.x, coord.y, coord.z, ang);
-    pCreature->SetSummonPoint(coord.x, coord.y, coord.z, ang);
+    pCreature->Relocate(coord.x, coord.y, coord.z, ori);
+    pCreature->SetSummonPoint(coord.x, coord.y, coord.z, ori);
 
     if (!pCreature->IsPositionValid())
     {

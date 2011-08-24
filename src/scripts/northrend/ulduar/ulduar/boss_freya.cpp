@@ -1479,9 +1479,10 @@ struct MANGOS_DLL_DECL mob_freya_spawnedAI : public ScriptedAI
                 angle += M_PI_F/2;
 
                 float radius = urand(15, 40);
-                Coords coord(x,y,m_creature->GetPositionZ()+15.f);
+                Coords coord = m_creature->GetPosition();
+                coord.z += 15;
                 m_creature->GetNearPoint2D(coord.x, coord.y, radius, angle);
-                m_creature->UpdateGroundPositionZ(coord.x, coord.y, coord.z, 30.f);
+                m_creature->UpdateGroundPositionZ(coord.x, coord.y, coord.z, 60.f);
                 m_creature->SummonCreature(NPC_HEALTHY_SPORE, coord, 0, TEMPSUMMON_TIMED_DESPAWN, 30000);
             }
         }
