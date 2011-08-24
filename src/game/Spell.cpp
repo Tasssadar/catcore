@@ -664,6 +664,10 @@ void Spell::FillTargetMap()
                 ++itr;
         }
 
+        // call to scripted AI if creature has one
+        if ( m_caster->GetTypeId()== TYPEID_UNIT && ((Creature*)m_caster)->AI() )
+            ((Creature*)m_caster)->AI()->CastTargets(m_spellInfo->Id, tmpUnitMap, SpellEffectIndex(i));
+
         for(std::list<Unit*>::const_iterator iunit = tmpUnitMap.begin(); iunit != tmpUnitMap.end(); ++iunit)
             AddUnitTarget((*iunit), SpellEffectIndex(i));
     }

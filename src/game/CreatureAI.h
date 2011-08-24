@@ -65,6 +65,8 @@ class MANGOS_DLL_SPEC CreatureAI
 
         virtual ~CreatureAI();
 
+        typedef std::list<Unit*> UnitList;
+
         ///== Reactions At =================================
 
         // Called if IsVisible(Unit *who) is true at each *who move, reaction at visibility zone enter
@@ -132,6 +134,9 @@ class MANGOS_DLL_SPEC CreatureAI
 
         // Called at text emote receive from player
         virtual void ReceiveEmote(Player* /*pPlayer*/, uint32 /*text_emote*/) {}
+
+        // Called when filling target map for creature's cast
+        virtual void CastTargets(uint32 /*spellId*/, UnitList& /*list*/, SpellEffectIndex /*idx*/) {}
 
         ///== Triggered Actions Requested ==================
 
