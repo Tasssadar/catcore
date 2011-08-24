@@ -9295,6 +9295,12 @@ void Spell::CreatureSummoned(Creature *crt)
                 crt->setFaction(creator->getFaction());
             break;
         }
+        // Slime Pool
+        case 35176:
+        {
+            crt->CastSpell(crt, 66882, false);
+            break;
+        }
     }
 
 }
