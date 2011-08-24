@@ -6345,8 +6345,7 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     {
         if (m_modifier.m_miscvalue == i || m_modifier.m_miscvalue == -1)
         {
-            // Do not check miscvalue in "CheckAuraStackingAndApply", does not work properly for all stats modifiers and it is not needed
-            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply);
+            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply, 0, i+1);
             if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet() && change != 0)
                 target->ApplyStatPercentBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply );
         }
