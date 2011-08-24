@@ -55,7 +55,8 @@ struct SpellTimer
         bool Finish(Unit* target = NULL);
 
         Unit* getCaster()        const { return caster_m; }
-        Unit* getTarget(Unit* target = NULL);
+        Unit* getTarget()        const { return target_m; }
+        Unit* findTarget(Unit* target = NULL);
 
         uint32 getGCD();
         CastType getCastType()   const { return castType_m; }
@@ -79,6 +80,8 @@ struct SpellTimer
 
         bool updateAllowed_m;
         bool shouldDeleteWhenFinish_m;
+
+        bool justFinished_m;
 };
 
 #endif // SPELLTIMER_H

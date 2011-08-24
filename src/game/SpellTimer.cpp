@@ -3,10 +3,13 @@
 #include "Map.h"
 
 SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
-    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster), target_m(NULL)
+    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
 {
+    justFinished_m = false;
+    target_m = NULL;
     SetInitialCooldown(initialCooldown);
     Reset(TIMER_VALUE_ALL);
+
 }
 
 void SpellTimer::Reset(TimerValues value)
@@ -92,6 +95,12 @@ void SpellTimer::Update(uint32 diff)
     if (!timer_m)
         return;
 
+    if (justFinished_m)
+    {
+        SetTarget(NULL);
+        justFinished_m = false;
+    }
+
     if (timer_m < diff)
         timer_m = 0;
     else
@@ -111,7 +120,7 @@ uint32 SpellTimer::getGCD()
     return NULL;
 }
 
-Unit* SpellTimer::getTarget(Unit* target)
+Unit* SpellTimer::findTarget(Unit* target)
 {
     if (!caster_m || !caster_m->IsInWorld())
         return NULL;
@@ -177,7 +186,7 @@ bool SpellTimer::Finish(Unit *target)
         return false;
 
     Unit* uCaster = getCaster();
-    Unit* uTarget = getTarget(target);
+    Unit* uTarget = findTarget(target);
 
     // checking just target, caster checked in getTarget()
     if (!uTarget || !uTarget->IsInWorld())
@@ -188,7 +197,7 @@ bool SpellTimer::Finish(Unit *target)
 
     uCaster->CastSpell(uTarget, spellInfo, false);
     Cooldown();
-    SetTarget(NULL);
+    justFinished_m = true;
     return true;
 }
 
