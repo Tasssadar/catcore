@@ -24,6 +24,8 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
+// expose weakness stacking
+
 enum Timers
 {
     // boss
@@ -254,7 +256,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -353,7 +355,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
         ScriptedAI::AttackStart(pWho);
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -456,9 +458,6 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             uiDamage = 0;
             isDead = true;
 
-            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
-            m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
-            m_creature->SetSpeedRate(MOVE_FLIGHT, 4.f, true);
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
@@ -476,6 +475,9 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         if (uiPointId == POINT_OF_MOVE)
         {
             m_creature->GetMotionMaster()->Clear();
+            m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+            m_creature->RemoveSplineFlag(SPLINEFLAG_FLYING);
+            m_creature->SetSpeedRate(MOVE_FLIGHT, 4.f, true);
             m_creature->GetMotionMaster()->MoveIdle();
             m_creature->RemoveAurasDueToSpell(SPELL_FROST_SPHERE);
             m_creature->SetDisplayId(11686);

@@ -51,7 +51,7 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
 
     ASSERT(timerId != 0);
 
-    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo);
+    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo, m_owner);
     m_TimerMap[timerId] = timer;
 
     if (target)
@@ -77,45 +77,36 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 
     if (!m_TimerMap.empty())
     {
-        for(SpellTimerMap::iterator updateitr = m_TimerMap.begin(); updateitr != m_TimerMap.end(); ++updateitr)
+        for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
         {
-            if (SpellTimer* timer = updateitr->second)
+            if (SpellTimer* timer = itr->second)
             {
                 if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
                     timer->Update(uiDiff);
             }
             else
             {
-                uint32 timerId = updateitr->first;
-                sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager  for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
-                m_TimerMap.erase(updateitr);
+                uint32 timerId = itr->first;
+                sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
+                m_TimerMap.erase(itr);
             }
 
         }
 
         if (!m_IdToBeCasted.empty())
         {
-            for(TimerIdList::iterator queueitr = m_IdToBeCasted.begin(); queueitr != m_IdToBeCasted.end(); ++queueitr)
+            for(TimerIdList::iterator itr = m_IdToBeCasted.begin(), next; itr != m_IdToBeCasted.end(); itr = next)
             {
-                if (uint32 timerId = *queueitr)
+                next = itr;
+                ++next;
+                if (uint32 timerId = *itr && m_TimerMap[timerId])
                 {
-                    if (m_TimerMap[timerId])
-                    {
-                        if (CanBeTimerFinished(timerId))
-                            if (FinishTimer(timerId))
-                                m_IdToBeCasted.erase(queueitr);
-                    }
-                    else
-                    {
-                        sLog.outCatLog("SpellTimerMgr:: QueueUpdate: Queue accesing for non-existing timer in TimerMgr of creature %u, wrong timerId is %u, spell is beeing deleted from queue...", m_owner->GetEntry(), timerId);
-                        m_IdToBeCasted.erase(queueitr);
-                    }
+                    if (CanBeTimerFinished(timerId))
+                        if (FinishTimer(timerId))
+                            m_IdToBeCasted.erase(itr);
                 }
                 else
-                {
-                    sLog.outCatLog("SpellTimerMgr:: QueueUpdate: In cast queue in TimerMgr of creature %u save non-existing id, deleteing iterator", m_owner->GetEntry());
-                    m_IdToBeCasted.erase(queueitr);
-                }
+                    m_IdToBeCasted.erase(itr);
             }
         }
     }
@@ -180,11 +171,18 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
 
 bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
+    // no key with this timerId found
+    if (!m_TimerMap.count(timerId))
+        return false;
+
     SpellTimer* timer = m_TimerMap[timerId];
 
     // timer with timerId not found
     if (!timer)
+    {
+        m_TimerMap.erase(timerId);
         return false;
+    }
 
     //  if timer isn't ready
     if (!timer->IsReady())

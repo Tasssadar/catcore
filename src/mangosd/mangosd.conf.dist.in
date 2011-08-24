@@ -398,6 +398,7 @@ LfgLogFile = "LfgLog.log"
 LfgLogTimestamp = 0
 BossLogFile = "BossKill.log"
 CatLogFile = "CatLog.log"
+CatLogTimestamp = 0
 LogColors = ""
 
 ###################################################################################################################
