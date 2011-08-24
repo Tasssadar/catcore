@@ -3311,6 +3311,7 @@ src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/boss_twin_valkyr.
 src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/instance_trial_of_the_crusader.cpp
 src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.cpp
 src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/trial_of_the_crusader.h
+src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/toc.sql
 src/scripts/northrend/dalaran.cpp
 src/scripts/northrend/dragonblight.cpp
 src/scripts/northrend/draktharon_keep/boss_dred.cpp

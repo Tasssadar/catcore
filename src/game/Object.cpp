@@ -1822,7 +1822,7 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
-Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime)
+Creature* WorldObject::SummonCreature(uint32 id, Coords coord, float ori, TempSummonType spwtype, uint32 despwtime, bool update_z)
 {
     TemporarySummon* pCreature = new TemporarySummon(GetObjectGuid());
 
@@ -1836,11 +1836,14 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
         return NULL;
     }
 
-    if (x == 0.0f && y == 0.0f && z == 0.0f)
-        GetClosePoint(x, y, z, pCreature->GetObjectBoundingRadius());
+    if (coord.isNULL())
+        GetClosePoint(coord.x, coord.y, coord.z, pCreature->GetObjectBoundingRadius());
 
-    pCreature->Relocate(x, y, z, ang);
-    pCreature->SetSummonPoint(x, y, z, ang);
+    if (update_z)
+        UpdateGroundPositionZ(coord.x, coord.y, coord.z+5, 15.f);
+
+    pCreature->Relocate(coord.x, coord.y, coord.z, ang);
+    pCreature->SetSummonPoint(coord.x, coord.y, coord.z, ang);
 
     if (!pCreature->IsPositionValid())
     {
@@ -1848,6 +1851,9 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
         delete pCreature;
         return NULL;
     }
+
+    // called before initializing AI
+    pCreature->SetCreatorGUID(GetGUID());
 
     pCreature->Summon(spwtype, despwtime);
 

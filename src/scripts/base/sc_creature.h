@@ -154,7 +154,7 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     Player* GetPlayerAtMinimumRange(float fMinimumRange);
 
     //Spawns a creature relative to m_creature
-    Creature* DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime);
+    Creature* DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime, bool update_z = false);
 
     //Returns spells that meet the specified criteria from the creatures spell list
     SpellEntry const* SelectSpell(Unit* pTarget, int32 uiSchool, int32 uiMechanic, SelectTarget selectTargets, uint32 uiPowerCostMin, uint32 uiPowerCostMax, float fRangeMin, float fRangeMax, SelectEffect selectEffect);

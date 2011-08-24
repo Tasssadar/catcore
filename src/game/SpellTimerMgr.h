@@ -36,7 +36,7 @@ struct SpellTimerMgr
         uint32 GetValue(uint32 timerId, TimerValues value);
 
         bool CanBeTimerFinished(uint32 timerId);
-        bool FinishTimer(uint32 timerId);
+        bool FinishTimer(uint32 timerId, Unit* target = NULL);
 
         void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs);
 
