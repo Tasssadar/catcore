@@ -16067,10 +16067,10 @@ void Unit::SetPhaseMask(uint32 newPhaseMask, bool update)
             pet->SetPhaseMask(newPhaseMask,true);
 }
 
-void Unit::NearTeleportTo( float x, float y, float z, float orientation, bool casting /*= false*/ )
+void Unit::NearTeleportTo(Coords coord, float orientation, bool casting)
 {
     if (GetTypeId() == TYPEID_PLAYER)
-        ((Player*)this)->TeleportTo(GetMapId(), x, y, z, orientation, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (casting ? TELE_TO_SPELL : 0));
+        ((Player*)this)->TeleportTo(GetMapId(), coord.x, coord.y, coord.z, orientation, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (casting ? TELE_TO_SPELL : 0));
     else
     {
         ExitVehicle();
@@ -16081,7 +16081,7 @@ void Unit::NearTeleportTo( float x, float y, float z, float orientation, bool ca
             if (MovementGenerator *movgen = c->GetMotionMaster()->top())
                 movgen->Interrupt(*c);
 
-        GetMap()->CreatureRelocation((Creature*)this, x, y, z, orientation);
+        GetMap()->CreatureRelocation(c, coord, orientation);
 
         WorldPacket data;
         BuildHeartBeatMsg(&data);

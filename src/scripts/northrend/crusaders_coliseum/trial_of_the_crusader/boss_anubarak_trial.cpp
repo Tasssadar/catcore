@@ -117,22 +117,22 @@ enum Spells
 
 };
 
-const WorldLocation BurrowerLoc[]=
+const Coords BurrowerLoc[]=
 {
-    WorldLocation(0, 694.886353f, 102.484665f, 142.119614f),
-    WorldLocation(0, 694.500671f, 185.363968f, 142.117905f),
-    WorldLocation(0, 731.987244f, 83.3824690f, 142.119614f),
-    WorldLocation(0, 740.184509f, 193.443390f, 142.117584f),
+    Coords(694.886353f, 102.484665f, 142.119614f),
+    Coords(694.500671f, 185.363968f, 142.117905f),
+    Coords(731.987244f, 83.3824690f, 142.119614f),
+    Coords(740.184509f, 193.443390f, 142.117584f),
 };
 
-const WorldLocation SphereLoc[] =
+const Coords SphereLoc[] =
 {
-    WorldLocation(0, 786.6439f, 108.2498f, 155.6701f),
-    WorldLocation(0, 806.8429f, 150.5902f, 155.6701f),
-    WorldLocation(0, 759.1386f, 163.9654f, 155.6701f),
-    WorldLocation(0, 744.3701f, 119.5211f, 155.6701f),
-    WorldLocation(0, 710.0211f, 120.8152f, 155.6701f),
-    WorldLocation(0, 706.6383f, 161.5266f, 155.6701f),
+    Coords(786.6439f, 108.2498f, 155.6701f),
+    Coords(806.8429f, 150.5902f, 155.6701f),
+    Coords(759.1386f, 163.9654f, 155.6701f),
+    Coords(744.3701f, 119.5211f, 155.6701f),
+    Coords(710.0211f, 120.8152f, 155.6701f),
+    Coords(706.6383f, 161.5266f, 155.6701f),
 };
 
 struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
@@ -465,12 +465,8 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
     void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
     {
         if (isDead)
-        {
             uiDamage = 0;
-            return;
-        }
-
-        if (m_creature->GetHealth() < uiDamage)
+        else if (m_creature->GetHealth() < uiDamage)
         {
             uiDamage = 0;
             isDead = true;
@@ -478,9 +474,9 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             m_creature->GetMotionMaster()->Clear();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             //At hit the ground
-            WorldLocation loc = m_creature->GetLocation();
-            loc.coord_z = m_creature->GetTerrain()->GetHeight(loc.coord_x, loc.coord_y, 130.f, true, 30.f);
-            m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, loc.coord_x, loc.coord_y, loc.coord_z);
+            Coords coord = m_creature->GetCoords();
+            coord.z = m_creature->GetTerrain()->GetHeight(coord.x, coord.y, 130.f, true, 30.f);
+            m_creature->GetMotionMaster()->MovePoint(POINT_OF_MOVE, coord.x, coord.y, coord.z);
         }
     }
 

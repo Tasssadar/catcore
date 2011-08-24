@@ -548,8 +548,8 @@ void WorldSession::HandlePetCastSpellOpcode( WorldPacket& recvPacket )
 
     //sLog.outDebug("mask: %u, elevation: %f, speed: %f, pos1: %u, pos: %u", targets.m_targetMask, elevation, speed, pos1, pos2);
 
-    sLog.outDebug("guid: %u, sX: %f, sY:%f, sZ: %f", targets.getUnitTargetGUID(),targets.m_srcX,targets.m_srcY,targets.m_srcZ);
-    sLog.outDebug("guid: %u, sX: %f, sY:%f, sZ: %f", targets.getUnitTargetGUID(),targets.m_destX,targets.m_destY,targets.m_destZ);
+    sLog.outDebug("guid: %u, sX: %f, sY:%f, sZ: %f", targets.getUnitTargetGUID(),targets.m_src.x,targets.m_src.y,targets.m_src.z);
+    sLog.outDebug("guid: %u, sX: %f, sY:%f, sZ: %f", targets.getUnitTargetGUID(),targets.m_dest.x,targets.m_dest.y,targets.m_dest.z);
 
     pet->DoPetCastSpell( GetPlayer(), cast_count, targets, spellInfo );
 }

@@ -221,7 +221,7 @@ void WorldSession::HandleLfgTeleport(WorldPacket& recv_data)
     }
     //..and out
     WorldLocation teleLoc = _player->m_lookingForGroup.joinLoc;
-    if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+    if (!teleLoc.coords.isNULL())
     {
         _player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
         _player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
