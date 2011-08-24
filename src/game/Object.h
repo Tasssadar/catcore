@@ -518,10 +518,10 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void RemoveFromClientUpdateList();
         void BuildUpdateData(UpdateDataMapType &);
 
-        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
-        Creature* SummonCreature(uint32 id, Coords coord, float ori, TempSummonType spwtype,uint32 despwtime)
+        Creature* SummonCreature(uint32 id, Coords coord, float ori, TempSummonType spwtype,uint32 despwtime, bool update_z = false);
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime, bool update_z = false)
         {
-            return SummonCreature(id, coord.x, coord.y, coord.z, ori, spwtype, despwtime);
+            return SummonCreature(id, Coords(x,y,z), ang, spwtype, despwtime, update_z);
         }
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
