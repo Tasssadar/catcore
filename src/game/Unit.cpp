@@ -12447,9 +12447,6 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         // should probably be removed for the attacked (+ it's party/group) only, not global
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
 
-        //if (((Creature*)this)->AI())
-        //    ((Creature*)this)->AI()->EnterCombat(enemy);
-
         ((Creature*)this)->EnterCombat(enemy);
     }
 }
@@ -12473,6 +12470,9 @@ void Unit::ClearInCombat()
 
         if (creature->isWorldBoss())
             creature->RemoveFromInstanceCombatList();
+
+        if (creature->GetTimerMgr())
+            creature->GetTimerMgr()->SetUpdatable(false);
     }
     else
         ((Player*)this)->UpdatePotionCooldown();
@@ -17156,7 +17156,7 @@ void Unit::AddAndLinkAura(uint32 auraId, bool apply)
     if (apply)
     {
         if (!HasAura(auraId))
-            CastSpell(this, auraId, true);
+            CastSpell(this, auraId, false);
     }
     else
         RemoveAurasDueToSpell(auraId);

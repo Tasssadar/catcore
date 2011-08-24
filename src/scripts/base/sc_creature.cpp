@@ -634,7 +634,40 @@ PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float 
     return finalList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
     return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
+}
+
+void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)
+{
+    if (!type || type == TYPEID_UNIT)
+    {
+        CreatureList list;
+        GetCreatureListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->ForcedDespawn();
+    }
+    if (!type || type == TYPEID_GAMEOBJECT)
+    {
+        GameObjectList list;
+        GetGameObjectListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(GameObjectList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->Delete();
+    }
+}
+void ScriptedAI::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit *caster)
+{
+    if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
+        timer->Reset(TIMER_VALUE_ALL);
+    else
+        m_TimerMgr->AddTimer(timerId, initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo, caster);
+}
+
+void ScriptedAI::AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown)
+{
+    if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
+        timer->Reset(TIMER_VALUE_ALL);
+    else
+        m_TimerMgr->AddTimer(timerId, 0, initialTimer, cooldown, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
 }

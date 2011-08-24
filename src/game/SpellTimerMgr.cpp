@@ -35,6 +35,10 @@ void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initi
 
 void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, uint64 targetInfo, Unit *target)
 {
+    // target must be set right away
+    if (targetType == UNIT_SELECT_NONE && !target)
+        return;
+
     uint32 timerId = 0;
     if (m_IdToBeCasted.empty())
         timerId = QUEUE_TIMER_ID;
@@ -47,13 +51,15 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
 
     ASSERT(timerId != 0);
 
-    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo);
+    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo, m_owner);
     m_TimerMap[timerId] = timer;
 
     if (target)
         timer->SetTarget(target);
 
     timer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+
+    m_IdToBeCasted.push_back(timerId);
 }
 
 void SpellTimerMgr::RemoveTimer(uint32 timerId)
@@ -62,30 +68,45 @@ void SpellTimerMgr::RemoveTimer(uint32 timerId)
     m_TimerMap.erase(timerId);
 }
 
-SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
-{
-    return m_TimerMap[timerId];
-}
-
 void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 {
+    if (!isUpdatable)
+        return;
+
     m_GCD->Update(uiDiff);
 
     if (!m_TimerMap.empty())
     {
         for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
-            if (itr->second->GetValue(TIMER_VALUE_UPDATEABLE))
-                itr->second->Update(uiDiff);
+        {
+            if (SpellTimer* timer = itr->second)
+            {
+                if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
+                    timer->Update(uiDiff);
+            }
+            else
+            {
+                uint32 timerId = itr->first;
+                sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
+                m_TimerMap.erase(itr);
+            }
+
+        }
 
         if (!m_IdToBeCasted.empty())
         {
-            for(TimerIdList::iterator itr = m_IdToBeCasted.begin(); itr != m_IdToBeCasted.end(); ++itr)
+            for(TimerIdList::iterator itr = m_IdToBeCasted.begin(), next; itr != m_IdToBeCasted.end(); itr = next)
             {
-                if (CanBeTimerFinished(*itr))
+                next = itr;
+                ++next;
+                if (uint32 timerId = *itr && m_TimerMap[timerId])
                 {
-                    FinishTimer(*itr);
-                    m_IdToBeCasted.erase(itr);
+                    if (CanBeTimerFinished(timerId))
+                        if (FinishTimer(timerId))
+                            m_IdToBeCasted.erase(itr);
                 }
+                else
+                    m_IdToBeCasted.erase(itr);
             }
         }
     }
@@ -93,22 +114,50 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 
 bool SpellTimerMgr::IsReady(uint32 timerId)
 {
-    return m_TimerMap[timerId]->IsReady();
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        return timer->IsReady();
+
+    return false;
 }
 
-uint32 SpellTimerMgr::GetSpellId(uint32 timerId)
+SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
-    return m_TimerMap[timerId]->GetValue(TIMER_VALUE_SPELLID);
+    return m_TimerMap[timerId];
+}
+
+void SpellTimerMgr::Reset(uint32 timerId, TimerValues value)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->Reset(value);
+}
+
+void SpellTimerMgr::SetValue(uint32 timerId, TimerValues value, uint32 newValue)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->SetValue(value, newValue);
+}
+
+uint32 SpellTimerMgr::GetValue(uint32 timerId, TimerValues value)
+{
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        return timer->GetValue(value);
+
+    return 0;
 }
 
 void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)
 {
-    m_TimerMap[timerId]->Cooldown(changedCD, permanent);
+    if (SpellTimer* timer = m_TimerMap[timerId])
+        timer->Cooldown(changedCD, permanent);
 }
 
 bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
 {
-    if (m_TimerMap[timerId]->getCaster() != m_owner)
+    SpellTimer* timer = m_TimerMap[timerId];
+    if (!timer)
+        return false;
+
+    if (timer->getCaster() != m_owner)
         return true;
 
     if (m_owner->IsNonMeleeSpellCasted(false))
@@ -120,13 +169,20 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-bool SpellTimerMgr::CheckTimer(uint32 timerId, Unit *target)
+bool SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 {
+    // no key with this timerId found
+    if (!m_TimerMap.count(timerId))
+        return false;
+
     SpellTimer* timer = m_TimerMap[timerId];
 
     // timer with timerId not found
     if (!timer)
+    {
+        m_TimerMap.erase(timerId);
         return false;
+    }
 
     //  if timer isn't ready
     if (!timer->IsReady())

@@ -284,7 +284,7 @@ struct factioned_healerAI : public FactionedChampionAI
         if (castedHP == HEAL_NOHEAL)
             return false;
 
-        m_TimerMgr->CheckTimer(TIMER_HEAL+castedHP, target);
+        m_TimerMgr->TimerFinished(TIMER_HEAL+castedHP, target);
         return true;
     }
 
@@ -350,7 +350,7 @@ struct champ_rdruidAI : public factioned_healerAI
 
         // Tranquility
         if (CanCastTranquility())
-            m_TimerMgr->CheckTimer(RD_TRANQUILITY);
+            m_TimerMgr->TimerFinished(RD_TRANQUILITY);
 
         // cast heal if it suits situation, if does, return function
         if (DoHeal())

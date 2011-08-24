@@ -200,25 +200,25 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             return;
 
         // Fel Fireball
-        m_TimerMgr->CheckTimer(TIMER_FEL_FIRABALL);
+        m_TimerMgr->TimerFinished(TIMER_FEL_FIRABALL);
 
         // Fel Lightning
-        m_TimerMgr->CheckTimer(TIMER_FEL_LIGHTNING);
+        m_TimerMgr->TimerFinished(TIMER_FEL_LIGHTNING);
 
         // Incinerate Flesh
-        m_TimerMgr->CheckTimer(TIMER_INCINERATE_FLESH);
+        m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH);
 
         // Legion Flame
-        m_TimerMgr->CheckTimer(TIMER_LEGION_FLAME);
+        m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME);
 
         // Infernal Eruption
-        m_TimerMgr->CheckTimer(TIMER_INFERNAL_ERUPTION);
+        m_TimerMgr->TimerFinished(TIMER_INFERNAL_ERUPTION);
 
         // Nether Portal
-        m_TimerMgr->CheckTimer(TIMER_NETHER_PORTAL);
+        m_TimerMgr->TimerFinished(TIMER_NETHER_PORTAL);
 
         // Nether Power
-        m_TimerMgr->CheckTimer(TIMER_NETHER_POWER);
+        m_TimerMgr->TimerFinished(TIMER_NETHER_POWER);
 
         DoMeleeAttackIfReady();
     }
@@ -248,11 +248,11 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
             return;
 
         // Fel Streak
-        if (m_TimerMgr->CheckTimer(TIMER_FEL_STREAK))
+        if (m_TimerMgr->TimerFinished(TIMER_FEL_STREAK))
             m_creature->CastSpell(m_creature, SPELL_FEL_STREAK_M, false);
 
         // Fel Inferno
-        m_TimerMgr->CheckTimer(TIMER_FEL_INFERNO);
+        m_TimerMgr->TimerFinished(TIMER_FEL_INFERNO);
 
         DoMeleeAttackIfReady();
     }
@@ -286,10 +286,10 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             return;
 
         // Shivan Slash
-        m_TimerMgr->CheckTimer(TIMER_SHIVAN_SLASH);
+        m_TimerMgr->TimerFinished(TIMER_SHIVAN_SLASH);
 
         // Spinning Pain Spike
-        m_TimerMgr->CheckTimer(TIMER_SPINNING_PAIN_SPIKE);
+        m_TimerMgr->TimerFinished(TIMER_SPINNING_PAIN_SPIKE);
 
         // Mistress's Kiss
         if (m_TimerMgr->IsReady(TIMER_MISTRESS_KISS))

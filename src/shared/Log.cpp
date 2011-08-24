@@ -264,7 +264,7 @@ void Log::Initialize()
     arenaLogfile= openLogFile("ArenaRatedLogFile",NULL,"a");
     lfgLogFile  = openLogFile("LfgLogFile","LfgLogTimestamp","a");
     bossLogFile = openLogFile("BossLogFile",NULL,"a");
-    catLogFile  = openLogFile("CatLogFile",NULL,"a");
+    catLogFile  = openLogFile("CatLogFile","CatLogTimestamp","a");
 
     // Main log file settings
     m_includeTime  = sConfig.GetBoolDefault("LogTime", false);

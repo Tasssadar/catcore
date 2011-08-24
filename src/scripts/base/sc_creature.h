@@ -174,10 +174,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     PlrList GetRandomPlayers(uint8 count, bool not_select_current_victim = false);
 
     // select random players prefer ranged (list of Players)
-    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
+    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // select random player prefer ranged (Player)
-    Player* SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, float max_range = 0, bool not_select_current_victim = false);
+    Player* SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // fill players list from threatlist
     PlrList GetAttackingPlayers(bool not_select_current_victim = false);
@@ -187,6 +187,19 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
 
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
+
+    // despawns all creatures or gameobject in range with target entry
+    void DespawnAllWithEntry(uint32 entry, TypeID type = TYPEID_OBJECT);
+
+    //****************
+    // Timer specific
+    //****************
+
+    // creating timer only for summon
+    void AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown);
+
+    // used for adding timer in reset, if timer exist just reset
+    void AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
 
     // Pointer to spell timer manager of creature
     SpellTimerMgr* m_TimerMgr;

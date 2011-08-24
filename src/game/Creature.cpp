@@ -526,7 +526,7 @@ void Creature::Update(uint32 diff)
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
 
-                if (m_TimerMgr && getVictim())
+                if (m_TimerMgr)
                     m_TimerMgr->UpdateTimers(diff);
 
                 i_AI->UpdateAI(diff);
@@ -1472,6 +1472,9 @@ void Creature::EnterCombat(Unit* pEnemy)
 
     if (isWorldBoss() && !m_DoNotInsertToInstanceCombatList)
         InsertIntoInstanceCombatList();
+
+    if (m_TimerMgr)
+        m_TimerMgr->SetUpdatable(true);
 }
 
 void Creature::InsertIntoInstanceCombatList()
