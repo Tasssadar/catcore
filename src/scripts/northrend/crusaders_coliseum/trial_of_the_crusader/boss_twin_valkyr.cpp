@@ -163,20 +163,21 @@ struct MANGOS_DLL_DECL boss_twin_valkyr : public ScriptedAI
         // summon Concentrated
         if (m_TimerMgr->TimerFinished(TIMER_CONCENTRATED))
         {
-            WorldLocation loc(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 0);
+            Coords coord = Center;
             float radius = 35.0f;
             const uint8 id[2] = {NPC_CONCENTRATED_DARKNESS, NPC_CONCENTRATED_LIGHT};
             for (float angle = 0; angle < M_PI_F*2; angle += M_PI_F*2/m_uiConcCount[m_dDifficulty])
             {
-                float x = loc.coord_x + radius*cos(angle);
-                float y = loc.coord_y + radius*sin(angle);
+                float x = coord.x + radius*cos(angle);
+                float y = coord.y + radius*sin(angle);
                 for (uint8 i = 0; i < 2; ++i)
-                    m_creature->SummonCreature(id[i], x, y, loc.coord_z, loc.orientation, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                    m_creature->SummonCreature(id[i], x, y, coord.z, 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
             }
         }
     }
 };
 
+#define START_POINT 100
 struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
 {
     npc_concentrated(Creature* pCreature) : ScriptedAI(pCreature)
@@ -192,38 +193,37 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
 
     bool used;
 
-    WorldLocation lastLoc;
-    WorldLocation center;
+    Coords lastCoord;
 
     void Reset()
     {
-        lastLoc = m_creature->GetLocation();
-        center = WorldLocation(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 0);
+        lastCoord = m_creature->GetLocation();
         used = false;
-        Ping();
+        Ping(START_POINT);
     }
 
-    void Ping()
+    void Ping(uint32 pointId)
     {
-        float angleToMid = m_creature->GetAngle(center.coord_x, center.coord_y);
+        float angleToMid = m_creature->GetAngle(Center.x, Center.y);
         float addAngle =  rand_norm_f()*M_PI_F*2/10*pow(-1.f, float(urand(1,2)));
         float angle = angleToMid + addAngle;
 
         float gama = M_PI_F-2*addAngle;
         float distance = addAngle ? (35*sin(gama))/sin(addAngle) : 70;
-        float x,y,z;
-        m_creature->GetPosition(x,y,z);
-        x += distance*cos(angle);
-        y += distance*sin(angle);
+        Coords coord = m_creature->GetCoords();
+        coord.x += distance*cos(angle);
+        coord.y += distance*sin(angle);
         uint32 time = (distance/70)*10000;
 
-        PointPath path;
-        path.resize(2);
-        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
-        path.set(1, PathNode(x, y, z));
-
         m_creature->GetMotionMaster()->Clear();
-        m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), time);
+        m_creature->GetMotionMaster()->MovePoint(pointId, coord.x, coord.y, coord.z);
+        //m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), time);
+    }
+
+    void MovementInform(uint32 moveType, uint32 pointId)
+    {
+        if (moveType == POINT_MOTION_TYPE && pointId >= START_POINT)
+            Ping(pointId+1);
     }
 
     void MoveInLineOfSight(Unit * pWho)
@@ -252,15 +252,15 @@ struct MANGOS_DLL_DECL npc_concentrated : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    /*void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_creature->GetDistance(center.coord_x, center.coord_y, center.coord_z) > 33 &&
-            m_creature->GetDistance(lastLoc.coord_x, lastLoc.coord_y, lastLoc.coord_z) > 8)
+        if (m_creature->GetDistance(Center.x, Center.y, Center.z) > 33 &&
+            m_creature->GetDistance(lastCoord.x, lastCoord.y, lastCoord.z) > 8)
             Ping();
-    }
+    }*/
 };
 
 void AddSC_twin_valkyr()

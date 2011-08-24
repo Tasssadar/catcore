@@ -1202,7 +1202,7 @@ bool Group::_removeMember(const uint64 &guid)
                 player->SpawnCorpseBones();
             }
             WorldLocation teleLoc = player->m_lookingForGroup.joinLoc;
-            if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+            if (!teleLoc.coords.isNULL())
             {
                 player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
                 player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
