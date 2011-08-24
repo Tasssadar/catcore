@@ -99,14 +99,12 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
             {
                 next = itr;
                 ++next;
-                if (uint32 timerId = *itr && m_TimerMap[timerId])
-                {
-                    if (CanBeTimerFinished(timerId))
-                        if (FinishTimer(timerId))
-                            m_IdToBeCasted.erase(itr);
-                }
-                else
-                    m_IdToBeCasted.erase(itr);
+                if (uint32 timerId = *itr)
+                    if (m_TimerMap[timerId])
+                        if (!CanBeTimerFinished(timerId) || !FinishTimer(timerId))
+                            continue;
+
+                m_IdToBeCasted.erase(itr);
             }
         }
     }

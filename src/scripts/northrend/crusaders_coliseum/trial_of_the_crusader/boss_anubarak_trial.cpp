@@ -82,8 +82,8 @@ enum Spells
 
     //SPELL_EXPOSE_WEAKNESS   = 67721,
     SPELL_EXPOSER_WEAKNESS_A= 67720,
-    //SPELL_SPIDER_FRENZY     = 66129,
     SPELL_SPIDER_FRENZY_AURA= 66128,
+    SPELL_SPIDER_FRENZY     = 66129,
 
     SPELL_SUBMERGE_BURR_D   = 67322,
     //SPELL_SUBMERGE_BURR_S   = 66845,
@@ -355,6 +355,23 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
         ScriptedAI::AttackStart(pWho);
     }
 
+    void CastTargets(uint32 spellId, UnitList& targetList, SpellEffectIndex /*i*/)
+    {
+        if (spellId == SPELL_SPIDER_FRENZY)
+        {
+            for (UnitList::iterator itr = targetList.begin(); itr != targetList.end();)
+            {
+                if ((*itr)->GetEntry() != m_creature->GetEntry())
+                {
+                    itr = targetList.erase(itr);
+                    continue;
+                }
+                else
+                    ++itr;
+            }
+        }
+    }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -444,7 +461,7 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
         DoCast(m_creature, SPELL_FROST_SPHERE);
     }
 
-    void AttackStart(Unit *){}
+    void AttackStart(Unit *){return;}
     void DamageTaken(Unit* /*pWho*/, uint32& uiDamage)
     {
         if (isDead)
