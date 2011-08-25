@@ -188,15 +188,15 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
     void Aggro(Unit* pWho)
     {
-        if (!pWho)
-            return;
-
         currentPhase = 1;
 
         for(uint8 i = 0; i < 6; ++i)
             m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
 
         DoScriptText(SAY_AGGRO, m_creature);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
     }
 
     void AttackStart(Unit* pWho)
@@ -231,6 +231,15 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
     void JustDied(Unit * /*pWho*/)
     {
         DoScriptText(SAY_DEATH, m_creature);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ANUBARAK, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
     }
 
     void SwitchPhase(bool three = false)

@@ -24,13 +24,6 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-enum FactionFCH
-{
-    FACTION_ALLIANCE        = 0,
-    FACTION_HORDE           = 1,
-    FACTION_COUNT           = 2
-};
-
 enum RoleFCH
 {
     ROLE_HEALER             = 0,
@@ -46,43 +39,6 @@ enum HealPower
     HEAL_MAJOR              = 3,
     HEAL_LIFESAVING         = 4,
     HEAL_COUNT              = 5
-};
-
-enum Champion
-{
-    CHAMPION_DEATH_KNIGHT   = 0,
-    CHAMPION_B_DRUID        = 1,
-    CHAMPION_R_DRUID        = 2,
-    CHAMPION_HUNTER         = 3,
-    CHAMPION_MAGE           = 4,
-    CHAMPION_H_PALADIN      = 5,
-    CHAMPION_R_PALADIN      = 6,
-    CHAMPION_D_PRIEST       = 7,
-    CHAMPION_S_PRIEST       = 8,
-    CHAMPION_ROGUE          = 9,
-    CHAMPION_E_SHAMAN       = 10,
-    CHAMPION_R_SHAMAN       = 11,
-    CHAMPION_WARLOCK        = 12,
-    CHAMPION_WARRIOR        = 13,
-    CHAMPION_COUNT          = 14
-};
-
-const uint32 FChampIDs[CHAMPION_COUNT][FACTION_COUNT] =
-{
-    {34461, 34458},     // CHAMPION_DEATH_KNIGHT
-    {34460, 34451},     // CHAMPION_B_DRUID
-    {34469, 34459},     // CHAMPION_R_DRUID
-    {34467, 34448},     // CHAMPION_HUNTER
-    {34468, 34449},     // CHAMPION_MAGE
-    {34465, 34445},     // CHAMPION_H_PALADIN
-    {34471, 34456},     // CHAMPION_R_PALADIN
-    {34466, 34447},     // CHAMPION_D_PRIEST
-    {34473, 34441},     // CHAMPION_S_PRIEST
-    {34472, 34454},     // CHAMPION_ROGUE
-    {34463, 34455},     // CHAMPION_E_SHAMAN
-    {34470, 34444},     // CHAMPION_R_SHAMAN
-    {34474, 34450},     // CHAMPION_WARLOCK
-    {34475, 34453},     // CHAMPION_WARRIOR
 };
 
 enum Timers

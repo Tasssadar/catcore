@@ -118,26 +118,27 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     void JustDied(Unit* /*pKiller*/)
     {
-        if (!m_pInstance)
-            return;
-
         DoScriptText(SAY_DEATH, m_creature);
-        //m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_DONE);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_JARAXXUS, DONE);
     }
 
     void JustReachedHome()
     {
-        if (!m_pInstance)
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
         m_creature->ForcedDespawn();
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
+
     }
 
     void Aggro(Unit* /*pWho*/)
     {
         DoScriptText(SAY_AGGRO, m_creature);
-        //m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_IN_PROGRESS);
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)

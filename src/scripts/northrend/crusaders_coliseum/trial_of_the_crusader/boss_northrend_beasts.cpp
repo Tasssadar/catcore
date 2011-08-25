@@ -98,29 +98,26 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
         AddTimer(TIMER_DO_SNOBOLDS, SPELL_RISING_ANGER, urand(20000,25000), urand(17000,22000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
     }
 
-    void JustDied(Unit* pKiller)
+    void Aggro(Unit* )
     {
-        if (!m_pInstance)
-            return;
-
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_DONE);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, GORMOK_IN_PROGRESS);
     }
 
     void JustReachedHome()
     {
-        if (!m_pInstance)
-            return;
-        
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, FAIL);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+
         m_creature->ForcedDespawn();
     }
 
-    void Aggro(Unit* pWho)
+    void JustDied(Unit* )
     {
-        m_pInstance->SetData(TYPE_NORTHREND_BEASTS, GORMOK_IN_PROGRESS);
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, GORMOK_DONE);
     }
-
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -385,6 +382,32 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
         m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !mobile);
     }
 
+    void Aggro(Unit *)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, SNAKES_IN_PROGRESS);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+
+        m_creature->ForcedDespawn();
+    }
+
+    void JustDied(Unit* )
+    {
+        if (Creature* crt = GetBro())
+        {
+            crt->CastSpell(crt, SPELL_ENRAGE, false);
+            DoScriptText(SAY_BERSERK, crt);
+        }
+
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
+    }
+
     boss_jormungarsAI* GetBroAI()
     {
         Creature* bro = GetBro();
@@ -392,15 +415,6 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
             return NULL;
 
         return (boss_jormungarsAI*)bro->AI();
-    }
-
-    void JustDied(Unit* /*killer*/)
-    {
-        if (Creature* crt = GetBro())
-        {
-            crt->CastSpell(crt, SPELL_ENRAGE, false);
-            DoScriptText(SAY_BERSERK, crt);
-        }
     }
 
     void DamageTaken(Unit */*pDoneBy*/, uint32 &uiDamage)
@@ -557,6 +571,29 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
         m_TimerMgr->SetValue(TIMER_BREATH, TIMER_VALUE_UPDATEABLE, update);
         m_TimerMgr->SetValue(TIMER_WHIRL, TIMER_VALUE_UPDATEABLE, update);
         m_TimerMgr->SetValue(TIMER_MASSIVE_CRASH, TIMER_VALUE_UPDATEABLE, update);
+    }
+
+    void Aggro(Unit *)
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_IN_PROGRESS);
+    }
+
+    void JustReachedHome()
+    {
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+
+        m_creature->ForcedDespawn();
+    }
+
+    void JustDied(Unit *)
+    {
+        if (m_pInstance)
+        {
+            m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_DONE);
+            m_pInstance->SetData(TYPE_BEASTS, DONE);
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)

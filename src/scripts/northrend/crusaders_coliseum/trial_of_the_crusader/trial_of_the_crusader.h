@@ -9,16 +9,16 @@
 
 enum
 {
-    TYPE_STAGE                  = 0,
-    TYPE_BEASTS                 = 1,
-    TYPE_JARAXXUS               = 2,
-    TYPE_CRUSADERS              = 3,
-    TYPE_VALKIRIES              = 4,
-    TYPE_LICH_KING              = 5,
-    TYPE_ANUBARAK               = 6,
-    TYPE_COUNTER                = 7,
-    TYPE_EVENT                  = 8,
-    MAX_ENCOUNTERS              = 9,
+    TYPE_BEASTS                 = 0,
+    TYPE_JARAXXUS               = 1,
+    TYPE_CRUSADERS              = 2,
+    TYPE_VALKIRIES              = 3,
+    TYPE_LICH_KING              = 4,
+    TYPE_ANUBARAK               = 5,
+    MAX_ENCOUNTER              = 6,
+
+    TYPE_COUNTER                = 8,
+    TYPE_EVENT                  = 9,
 
     NPC_BARRENT                 = 34816,
     NPC_TIRION                  = 34996,
@@ -31,7 +31,7 @@ enum
     NPC_THRALL                  = 34994,
     NPC_PROUDMOORE              = 34992,
     NPC_TRIGGER                 = 22517,
-    NPC_WILFRED_PORTAL          = 35651,
+    NPC_WILFRED_PORTAL_GROUND   = 35651,
 
     NPC_ICEHOWL                 = 34797,
     NPC_GORMOK                  = 34796,
@@ -39,36 +39,6 @@ enum
     NPC_ACIDMAW                 = 35144,
 
     NPC_JARAXXUS                = 34780,
-
-    NPC_CRUSADER_1_1            = 34460, //Druid
-    NPC_CRUSADER_1_2            = 34463, //Shaman
-    NPC_CRUSADER_1_3            = 34461, //DK
-    NPC_CRUSADER_1_4            = 34472, //Rogue
-    NPC_CRUSADER_1_5            = 34475, //Warrior
-    NPC_CRUSADER_1_6            = 34471, //Retro pal
-    NPC_CRUSADER_1_7            = 34473, //Shadow priest
-    NPC_CRUSADER_1_8            = 34468, //Mage
-    NPC_CRUSADER_1_9            = 34467, //Hunter
-    NPC_CRUSADER_1_10           = 34474, //Warlock
-    NPC_CRUSADER_1_11           = 34470, //Enh shaman
-    NPC_CRUSADER_1_12           = 34466, //Priest
-    NPC_CRUSADER_1_13           = 34465, //Holy paladin
-    NPC_CRUSADER_1_14           = 34469, //Moonkin
-
-    NPC_CRUSADER_2_1            = 34451, //Druid
-    NPC_CRUSADER_2_2            = 34455, //Shaman
-    NPC_CRUSADER_2_3            = 34458, //DK
-    NPC_CRUSADER_2_4            = 34454, //Rogue
-    NPC_CRUSADER_2_5            = 34453, //Warrior
-    NPC_CRUSADER_2_6            = 34456, //Retro pal
-    NPC_CRUSADER_2_7            = 34441, //Shadow Priest
-    NPC_CRUSADER_2_8            = 34449, //Mage
-    NPC_CRUSADER_2_9            = 34448, //Hunter
-    NPC_CRUSADER_2_10           = 34450, //Warlock
-    NPC_CRUSADER_2_11           = 34444, //Enh shaman
-    NPC_CRUSADER_2_12           = 34447, //Priest
-    NPC_CRUSADER_2_13           = 34445, //Holy paladin
-    NPC_CRUSADER_2_14           = 34459, //Moonkin
 
     NPC_CRUSADER_0_1            = 35465,
     NPC_CRUSADER_0_2            = 35610,
@@ -96,21 +66,72 @@ enum
     GO_ARGENT_COLISEUM_FLOOR    = 195527, //20943
     GO_MAIN_GATE_DOOR           = 195647,
 
-    GO_WEST_PORTCULLIS          = 195589,
-    GO_SOUTH_PORTCULLIS         = 195590,
-    GO_NORTH_PORTCULLIS         = 195591,
+    GO_WEST_PORTCULLIS          = 195589, // outside
+    GO_SOUTH_PORTCULLIS         = 195590, // outside
+    GO_NORTH_PORTCULLIS         = 195591, // outside
+
+    GO_GATE_EAST                = 195648,
+    GO_GATE_SOUTH               = 195649,
+    GO_GATE_NORTH               = 195650,
 
     TYPE_DIFFICULTY             = 101,
     TYPE_EVENT_TIMER            = 102,
     TYPE_EVENT_NPC              = 103,
-    TYPE_NORTHREND_BEASTS       = 104,
     TYPE_CRUSADERS_COUNT        = 105,
 
     DATA_HEALTH_EYDIS           = 201,
     DATA_HEALTH_FJOLA           = 202,
     DATA_CASTING_VALKYRS        = 203,
 
-    DESPAWN_TIME                = 300000,
+    DESPAWN_TIME                = 300000
+};
+
+enum Champion
+{
+    CHAMPION_DEATH_KNIGHT   = 0,
+    CHAMPION_B_DRUID        = 1,
+    CHAMPION_R_DRUID        = 2,
+    CHAMPION_HUNTER         = 3,
+    CHAMPION_MAGE           = 4,
+    CHAMPION_H_PALADIN      = 5,
+    CHAMPION_R_PALADIN      = 6,
+    CHAMPION_D_PRIEST       = 7,
+    CHAMPION_S_PRIEST       = 8,
+    CHAMPION_ROGUE          = 9,
+    CHAMPION_E_SHAMAN       = 10,
+    CHAMPION_R_SHAMAN       = 11,
+    CHAMPION_WARLOCK        = 12,
+    CHAMPION_WARRIOR        = 13,
+    CHAMPION_LOCK_PET       = 14,
+    CHAMPION_HUNTER_PET     = 15,
+    CHAMPION_COUNT          = 16
+};
+
+enum FactionFCH
+{
+    FACTION_ALLIANCE        = 0,
+    FACTION_HORDE           = 1,
+    FACTION_COUNT           = 2
+};
+
+const uint32 FChampIDs[CHAMPION_COUNT][FACTION_COUNT] =
+{
+    {34461, 34458},     // CHAMPION_DEATH_KNIGHT
+    {34460, 34451},     // CHAMPION_B_DRUID
+    {34469, 34459},     // CHAMPION_R_DRUID
+    {34467, 34448},     // CHAMPION_HUNTER
+    {34468, 34449},     // CHAMPION_MAGE
+    {34465, 34445},     // CHAMPION_H_PALADIN
+    {34471, 34456},     // CHAMPION_R_PALADIN
+    {34466, 34447},     // CHAMPION_D_PRIEST
+    {34473, 34441},     // CHAMPION_S_PRIEST
+    {34472, 34454},     // CHAMPION_ROGUE
+    {34463, 34455},     // CHAMPION_E_SHAMAN
+    {34470, 34444},     // CHAMPION_R_SHAMAN
+    {34474, 34450},     // CHAMPION_WARLOCK
+    {34475, 34453},     // CHAMPION_WARRIOR
+    {35465, 35465},     // CHAMPION_LOCK_PET
+    {35610, 35610},     // CHAMPION_HUNT_PET
 };
 
 const Coords Center(563.672974f, 139.571f, 393.837006f);
@@ -119,7 +140,7 @@ const Coords SpawnLoc[] =
 {
     Coords(559.257996f, 90.266197f, 395.122986f),  // 0 Barrent
     Coords(563.672974f, 139.571f, 393.837006f),    // 1 Center
-    Coords(563.833008f, 187.244995f, 394.5f),      // 2 Backdoor
+    Coords(563.833008f, 208.544995f, 395.26f),     // 2 Backdoor
     Coords(577.347839f, 195.338888f, 395.14f),     // 3 - Right
     Coords(550.955933f, 195.338888f, 395.14f),     // 4 - Left
     Coords(575.042358f, 195.260727f, 395.137146f), // 5
@@ -150,20 +171,17 @@ const Coords SpawnLoc[] =
 enum uiWorldStates
 {
     UPDATE_STATE_UI_SHOW            = 4390,
-    UPDATE_STATE_UI_COUNT           = 4389,
+    UPDATE_STATE_UI_COUNT           = 4389
 };
 
 enum NorthrendBeasts
 {
-    GORMOK_IN_PROGRESS              = 1000,
-    GORMOK_DONE                     = 1001,
-    SNAKES_IN_PROGRESS              = 2000,
-    DREADSCALE_SUBMERGED            = 2001,
-    ACIDMAW_SUBMERGED               = 2002,
-    SNAKES_SPECIAL                  = 2003,
-    SNAKES_DONE                     = 2004,
-    ICEHOWL_IN_PROGRESS             = 3000,
-    ICEHOWL_DONE                    = 3001,
+    GORMOK_IN_PROGRESS              = 5,
+    GORMOK_DONE                     = 6,
+    SNAKES_IN_PROGRESS              = 7,
+    SNAKES_DONE                     = 8,
+    ICEHOWL_IN_PROGRESS             = 9,
+    ICEHOWL_DONE                    = 10
 };
 
 enum AnnounserMessages
@@ -173,7 +191,7 @@ enum AnnounserMessages
     MSG_CRUSADERS              = 724003,
     MSG_VALKIRIES              = 724004,
     MSG_LICH_KING              = 724005,
-    MSG_ANUBARAK               = 724006,
+    MSG_ANUBARAK               = 724006
 };
 
 #endif

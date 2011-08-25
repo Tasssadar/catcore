@@ -42,7 +42,7 @@ UPDATE creature_template SET ScriptName = 'mob_anubarak_spike' WHERE entry = 346
 
 -- script text
 USE scriptdev2;
-INSERT IGNORE INTO `script_texts` VALUES
+REPLACE INTO `script_texts` VALUES
 (-1649123, 'Is this the best the Horde has to offer?', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 0, '34990'),
 (-1649122, 'Worthless scrub.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 0, '34990'),
 (-1649121, 'Hardly a challenge!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 0, '34990'),
@@ -86,9 +86,9 @@ INSERT IGNORE INTO `script_texts` VALUES
 (-1649076, 'The monstrous menagerie has been vanquished!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16041, 1, 0, 0, '34996'),
 (-1649075, 'The air freezes with the introduction of our next combatant, Icehowl! Kill or be killed, champions!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16040, 1, 0, 0, '34996'),
 (-1649074, 'Steel yourselves, heroes, for the twin terrors Acidmaw and Dreadscale. Enter the arena!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16039, 1, 0, 0, '34996'),
-(-1649073, 'I have seen  more  worthy  challenges in the ring of blood, you waste our time paladin.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16026, 1, 0, 0, '34995'),
+(-1649073, 'I have seen  more  worthy  challenges in the Ring of Blood, you waste our time paladin.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16026, 1, 0, 0, '34995'),
 (-1649072, 'Your beast will be no match for my champions Tirion!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16069, 1, 0, 0, '34990'),
-(-1649071, 'Hailing from the deepest, darkest carverns of the storm peaks, Gormok the Impaler! Battle on, heroes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16038, 1, 0, 0, '34996'),
+(-1649071, 'Hailing from the deepest, darkest carverns of the Storm Peaks, Gormok the Impaler! Battle on, heroes!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16038, 1, 0, 0, '34996'),
 (-1649070, 'Welcome champions, you have heard the call of the Argent Crusade and you have boldly answered. It is here in the crusaders coliseum that you will face your greatest challenges. Those of you who survive the rigors of the coliseum will join the Argent Crusade on its marsh to ice crown citadel.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16036, 1, 0, 0, '34996'),
 (-1649063, 'The swarm shall overtake you!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16241, 1, 0, 0, '34564'),
 (-1649062, '%s produces a swarm of beetles Peon to restore your health!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34564'),
@@ -123,7 +123,7 @@ INSERT IGNORE INTO `script_texts` VALUES
 (-1649022, '|3-3(%s) covers boiling rage, and he tramples all in its path!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34797'),
 (-1649021, '%s crashes into a wall of the Colosseum and lose focus!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34797'),
 (-1649020, '%s looks at |3-3($n) and emits a guttural howl!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34797'),
-(-1649012, 'After the death of sister %s goes berserk!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34799'),
+(-1649012, 'Upon seeing its companion parish, %s becomes enraged!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34799'),
 (-1649011, '%s getting out of the ground!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34564'),
 (-1649010, '%s buries itself in the earth!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34564'),
 (-1649000, 'My slaves! Destroy the enemy!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34796');
