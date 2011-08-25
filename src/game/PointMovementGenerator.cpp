@@ -38,23 +38,32 @@ void PointMovementGenerator<T>::Initialize(T &unit)
     {
         PathInfo path(&unit, i_x, i_y, i_z);
         pointPath = path.getFullPath();
+        
 
         float speed = traveller.Speed() * 0.001f; // in ms
         uint32 traveltime = uint32(pointPath.GetTotalLength() / speed);
         SplineFlags flags = (unit.GetTypeId() == TYPEID_UNIT) ? ((Creature*)&unit)->GetSplineFlags() : SPLINEFLAG_WALKMODE;
         unit.SendMonsterMoveByPath(pointPath, 1, pointPath.size(), flags, traveltime);
-        m_pointTime = traveltime/(pointPath.size()-1);
-        while(m_pointTime < 100)
+        if(pointPath.size() < 3)
         {
-            PointPath tmpPath = pointPath;
-            pointPath.clear();
-            pointPath.resize(tmpPath.size()/2);
-            for(uint16 i = 1; i < tmpPath.size(); i+=2)
-                pointPath.set(i, tmpPath[i]);
-            pointPath.set(pointPath.size()-1, tmpPath[tmpPath.size()-1]);
-            m_pointTime = traveltime/(pointPath.size()-1);
+            i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
+            m_usePathfinding = false;
         }
-        i_nextMoveTime.Reset(m_pointTime);
+        else
+        {
+            m_pointTime = traveltime/(pointPath.size()-1);
+            while(m_pointTime < 100)
+            {
+                PointPath tmpPath = pointPath;
+                pointPath.clear();
+                pointPath.resize(tmpPath.size()/2);
+                for(uint16 i = 1; i < tmpPath.size(); i+=2)
+                    pointPath.set(i, tmpPath[i]);
+                pointPath.set(pointPath.size()-1, tmpPath[tmpPath.size()-1]);
+                m_pointTime = traveltime/(pointPath.size()-1);
+            }
+            i_nextMoveTime.Reset(m_pointTime);
+        }
     }
     else
         i_destinationHolder.SetDestination(traveller, i_x, i_y, i_z, !m_usePathfinding);
