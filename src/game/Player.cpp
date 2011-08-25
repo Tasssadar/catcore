@@ -616,6 +616,10 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
 
     for(uint8 i = 0; i < MAX_ARENA_SLOT; ++i)
         m_matchmaker_rating[i] = 1500;
+
+    for(uint8 type = 0; type < ITEM_LEVEL_TYPE_MAX; ++type)
+        for(uint8 slot = 0; slot < ITEM_LEVEL_SLOT_MAX; ++slot)
+            m_itemlevel[type][slot] = 0;
 }
 
 Player::~Player ()
@@ -15685,9 +15689,11 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
-            SetItem(NULL,slot);
+            SetItem(NULL,slot,false);
         }
     }
+
+    BuildItemLevelValues();
 
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "Load Basic value of player %s is: ", m_name.c_str());
     outDebugStatsValues();
@@ -23300,7 +23306,7 @@ void Player::BuildItemLevelValues()
         for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
         {
             totalvalue += *itr;
-            if (minvalue > *itr || !minvalue)
+            if (!minvalue || minvalue > *itr)
                 minvalue = *itr;
             if (maxvalue < *itr)
                 maxvalue = *itr;
@@ -23334,10 +23340,11 @@ void Player::SetItemLevelValues(uint8 slot, uint32 &total, uint32 &totalaverage,
         maximum = m_itemlevel[ITEM_LEVEL_MAXIMUM][slot];
 }
 
-void Player::SetItem(Item* item, uint8 slot)
+void Player::SetItem(Item *item, uint8 slot, bool updateItemLevelValues)
 {
     m_items[slot] = item;
-    BuildItemLevelValues();
+    if (updateItemLevelValues)
+        BuildItemLevelValues();
 }
 
 void Player::_LoadMMR(const char *data)

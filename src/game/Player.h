@@ -2524,7 +2524,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;
 
-        void SetItem(Item* item, uint8 slot);
+        void SetItem(Item* item, uint8 slot, bool updateItemLevelValues = true);
 
         void BuildItemLevelValues();
         uint32 m_itemlevel[ITEM_LEVEL_TYPE_MAX][ITEM_LEVEL_SLOT_MAX];

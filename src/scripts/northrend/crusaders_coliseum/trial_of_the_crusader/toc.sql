@@ -127,3 +127,5 @@ REPLACE INTO `script_texts` VALUES
 (-1649011, '%s getting out of the ground!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34564'),
 (-1649010, '%s buries itself in the earth!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34564'),
 (-1649000, 'My slaves! Destroy the enemy!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, '34796');
+
+UPDATE creature_template SET ScriptName = 'npc_toc_announcer' WHERE entry =34816;
