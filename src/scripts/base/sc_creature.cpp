@@ -593,7 +593,7 @@ PlrList ScriptedAI::GetAttackingPlayers(bool not_select_current_victim)
     ThreatList const& t_list = m_creature->getThreatManager().getPlayerThreatList();
     for(ThreatList::const_iterator itr = t_list.begin(); itr != t_list.end(); ++itr)
         if (Player* plr = sObjectMgr.GetPlayer((*itr)->getUnitGuid()))
-            if (plr != m_creature->getVictim() || !not_select_current_victim)
+            if (plr->IsInWorld() && plr->isAlive() && (plr != m_creature->getVictim() || !not_select_current_victim))
                 pList.push_back(plr);
 
     return pList;

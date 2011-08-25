@@ -770,15 +770,10 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         }
 
         //Update threat list
-       /* ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-        for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
-        {
-            Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
-
-            if (pUnit && m_creature->getThreatManager().getThreat(pUnit))
-                if (pUnit->GetPhaseMask() == 16)
-                    m_creature->getThreatManager().modifyThreatPercent(pUnit, -100);
-        }*/
+        PlrList pList = GetAttackingPlayers();
+        for (PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+            if ((*itr)->GetPhaseMask() == 16)
+                m_creature->getThreatManager().modifyThreatPercent(*itr, -100);
 
         DoMeleeAttackIfReady();
     }
