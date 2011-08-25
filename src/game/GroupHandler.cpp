@@ -888,9 +888,9 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode( WorldPacket &recv_data )
     else if (player->IsBeingTeleported())               // Player is in teleportation
     {
         WorldLocation& loc = player->GetTeleportDest(); // So take teleportation destination
+        iZoneId = sTerrainMgr.GetZoneId(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
         iCoordX = loc.x();
         iCoordY = loc.y();
-        iZoneId = sTerrainMgr.GetZoneId(loc.mapid, iCoordX, iCoordY, loc.z());
 
     }
     else
