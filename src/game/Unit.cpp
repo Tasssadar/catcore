@@ -4537,7 +4537,9 @@ bool Unit::AddAura(Aura *Aur)
             for(AuraMap::iterator i2 = m_Auras.lower_bound(spair); i2 != m_Auras.upper_bound(spair); ++i2)
             {
                 Aura* aur2 = i2->second;
-                if (GetTypeId() == TYPEID_UNIT || aur2->GetCasterGUID()==Aur->GetCasterGUID())
+                if ( (Aur->GetCaster() &&  Aur->GetCaster()->GetTypeId() == TYPEID_UNIT &&
+                     aur2->GetCaster() && aur2->GetCaster()->GetTypeId() == TYPEID_UNIT) ||
+                     aur2->GetCasterGUID()==Aur->GetCasterGUID())
                 {
                     // Aura can stack on self -> Stack it;
                     if (aurSpellInfo->StackAmount)
