@@ -51,13 +51,5 @@ void InstanceData::InsertIntoCombatList(Creature* pCreature)
 
 void InstanceData::RemoveFromCombatList(Creature* pCreature)
 {
-    /*for(std::list<uint64>::iterator itr = lCombatList.begin(); itr != lCombatList.end(); ++itr)
-    {
-        if((*itr) == pCreature->GetGUID())
-        {
-            lCombatList.erase(itr);
-            break;
-        }
-    }*/
     lCombatList.remove(pCreature->GetGUID());
 }
