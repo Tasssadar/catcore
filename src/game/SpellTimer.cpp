@@ -5,7 +5,6 @@
 SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
     initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
 {
-    justFinished_m = false;
     target_m = NULL;
     SetInitialCooldown(initialCooldown);
     Reset(TIMER_VALUE_ALL);
@@ -22,6 +21,8 @@ void SpellTimer::Reset(TimerValues value)
             timer_m = initialTimer_m;
             updateAllowed_m = true;
             shouldDeleteWhenFinish_m = false;
+            justFinished_m = false;
+            customValue_m = 0;
             break;
         case TIMER_VALUE_COOLDOWN:
             cooldown_m = initialCooldown_m;
@@ -40,6 +41,9 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_JUST_FINISHED:
             justFinished_m = false;
+            break;
+        case TIMER_VALUE_CUSTOM:
+            customValue_m = 0;
             break;
         default:
             break;
@@ -68,6 +72,9 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
         case TIMER_VALUE_JUST_FINISHED:
             justFinished_m = newValue;
             break;
+        case TIMER_VALUE_CUSTOM:
+            customValue_m = newValue;
+            break;
         default:
             break;
     }
@@ -83,6 +90,7 @@ uint32 SpellTimer::GetValue(TimerValues value)
         case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
         case TIMER_VALUE_DELETE_AT_FINISH: return shouldDeleteWhenFinish_m;
         case TIMER_VALUE_JUST_FINISHED: return justFinished_m;
+        case TIMER_VALUE_CUSTOM:        return customValue_m;
         default:                        return 0;
     }
 }

@@ -29,7 +29,8 @@ enum TimerValues
     TIMER_VALUE_TIMER       = 2,
     TIMER_VALUE_UPDATEABLE  = 3,
     TIMER_VALUE_DELETE_AT_FINISH=4,
-    TIMER_VALUE_JUST_FINISHED = 5
+    TIMER_VALUE_JUST_FINISHED=5,
+    TIMER_VALUE_CUSTOM      =6
 };
 
 #define DBC_COOLDOWN 0
@@ -81,8 +82,8 @@ struct SpellTimer
 
         bool updateAllowed_m;
         bool shouldDeleteWhenFinish_m;
-
         bool justFinished_m;
+        uint32 customValue_m;
 };
 
 #endif // SPELLTIMER_H
