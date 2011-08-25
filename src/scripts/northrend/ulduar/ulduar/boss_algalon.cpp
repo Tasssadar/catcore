@@ -321,6 +321,9 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
 
         if (pWho && pWho->GetTypeId() == TYPEID_PLAYER)
         {
+            if (tank)
+                return;
+
             tank = (Player*)pWho;
             if (Group* grp =tank->GetGroup())
             {
