@@ -210,9 +210,10 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
         if (players.isEmpty())
             return NULL;
 
-        Map::PlayerList::const_iterator i = players.begin();
-        std::advance(i, urand(0, players.getSize()-1));
-        return i->getsource;
+        uint32 playerOrder = urand(0, players.getSize()-1);
+        Map::PlayerList::const_iterator iter = players.begin();
+        for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
+        return iter->getSource();
     }
 
     bool isAllianceRaid()
@@ -237,7 +238,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
             else
             {
                 m_pInstance->CloseDoor(doorGuid);
-                doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH);
+                doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
             }
         }
 
@@ -259,8 +260,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
                     break;
                 case 2:
                     SummonToCBoss(NPC_GORMOK);
-                    uint32 textId = isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h;
-                    DoScriptText(textId, m_pInstance->GetCreature(isAllianceRaid() ? NPC_TIRION : NPC_GARROSH));
+                    DoScriptText(isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h, m_pInstance->GetCreature(isAllianceRaid() ? NPC_TIRION : NPC_GARROSH));
                     cooldown = 1000;
                     break;
                 case 3:
@@ -277,8 +277,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
                     cooldown = 5000;
                     break;
                 case 6:
-                    Player* randPlr = GetRandomPlayerInMap();
-                    if (randPlr)
+                    if (Player* randPlr = GetRandomPlayerInMap())
                         if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
                             encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, true);
                     cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
@@ -312,7 +311,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
 CreatureAI* GetAI_npc_toc_announcer(Creature* pCreature)
 {
     return new npc_toc_announcerAI(pCreature);
-}
+};
 
 bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
 {
@@ -370,7 +369,7 @@ bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32
     return true;
 }
 
-struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
+/*struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
 {
     boss_lich_king_tocAI(Creature *pCreature) : ScriptedAI(pCreature)
     {
@@ -446,126 +445,13 @@ struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
     {
         if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_LICH_KING_1)
             return;
-        
-        if (!MovementStarted)
-            StartMovement();
-
-        if (IsWalking && WalkTimer)
-        {
-            if (WalkTimer <= diff)
-            {
-                if (WayPoint != WayPointList.end())
-                {
-                    m_creature->GetMotionMaster()->MovePoint(WayPoint->mapid, WayPoint->x(), WayPoint->y(), WayPoint->z());
-                    WalkTimer = 0;
-                }
-            }else WalkTimer -= diff;
-        }
-
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-
-        if (UpdateTimer <= diff)
-        {
-            switch (m_pInstance->GetData(TYPE_EVENT))
-            {
-                case 5010:
-                {
-                    DoScriptText(-1713550,m_creature);
-                    UpdateTimer = 3000;
-                    m_pInstance->SetData(TYPE_EVENT,5020);
-                    break;
-                }
-                case 5030:
-                {
-                    DoScriptText(-1713552,m_creature);
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_TALK);
-                    UpdateTimer =  10000;
-                    m_pInstance->SetData(TYPE_EVENT,5040);
-                    break;
-                }
-                case 5040:
-                {
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_NONE);
-                    UpdateTimer =  1000;
-                    m_pInstance->SetData(TYPE_EVENT,5050);
-                    break;
-                }
-                case 5050:
-                {
-                   m_creature->HandleEmoteCommand(EMOTE_ONESHOT_EXCLAMATION);
-                   UpdateTimer =  3000;
-                   m_pInstance->SetData(TYPE_EVENT,5060);
-                   break;
-                }
-                case 5060:
-                {
-                    if (Event)
-                    {
-                        DoScriptText(-1713553,m_creature);
-                        m_creature->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL);
-                        UpdateTimer =  2500;
-                        m_pInstance->SetData(TYPE_EVENT,5070);
-                    }
-                    break;
-                }
-                case 5070:
-                {
-                    m_creature->CastSpell(m_creature,68198,false);
-                    UpdateTimer = 1500;
-                    m_pInstance->SetData(TYPE_EVENT,5080);
-                    break;
-                }
-                case 5080:
-                {
-                    if (GameObject* pGoFloor = m_pInstance->instance->GetGameObject(m_pInstance->GetData64(GO_ARGENT_COLISEUM_FLOOR)))
-                    {
-                        pGoFloor->SetUInt32Value(GAMEOBJECT_DISPLAYID,9060);
-                        pGoFloor->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED | GO_FLAG_NODESPAWN);
-                        pGoFloor->SetUInt32Value(GAMEOBJECT_BYTES_1,8449);
-                    }
-                    m_creature->CastSpell(m_creature,69016,false);
-                    if (m_pInstance)
-                        m_pInstance->SetData(TYPE_LICH_KING,DONE);
-
-                   m_pInstance->SetData(TYPE_ANUBARAK,IN_PROGRESS);
-                   m_creature->SummonCreature(NPC_ANUBARAK, SpawnLoc[19].x, SpawnLoc[19].y, SpawnLoc[19].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                   if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ANUBARAK)))
-                   {
-                       pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[20].x, SpawnLoc[20].y, SpawnLoc[20].z);
-                       pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                       pTemp->SetInCombatWithZone();
-                   }
-                   m_pInstance->SetData(TYPE_STAGE,9);
-                   Event=false;
-                   m_creature->ForcedDespawn();
-                   pPortal->ForcedDespawn();
-                   m_pInstance->SetData(TYPE_EVENT,0);
-                   UpdateTimer = 20000;
-                   break;
-                }
-            }
-        }else UpdateTimer -= diff;
-
-        m_pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
-    }
-
-    void MovementInform(uint32 type, uint32 id)
-    {
-        if (m_pInstance && id == 2)
-            Event = true;
-        
-        if (type != POINT_MOTION_TYPE || WayPoint->mapid != id)
-            return;
-
-        ++WayPoint;
-        WalkTimer = 200;
     }
 };
 
 CreatureAI* GetAI_boss_lich_king_toc(Creature* pCreature)
 {
     return new boss_lich_king_tocAI(pCreature);
-}
+};
 
 struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
 {
@@ -599,129 +485,7 @@ struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
     {
         if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG)
             return;
-        
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-        
-        if (UpdateTimer <= diff)
-        {
-            switch(m_pInstance->GetData(TYPE_EVENT))
-            {
-                case 1110:
-                {
-                    m_pInstance->SetData(TYPE_EVENT, 1120);
-                    UpdateTimer = 3000;
-                    m_pInstance->SetData(TYPE_JARAXXUS,IN_PROGRESS);
-                    break;
-                }
-                case 1120:
-                {
-                    DoScriptText(-1713511, m_creature);
-                    m_pInstance->SetData(TYPE_EVENT, 1130);
-                    UpdateTimer = 12000;
-                    break;
-                }
-                case 1130:
-                {
-                    m_creature->GetMotionMaster()->MovementExpired();
-                    m_creature->HandleEmoteCommand(EMOTE_STATE_SPELL_CHANNEL_OMNI);
-                    pPortal = m_creature->SummonCreature(NPC_WILFRED_PORTAL, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 5, TEMPSUMMON_MANUAL_DESPAWN, 5000);
-                    if (pPortal)
-                    {
-                        pPortal->SetRespawnDelay(DAY);
-                        pPortal->SetDisplayId(22862);
-                    }
-                    DoScriptText(-1713512, m_creature);
-                    m_pInstance->SetData(TYPE_EVENT, 1132);
-                    UpdateTimer = 4000;
-                    break;
-                }
-                case 1132:
-                {
-                    m_creature->GetMotionMaster()->MovementExpired();
-                    if (pPortal)
-                        pPortal->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
-                    m_pInstance->SetData(TYPE_EVENT, 1134);
-                    UpdateTimer = 4000;
-                    break;
-                }
-                case 1134:
-                {
-                    if (pPortal)
-                        pPortal->SetDisplayId(15900);
-                    pTrigger =  m_creature->SummonCreature(NPC_TRIGGER, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 5.0f, TEMPSUMMON_MANUAL_DESPAWN, 5000);
-                    if (pTrigger)
-                    {
-                        pTrigger->SetDisplayId(17612);
-                        pTrigger->CastSpell(pTrigger, SPELL_WILFRED_PORTAL, false);
-                        pTrigger->SetRespawnDelay(DAY);
-                    }
-                    m_creature->HandleEmoteCommand(EMOTE_ONESHOT_SPELLCAST_OMNI);
-                    UpdateTimer = 4000;
-                    m_pInstance->SetData(TYPE_EVENT, 1135);
-                    break;
-                }
-                case 1135:
-                {
-                    if (pTrigger)
-                        pTrigger->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.0f);
-                    m_creature->HandleEmoteCommand(EMOTE_ONESHOT_SPELLCAST_OMNI);
-                    UpdateTimer = 3000;
-                    m_pInstance->SetData(TYPE_EVENT, 1140);
-                    break;
-                }
-                case 1140:
-                {
-                    m_pInstance->SetData(TYPE_STAGE,4);
-                    m_creature->SummonCreature(NPC_JARAXXUS, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_JARAXXUS)))
-                    {
-                        pTemp->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        pTemp->CastSpell(pTemp, SPELL_JARAXXUS_CHAINS, false);
-                    }
-                    m_pInstance->SetData(TYPE_EVENT, 1142);
-                    UpdateTimer = 5000;
-                    break;
-                }
-                case 1142:
-                {
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT, 1144);
-                    DoScriptText(-1713513, m_creature);
-                    break;
-                }
-                case 1144:
-                {
-                    if (pTrigger)
-                        pTrigger->ForcedDespawn();
-                    m_pInstance->SetData(TYPE_EVENT, 1150);
-                    UpdateTimer = 5000;
-                    break;
-                }
-                case 1150:
-                {
-                      if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_JARAXXUS)))
-                      {
-                          pTemp->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                          pTemp->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
-                          pTemp->SetInCombatWithZone();
-                          m_creature->SetInCombatWith(pTemp);
-                          pTemp->AddThreat(m_creature, 1000.0f);
-                          pTemp->AI()->AttackStart(m_creature);
-                      }
-                      DoScriptText(-1713515, m_creature);
-                      m_pInstance->SetData(TYPE_EVENT, 1160);
-                      UpdateTimer = 3000;
-                      break;
-                }
-                case 1160:
-                {
-                    m_pInstance->SetData(TYPE_EVENT, 1170);
-                    UpdateTimer = 1000;
-                    break;
-                }
-            }
-        } else UpdateTimer -= diff;
-        m_pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
+
     }
 };
 
@@ -760,622 +524,13 @@ struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
         if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_TIRION)
             return;
         
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-
-        if (UpdateTimer <= diff)
-        {
-            switch (m_pInstance->GetData(TYPE_EVENT))
-            {
-                case 110:
-                   m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_TALK);
-                   DoScriptText(-1713500, m_creature);
-                   UpdateTimer = 12000;
-                   m_pInstance->SetData(TYPE_EVENT,120);
-    //               m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_WEST_PORTCULLIS));
-                   break;
-                case 140:
-                   m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_TALK);
-                   DoScriptText(-1713501, m_creature);
-                   UpdateTimer = 10000;
-                   m_pInstance->SetData(TYPE_EVENT,150);
-                   m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                   break;
-                case 150:
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
-                    if (m_pInstance->GetData(TYPE_BEASTS) != DONE)
-                    {
-                        m_creature->SummonCreature(NPC_GORMOK, SpawnLoc[26].x, SpawnLoc[26].y, SpawnLoc[26].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                        if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_GORMOK)))
-                        {
-                            pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                            pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                            pTemp->SetInCombatWithZone();
-                        }
-                    }
-                    UpdateTimer = 10000;
-                    m_pInstance->SetData(TYPE_EVENT,160);
-                    m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                    m_pInstance->SetData(TYPE_STAGE,1);
-                    m_pInstance->SetData(TYPE_BEASTS,IN_PROGRESS);
-                    break;
-
-            case 200:
-                DoScriptText(-1713503, m_creature);
-                UpdateTimer = 10000;
-                m_pInstance->SetData(TYPE_EVENT,205);
-                break;
-            case 205:
-                UpdateTimer = 8000;
-                m_pInstance->SetData(TYPE_EVENT,210);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-
-            case 210:
-                if (m_pInstance->GetData(TYPE_BEASTS) != DONE)
-                {
-                    m_creature->SummonCreature(NPC_DREADSCALE, SpawnLoc[3].x, SpawnLoc[3].y, SpawnLoc[3].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    m_creature->SummonCreature(NPC_ACIDMAW, SpawnLoc[4].x, SpawnLoc[4].y, SpawnLoc[4].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_DREADSCALE)))
-                    {
-                        pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                        pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                        pTemp->SetInCombatWithZone();
-                    }
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ACIDMAW)))
-                    {
-                        pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                        pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                        pTemp->SetInCombatWithZone();
-                    }
-                }
-                UpdateTimer = 10000;
-                m_pInstance->SetData(TYPE_EVENT,220);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-            case 300:
-                DoScriptText(-1713505, m_creature);
-                UpdateTimer = 15000;
-                m_pInstance->SetData(TYPE_EVENT,305);
-                break;
-            case 305:
-                UpdateTimer = 8000;
-                m_pInstance->SetData(TYPE_EVENT,310);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-            case 310:
-                if (m_pInstance->GetData(TYPE_BEASTS) != DONE)
-                {
-                    m_creature->SummonCreature(NPC_ICEHOWL, SpawnLoc[26].x, SpawnLoc[26].y, SpawnLoc[26].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_ICEHOWL)))
-                    {
-                        pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                        pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                        pTemp->SetInCombatWithZone();
-                    }
-                }
-                UpdateTimer = 10000;
-                m_pInstance->SetData(TYPE_EVENT,320);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-            case 400:
-                DoScriptText(-1713509, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-    //               m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_WEST_PORTCULLIS));
-                break;
-            case 666:
-                DoScriptText(-1713709, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-    //               m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_WEST_PORTCULLIS));
-                break;
-            case 1010:
-                DoScriptText(-1713510, m_creature);
-                UpdateTimer = 5000;
-                m_creature->SummonCreature(NPC_FIZZLEBANG, SpawnLoc[21].x, SpawnLoc[21].y, SpawnLoc[21].z, 2, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                m_pInstance->SetData(TYPE_EVENT,1110);
-                break;
-            case 1180:
-                DoScriptText(-1713516, m_creature);
-                UpdateTimer = 3000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-                break;
-            case 2000:
-                DoScriptText(-1713526, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,2010);
-                break;
-            case 2030:
-                DoScriptText(-1713529, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-                break;
-            case 3000:
-                DoScriptText(-1713530, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,3050);
-                break;
-            case 3001:
-                DoScriptText(-1713530, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,3051);
-                break;
-            case 3060:
-                DoScriptText(-1713532, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,3070);
-                break;
-            case 3061:
-                DoScriptText(-1713532, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,3071);
-                break;
-            //Summoning crusaders
-            case 3091:
-                m_pInstance->SetData(TYPE_STAGE,6);
-                // 25 man
-                if (m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_25MAN_NORMAL ||
-                    m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_25MAN_HEROIC)
-                {
-                    crusaderscount = 12;
-                    switch (urand(0,3))
-                    {                                       // Healers, 3 in 25-mode
-                        case 0:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_12;
-                            crusader[2] = NPC_CRUSADER_1_13;
-                            break;
-                        case 1:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_2;
-                            crusader[2] = NPC_CRUSADER_1_13;
-                            break;
-                        case 2:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_2;
-                            crusader[2] = NPC_CRUSADER_1_12;
-                            break;
-                        case 3:
-                            crusader[0] = NPC_CRUSADER_1_2;
-                            crusader[1] = NPC_CRUSADER_1_12;
-                            crusader[2] = NPC_CRUSADER_1_13;
-                            break;
-                    }
-                    switch (urand(0,5))
-                    {                                       // Random melee DD, 2 in 25-mode
-                        case 0:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[4] = NPC_CRUSADER_1_4;
-                            break;
-                        case 1:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[4] = NPC_CRUSADER_1_5;
-                            break;
-                        case 2:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[4] = NPC_CRUSADER_1_6;
-                            break;
-                        case 3:
-                            crusader[3] = NPC_CRUSADER_1_4;
-                            crusader[4] = NPC_CRUSADER_1_5;
-                            break;
-                        case 4:
-                            crusader[3] = NPC_CRUSADER_1_4;
-                            crusader[4] = NPC_CRUSADER_1_6;
-                            break;
-                        case 5:
-                            crusader[3] = NPC_CRUSADER_1_5;
-                            crusader[4] = NPC_CRUSADER_1_6;
-                            break;
-                    }
-                    switch (urand(0,3))
-                    {                                       // Random magic DD, 3 in 25-mode
-                        case 0:
-                            crusader[5] = NPC_CRUSADER_1_7;
-                            crusader[6] = NPC_CRUSADER_1_8;
-                            crusader[7] = NPC_CRUSADER_1_11;
-                            break;
-                        case 1:
-                            crusader[5] = NPC_CRUSADER_1_7;
-                            crusader[6] = NPC_CRUSADER_1_8;
-                            crusader[7] = NPC_CRUSADER_1_14;
-                            break;
-                        case 2:
-                            crusader[5] = NPC_CRUSADER_1_8;
-                            crusader[6] = NPC_CRUSADER_1_11;
-                            crusader[7] = NPC_CRUSADER_1_14;
-                            break;
-                        case 3:
-                            crusader[5] = NPC_CRUSADER_1_7;
-                            crusader[6] = NPC_CRUSADER_1_11;
-                            crusader[7] = NPC_CRUSADER_1_14;
-                            break;
-                    }
-                    
-                    crusader[8]  = NPC_CRUSADER_1_9;  //Hunter+warlock
-                    crusader[9]  = NPC_CRUSADER_1_10;
-                    crusader[10] = NPC_CRUSADER_0_1;
-                    crusader[11] = NPC_CRUSADER_0_2;
-                }
-                // 10 man
-                else
-                {
-                    crusaderscount = 6;
-                    switch (urand(0,5))
-                    {                                       // Healers, 2 in 10-mode
-                        case 0:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_12;
-                            break;
-                        case 1:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_2;
-                            break;
-                        case 2:
-                            crusader[0] = NPC_CRUSADER_1_2;
-                            crusader[1] = NPC_CRUSADER_1_12;
-                            break;
-                        case 3:
-                            crusader[0] = NPC_CRUSADER_1_1;
-                            crusader[1] = NPC_CRUSADER_1_13;
-                            break;
-                        case 4:
-                            crusader[0] = NPC_CRUSADER_1_2;
-                            crusader[1] = NPC_CRUSADER_1_13;
-                            break;
-                        case 5:
-                            crusader[0] = NPC_CRUSADER_1_12;
-                            crusader[1] = NPC_CRUSADER_1_13;
-                            break;
-                    }
-                    switch (urand(0,5))
-                    {                                       // Random melee DD, 2 in 10-mode
-                        case 0:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[2] = NPC_CRUSADER_1_4;
-                            break;
-                        case 1:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[2] = NPC_CRUSADER_1_5;
-                            break;
-                        case 2:
-                            crusader[3] = NPC_CRUSADER_1_3;
-                            crusader[2] = NPC_CRUSADER_1_6;
-                            break;
-                        case 3:
-                            crusader[3] = NPC_CRUSADER_1_4;
-                            crusader[2] = NPC_CRUSADER_1_5;
-                            break;
-                        case 4:
-                            crusader[3] = NPC_CRUSADER_1_4;
-                            crusader[2] = NPC_CRUSADER_1_6;
-                            break;
-                        case 5:
-                            crusader[3] = NPC_CRUSADER_1_5;
-                            crusader[2] = NPC_CRUSADER_1_6;
-                            break;
-                    }
-                    switch (urand(0,5))
-                    {                                       // Random magic DD, 2 in 10-mode
-                        case 0:
-                            crusader[4] = NPC_CRUSADER_1_7;
-                            crusader[5] = NPC_CRUSADER_1_8;
-                            break;
-                        case 1:
-                            crusader[5] = NPC_CRUSADER_1_7;
-                            crusader[4] = NPC_CRUSADER_1_14;
-                            break;
-                        case 2:
-                            crusader[5] = NPC_CRUSADER_1_7;
-                            crusader[4] = NPC_CRUSADER_1_11;
-                            break;
-                        case 3:
-                            crusader[5] = NPC_CRUSADER_1_8;
-                            crusader[4] = NPC_CRUSADER_1_11;
-                            break;
-                        case 4:
-                            crusader[5] = NPC_CRUSADER_1_8;
-                            crusader[4] = NPC_CRUSADER_1_14;
-                            break;
-                        case 5:
-                            crusader[5] = NPC_CRUSADER_1_11;
-                            crusader[4] = NPC_CRUSADER_1_14;
-                            break;
-                    }
-                }
-                for(uint8 i = 0; i < crusaderscount; ++i)
-                {
-                    m_creature->SummonCreature(crusader[i], SpawnLoc[i+2].x, SpawnLoc[i+2].y, SpawnLoc[i+2].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(crusader[i])))
-                    {
-                        pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                        pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    }
-                }
-                
-                m_pInstance->SetData(TYPE_CRUSADERS_COUNT,crusaderscount);
-                UpdateTimer = 3000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                m_pInstance->SetData(TYPE_CRUSADERS,IN_PROGRESS);
-                break;
-                //summoning crusaders
-            case 3090:
-                m_pInstance->SetData(TYPE_STAGE,6);
-                if (m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_25MAN_NORMAL ||
-                    m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_25MAN_HEROIC)
-                {
-                    crusaderscount = 12;
-                    switch (urand(0,3))
-                    {                                       // Healers, 3 in 25-mode
-                        case 0:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_12;
-                            crusader[2] = NPC_CRUSADER_2_13;
-                            break;
-                        case 1:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_2;
-                            crusader[2] = NPC_CRUSADER_2_13;
-                            break;
-                        case 2:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_2;
-                            crusader[2] = NPC_CRUSADER_2_12;
-                            break;
-                        case 3:
-                            crusader[0] = NPC_CRUSADER_2_2;
-                            crusader[1] = NPC_CRUSADER_2_12;
-                            crusader[2] = NPC_CRUSADER_2_13;
-                            break;
-                        }
-                    switch (urand(0,5))
-                    {                                       // Random melee DD, 2 in 25-mode
-                        case 0:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[4] = NPC_CRUSADER_2_4;
-                            break;
-                        case 1:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[4] = NPC_CRUSADER_2_5;
-                            break;
-                        case 2:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[4] = NPC_CRUSADER_2_6;
-                            break;
-                        case 3:
-                            crusader[3] = NPC_CRUSADER_2_4;
-                            crusader[4] = NPC_CRUSADER_2_5;
-                            break;
-                        case 4:
-                            crusader[3] = NPC_CRUSADER_2_4;
-                            crusader[4] = NPC_CRUSADER_2_6;
-                            break;
-                        case 5:
-                            crusader[3] = NPC_CRUSADER_2_5;
-                            crusader[4] = NPC_CRUSADER_2_6;
-                            break;
-                        }
-                    switch (urand(0,3))
-                    {                                       // Random magic DD, 3 in 25-mode
-                        case 0:
-                            crusader[5] = NPC_CRUSADER_2_7;
-                            crusader[6] = NPC_CRUSADER_2_8;
-                            crusader[7] = NPC_CRUSADER_2_11;
-                            break;
-                        case 1:
-                            crusader[5] = NPC_CRUSADER_2_7;
-                            crusader[6] = NPC_CRUSADER_2_8;
-                            crusader[7] = NPC_CRUSADER_2_14;
-                            break;
-                        case 2:
-                            crusader[5] = NPC_CRUSADER_2_8;
-                            crusader[6] = NPC_CRUSADER_2_11;
-                            crusader[7] = NPC_CRUSADER_2_14;
-                            break;
-                        case 3:
-                            crusader[5] = NPC_CRUSADER_2_7;
-                            crusader[6] = NPC_CRUSADER_2_11;
-                            crusader[7] = NPC_CRUSADER_2_14;
-                            break;
-                    }
-                    crusader[8]  = NPC_CRUSADER_2_9;  //Hunter+warlock
-                    crusader[9]  = NPC_CRUSADER_2_10;
-                    crusader[10] = NPC_CRUSADER_0_1;
-                    crusader[11] = NPC_CRUSADER_0_2;
-                }
-                else 
-                {
-                    crusaderscount = 6;
-                    switch (urand(0,5))
-                    {                                       // Healers, 2 in 10-mode
-                        case 0:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_12;
-                            break;
-                        case 1:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_2;
-                            break;
-                        case 2:
-                            crusader[0] = NPC_CRUSADER_2_2;
-                            crusader[1] = NPC_CRUSADER_2_12;
-                            break;
-                        case 3:
-                            crusader[0] = NPC_CRUSADER_2_1;
-                            crusader[1] = NPC_CRUSADER_2_13;
-                            break;
-                        case 4:
-                            crusader[0] = NPC_CRUSADER_2_2;
-                            crusader[1] = NPC_CRUSADER_2_13;
-                            break;
-                        case 5:
-                            crusader[0] = NPC_CRUSADER_2_12;
-                            crusader[1] = NPC_CRUSADER_2_13;
-                            break;
-                    }
-                    switch (urand(0,5))
-                    {                                       // Random melee DD, 2 in 10-mode
-                        case 0:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[2] = NPC_CRUSADER_2_4;
-                            break;
-                        case 1:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[2] = NPC_CRUSADER_2_5;
-                            break;
-                        case 2:
-                            crusader[3] = NPC_CRUSADER_2_3;
-                            crusader[2] = NPC_CRUSADER_2_6;
-                            break;
-                        case 3:
-                            crusader[3] = NPC_CRUSADER_2_4;
-                            crusader[2] = NPC_CRUSADER_2_5;
-                            break;
-                        case 4:
-                            crusader[3] = NPC_CRUSADER_2_4;
-                            crusader[2] = NPC_CRUSADER_2_6;
-                            break;
-                        case 5:
-                            crusader[3] = NPC_CRUSADER_2_5;
-                            crusader[2] = NPC_CRUSADER_2_6;
-                            break;
-                    }
-                    switch (urand(0,5))
-                    {                                       // Random magic DD, 2 in 10-mode
-                        case 0:
-                            crusader[4] = NPC_CRUSADER_2_7;
-                            crusader[5] = NPC_CRUSADER_2_8;
-                            break;
-                        case 1:
-                            crusader[5] = NPC_CRUSADER_2_7;
-                            crusader[4] = NPC_CRUSADER_2_14;
-                            break;
-                        case 2:
-                            crusader[5] = NPC_CRUSADER_2_7;
-                            crusader[4] = NPC_CRUSADER_2_11;
-                            break;
-                        case 3:
-                            crusader[5] = NPC_CRUSADER_2_8;
-                            crusader[4] = NPC_CRUSADER_2_11;
-                            break;
-                        case 4:
-                            crusader[5] = NPC_CRUSADER_2_8;
-                            crusader[4] = NPC_CRUSADER_2_14;
-                            break;
-                        case 5:
-                            crusader[5] = NPC_CRUSADER_2_11;
-                            crusader[4] = NPC_CRUSADER_2_14;
-                            break;
-                    }
-                }
-                for(uint8 i = 0; i < crusaderscount; ++i)
-                {
-                    m_creature->SummonCreature(crusader[i], SpawnLoc[i+2].x, SpawnLoc[i+2].y, SpawnLoc[i+2].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                    if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(crusader[i])))
-                    {
-                        pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                        pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    }
-                }
-                m_pInstance->SetData(TYPE_CRUSADERS_COUNT,crusaderscount);
-                UpdateTimer = 3000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                m_pInstance->SetData(TYPE_CRUSADERS,IN_PROGRESS);
-                break;
-            //Crusaders battle end
-            case 3100:
-                DoScriptText(-1713535, m_creature);
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,0);
-                break;
-            case 4000:
-                DoScriptText(-1713536, m_creature);
-                UpdateTimer = 3000;
-                m_pInstance->SetData(TYPE_EVENT,4010);
-                break;
-            case 4010:
-                DoScriptText(-1713537, m_creature);
-                UpdateTimer = 10000;
-                m_pInstance->SetData(TYPE_EVENT,4015);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-            case 4015:
-                m_pInstance->SetData(TYPE_STAGE,7);
-                m_pInstance->SetData(TYPE_VALKIRIES,IN_PROGRESS);
-                m_creature->SummonCreature(NPC_LIGHTBANE, SpawnLoc[3].x, SpawnLoc[3].y, SpawnLoc[3].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_LIGHTBANE)))
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                    pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    pTemp->SetInCombatWithZone();
-                }
-                m_creature->SummonCreature(NPC_DARKBANE, SpawnLoc[4].x, SpawnLoc[4].y, SpawnLoc[4].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-                if (Creature* pTemp = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_DARKBANE)))
-                {
-                    pTemp->GetMotionMaster()->MovePoint(0, SpawnLoc[1].x, SpawnLoc[1].y, SpawnLoc[1].z);
-                    pTemp->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                    pTemp->SetInCombatWithZone();
-                }
-                UpdateTimer = 10000;
-                m_pInstance->SetData(TYPE_EVENT,4016);
-                m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                break;
-            case 4040:
-                UpdateTimer = 60000;
-                m_pInstance->SetData(TYPE_EVENT,5000);
-                break;
-
-            case 5000:
-                DoScriptText(-1713549, m_creature);
-                UpdateTimer = 8000;
-                m_pInstance->SetData(TYPE_EVENT,5005);
-                break;
-            case 5005:
-                UpdateTimer = 8000;
-                m_pInstance->SetData(TYPE_EVENT,5010);
-                m_pInstance->SetData(TYPE_STAGE,8);
-                m_creature->SummonCreature(NPC_LICH_KING_1, SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, 5, TEMPSUMMON_MANUAL_DESPAWN, 0);
-                break;
-            case 5020:
-                DoScriptText(-1713551, m_creature);
-                UpdateTimer = 8000;
-                m_pInstance->SetData(TYPE_EVENT,5030);
-                break;
-            case 6000:
-                m_creature->NearTeleportTo(SpawnLoc[19].x, SpawnLoc[19].y, SpawnLoc[19].z, 4.0f);
-                UpdateTimer = 20000;
-                m_pInstance->SetData(TYPE_EVENT,6005);
-                break;
-            case 6005:
-                DoScriptText(-1713565, m_creature);
-                UpdateTimer = 20000;
-                m_pInstance->SetData(TYPE_EVENT,6010);
-                break;
-            case 6010:
-                if (m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_10MAN_HEROIC ||
-                    m_pInstance->GetData(TYPE_DIFFICULTY) == RAID_DIFFICULTY_25MAN_HEROIC)
-                DoScriptText(-1713566, m_creature);
-                UpdateTimer = 60000;
-                m_pInstance->SetData(TYPE_EVENT,6020);
-                break;
-            case 6020:
-                m_pInstance->SetData(TYPE_STAGE,10);
-                m_creature->ForcedDespawn();
-                UpdateTimer = 5000;
-                m_pInstance->SetData(TYPE_EVENT,6030);
-                break;
-            }
-        } else UpdateTimer -= diff;
-        m_pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
-    }
+     }
 };
 
 CreatureAI* GetAI_npc_tirion_toc(Creature* pCreature)
 {
     return new npc_tirion_tocAI(pCreature);
-}
+};
 
 struct MANGOS_DLL_DECL npc_garrosh_tocAI : public ScriptedAI
 {
@@ -1403,52 +558,6 @@ struct MANGOS_DLL_DECL npc_garrosh_tocAI : public ScriptedAI
         if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_GARROSH)
             return;
         
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-
-        if (UpdateTimer <= diff)
-        {
-            switch (m_pInstance->GetData(TYPE_EVENT))
-            {
-                case 120:
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_TALK);
-                    DoScriptText(-1713702, m_creature);
-                    UpdateTimer = 2000;
-                    m_pInstance->SetData(TYPE_EVENT,122);
-                    break;
-                case 122:
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
-                    UpdateTimer = 3000;
-                    m_pInstance->SetData(TYPE_EVENT,130);
-                    break;
-                case 2010:
-                    DoScriptText(-1713527, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,2020);
-                    break;
-                case 3050:
-                    DoScriptText(-1713531, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3060);
-                    break;
-                case 3070:
-                    DoScriptText(-1713533, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3080);
-                    break;
-                case 3081:
-                    DoScriptText(-1713734, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3091);
-                    m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                    break;
-                case 4030:
-                    DoScriptText(-1713748, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,4040);
-                    break;
-            }
-        } else UpdateTimer -= diff;
-        m_pInstance->SetData(TYPE_EVENT_TIMER, UpdateTimer);
     }
 };
 
@@ -1483,59 +592,13 @@ struct MANGOS_DLL_DECL npc_rinn_tocAI : public ScriptedAI
         if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_RINN)
             return;
         
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-
-        if (UpdateTimer <= diff)
-        {
-            switch (m_pInstance->GetData(TYPE_EVENT))
-            {
-                case 130:
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_TALK);
-                    DoScriptText(-1713502, m_creature);
-                    UpdateTimer = 2000;
-                    m_pInstance->SetData(TYPE_EVENT,132);
-                    break;
-                case 132:
-                    m_creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_NONE);
-                    UpdateTimer = 3000;
-                    m_pInstance->SetData(TYPE_EVENT,140);
-                    break;
-                case 2020:
-                    DoScriptText(-1713528, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,2030);
-                    break;
-                case 3051:
-                    DoScriptText(-1713731, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3061);
-                    break;
-                case 3071:
-                    DoScriptText(-1713733, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3081);
-                    break;
-                case 3080:
-                    DoScriptText(-1713534, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,3090);
-                    m_pInstance->DoUseDoorOrButton(m_pInstance->GetData64(GO_MAIN_GATE_DOOR));
-                    break;
-                case 4020:
-                    DoScriptText(-1713548, m_creature);
-                    UpdateTimer = 5000;
-                    m_pInstance->SetData(TYPE_EVENT,4030);
-                    break;
-            }
-        } else UpdateTimer -= diff;
-        m_pInstance->SetData(TYPE_EVENT_TIMER,UpdateTimer);
     }
 };
 
 CreatureAI* GetAI_npc_rinn_toc(Creature* pCreature)
 {
     return new npc_rinn_tocAI(pCreature);
-};
+};*/
 
 void AddSC_trial_of_the_crusader()
 {
@@ -1548,7 +611,7 @@ void AddSC_trial_of_the_crusader()
     NewScript->pGossipSelect = &GossipSelect_npc_toc_announcer;
     NewScript->RegisterSelf();
 
-    NewScript = new Script;
+    /*NewScript = new Script;
     NewScript->Name = "boss_lich_king_toc";
     NewScript->GetAI = &GetAI_boss_lich_king_toc;
     NewScript->RegisterSelf();
@@ -1571,5 +634,5 @@ void AddSC_trial_of_the_crusader()
     NewScript = new Script;
     NewScript->Name = "npc_rinn_toc";
     NewScript->GetAI = &GetAI_npc_rinn_toc;
-    NewScript->RegisterSelf();
+    NewScript->RegisterSelf();*/
 }

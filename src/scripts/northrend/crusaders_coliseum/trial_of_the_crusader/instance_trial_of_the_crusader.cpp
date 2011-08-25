@@ -32,6 +32,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
     instance_trial_of_the_crusader(Map* pMap) : ScriptedInstance(pMap)
     {
         mapDifficulty = pMap->GetDifficulty();
+        isHeroic = pMap->IsHeroicRaid();
         Initialize();
     }
 
@@ -43,6 +44,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
     GuidMap GameObjectGuidMap;
 
     Difficulty mapDifficulty;
+    bool isHeroic;
     std::string m_strInstData;
     bool needsave;
 
@@ -67,7 +69,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
 
     void OnPlayerEnter(Player *m_player)
     {
-        if (Difficulty == RAID_DIFFICULTY_10MAN_HEROIC || Difficulty == RAID_DIFFICULTY_25MAN_HEROIC)
+        if (isHeroic)
         {
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW,1);
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
@@ -227,7 +229,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         std::ostringstream saveStream;
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-            saveStream << m_auiEncounter[i] << " ";
+            saveStream << EncounterData[i] << " ";
 
         saveStream << WipeCounter << " ";
         m_strInstData = saveStream.str();
@@ -251,13 +253,13 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
 
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
         {
-            loadStream >> m_auiEncounter[i];
+            loadStream >> EncounterData[i];
 
-            if (m_auiEncounter[i] == IN_PROGRESS)
-                m_auiEncounter[i] = NOT_STARTED;
+            if (EncounterData[i] == IN_PROGRESS)
+                EncounterData[i] = NOT_STARTED;
         }
 
-        loadStream >> Count;
+        loadStream >> WipeCounter;
 
         OUT_LOAD_INST_DATA_COMPLETE;
     }

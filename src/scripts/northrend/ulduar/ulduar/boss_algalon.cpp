@@ -253,7 +253,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             beaten = true;
             uiDamage = 0;
 
-            Map::PlayerList const &players = instance->GetPlayers();
+            Map::PlayerList const &players = m_creature->GetMap()->GetPlayers();
             for (Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
             {
                 Player* plr = i->getSource();

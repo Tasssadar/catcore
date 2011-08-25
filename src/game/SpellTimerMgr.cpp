@@ -87,11 +87,11 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
                     {
                         if (timer->GetValue(TIMER_VALUE_DELETE_AT_FINISH))
                         {
-                            RemoveTimer(timerId);
+                            RemoveTimer(itr->first);
                             break;
                         }
 
-                        SetTarget(NULL);
+                        timer->SetTarget(NULL);
                         timer->SetValue(TIMER_VALUE_JUST_FINISHED, false);
                     }
                     timer->Update(uiDiff);
