@@ -82,7 +82,20 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
             if (SpellTimer* timer = itr->second)
             {
                 if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
+                {
+                    if (timer->GetValue(TIMER_VALUE_JUST_FINISHED))
+                    {
+                        if (timer->GetValue(TIMER_VALUE_DELETE_AT_FINISH))
+                        {
+                            RemoveTimer(timerId);
+                            break;
+                        }
+
+                        SetTarget(NULL);
+                        timer->SetValue(TIMER_VALUE_JUST_FINISHED, false);
+                    }
                     timer->Update(uiDiff);
+                }
             }
             else
             {
@@ -218,8 +231,6 @@ bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
     if (timer->Finish())
     {
         m_GCD->Cooldown(timer->getGCD());
-        if (timer->GetValue(TIMER_VALUE_DELETE_AT_FINISH))
-            RemoveTimer(timerId);
         return true;
     }
 

@@ -34,8 +34,12 @@ void SpellTimer::Reset(TimerValues value)
             break;
         case TIMER_VALUE_UPDATEABLE:
             updateAllowed_m = true;
+            break;
         case TIMER_VALUE_DELETE_AT_FINISH:
             shouldDeleteWhenFinish_m = false;
+            break;
+        case TIMER_VALUE_JUST_FINISHED:
+            justFinished_m = false;
             break;
         default:
             break;
@@ -61,6 +65,9 @@ void SpellTimer::SetValue(TimerValues value, uint32 newValue)
         case TIMER_VALUE_DELETE_AT_FINISH:
             shouldDeleteWhenFinish_m = newValue;
             break;
+        case TIMER_VALUE_JUST_FINISHED:
+            justFinished_m = newValue;
+            break;
         default:
             break;
     }
@@ -75,6 +82,7 @@ uint32 SpellTimer::GetValue(TimerValues value)
         case TIMER_VALUE_TIMER:         return timer_m;
         case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
         case TIMER_VALUE_DELETE_AT_FINISH: return shouldDeleteWhenFinish_m;
+        case TIMER_VALUE_JUST_FINISHED: return justFinished_m;
         default:                        return 0;
     }
 }
@@ -94,12 +102,6 @@ void SpellTimer::Update(uint32 diff)
 {
     if (!timer_m)
         return;
-
-    if (justFinished_m)
-    {
-        SetTarget(NULL);
-        justFinished_m = false;
-    }
 
     if (timer_m < diff)
         timer_m = 0;
@@ -197,7 +199,7 @@ bool SpellTimer::Finish(Unit *target)
 
     uCaster->CastSpell(uTarget, spellInfo, false);
     Cooldown();
-    justFinished_m = true;
+    SetValue(TIMER_VALUE_JUST_FINISHED, true);
     return true;
 }
 
