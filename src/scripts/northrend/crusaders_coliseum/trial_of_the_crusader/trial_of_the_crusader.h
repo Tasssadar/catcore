@@ -194,4 +194,38 @@ enum AnnounserMessages
     MSG_ANUBARAK               = 724006
 };
 
+struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
+{
+    npc_toc_announcerAI(Creature* pCreature);
+
+    ScriptedInstance* m_pInstance;
+    bool isHeroic;
+
+    int32       currentEncounter;
+    uint16      encounterStage;
+    Creature*   encounterCreature;
+    Creature*   encounterCreature2;
+
+    void Reset();
+
+    void AttackStart(Unit* /*who*/);
+
+    void ChooseEvent(uint8 encounterId);
+
+    void DataSet(uint32 type, uint32 data);
+
+    void MovementInform(uint32 uiType, uint32 uiPointId);
+
+    Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori);
+
+    void SummonToCBoss(uint32 id, uint32 id2 = 0);
+
+    Player* GetRandomPlayerInMap();
+
+    bool isAllianceRaid();
+
+    void UpdateAI(const uint32 /*diff*/);
+
+};
+
 #endif

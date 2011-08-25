@@ -23,7 +23,6 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
-#include "trial_of_the_crusader.cpp"
 
 #define MAX_WIPES 50
 

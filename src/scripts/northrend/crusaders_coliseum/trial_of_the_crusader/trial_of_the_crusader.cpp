@@ -85,228 +85,217 @@ enum
 
 #define REALLY_BIG_COOLDOWN 3600000
 
-struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
+npc_toc_announcerAI::npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCreature)
 {
-    npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCreature)
+    m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    isHeroic = pCreature->GetMap()->IsHeroicRaid();
+    Reset();
+}
+
+void npc_toc_announcerAI::Reset()
+{
+    if (!m_pInstance)
+        m_creature->ForcedDespawn();
+
+    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+    m_creature->SetRespawnDelay(DAY);
+    m_creature->SetVisibility(VISIBILITY_ON);
+    m_TimerMgr->SetUpdatable(false);
+    currentEncounter = -1;
+    encounterStage = 0;
+    encounterCreature = NULL;
+    encounterCreature2 = NULL;
+}
+
+void npc_toc_announcerAI::AttackStart(Unit* /*who*/) { return; }
+
+void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
+{
+    if (m_pInstance->GetData(encounterId) == DONE)
+        return;
+
+    currentEncounter = encounterId;
+    uint32 startTimer = 0;
+    switch (encounterId)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        isHeroic = pCreature->GetMap()->IsHeroicRaid();
-        Reset();
+        case TYPE_BEASTS:
+            startTimer = 1000;
+            break;
+        default:
+            break;
     }
 
-    ScriptedInstance* m_pInstance;
-    bool isHeroic;
-
-    int32       currentEncounter;
-    uint16      encounterStage;
-    Creature*   encounterCreature;
-    Creature*   encounterCreature2;
-
-    void Reset()
+    if (startTimer)
     {
-        if (!m_pInstance)
-            m_creature->ForcedDespawn();
-
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->SetRespawnDelay(DAY);
-        m_creature->SetVisibility(VISIBILITY_ON);
-        m_TimerMgr->SetUpdatable(false);
-        currentEncounter = -1;
-        encounterStage = 0;
-        encounterCreature = NULL;
-        encounterCreature2 = NULL;
+        AddNonCastTimer(TIMER_PHASE_HANDLING, startTimer, 0);
+        m_TimerMgr->SetUpdatable(true);
     }
+}
 
-    void AttackStart(Unit* /*who*/) { return; }
-
-    void ChooseEvent(uint8 encounterId)
+void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
+{
+    switch (type)
     {
-        if (m_pInstance->GetData(encounterId) == DONE)
-            return;
-
-        currentEncounter = encounterId;
-        uint32 startTimer = 0;
-        switch (encounterId)
+        case TYPE_BEASTS:
         {
-            case TYPE_BEASTS:
-                startTimer = 1000;
+            if (data == FAIL)
+                DoScriptText(SAY_STAGE_0_WIPE, m_pInstance->GetCreature(NPC_TIRION));
+            else if (data == DONE)
+                DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
+            break;
+        }
+    }
+
+    if (data == NOT_STARTED || data == FAIL || data == DONE)
+        Reset();
+
+    else if (data == IN_PROGRESS)
+    {
+        if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
+        {
+            Coords coord = go->GetPosition();
+            m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z);
+        }
+    }
+}
+
+void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
+{
+    if (uiType == POINT_MOTION_TYPE && uiPointId == POINT_PORT)
+    {
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
+    }
+}
+
+Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori)
+{
+    Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000, true);
+    if (pTemp)
+        pTemp->SetRespawnDelay(7*DAY);
+
+    return pTemp;
+}
+
+void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
+{
+    Coords coord = SpawnLoc[2];
+    Coords coord2;
+    if (id2)
+    {
+        coord2 = SpawnLoc[2];
+        coord.x -= 8.f;
+        coord2.x += 8.f;
+    }
+    encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f);
+    if (id2)
+        encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f);
+
+    AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 10000);
+}
+
+Player* npc_toc_announcerAI::GetRandomPlayerInMap()
+{
+    Map::PlayerList const &players = m_creature->GetMap()->GetPlayers();
+    if (players.isEmpty())
+        return NULL;
+
+    uint32 playerOrder = urand(0, players.getSize()-1);
+    Map::PlayerList::const_iterator iter = players.begin();
+    for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
+    return iter->getSource();
+}
+
+bool npc_toc_announcerAI::isAllianceRaid()
+{
+    if (Player* plr = GetRandomPlayerInMap())
+        return plr->GetTeam() == ALLIANCE;
+
+    return false;
+}
+
+void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
+{
+    // open and closes doors
+    if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
+    {
+        uint32 doorGuid = m_pInstance->GetData(GO_MAIN_GATE_DOOR);
+        if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
+        {
+            m_pInstance->OpenDoor(doorGuid);
+            doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
+        }
+        else
+        {
+            m_pInstance->CloseDoor(doorGuid);
+            doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+        }
+    }
+
+    // custom event step handling
+    if (SpellTimer* stepTimer = m_TimerMgr->TimerFinished(TIMER_PHASE_HANDLING))
+    {
+        uint32 cooldown = 0;
+        if (currentEncounter == TYPE_BEASTS)
+        {
+            switch(encounterStage)
+            {
+            case 0:
+                DoScriptText(SAY_STAGE_0_01, m_pInstance->GetCreature(NPC_TIRION));
+                cooldown = 21000;
+                break;
+            case 1:
+                DoScriptText(SAY_STAGE_0_02, m_pInstance->GetCreature(NPC_TIRION));
+                cooldown = 10000;
+                break;
+            case 2:
+                SummonToCBoss(NPC_GORMOK);
+                DoScriptText(isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h, m_pInstance->GetCreature(isAllianceRaid() ? NPC_TIRION : NPC_GARROSH));
+                cooldown = 1000;
+                break;
+            case 3:
+                encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
+                cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
+                break;
+            case 4:
+                SummonToCBoss(NPC_DREADSCALE);
+                DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
+                cooldown = 1000;
+                break;
+            case 5:
+                encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
+                cooldown = 5000;
+                break;
+            case 6:
+                if (Player* randPlr = GetRandomPlayerInMap())
+                    if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
+                        encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, true);
+                cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
+                break;
+            case 7:
+                SummonToCBoss(NPC_ICEHOWL);
+                DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
+                cooldown = 1000;
+            case 8:
+                encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
+                cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
+                break;
+            case 9:
+                encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK, UNIT_SELECT_SELF);
                 break;
             default:
                 break;
-        }
-
-        if (startTimer)
-        {
-            AddNonCastTimer(TIMER_PHASE_HANDLING, startTimer, 0);
-            m_TimerMgr->SetUpdatable(true);
-        }
-    }
-
-    void DataSet(uint32 type, uint32 data)
-    {
-        switch (type)
-        {
-            case TYPE_BEASTS:
-            {
-                if (data == FAIL)
-                    DoScriptText(SAY_STAGE_0_WIPE, m_pInstance->GetCreature(NPC_TIRION));
-                else if (data == DONE)
-                    DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
-                break;
-            }
-        }
-
-        if (data == NOT_STARTED || data == FAIL || data == DONE)
-            Reset();
-
-        else if (data == IN_PROGRESS)
-        {
-            if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
-            {
-                Coords coord = go->GetPosition();
-                m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z);
-            }
-        }
-    }
-
-    void MovementInform(uint32 uiType, uint32 uiPointId)
-    {
-        if (uiType == POINT_MOTION_TYPE && uiPointId == POINT_PORT)
-        {
-            m_creature->SetVisibility(VISIBILITY_OFF);
-            m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
-        }
-    }
-
-    Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori)
-    {
-        Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60000, true);
-        if (pTemp)
-            pTemp->SetRespawnDelay(7*DAY);
-
-        return pTemp;
-    }
-
-    void SummonToCBoss(uint32 id, uint32 id2 = 0)
-    {
-        Coords coord = SpawnLoc[2];
-        Coords coord2;
-        if (id2)
-        {
-            coord2 = SpawnLoc[2];
-            coord.x -= 8.f;
-            coord2.x += 8.f;
-        }
-        encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f);
-        if (id2)
-            encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f);
-
-        AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 10000);
-    }
-
-    Player* GetRandomPlayerInMap()
-    {
-        Map::PlayerList const &players = m_creature->GetMap()->GetPlayers();
-        if (players.isEmpty())
-            return NULL;
-
-        uint32 playerOrder = urand(0, players.getSize()-1);
-        Map::PlayerList::const_iterator iter = players.begin();
-        for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
-        return iter->getSource();
-    }
-
-    bool isAllianceRaid()
-    {
-        if (Player* plr = GetRandomPlayerInMap())
-            return plr->GetTeam() == ALLIANCE;
-
-        return false;
-    }
-
-    void UpdateAI(const uint32 /*diff*/)
-    {
-        // open and closes doors
-        if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
-        {
-            uint32 doorGuid = m_pInstance->GetData(GO_MAIN_GATE_DOOR);
-            if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
-            {
-                m_pInstance->OpenDoor(doorGuid);
-                doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
-            }
-            else
-            {
-                m_pInstance->CloseDoor(doorGuid);
-                doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
-            }
-        }
-
-        // custom event step handling
-        if (SpellTimer* stepTimer = m_TimerMgr->TimerFinished(TIMER_PHASE_HANDLING))
-        {
-            uint32 cooldown = 0;
-            if (currentEncounter == TYPE_BEASTS)
-            {
-                switch(encounterStage)
-                {
-                case 0:
-                    DoScriptText(SAY_STAGE_0_01, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 21000;
-                    break;
-                case 1:
-                    DoScriptText(SAY_STAGE_0_02, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 10000;
-                    break;
-                case 2:
-                    SummonToCBoss(NPC_GORMOK);
-                    DoScriptText(isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h, m_pInstance->GetCreature(isAllianceRaid() ? NPC_TIRION : NPC_GARROSH));
-                    cooldown = 1000;
-                    break;
-                case 3:
-                    encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
-                    cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
-                    break;
-                case 4:
-                    SummonToCBoss(NPC_DREADSCALE);
-                    DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 1000;
-                    break;
-                case 5:
-                    encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
-                    cooldown = 5000;
-                    break;
-                case 6:
-                    if (Player* randPlr = GetRandomPlayerInMap())
-                        if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
-                            encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, true);
-                    cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
-                    break;
-                case 7:
-                    SummonToCBoss(NPC_ICEHOWL);
-                    DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 1000;
-                case 8:
-                    encounterCreature->AI()->AttackStart(GetRandomPlayerInMap());
-                    cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
-                    break;
-                case 9:
-                    encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK, UNIT_SELECT_SELF);
-                    break;
-                default:
-                    break;
-                }
-
             }
 
-            ++encounterStage;
-            if (cooldown)
-                stepTimer->Cooldown(cooldown);
-            else
-                stepTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
         }
+
+        ++encounterStage;
+        if (cooldown)
+            stepTimer->Cooldown(cooldown);
+        else
+            stepTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
     }
-};
+}
 
 CreatureAI* GetAI_npc_toc_announcer(Creature* pCreature)
 {
