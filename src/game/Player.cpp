@@ -23242,76 +23242,102 @@ uint32 Player::GetBGLoseExtraHonor()
     return MaNGOS::Honor::hk_honor_at_level(getLevel(), 5);
 }
 
-ItemLevelList Player::GetItemLevelList(bool entire_equip, bool count_2h_twice)
+ItemLevelList Player::GetItemLevelList(uint32 slot, bool count_2h_twice)
 {
     ItemLevelList list;
     for(uint16 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
     {
-        if (!entire_equip && (i == EQUIPMENT_SLOT_BODY || i == EQUIPMENT_SLOT_TABARD))
+        bool isItemCountable = false;
+        switch(slot)
+        {
+            case ITEM_LEVEL_WEAPON:
+                if (EQUIPMENT_SLOT_MAINHAND <= i && i <= EQUIPMENT_SLOT_RANGED)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_ARMOR:
+                if (EQUIPMENT_SLOT_HEAD <= i && i <= EQUIPMENT_SLOT_BACK && i != EQUIPMENT_SLOT_BODY)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_WA:
+                if (EQUIPMENT_SLOT_HEAD <= i && i <= EQUIPMENT_SLOT_RANGED && i != EQUIPMENT_SLOT_BODY)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_ALL:
+                isItemCountable = true;
+                break;
+            default:
+                break;
+        }
+        if (!isItemCountable)
             continue;
 
-        uint32 itemlevel = 0;
         Item *item = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (!item)
-            continue;
+        uint32 itemlevel = item ? item->GetProto()->ItemLevel : 0;
 
-        itemlevel = item->GetProto()->ItemLevel;
-        if (count_2h_twice && !itemlevel && i == EQUIPMENT_SLOT_OFFHAND)
+        if (i == EQUIPMENT_SLOT_OFFHAND && count_2h_twice && !itemlevel)
             if (Item* mainHand = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
                 if (mainHand->GetProto()->InventoryType == INVTYPE_2HWEAPON)
                     itemlevel = mainHand->GetProto()->ItemLevel;
 
         list.push_back(itemlevel);
     }
+
     return list;
 }
 
-void Player::BuildAverageItemLevel()
+void Player::BuildItemLevelValues()
 {
-    uint32 totalvalue = 0;
+    for (uint8 slot = 0; slot < ITEM_LEVEL_SLOT_MAX; ++slot)
+    {
+        uint32 totalvalue = 0;
+        uint32 minvalue = 0;
+        uint32 maxvalue = 0;
 
-    ItemLevelList list = GetItemLevelList();
-    if (!list.empty())
+        ItemLevelList list = GetItemLevelList(slot);
+        if (list.empty())
+            return;
+
         for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+        {
             totalvalue += *itr;
+            if (minvalue > *itr || !minvalue)
+                minvalue = *itr;
+            if (maxvalue < *itr)
+                maxvalue = *itr;
+        }
 
-    m_aitemlevel = totalvalue ? totalvalue/list.size() : totalvalue;
+
+        if (totalvalue)
+            m_itemlevel[ITEM_LEVEL_AVERAGE][slot] = totalvalue/list.size();
+
+        m_itemlevel[ITEM_LEVEL_TOTAL][slot] = totalvalue;
+        m_itemlevel[ITEM_LEVEL_MINIMUM][slot] = minvalue;
+        m_itemlevel[ITEM_LEVEL_MAXIMUM][slot] = maxvalue;
+    }
 
     if (GetGroup())
-        GetGroup()->UpdateAverageItemLevel();
+        GetGroup()->UpdateItemLevelValues();
 }
 
-uint32 Player::GetMaxItemLevel()
+uint32 Player::GetGroupOrPlayerItemLevelValue(uint8 value, uint8 slot) const
 {
-    uint32 maxvalue = 0;
-    ItemLevelList list = GetItemLevelList();
-    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
-        if (*itr > maxvalue)
-            maxvalue = *itr;
-
-    return maxvalue;
+    return GetGroup() ? GetGroup()->GetItemLevelValue(value, slot) : GetItemLevelValue(value, slot);
 }
 
-uint32 Player::GetMinItemLevel()
+void Player::SetItemLevelValues(uint8 slot, uint32 &total, uint32 &totalaverage, uint32 &minimum, uint32 &maximum)
 {
-    uint32 minvalue = 0;
-    ItemLevelList list = GetItemLevelList();
-    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
-        if (*itr < minvalue)
-            minvalue = *itr;
-
-    return minvalue;
-}
-
-uint32 Player::GetGroupOrPlayerAverageItemLevel() const
-{
-    return GetGroup() ? GetGroup()->GetAverageItemLevel() : m_aitemlevel;
+    total += m_itemlevel[ITEM_LEVEL_TOTAL][slot];
+    totalaverage += m_itemlevel[ITEM_LEVEL_AVERAGE][slot];
+    if (minimum > m_itemlevel[ITEM_LEVEL_MINIMUM][slot])
+        minimum = m_itemlevel[ITEM_LEVEL_MINIMUM][slot];
+    if (maximum < m_itemlevel[ITEM_LEVEL_MAXIMUM][slot])
+        maximum = m_itemlevel[ITEM_LEVEL_MAXIMUM][slot];
 }
 
 void Player::SetItem(Item* item, uint8 slot)
 {
     m_items[slot] = item;
-    BuildAverageItemLevel();
+    BuildItemLevelValues();
 }
 
 void Player::_LoadMMR(const char *data)

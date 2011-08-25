@@ -858,7 +858,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
     if (GetMapId() == 603 && GetTypeId() == TYPEID_UNIT && pVictim->GetTypeId() == TYPEID_PLAYER)
     {
         Player * plr = (Player*)pVictim;
-        uint32 itemlevel = plr->GetGroupOrPlayerAverageItemLevel();
+        uint32 itemlevel = plr->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_AVERAGE);
         uint8  diff = GetMap() ? GetMap()->GetDifficulty() : 0;
         uint8  coef = diff ? 226 : 213;
         float multiple = float(itemlevel)/coef;

@@ -1234,11 +1234,10 @@ class MANGOS_DLL_SPEC Player : public Unit
             return true;
         }
 
-        ItemLevelList GetItemLevelList(bool entire_equip = false, bool count_2h_twice = true);
-        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
-        uint32 GetMaxItemLevel();
-        uint32 GetMinItemLevel();
-        uint32 GetGroupOrPlayerAverageItemLevel() const;
+        ItemLevelList GetItemLevelList(uint32 slot = ITEM_LEVEL_WA, bool count_2h_twice = true);
+        uint32 GetItemLevelValue(uint8 value, uint8 slot = ITEM_LEVEL_WA) const { return m_itemlevel[value][slot]; }
+        uint32 GetGroupOrPlayerItemLevelValue(uint8 value, uint8 slot = ITEM_LEVEL_WA) const;
+        void SetItemLevelValues(uint8 slot, uint32& total, uint32& totalaverage, uint32& minimum, uint32& maximum);
 
         uint8 CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec& dest, Item *pItem, bool swap = false ) const
         {
@@ -2526,8 +2525,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         ObjectGuid m_lootGuid;
 
         void SetItem(Item* item, uint8 slot);
-        void BuildAverageItemLevel();
-        uint32 m_aitemlevel;
+
+        void BuildItemLevelValues();
+        uint32 m_itemlevel[ITEM_LEVEL_TYPE_MAX][ITEM_LEVEL_SLOT_MAX];
 
         uint32 m_team;
         uint32 m_nextSave;

@@ -147,6 +147,11 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
     std::stringstream names;
     Player* tank;
 
+    uint32 maxItemLevelArmor;
+    uint32 maxItemLevelWeapon;
+
+    bool m_bIsRegularMode;
+
     void Reset()
     {
         m_uiPhaseTwo = false;
@@ -191,6 +196,9 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             names.clear();
             tank = NULL;
         }
+
+        maxItemLevelArmor = 0;
+        maxItemLevelWeapon = 0;
     }
 
     boss_algalonAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -200,6 +208,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         percent = 0;
         names.clear();
         tank = NULL;
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
@@ -243,6 +252,20 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         {
             beaten = true;
             uiDamage = 0;
+
+            Map::PlayerList const &players = instance->GetPlayers();
+            for (Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+            {
+                Player* plr = i->getSource();
+                if (!plr || plr->isGameMaster())
+                    continue;
+
+                if (maxItemLevelArmor < plr->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_MAXIMUM, ITEM_LEVEL_ARMOR))
+                    maxItemLevelArmor = plr->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_MAXIMUM, ITEM_LEVEL_ARMOR);
+                if (maxItemLevelWeapon < plr->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_MAXIMUM, ITEM_LEVEL_WEAPON))
+                    maxItemLevelWeapon = plr->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_MAXIMUM, ITEM_LEVEL_WEAPON);
+            }
+
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveAllAuras();
             m_creature->InterruptNonMeleeSpells(true);
@@ -442,6 +465,8 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                         m_creature->SummonGameobject(194821, x, y, z, 0, 604800);
                         m_pInstance->SetData(TYPE_ALGALON, DONE);
                         m_pInstance->DoCompleteAchievement(3036);
+                        if (m_bIsRegularMode && maxItemLevelArmor <= 226 && maxItemLevelWeapon <= 232)
+                            m_pInstance->DoCompleteAchievement(3316);
                         m_creature->LogKill(m_creature->getVictim());
                         ((TemporarySummon*)m_creature)->UnSummon();
                         break;

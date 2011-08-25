@@ -168,7 +168,7 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
-    UpdateAverageItemLevel();
+    UpdateItemLevelValues();
 
     if (!GetDungeonInfo(true))
          SetOriginalDungeonInfo(GetDungeonInfo());
@@ -183,7 +183,7 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
     if (slot != m_memberSlots.end())
     {
         m_memberSlots.erase(slot);
-        UpdateAverageItemLevel();
+        UpdateItemLevelValues();
     }
 
     sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
