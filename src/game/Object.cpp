@@ -1855,9 +1855,6 @@ Creature* WorldObject::SummonCreature(uint32 id, Coords coord, float ori, TempSu
         return NULL;
     }
 
-    // called before initializing AI
-    pCreature->SetCreatorGUID(GetGUID());
-
     pCreature->Summon(spwtype, despwtime);
 
     if (GetTypeId()==TYPEID_UNIT && ((Creature*)this)->AI())
