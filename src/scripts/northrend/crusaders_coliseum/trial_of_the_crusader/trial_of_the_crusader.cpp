@@ -242,7 +242,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             {
             case 0:
                 DoScriptText(SAY_STAGE_0_01, m_pInstance->GetCreature(NPC_TIRION));
-                cooldown = 21000;
+                cooldown = 22000;
                 break;
             case 1:
                 DoScriptText(SAY_STAGE_0_02, m_pInstance->GetCreature(NPC_TIRION));
@@ -250,7 +250,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 break;
             case 2:
                 SummonToCBoss(NPC_GORMOK);
-                DoScriptText(isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h, m_pInstance->GetCreature(isAllianceRaid() ? NPC_TIRION : NPC_GARROSH));
+                DoScriptText(isAllianceRaid() ? SAY_STAGE_0_03a : SAY_STAGE_0_03h, m_pInstance->GetCreature(isAllianceRaid() ? NPC_RINN : NPC_GARROSH));
                 cooldown = 1000;
                 break;
             case 3:
