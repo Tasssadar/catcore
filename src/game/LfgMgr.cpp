@@ -1202,6 +1202,8 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
             else if ((itemId1 && !plr->HasItemCount(itemId1, 1)) || (itemId2 && !plr->HasItemCount(itemId2, 1)))
                 type = LFG_LOCKSTATUS_MISSING_ITEM;
         }
+        else if(itr->second->min_item_level && itr->second->min_item_level > plr->GetItemLevelValue(ITEM_LEVEL_AVERAGE))
+            type = LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
         //others to be done
 
         if (type != LFG_LOCKSTATUS_OK)
@@ -1290,8 +1292,8 @@ void LfgMgr::LoadDungeonsInfo()
         m_dungeonInfoMap.insert(std::make_pair<uint32, DungeonInfo*>(info->ID, info));
     }
     uint32 count = 0;
-    //                                                0   1     2           3          4        5        6        7        8
-    QueryResult *result = WorldDatabase.Query("SELECT ID, name, lastBossId, start_map, start_x, start_y, start_z, start_o, locked  FROM lfg_dungeon_info");
+    //                                                0   1     2           3          4        5        6        7        8       9
+    QueryResult *result = WorldDatabase.Query("SELECT ID, name, lastBossId, start_map, start_x, start_y, start_z, start_o, locked, min_item_level  FROM lfg_dungeon_info");
 
     if ( !result )
     {
@@ -1328,6 +1330,7 @@ void LfgMgr::LoadDungeonsInfo()
         itr->second->start_z          = fields[6].GetFloat();
         itr->second->start_o          = fields[7].GetFloat();
         itr->second->locked           = fields[8].GetBool();
+        itr->second->min_item_level   = fields[9].GetUInt32();
 
         ++count;
     } while( result->NextRow() );

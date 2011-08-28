@@ -225,6 +225,7 @@ struct DungeonInfo             //used in db
     float start_z;
     float start_o;
     bool locked;
+    uint32 min_item_level;
 };
 typedef std::map<uint32, DungeonInfo*> DungeonInfoMap;
 
