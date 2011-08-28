@@ -1916,7 +1916,7 @@ void Group::UpdateItemLevelValues()
 
 
         if (averagetotal)
-            m_itemlevel[ITEM_LEVEL_AVERAGE][slot] = totalvalue/GetMembersCount();
+            m_itemlevel[ITEM_LEVEL_AVERAGE][slot] = averagetotal/GetMembersCount();
 
         m_itemlevel[ITEM_LEVEL_TOTAL][slot] = totalvalue;
         m_itemlevel[ITEM_LEVEL_MINIMUM][slot] = minvalue;
