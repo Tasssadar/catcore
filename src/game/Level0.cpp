@@ -124,7 +124,8 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     PSendSysMessage(LANG_UPTIME, str.c_str());
     PSendSysMessage("World diff time: %u", sWorld.GetDiffTime());
     PSendSysMessage("Total players joined in Dungeon Finder: %u", sLfgMgr.GetTotalPlayers());
-    PSendSysMessage("Your or your party's average item level as seen by server: %u", m_session->GetPlayer( )->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_AVERAGE));
+    if(m_session && m_session->GetPlayer())
+        PSendSysMessage("Your or your party's average item level as seen by server: %u", m_session->GetPlayer( )->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_AVERAGE));
     
     if (sWorld.IsShutdowning())
     {
