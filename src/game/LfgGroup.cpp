@@ -249,7 +249,9 @@ bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after ch
     {
         sLfgMgr.LfgLog("guid %u", citr->guid);
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
-        if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()))
+        if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()) ||
+           (plr->GetGroup() && && plr->GetGroup() != this && plr->GetGroup()->isLfgGroup() &&
+           ((LfgGroup*)plr->GetGroup())->IsInDungeon()))
         {
             sLfgMgr.LfgLog("Add to remove");
             toRemove.insert(citr->guid);
@@ -338,6 +340,7 @@ bool LfgGroup::UpdateCheckTimer(uint32 time)
         return false;
     return true;
 }
+
 void LfgGroup::TeleportToDungeon()
 {
     if (IsInDungeon())
