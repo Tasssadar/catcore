@@ -147,11 +147,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     ickDead = true;
                     pGuide->GetMotionMaster()->MovePoint(1, x, y, guidePos[2]);
                 }
-                //Summon Last Boss
                 m_pInstance->SetData(TYPE_EVENT_STATE, 2);
-                Vehicle *pRimefang = m_creature->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2],
-                                                               tyrannusPos[3], 535, NULL, 0);
-                pRimefang->SetRespawnDelay(86400);
                 break;
             }
             case SAY_AGGRO:

@@ -148,6 +148,16 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
                 break;
             case TYPE_EVENT_STATE:
                 m_eventState = uiData;
+                if(uiData == 2 && m_auiEncounter[0] == DONE && m_auiEncounter[1] == DONE)
+                {
+                    Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
+                    if(pTyrannus)
+                    {
+                        Vehicle *pRimefang = pTyrannus->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2],
+                                                                      tyrannusPos[3], 535, NULL, 0);
+                        pRimefang->SetRespawnDelay(86400);
+                    }
+                }
                 break;
             default:
                 error_log("SD2: Instance Pit of Saron: ERROR SetData = %u for type %u does not exist/not implemented.",uiType,uiData);
