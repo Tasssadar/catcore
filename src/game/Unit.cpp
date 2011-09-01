@@ -7622,6 +7622,20 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
             }
             switch(dummySpell->Id)
             {
+                // Judgements of the Just
+                case 53695:
+                case 53696:
+                {
+                    if (!procSpell)
+                        return false;
+
+                    if (GetSpellSpecific(procSpell->Id) != SPELL_JUDGEMENT)
+                        return false;
+
+                    int bp = triggeredByAura->GetModifier()->m_amount;
+                    CastCustomSpell(pVictim, 68055, &bp, NULL, NULL, true, NULL, triggeredByAura);
+                    return true;
+                }
                 // Judgement of Light
                 case 20185:
                 {
@@ -15051,6 +15065,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
             case SPELL_AURA_MANA_SHIELD:
             case SPELL_AURA_OBS_MOD_MANA:
             case SPELL_AURA_MOD_STUN:
+            case SPELL_AURA_ADD_FLAT_MODIFIER:
             case SPELL_AURA_ADD_PCT_MODIFIER:
             case SPELL_AURA_DUMMY:
             case SPELL_AURA_PERIODIC_DUMMY:
