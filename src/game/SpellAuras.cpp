@@ -4781,6 +4781,17 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             target->SendMessageToSet(&data, true);
         }
 
+        // Seduction (Succubus spell)
+        if (m_spellProto->Id == 6358)
+        {
+            Unit* pCaster = GetCaster();
+            if(!pCaster)
+                return;
+
+            pCaster->InterruptSpell(CURRENT_CHANNELED_SPELL,false);
+            return;
+        }
+
         // Wyvern Sting
         if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellFamilyFlags & UI64LIT(0x0000100000000000))
         {
