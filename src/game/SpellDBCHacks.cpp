@@ -271,8 +271,16 @@ void SpellMgr::ApplySpellHacks()
     sfix43->EffectApplyAuraName[0] = 4;
 
     // Stonebark's Essence - remove visual effect
-    SpellEntry *sfix44 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62386));
-    sfix44->EffectTriggerSpell[1] = 0;
-    SpellEntry *sfix45 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65590));
-    sfix45->EffectTriggerSpell[1] = 0;
+    SpellEntry *sfix44 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62385));
+    sfix44->EffectTriggerSpell[2] = 0;
+    SpellEntry *sfix45 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65585));
+    sfix45->EffectTriggerSpell[2] = 0;
+    SpellEntry *sfix46 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62387));
+    sfix46->EffectTriggerSpell[2] = 0;
+    SpellEntry *sfix47 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65586));
+    sfix47->EffectTriggerSpell[2] = 0;
+    SpellEntry *sfix48 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62386));
+    sfix48->EffectTriggerSpell[1] = 0;
+    SpellEntry *sfix49 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65590));
+    sfix49->EffectTriggerSpell[1] = 0;
 }

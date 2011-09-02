@@ -127,6 +127,19 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
     void KilledUnit(Unit* pVictim)
     {
     }
+    
+    void MovementInform(uint32 uiMoveType, uint32 uiPointId)
+    {
+        if(uiMoveType != POINT_MOTION_TYPE || uiPointId != 1)
+            return;
+        m_creature->GetMotionMaster()->Clear(false, true);
+        m_creature->GetMotionMaster()->MoveIdle();
+        if(pGuide)
+            m_creature->SetOrientation(m_creature->GetAngle(pGuide));
+        WorldPacket heart;
+        m_creature->BuildHeartBeatMsg(&heart);
+        m_creature->SendMessageToSet(&heart, false);
+    }
 
     void DoAction(uint32 action)
     {
@@ -151,8 +164,8 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                 m_pInstance->SetData(TYPE_EVENT_STATE, 2);
                 
                 m_creature->GetPosition(x, y, z);
-                x += cos(m_creature->GetAngle(pGuide))*10;
-                y += sin(m_creature->GetAngle(pGuide))*10;
+                x += cos(m_creature->GetAngle(pGuide))*8;
+                y += sin(m_creature->GetAngle(pGuide))*8;
                 z = m_creature->GetMap()->GetTerrain()->GetHeight(x, y, MAX_FALL_DISTANCE, false, MAX_FALL_DISTANCE);
                 m_creature->GetMotionMaster()->MovePoint(1, x, y, z);
                 break;
