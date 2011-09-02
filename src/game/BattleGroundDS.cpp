@@ -267,7 +267,6 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     float distance = caster->GetDistance(target);
     float x = caster->GetPositionX();
     float y = caster->GetPositionY();
-    float bounding = m_WaterfallCollision->IsWithinBoundingRadius(x,y);
     for (int32 i = 0; i < distance; ++i)
     {
         x += x_per_i;
@@ -291,6 +290,10 @@ bool BattleGroundDS::IsXYZPositionOK(float x, float y, float z)
 
     // under platform
     if (IsCoordInRange(x, 1270, 1314) && IsCoordInRange(y, 717, 813) && z < 6.5f)
+        return false;
+
+    // sides of platform
+    if (z > 6.5f && (!IsCoordInRange(x, 1270, 1314) || !IsCoordInRange(y, 717, 813)))
         return false;
 
     return true;
