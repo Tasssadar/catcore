@@ -208,6 +208,19 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         }
     }
 
+    void MovementInform(uint32 uiMoveType, uint32 uiPointId)
+    {
+        if(uiMoveType != POINT_MOTION_TYPE || uiPointId != 1 || !stopped)
+            return;
+        m_creature->GetMotionMaster()->Clear(false, true);
+        m_creature->GetMotionMaster()->MoveIdle();
+        if(Creature *pKrick = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KRICK)))
+            m_creature->SetOrientation(m_creature->GetAngle(pKrick));
+        WorldPacket heart;
+        m_creature->BuildHeartBeatMsg(&heart);
+        m_creature->SendMessageToSet(&heart, false);
+    }
+
     void DoStrangulate(bool up, uint32 time)
     {
         float x, y, z;

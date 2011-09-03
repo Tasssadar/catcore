@@ -250,7 +250,7 @@ bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after ch
         sLfgMgr.LfgLog("guid %u", citr->guid);
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
         if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()) ||
-           (plr->GetGroup() && && plr->GetGroup() != this && plr->GetGroup()->isLfgGroup() &&
+           (plr->GetGroup() && plr->GetGroup() != this && plr->GetGroup()->isLfgGroup() &&
            ((LfgGroup*)plr->GetGroup())->IsInDungeon()))
         {
             sLfgMgr.LfgLog("Add to remove");
