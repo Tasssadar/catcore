@@ -81,15 +81,16 @@ void BattleGroundDS::KnockOutOfTubes()
     {
         Player * plr = sObjectMgr.GetPlayer(itr->first);
         float angle = itr->second.Team == ALLIANCE ? 6.05f : 3.03f; 
-        if ((plr->GetDistance2d(1214, 765) <= 50 || plr->GetDistance2d(1369, 817) <= 50) && plr->GetPositionZ() > 10)
+        if ((plr->GetDistance2d(1214, 765) <= 50.f || plr->GetDistance2d(1369, 817) <= 50.f) && plr->GetPositionZ() > 10.f)
             plr->KnockWithAngle(angle, 32.85f, 5.8f);
 
         // Remove Demonic Circle
         if (plr->getClass() == CLASS_WARLOCK)
             if (GameObject* obj = plr->GetGameObject(48018))
-                obj->Delete();
+                if (obj->GetPositionZ() > 10.f)
+                    obj->Delete();
     }
-    if (GetStartTime() > 90)
+    if (GetStartTime() > 90000)
         m_bTubeIsEmpty = true;
 }
 
@@ -98,7 +99,6 @@ void BattleGroundDS::KnockbackFromWaterfall()
     if (!m_WaterfallCollision)
         return;
 
-    uint32 boundingRadius = m_WaterfallCollision->GetObjectBoundingRadius();
     for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
     {
         Player * plr = sObjectMgr.GetPlayer(itr->first);
@@ -224,10 +224,17 @@ void BattleGroundDS::HandleAreaTrigger(Player *Source, uint32 Trigger)
 }
 bool BattleGroundDS::HandlePlayerUnderMap(Player *player)
 {
-    if (m_uiWaterfallStage != 2)
-        player->TeleportTo(GetMapId(), 1299.046f, 784.825f, 9.338f, 2.422f, false);
-    else
-        player->TeleportTo(GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ()+5, M_PI_F, false);
+    //if (!m_uiWaterfallStage)
+    //    player->TeleportTo(GetMapId(), 1299.046f, 784.825f, 9.338f, 2.422f, false);
+    //else
+    //    player->TeleportTo(GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ()+5, M_PI_F, false);
+
+    WorldLocation loc(GetMapId(), 1299.046f, 784.825f, 9.338f, player->GetOrientation());
+    float angle = rand_norm_f()*2*M_PI_F;
+    loc.coords.x += cos(angle)*7;
+    loc.coords.y += sin(angle)*7;
+    player->TeleportTo(loc);
+
     return true;
 }
 
@@ -284,16 +291,20 @@ bool BattleGroundDS::IsXYZPositionOK(float x, float y, float z)
         return false;
     
     // creates
-    if ((IsCoordInRange(x, 1270, 1280) && IsCoordInRange(y, 803, 813)) ||
-        (IsCoordInRange(x, 1303, 1314) && IsCoordInRange(y, 769, 779)))
+    if ((IsCoordInRange(x, 1270.f, 1280.f) && IsCoordInRange(y, 803.f, 813.f)) ||
+        (IsCoordInRange(x, 1303.f, 1314.f) && IsCoordInRange(y, 769.f, 779.f)))
         return false;
 
     // under platform
-    if (IsCoordInRange(x, 1270, 1314) && IsCoordInRange(y, 717, 813) && z < 6.5f)
+    if (IsCoordInRange(x, 1270.f, 1314.f) && IsCoordInRange(y, 717.f, 813.f) && z < 6.5f)
         return false;
 
-    // sides of platform
-    if (z > 6.5f && (!IsCoordInRange(x, 1270, 1314) || !IsCoordInRange(y, 717, 813)))
+    // sides of platform - not sure of effect currently
+    //if (z > 6.5f && (!IsCoordInRange(x, 1270.f, 1314.f) || !IsCoordInRange(y, 717.f, 813.f)))
+    //    return false;
+
+    // in tube 10 seconds after start
+    if (GetStartTime() > 70000 && z > 10.f)
         return false;
 
     return true;
