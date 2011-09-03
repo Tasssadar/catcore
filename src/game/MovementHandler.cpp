@@ -679,35 +679,32 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
         plMover->m_movementInfo = movementInfo;
 
         float minz = plMover->GetBattleGround() ? plMover->GetBattleGround()->GetMinZ() : -500.0f;
-        if(movementInfo.GetPos()->z < minz)
-        {
-            if(plMover->InBattleGround()
-                && plMover->GetBattleGround()
-                && plMover->GetBattleGround()->HandlePlayerUnderMap(_player))
-            {
-                // do nothing, the handle already did if returned true
-            }
-            else
-            {
-                // NOTE: this is actually called many times while falling
-                // even after the player has been teleported away
-                // TODO: discard movement packets after the player is rooted
-                if(plMover->isAlive())
-                {
-                    plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
-                    // pl can be alive if GM/etc
-                    if(!plMover->isAlive())
-                    {
-                        // change the death state to CORPSE to prevent the death timer from
-                        // starting in the next player update
-                        plMover->KillPlayer();
-                        plMover->BuildPlayerRepop();
-                    }
-                }
 
-                // cancel the death timer here if started
-                plMover->RepopAtGraveyard();
+        bool handledInBg = false;
+        if (BattleGround* bg = plMover->GetBattleGround())
+            if (movementInfo.GetPos()->z < minz || !bg->IsXYZPositionOK(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z))
+                handledInBg = bg->HandlePlayerUnderMap(_player);
+
+
+        if (movementInfo.GetPos()->z < minz && !handledInBg)
+        {
+            // NOTE: this is actually called many times while falling
+            // even after the player has been teleported away
+            // TODO: discard movement packets after the player is rooted
+            if (plMover->isAlive())
+            {
+                plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
+                // pl can be alive if GM/etc
+                if(!plMover->isAlive())
+                {
+                    // change the death state to CORPSE to prevent the death timer from
+                    // starting in the next player update
+                    plMover->KillPlayer();
+                    plMover->BuildPlayerRepop();
+                }
             }
+            // cancel the death timer here if started
+            plMover->RepopAtGraveyard();
         }
     }
     else                                                    // creature charmed
