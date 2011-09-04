@@ -183,29 +183,26 @@ void SpellTimer::Cooldown(uint32 cd, bool permanent)
 bool SpellTimer::Finish(Unit *target)
 {
     // timer can be also used without spell cast in the end, for such case set spellId to NULL
-    if (!spellId_m)
+    // handle cast part only for timers with spellId
+    if (spellId_m)
     {
-        Cooldown();
-        SetTarget(NULL);
-        return true;
+        // if timer for not existing spell, dont even try to finish it
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId_m);
+        if (!spellInfo)
+            return false;
+
+        Unit* uCaster = getCaster();
+        Unit* uTarget = findTarget(target);
+
+        // checking just target, caster checked in getTarget()
+        if (!uTarget || !uTarget->IsInWorld())
+            return false;
+
+        if (castType_m == CAST_TYPE_FORCE)
+            uCaster->InterruptNonMeleeSpells(false);
+
+        uCaster->CastSpell(uTarget, spellInfo, false);
     }
-
-    // if timer for not existing spell, dont even try to finish it
-    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId_m);
-    if (!spellInfo)
-        return false;
-
-    Unit* uCaster = getCaster();
-    Unit* uTarget = findTarget(target);
-
-    // checking just target, caster checked in getTarget()
-    if (!uTarget || !uTarget->IsInWorld())
-        return false;
-
-    if (castType_m == CAST_TYPE_FORCE)
-        uCaster->InterruptNonMeleeSpells(false);
-
-    uCaster->CastSpell(uTarget, spellInfo, false);
     Cooldown();
     SetValue(TIMER_VALUE_JUST_FINISHED, true);
     return true;
