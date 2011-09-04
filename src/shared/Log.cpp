@@ -991,3 +991,17 @@ void error_db_log(const char * str, ...)
 
     sLog.outErrorDb("%s", buf);
 }
+
+void cat_log(const char * str, ...)
+{
+    if (!str)
+        return;
+
+    char buf[256];
+    va_list ap;
+    va_start(ap, str);
+    vsnprintf(buf,256, str, ap);
+    va_end(ap);
+
+    sLog.outCatLog("%s", buf);
+}
