@@ -682,7 +682,7 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
 
         bool handledInBg = false;
         if (BattleGround* bg = plMover->GetBattleGround())
-            if (movementInfo.GetPos()->z < minz || !bg->IsXYZPositionOK(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z))
+            if (movementInfo.GetPos()->z < minz/* || !bg->IsXYZPositionOK(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z)*/)
                 handledInBg = bg->HandlePlayerUnderMap(_player);
 
 

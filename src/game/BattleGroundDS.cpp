@@ -80,6 +80,9 @@ void BattleGroundDS::KnockOutOfTubes()
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
         Player * plr = sObjectMgr.GetPlayer(itr->first);
+        if (!plr)
+            continue;
+
         float angle = itr->second.Team == ALLIANCE ? 6.05f : 3.03f; 
         if ((plr->GetDistance2d(1214, 765) <= 50.f || plr->GetDistance2d(1369, 817) <= 50.f) && plr->GetPositionZ() > 10.f)
             plr->KnockWithAngle(angle, 32.85f, 5.8f);
@@ -92,6 +95,8 @@ void BattleGroundDS::KnockOutOfTubes()
     }
     if (GetStartTime() > 90000)
         m_bTubeIsEmpty = true;
+
+    m_uiKnockTimer = 3000;
 }
 
 void BattleGroundDS::KnockbackFromWaterfall()
