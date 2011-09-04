@@ -7,6 +7,7 @@
 
 #include "precompiled.h"
 
+#define CHEST_ORI -1.58825
 enum
 {
     TYPE_BEASTS                 = 0,
@@ -140,34 +141,35 @@ const Coords Center(563.672974f, 139.571f, 393.837006f);
 
 const Coords SpawnLoc[] =
 {
-    Coords(559.257996f, 90.266197f, 395.122986f),  // 0 Barrent
-    Coords(563.672974f, 139.571f, 393.837006f),    // 1 Center
-    Coords(563.833008f, 208.544995f, 395.26f),     // 2 Backdoor
-    Coords(577.347839f, 195.338888f, 395.14f),     // 3 - Right
-    Coords(550.955933f, 195.338888f, 395.14f),     // 4 - Left
-    Coords(575.042358f, 195.260727f, 395.137146f), // 5
-    Coords(552.248901f, 195.331955f, 395.132658f), // 6
-    Coords(573.342285f, 195.515823f, 395.135956f), // 7
-    Coords(554.239929f, 195.825577f, 395.137909f), // 8
-    Coords(571.042358f, 195.260727f, 395.137146f), // 9
-    Coords(556.720581f, 195.015472f, 395.132658f), // 10
-    Coords(569.534119f, 195.214478f, 395.139526f), // 11
-    Coords(569.231201f, 195.941071f, 395.139526f), // 12
-    Coords(558.811610f, 195.985779f, 394.671661f), // 13
-    Coords(567.641724f, 195.351501f, 394.659943f), // 14
-    Coords(560.633972f, 195.391708f, 395.137543f), // 15
-    Coords(565.816956f, 195.477921f, 395.136810f), // 16
-    Coords(563.549f, 152.474f, 394.393f),          // 17 - Lich king start
-    Coords(563.547f, 141.613f, 393.908f),          // 18 - Lich king end
-    Coords(787.932556f, 133.28978f, 142.612152f),  // 19 - Anub'arak start location
-    Coords(618.157898f, 132.640869f, 139.559769f), // 20 - Anub'arak move point location
-    Coords(508.104767f, 138.247345f, 395.128052f), // 21 - Fizzlebang start location
-    Coords(586.060242f, 117.514809f, 394.314026f), // 22 - Dark essence 1
-    Coords(541.602112f, 161.879837f, 394.587952f), // 23 - Dark essence 2
-    Coords(541.021118f, 117.262932f, 395.314819f), // 24 - Light essence 1
-    Coords(586.200562f, 162.145523f, 394.626129f), // 25 - Light essence 2
-    Coords(563.833008f, 195.244995f, 394.585561f), // 26 - outdoor
-    Coords(548.610596f, 139.807800f, 394.321838f), // 27 - fizzlebang end
+    Coords(559.257f,  90.266f, 395.122f), // 0 Barrent
+    Coords(563.672f, 139.571f, 393.837f), // 1 Center
+    Coords(563.833f, 208.544f, 395.222f), // 2 Backdoor
+    Coords(577.347f, 195.338f, 395.146f), // 3 - Right
+    Coords(550.955f, 195.338f, 395.146f), // 4 - Left
+    Coords(575.042f, 195.260f, 395.137f), // 5
+    Coords(552.248f, 195.331f, 395.132f), // 6
+    Coords(573.342f, 195.515f, 395.135f), // 7
+    Coords(554.239f, 195.825f, 395.137f), // 8
+    Coords(571.042f, 195.260f, 395.137f), // 9
+    Coords(556.720f, 195.015f, 395.132f), // 10
+    Coords(569.534f, 195.214f, 395.139f), // 11
+    Coords(569.231f, 195.941f, 395.139f), // 12
+    Coords(558.811f, 195.985f, 394.671f), // 13
+    Coords(567.641f, 195.351f, 394.659f), // 14
+    Coords(560.633f, 195.391f, 395.137f), // 15
+    Coords(565.816f, 195.477f, 395.136f), // 16
+    Coords(563.549f, 152.474f, 394.393f), // 17 - Lich king start
+    Coords(563.547f, 141.613f, 393.908f), // 18 - Lich king end
+    Coords(787.932f, 133.289f, 142.612f), // 19 - Anub'arak start location
+    Coords(618.157f, 132.640f, 139.559f), // 20 - Anub'arak move point location
+    Coords(508.104f, 138.247f, 395.128f), // 21 - Fizzlebang start location
+    Coords(586.060f, 117.514f, 394.314f), // 22 - Dark essence 1
+    Coords(541.602f, 161.879f, 394.587f), // 23 - Dark essence 2
+    Coords(541.021f, 117.262f, 395.314f), // 24 - Light essence 1
+    Coords(586.200f, 162.145f, 394.626f), // 25 - Light essence 2
+    Coords(563.833f, 195.244f, 394.585f), // 26 - outdoor
+    Coords(548.610f, 139.807f, 394.321f), // 27 - fizzlebang end
+    Coords(563.611f, 140.205f, 393.903f), // 28 - chest loc
 };
 
 enum uiWorldStates

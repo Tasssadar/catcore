@@ -71,7 +71,8 @@ enum
 {
     TIMER_PHASE_HANDLING    = 100,
     TIMER_DOOR_HANDLER      = 101,
-    TIMER_CUSTOM            = 102,
+    TIMER_RUNAWAY           = 102,
+    TIMER_CUSTOM            = 103,
 
     POINT_PORT              = 100,
 
@@ -118,10 +119,12 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
 
     currentEncounter = encounterId;
     uint32 startTimer = 0;
+    uint32 runaway = 0;
     switch (encounterId)
     {
         case TYPE_BEASTS:
             startTimer = 1000;
+            runaway = 1500;
             break;
         default:
             break;
@@ -129,14 +132,10 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
 
     if (startTimer)
     {
-        AddNonCastTimer(TIMER_PHASE_HANDLING, startTimer, 0);
         m_TimerMgr->SetUpdatable(true);
-    }
-
-    if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
-    {
-        Coords coord = go->GetPosition();
-        m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
+        AddNonCastTimer(TIMER_PHASE_HANDLING, startTimer, 0);
+        if (runaway)
+            AddNonCastTimer(TIMER_RUNAWAY, runaway, 0);
     }
 }
 
@@ -202,29 +201,11 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
     if (id2)
         encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f);
 
-    AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 10000);
+    AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 5000);
 }
 
 void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
 {
-    // open and closes doors
-    if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
-    {
-        uint64 doorGuid = m_pInstance->GetData64(GO_MAIN_GATE_DOOR);
-        if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
-        {
-            m_pInstance->OpenDoor(doorGuid);
-            doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
-            cat_log("toc_announcer: opening encounter doors, and setting custom value to true for door id %u", doorGuid);
-        }
-        else
-        {
-            m_pInstance->CloseDoor(doorGuid);
-            doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
-            cat_log("toc_announcer: closing encounter doors, and setting delete after finish to true for door id %u", doorGuid);
-        }
-    }
-
     // custom event step handling
     if (SpellTimer* stepTimer = m_TimerMgr->TimerFinished(TIMER_PHASE_HANDLING))
     {
@@ -250,7 +231,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
 
                     if (isHeroic)
                         AddNonCastTimer(TIMER_CUSTOM, 540000, 5000);
-                    cooldown = 1000;
+                    cooldown = 2000;
                     break;
                 case 3:
                     //if (encounterCreature)
@@ -260,12 +241,12 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     //}
                     if (encounterCreature)
                         encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                    cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
+                    cooldown = isHeroic ? 178000 : REALLY_BIG_COOLDOWN;
                     break;
                 case 4:
                     SummonToCBoss(NPC_DREADSCALE);
                     DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 1000;
+                    cooldown = 2000;
                     break;
                 case 5:
                     //if (encounterCreature)
@@ -281,12 +262,12 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     if (Player* randPlr = m_pInstance->GetRandomPlayerInMap())
                         if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
                             encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, true);
-                    cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
+                    cooldown = isHeroic ? 173000 : REALLY_BIG_COOLDOWN;
                     break;
                 case 7:
                     SummonToCBoss(NPC_ICEHOWL);
                     DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
-                    cooldown = 1000;
+                    cooldown = 2000;
                 case 8:
                     //if (encounterCreature)
                     //{
@@ -295,7 +276,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     //}
                     if (encounterCreature)
                         encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                    cooldown = isHeroic ? 179000 : REALLY_BIG_COOLDOWN;
+                    cooldown = isHeroic ? 178000 : REALLY_BIG_COOLDOWN;
                     break;
                 case 9:
                     //if (encounterCreature)
@@ -313,6 +294,36 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             stepTimer->Cooldown(cooldown);
         else
             stepTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+    }
+
+    // open and closes doors
+    if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
+    {
+        uint64 doorGuid = m_pInstance->GetData64(GO_MAIN_GATE_DOOR);
+        if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
+        {
+            m_pInstance->OpenDoor(doorGuid);
+            doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
+        }
+        else
+        {
+            m_pInstance->CloseDoor(doorGuid);
+            doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+        }
+    }
+
+    // runaway of announcer
+    if (SpellTimer* runawayTimer = m_TimerMgr->TimerFinished(TIMER_RUNAWAY))
+    {
+        if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
+        {
+            Coords coord = go->GetPosition();
+            m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+            m_creature->SetSpeedRate(MOVE_RUN, 1.2f, true);
+            m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
+            cat_log("is moving to point yo");
+        }
+        runawayTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
     }
 
     // handling of custom timer in the event

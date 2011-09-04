@@ -156,7 +156,14 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
         {
             if (Player* plr = SelectRandomPlayerInRange(3, 15, DEFAULT_VISIBILITY_INSTANCE, true))
             {
-                if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                Coords coord = plr->GetPosition();
+                if (coord.isNULL())
+                {
+                    error_log("boss_gormokAI:Sbonoblds: Wrong coords, returning");
+                    return;
+                }
+
+                if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, coord, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 {
                     crt->AI()->AttackStart(plr);
                     crt->CastSpell(plr, SPELL_SNOBOLLED, true);
