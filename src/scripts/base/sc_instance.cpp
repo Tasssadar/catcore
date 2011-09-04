@@ -180,7 +180,7 @@ InstanceSide ScriptedInstance::GetInstanceSide()
     uint8 hordeCount = 0;
     for(Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
     {
-        if (Player* plr = itr->getSource())
+        if (Player* plr = i->getSource())
         {
             if (plr->isGameMaster())
                 continue;

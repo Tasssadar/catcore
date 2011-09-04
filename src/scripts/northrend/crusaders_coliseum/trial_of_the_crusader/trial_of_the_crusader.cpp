@@ -244,9 +244,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 case 2:
                     SummonToCBoss(NPC_GORMOK);
                     if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
-                        DoScriptText(SAY_STAGE_0_03a, NPC_RINN);
+                        DoScriptText(SAY_STAGE_0_03a, m_pInstance->GetCreature(NPC_RINN));
                     else
-                        DoScriptText(SAY_STAGE_0_03h, NPC_GARROSH);
+                        DoScriptText(SAY_STAGE_0_03h, m_pInstance->GetCreature(NPC_GARROSH));
 
                     if (isHeroic)
                         AddNonCastTimer(TIMER_CUSTOM, 540000, 5000);

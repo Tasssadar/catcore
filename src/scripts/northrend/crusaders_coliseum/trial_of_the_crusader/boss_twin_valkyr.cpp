@@ -219,7 +219,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         {
             Coords coord = Center;
             float radius = 35.0f;
-            const uint8 id[2] = {NPC_CONCENTRATED_DARKNESS, NPC_CONCENTRATED_LIGHT};
+            const uint32 id[2] = {NPC_CONCENTRATED_DARKNESS, NPC_CONCENTRATED_LIGHT};
             for (float angle = 0; angle < M_PI_F*2; angle += M_PI_F*2/m_uiConcCount[m_dDifficulty])
             {
                 float x = coord.x + radius*cos(angle);
