@@ -618,6 +618,8 @@ PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float 
 {
     // fill list of all player
     PlrList fullList = GetAttackingPlayers(not_select_current_victim);
+    if (fullList.empty())
+        return fullList;
     
     PlrList inRangeList;
     // fill list of players in range
@@ -639,7 +641,11 @@ PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float 
 
 Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
-    return GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim).front();
+    PlrList inRangeList = GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim);
+    if (!inRangeList.empty())
+        return inRangeList.front();
+
+    return NULL;
 }
 
 void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)

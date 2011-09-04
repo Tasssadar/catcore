@@ -321,7 +321,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             m_creature->SetSpeedRate(MOVE_RUN, 1.2f, true);
             m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
-            cat_log("is moving to point yo");
         }
         runawayTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
     }

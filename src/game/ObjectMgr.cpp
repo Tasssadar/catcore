@@ -8471,7 +8471,7 @@ bool PlayerCondition::IsValid(ConditionType condition, uint32 value1, uint32 val
 
             break;
         }
-        case CONDITION_NONE:
+        default:
             break;
     }
     return true;
