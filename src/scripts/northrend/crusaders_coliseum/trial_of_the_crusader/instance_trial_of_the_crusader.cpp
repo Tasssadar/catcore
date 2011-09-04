@@ -73,6 +73,8 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW,1);
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
         }
+        else
+            m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW,0);
     }
 
     void OnCreatureCreate(Creature* pCreature)
@@ -187,7 +189,17 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 HandleDoorsByData(GameObjectGuidMap[GO_GATE_NORTH], uiData);
 
                 if (uiData == FAIL)
+                {
                     ++WipeCounter;
+
+                    // update wipe counter for all players in instance
+                    Map::PlayerList const &PlayerList = instance->GetPlayers();
+                    if (!PlayerList.isEmpty())
+                        for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                            if (Player* plr = i->getSource())
+                                if (plr->IsInWorld())
+                                    plr->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
+                }
 
                 break;
             }
