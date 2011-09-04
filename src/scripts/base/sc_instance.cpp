@@ -164,3 +164,36 @@ Player* ScriptedInstance::GetRandomPlayerInMap()
     for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
     return iter->getSource();
 }
+
+InstanceSide ScriptedInstance::GetInstanceSide()
+{
+    Map::PlayerList const &players = instance->GetPlayers();
+    if (players.isEmpty())
+        return INSTANCE_SIDE_NONE;
+
+    uint8 aliCount = 0;
+    uint8 hordeCount = 0;
+    for(Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+    {
+        if (Player* plr = itr->getSource())
+        {
+            if (plr->isGameMaster())
+                continue;
+
+            switch(plr->GetTeam())
+            {
+                case ALLIANCE: ++aliCount; break;
+                case HORDE: ++hordeCount; break;
+                default: break;
+            }
+        }
+    }
+
+    if (!aliCount && !hordeCount)
+        return INSTANCE_SIDE_NONE;
+
+    if (aliCount > hordeCount)
+        return INSTANCE_SIDE_ALI;
+
+    return INSTANCE_SIDE_HORDE;
+}

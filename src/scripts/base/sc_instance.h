@@ -17,6 +17,13 @@ enum EncounterState
     SPECIAL       = 4
 };
 
+enum InstanceSide
+{
+    INSTANCE_SIDE_NONE  = 0,
+    INSTANCE_SIDE_ALI   = 1,
+    INSTANCE_SIDE_HORDE = 2
+};
+
 #define OUT_SAVE_INST_DATA             debug_log("SD2: Saving Instance Data for Instance %s (Map %d, Instance Id %d)", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
 #define OUT_SAVE_INST_DATA_COMPLETE    debug_log("SD2: Saving Instance Data for Instance %s (Map %d, Instance Id %d) completed.", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
 #define OUT_LOAD_INST_DATA(a)          debug_log("SD2: Loading Instance Data for Instance %s (Map %d, Instance Id %d). Input is '%s'", instance->GetMapName(), instance->GetId(), instance->GetInstanceId(), a)
@@ -62,5 +69,8 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
 
         // get random player in map
         Player* GetRandomPlayerInMap();
+
+        // get team in instance
+        InstanceSide GetInstanceSide();
 };
 #endif
