@@ -126,7 +126,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
     void JustReachedHome()
     {
-        m_creature->ForcedDespawn();
+        //m_creature->ForcedDespawn();
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, FAIL);

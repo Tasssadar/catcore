@@ -170,6 +170,7 @@ const Coords SpawnLoc[] =
     Coords(563.833f, 195.244f, 394.585f), // 26 - outdoor
     Coords(548.610f, 139.807f, 394.321f), // 27 - fizzlebang end
     Coords(563.611f, 140.205f, 393.903f), // 28 - chest loc
+    Coords(571.610f, 139.807f, 394.321f), // 29 - jaroxxus portal leave
 };
 
 enum uiWorldStates
@@ -196,6 +197,25 @@ enum AnnounserMessages
     MSG_VALKIRIES              = 724004,
     MSG_LICH_KING              = 724005,
     MSG_ANUBARAK               = 724006
+};
+
+enum Announcer
+{
+    TIMER_PHASE_HANDLING    = 100,
+    TIMER_DOOR_HANDLER      = 101,
+    TIMER_RUNAWAY           = 102,
+    TIMER_CUSTOM            = 103,
+
+    POINT_PORT              = 100,
+
+    NUM_MESSAGES            = 5,
+
+    SPELL_WILFRED_PORTAL    = 68424,
+    SPELL_JARAXXUS_CHAINS   = 67924,
+    SPELL_EMERGE_ACIDMAW    = 66947,
+    SPELL_FEL_LIGHTNING_IK  = 67888,  // Fel Lightning - gnom instakill
+
+    SPELL_BERSERK           = 26662
 };
 
 struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
