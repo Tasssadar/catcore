@@ -59,5 +59,8 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
 
         // get gameobject from instanceData
         GameObject* GetGameObject(uint32 Data);
+
+        // get random player in map
+        Player* GetRandomPlayerInMap();
 };
 #endif

@@ -152,3 +152,15 @@ GameObject* ScriptedInstance::GetGameObject(uint32 Data)
     uint64 guid = GetData64(Data);
     return instance ? instance->GetGameObject(guid) : NULL;
 }
+
+Player* ScriptedInstance::GetRandomPlayerInMap()
+{
+    Map::PlayerList const &players = instance->GetPlayers();
+    if (players.isEmpty())
+        return NULL;
+
+    uint32 playerOrder = urand(0, players.getSize()-1);
+    Map::PlayerList::const_iterator iter = players.begin();
+    for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
+    return iter->getSource();
+}
