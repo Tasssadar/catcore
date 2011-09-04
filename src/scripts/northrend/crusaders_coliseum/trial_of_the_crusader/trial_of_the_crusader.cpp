@@ -69,19 +69,19 @@ enum Says
 
 enum
 {
-    TIMER_PHASE_HANDLING = 0,
-    TIMER_DOOR_HANDLER,
-    TIMER_CUSTOM,
+    TIMER_PHASE_HANDLING    = 100,
+    TIMER_DOOR_HANDLER      = 101,
+    TIMER_CUSTOM            = 102,
 
-    POINT_PORT = 100,
+    POINT_PORT              = 100,
 
-    NUM_MESSAGES = 5,
+    NUM_MESSAGES            = 5,
 
-    SPELL_WILFRED_PORTAL        = 68424,
-    SPELL_JARAXXUS_CHAINS       = 67924,
-    SPELL_EMERGE_ACIDMAW        = 66947,
+    SPELL_WILFRED_PORTAL    = 68424,
+    SPELL_JARAXXUS_CHAINS   = 67924,
+    SPELL_EMERGE_ACIDMAW    = 66947,
 
-    SPELL_BERSERK               = 26662
+    SPELL_BERSERK           = 26662
 };
 
 #define REALLY_BIG_COOLDOWN 3600000
@@ -101,6 +101,7 @@ void npc_toc_announcerAI::Reset()
     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     m_creature->SetRespawnDelay(DAY);
     m_creature->SetVisibility(VISIBILITY_ON);
+    m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
     m_TimerMgr->SetUpdatable(false);
     currentEncounter = -1;
     encounterStage = 0;
@@ -131,6 +132,12 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
         AddNonCastTimer(TIMER_PHASE_HANDLING, startTimer, 0);
         m_TimerMgr->SetUpdatable(true);
     }
+
+    if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
+    {
+        Coords coord = go->GetPosition();
+        m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
+    }
 }
 
 void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
@@ -139,25 +146,28 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
     {
         case TYPE_BEASTS:
         {
-            if (data == FAIL)
-                DoScriptText(SAY_STAGE_0_WIPE, m_pInstance->GetCreature(NPC_TIRION));
-            else if (data == DONE)
-                DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
+            switch(data)
+            {
+                case FAIL:
+                    DoScriptText(SAY_STAGE_0_WIPE, m_pInstance->GetCreature(NPC_TIRION));
+                    break;
+                case DONE:
+                    DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
+                    break;
+                case GORMOK_DONE:
+                case SNAKES_DONE:
+                //case ICEHOWL_DONE:
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
+                    break;
+                default:
+                    break;
+            }
             break;
         }
     }
 
     if (data == NOT_STARTED || data == FAIL || data == DONE)
         Reset();
-
-    else if (data == IN_PROGRESS)
-    {
-        if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
-        {
-            Coords coord = go->GetPosition();
-            m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
-        }
-    }
 }
 
 void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
@@ -200,16 +210,18 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     // open and closes doors
     if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
     {
-        uint32 doorGuid = m_pInstance->GetData(GO_MAIN_GATE_DOOR);
+        uint64 doorGuid = m_pInstance->GetData(GO_MAIN_GATE_DOOR);
         if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
         {
             m_pInstance->OpenDoor(doorGuid);
             doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
+            cat_log("toc_announcer: opening encounter doors, and setting custom value to true for door id %u", doorGuid);
         }
         else
         {
             m_pInstance->CloseDoor(doorGuid);
             doorTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+            cat_log("toc_announcer: closing encounter doors, and setting delete after finish to true for door id %u", doorGuid);
         }
     }
 
@@ -293,6 +305,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     break;
             }
         }
+
+        cat_log("toc_announcer: Phase updating: Handling current encounter %u in encounter stage %u and setting cooldown to %u", currentEncounter, encounterStage, cooldown);
 
         ++encounterStage;
         if (cooldown)
