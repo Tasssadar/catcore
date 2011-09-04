@@ -469,8 +469,8 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000002190))
                 return SPELL_HAND;
 
-            // skip Heart of the Crusader that have also same spell family mask
-            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000821180400)) && (spellInfo->AttributesEx3 & 0x200) && (spellInfo->SpellIconID != 237))
+            // Judgement of Justice /Judgement of Light /Judgement of Wisdom
+            if (spellInfo->Id == 20184 || spellInfo->Id == 20185 || spellInfo->Id == 20186)
                 return SPELL_JUDGEMENT;
 
             // only paladin auras have this (for palaldin class family)
@@ -1850,7 +1850,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
     if (spellInfo_1->SpellIconID == 1 || spellInfo_2->SpellIconID == 1)
         return false;
 
-    if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+   /* if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
     {
         // Judgement of Light and Judgement of Light     
         if(spellInfo_2->SpellIconID == 205 && spellInfo_1->SpellIconID == 205 )
@@ -1861,7 +1861,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         // Judgement of Justice
         if(spellInfo_2->SpellIconID == 3013 && spellInfo_1->SpellIconID == 3013 )
             return true;
-    }
+    }*/
     if (spellId_1 == spellId_2)
         return false;
 
