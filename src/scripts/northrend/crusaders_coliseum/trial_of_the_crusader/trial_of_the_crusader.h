@@ -83,7 +83,9 @@ enum
     DATA_HEALTH_FJOLA           = 202,
     DATA_CASTING_VALKYRS        = 203,
 
-    DESPAWN_TIME                = 300000
+    DESPAWN_TIME                = 300000,
+
+    POINT_TO_CENTER             = 231
 };
 
 enum Champion
@@ -219,10 +221,6 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
     Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori);
 
     void SummonToCBoss(uint32 id, uint32 id2 = 0);
-
-    Player* GetRandomPlayerInMap();
-
-    bool isAllianceRaid();
 
     void UpdateAI(const uint32 /*diff*/);
 

@@ -77,19 +77,43 @@ enum SnoboldSpells
     SPELL_HEAD_CRACK        = 66407  // Head Crack
 };
 
-struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
+struct MANGOS_DLL_DECL northrend_beast_base : public ScriptedAI
 {
-    boss_gormokAI(Creature* pCreature) : ScriptedAI(pCreature)
+    northrend_beast_base(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        isHeroic = pCreature->GetMap()->IsHeroicRaid();
+        pCreature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        //m_bAttackEnabled = false;
+        if (!m_pInstance)
+            m_creature->ForcedDespawn();
+    }
+
+    ScriptedInstance* m_pInstance;
+    Difficulty m_dDifficulty;
+    bool isHeroic;
+
+    /*void MovementInform(uint32 moveType, uint32 pointId)
+    {
+        if (moveType == POINT_MOTION_TYPE && pointId == POINT_TO_CENTER)
+        {
+            m_bAttackEnabled = true;
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            AttackStart(m_pInstance->GetRandomPlayerInMap());
+        }
+    }*/
+};
+
+struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
+{
+    boss_gormokAI(Creature* pCreature) : northrend_beast_base(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         isHeroic = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
-
-    ScriptedInstance* m_pInstance;
-    Difficulty m_dDifficulty;
-    bool isHeroic;
 
     void Reset()
     {
@@ -100,23 +124,21 @@ struct MANGOS_DLL_DECL boss_gormokAI : public ScriptedAI
 
     void Aggro(Unit* )
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, GORMOK_IN_PROGRESS);
+        m_pInstance->SetData(TYPE_BEASTS, GORMOK_IN_PROGRESS);
     }
 
     void JustReachedHome()
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+        m_pInstance->SetData(TYPE_BEASTS, FAIL);
 
         m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit* )
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, GORMOK_DONE);
+        m_pInstance->SetData(TYPE_BEASTS, GORMOK_DONE);
     }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -167,9 +189,7 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 
     void Reset()
     {
-        fixTarget = m_creature->GetCreator();
-        if (!fixTarget)
-            fixTarget = SelectNearestPlayer();
+        fixTarget = SelectNearestPlayer();
 
         if (!fixTarget)
         {
@@ -316,9 +336,9 @@ enum JormungarSpell
     //SPELL_BURNING_BILE_PROC     = 66869, // Burning Bite proc
 };
 
-struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
+struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 {
-    boss_jormungarsAI(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_jormungarsAI(Creature* pCreature) : northrend_beast_base(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
@@ -329,9 +349,6 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
         
         Reset();
     }
-
-    ScriptedInstance* m_pInstance;
-    Difficulty m_dDifficulty;
 
     bool Acidmaw;
     bool Dreadscale;
@@ -363,7 +380,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
     Creature* GetBro()
     {
         Creature* crt = GetClosestCreatureWithEntry(m_creature, Acidmaw ? 34799 : 35144, DEFAULT_VISIBILITY_INSTANCE);
-        if (!crt && m_pInstance)
+        if (!crt)
             crt = m_pInstance->GetCreature(Acidmaw ? NPC_DREADSCALE : NPC_ACIDMAW);
 
         return crt;
@@ -384,14 +401,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
 
     void Aggro(Unit *)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, SNAKES_IN_PROGRESS);
+        m_pInstance->SetData(TYPE_BEASTS, SNAKES_IN_PROGRESS);
     }
 
     void JustReachedHome()
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+        m_pInstance->SetData(TYPE_BEASTS, FAIL);
 
         m_creature->ForcedDespawn();
     }
@@ -404,8 +419,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public ScriptedAI
             DoScriptText(SAY_BERSERK, crt);
         }
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
+        m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
     }
 
     boss_jormungarsAI* GetBroAI()
@@ -528,17 +542,15 @@ enum IcehowlSpell
     SPELL_ENRAGE_ICE            = 66759
 };
 
-struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
+struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
 {
-    boss_icehowlAI(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_icehowlAI(Creature* pCreature) : northrend_beast_base(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
-    Difficulty m_dDifficulty;
 
     uint32 m_uiChargeStepTimer;
     int8 m_uiChargeStepCount;
@@ -575,25 +587,20 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public ScriptedAI
 
     void Aggro(Unit *)
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_IN_PROGRESS);
+        m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_IN_PROGRESS);
     }
 
     void JustReachedHome()
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_BEASTS, FAIL);
+        m_pInstance->SetData(TYPE_BEASTS, FAIL);
 
         m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit *)
     {
-        if (m_pInstance)
-        {
-            m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_DONE);
-            m_pInstance->SetData(TYPE_BEASTS, DONE);
-        }
+        m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_DONE);
+        m_pInstance->SetData(TYPE_BEASTS, DONE);
     }
 
     void UpdateAI(const uint32 uiDiff)
