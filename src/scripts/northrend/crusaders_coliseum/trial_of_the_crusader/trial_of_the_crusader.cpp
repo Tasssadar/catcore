@@ -210,7 +210,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     // open and closes doors
     if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
     {
-        uint64 doorGuid = m_pInstance->GetData(GO_MAIN_GATE_DOOR);
+        uint64 doorGuid = m_pInstance->GetData64(GO_MAIN_GATE_DOOR);
         if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
         {
             m_pInstance->OpenDoor(doorGuid);

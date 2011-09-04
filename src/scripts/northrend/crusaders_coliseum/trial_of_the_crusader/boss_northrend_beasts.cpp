@@ -154,11 +154,13 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
         // Snobolds
         if (m_TimerMgr->TimerFinished(TIMER_DO_SNOBOLDS))
         {
-            Player* plr = SelectRandomPlayerInRange(3, 15, DEFAULT_VISIBILITY_INSTANCE, true);
-            if (Creature* crt = plr->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            if (Player* plr = SelectRandomPlayerInRange(3, 15, DEFAULT_VISIBILITY_INSTANCE, true))
             {
-                crt->AI()->AttackStart(plr);
-                crt->CastSpell(plr, SPELL_SNOBOLLED, true);
+                if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                {
+                    crt->AI()->AttackStart(plr);
+                    crt->CastSpell(plr, SPELL_SNOBOLLED, true);
+                }
             }
 
             DoScriptText(SAY_SNOBOLLED, m_creature);
