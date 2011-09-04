@@ -2492,6 +2492,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PALADIN:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN )
             {
+                // Judgement of Light / Judgements of the Just
+                if ((spellInfo_1->Id == 20185 && spellInfo_2->Id == 68055) ||
+                    (spellInfo_2->Id == 20185 && spellInfo_1->Id == 68055))
+                    return false;
+
                 // Paladin Seals
                 if (IsSealSpell(spellInfo_1) && IsSealSpell(spellInfo_2))
                     return true;
