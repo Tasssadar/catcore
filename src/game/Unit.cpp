@@ -647,6 +647,13 @@ void Unit::BuildHeartBeatMsg(WorldPacket *data) const
     ((Unit*)this)->m_movementInfo.Write(*data);
 }
 
+void Unit::SendHeartBeatMsg()
+{
+    WorldPacket data;
+    BuildHeartBeatMsg(&data);
+    SendMessageToSet(&data, true);
+}
+
 void Unit::resetAttackTimer(WeaponAttackType type)
 {
     m_attackTimer[type] = uint32(GetAttackTime(type) * m_modAttackSpeedPct[type]);
@@ -4184,9 +4191,7 @@ void Unit::SetFacingTo(float ori)
     SetOrientation(ori);
 
     // and client
-    WorldPacket data;
-    BuildHeartBeatMsg(&data);
-    SendMessageToSet(&data, false);
+    SendHeartBeatMsg();
 }
 
 // Consider move this to Creature:: since only creature appear to be able to use this
@@ -15319,9 +15324,7 @@ void Unit::StopMoving()
     SendMonsterMove(GetPositionX(), GetPositionY(), GetPositionZ(), SPLINETYPE_STOP, GetTypeId() == TYPEID_PLAYER ? SPLINEFLAG_WALKMODE : SPLINEFLAG_NONE, 0);
 
     // update position and orientation for near players
-    WorldPacket data;
-    BuildHeartBeatMsg(&data);
-    SendMessageToSet(&data, false);
+    SendHeartBeatMsg();
 }
 
 void Unit::SetFeared(bool apply, uint64 const& casterGUID, uint32 spellID, uint32 time)
@@ -16098,9 +16101,7 @@ void Unit::NearTeleportTo(Coords coord, float orientation, bool casting)
 
         GetMap()->CreatureRelocation(c, coord, orientation);
 
-        WorldPacket data;
-        BuildHeartBeatMsg(&data);
-        SendMessageToSet(&data, false);
+        SendHeartBeatMsg();
         // finished relocation, movegen can different from top before creature relocation,
         // but apply Reset expected to be safe in any case
         if (!c->GetMotionMaster()->empty())
@@ -16251,9 +16252,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     addUnitState(UNIT_STAT_ON_VEHICLE);
     InterruptNonMeleeSpells(false);
 
-    WorldPacket data;
-    v->BuildHeartBeatMsg(&data);
-    v->SendMessageToSet(&data, false);
+    v->SendHeartBeatMsg();
 
     if (Pet *pet = GetPet())
         pet->Remove(PET_SAVE_AS_CURRENT);
@@ -16261,7 +16260,7 @@ void Unit::EnterVehicle(Vehicle *vehicle, int8 seat_id, bool force)
     if (GetTypeId() == TYPEID_PLAYER)
         ((Player*)this)->SendEnterVehicle(v, veSeat);
 
-    data.Initialize(SMSG_MONSTER_MOVE_TRANSPORT, 60);
+    WorldPacket data(SMSG_MONSTER_MOVE_TRANSPORT, 60);
     data << GetPackGUID();
     data << v->GetPackGUID();
     data << uint8(seat_id);
@@ -16311,10 +16310,8 @@ void Unit::ExitVehicle()
             ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
             ((Player*)this)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
         }
-        
-        WorldPacket heart;
-        BuildHeartBeatMsg(&heart);
-        SendMessageToSet(&heart, true);
+
+        SendHeartBeatMsg();
 
         float x = GetPositionX();
         float y = GetPositionY();

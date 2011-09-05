@@ -3,5 +3,5 @@
  #define REVISION_NR "11543"
  #define REVISION_VP "pr1278"
  #define REVISION_SP "vsd341"
- #define REVISION_VP_DATE "5.9.2011"
+ #define REVISION_VP_DATE "6.9.2011"
 #endif // __REVISION_NR_H__

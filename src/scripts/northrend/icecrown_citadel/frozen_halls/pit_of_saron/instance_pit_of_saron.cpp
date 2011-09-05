@@ -97,7 +97,7 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
                 Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
                 if(pTyrannus)
                 {
-                    pTyrannus->AI()->DoAction(0);
+                    pTyrannus->AI()->DoAction(4);
                     pTyrannus->AI()->DoAction(1);
                 }
                 break;
@@ -127,6 +127,18 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
         }
     }
 
+    void SpawnTyrannus()
+    {
+        Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
+        if(pTyrannus)
+        {
+            Vehicle *pRimefang = pTyrannus->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2],
+                                                          tyrannusPos[3], 535, NULL, 0);
+            pRimefang->SetRespawnDelay(86400);
+        }
+        DoUseDoorOrButton(m_uiIceWallGUID);
+    }
+
     void SetData(uint32 uiType, uint32 uiData)
     {
         debug_log("SD2: Instance Ahn'Kahet: SetData received for type %u with data %u",uiType,uiData);
@@ -136,28 +148,18 @@ struct MANGOS_DLL_DECL instance_pit_of_saron : public ScriptedInstance
             case TYPE_GARFROST:
                 m_auiEncounter[0] = uiData;
                 if (uiData == DONE && m_auiEncounter[1] == DONE)
-                    DoUseDoorOrButton(m_uiIceWallGUID);
+                    SpawnTyrannus();
                 break;
             case TYPE_ICK_AND_KRICK:
                 m_auiEncounter[1] = uiData;
                 if (uiData == DONE && m_auiEncounter[0] == DONE)
-                    DoUseDoorOrButton(m_uiIceWallGUID);
+                    SpawnTyrannus();
                 break;
             case TYPE_TYRANNUS:
                 m_auiEncounter[2] = uiData;
                 break;
             case TYPE_EVENT_STATE:
                 m_eventState = uiData;
-                if(uiData == 2 && m_auiEncounter[0] == DONE && m_auiEncounter[1] == DONE)
-                {
-                    Creature *pTyrannus = instance->GetCreature(GetData64(NPC_TYRANNUS_INTRO));
-                    if(pTyrannus)
-                    {
-                        Vehicle *pRimefang = pTyrannus->SummonVehicle(NPC_RIMEFANG, tyrannusPos[0], tyrannusPos[1], tyrannusPos[2],
-                                                                      tyrannusPos[3], 535, NULL, 0);
-                        pRimefang->SetRespawnDelay(86400);
-                    }
-                }
                 break;
             default:
                 error_log("SD2: Instance Pit of Saron: ERROR SetData = %u for type %u does not exist/not implemented.",uiType,uiData);

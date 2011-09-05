@@ -97,10 +97,8 @@ struct MANGOS_DLL_DECL boss_koralonAI : public ScriptedAI
             m_creature->GetMap()->AddUpdateObject(m_creature);
             m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_TURN_RIGHT);
         }
-        
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
+
+        //m_creature->SendHeartBeatMsg();
     }
 
     void UpdateAI(const uint32 diff)
