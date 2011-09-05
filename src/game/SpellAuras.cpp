@@ -4844,15 +4844,16 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
                         target->CastSpell(target, 68667, true);
                 break;
             }
-            // Submerge Anub'arak
-            case 65981:
-            // Submerge - Burrower
-            case 67322:
-            {
-                // on submerge aura drop, emerge
-                target->CastSpell(target, 65982, true);
+            case 65981: // Submerge Anub'arak
+            case 67322: // Submerge - Burrower
+                target->CastSpell(target, 65982, false); // on submerge aura drop, emerge
                 break;
-            }
+            case 66845: // Two Jormungars - Submerge 0
+                target->CastSpell(target, 66947, false);
+                break;
+            case 66948: // Two Jormungars - Submerge 0
+                target->CastSpell(target, 66949, false);
+                break;
             default:
                 break;
         }
