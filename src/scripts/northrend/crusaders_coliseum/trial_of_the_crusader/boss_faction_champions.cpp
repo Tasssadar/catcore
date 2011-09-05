@@ -100,6 +100,18 @@ struct FactionedChampionAI : public ScriptedAI
         }
     }
 
+    void MovementInform(uint32 moveType, uint32 pointId)
+    {
+        if (moveType == POINT_MOTION_TYPE && pointId == POINT_TO_CENTER)
+        {
+            float angle = m_creature->GetAngle(SpawnLoc[1].x, SpawnLoc[1].y);
+            angle = floor(angle/M_PI_F*2+0.5)*M_PI_F/2;
+            m_creature->SetOrientation(angle);
+            m_creature->SendHeartBeatMsg();
+        }
+    }
+
+
     void RefreshListOfAliveChampions()
     {
         m_cAliveChampions.clear();
