@@ -90,9 +90,9 @@ void npc_toc_announcerAI::Reset()
     m_TimerMgr->SetUpdatable(false);
     currentEncounter = -1;
     encounterStage = 0;
-    if (encounterCreature)
+    if (encounterCreature && encounterCreature->isAlive())
         encounterCreature->ForcedDespawn();
-    if (encounterCreature2)
+    if (encounterCreature2 && encounterCreature2->isAlive())
         encounterCreature2->ForcedDespawn();
     encounterCreature = NULL;
     encounterCreature2 = NULL;
@@ -322,21 +322,28 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 3:
                         DoScriptText(SAY_STAGE_1_02, encounterCreature);
-                        cooldown = 9000;
+                        cooldown = 10000;
                         break;
                     case 4:
                         DoScriptText(SAY_STAGE_1_03, encounterCreature);
-                        DoSpawnTocBoss(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[1], 0);
-                        cooldown = 1000;
+                        encounterCreature->SummonCreature(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[1], 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 8000);
+                        cooldown = 2000;
                         break;
                     case 5:
-                        if (encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, SpawnLoc[1], 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000))
-                            encounterCreature2->CastSpell(encounterCreature2, SPELL_WILFRED_PORTAL, false);
+                    {
+                        Coords coord = SpawnLoc[1];
+                        coord.z += 2.5f;
+                        if (!encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000))
+                            Reset();
+
+                        encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.f);
+                        encounterCreature2->CastSpell(encounterCreature2, SPELL_WILFRED_PORTAL, false);
                         cooldown = 3500;
                         break;
+                    }
                     case 6:
                         DoScriptText(SAY_STAGE_1_04, encounterCreature);
-                        encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, SpawnLoc[1], encounterCreature->GetOrientation());
+                        encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, encounterCreature2->GetPosition(), encounterCreature->GetOrientation());
                         cooldown = 500;
                         break;
                     case 7:
@@ -344,7 +351,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             Reset();
 
                         encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, false);
-                        cooldown = 1000;
+                        cooldown = 1500;
                         break;
                     case 8:
                     {

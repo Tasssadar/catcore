@@ -426,7 +426,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         Creature* bro = GetBro();
         if (bro && bro->isAlive())
         {
-            bro->CastSpell(crt, SPELL_ENRAGE, false);
+            bro->CastSpell(bro, SPELL_ENRAGE, false);
             DoScriptText(SAY_BERSERK, bro);
         }
         else

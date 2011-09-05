@@ -18,6 +18,8 @@ UPDATE creature_template SET AIName = 'NullAI' WHERE entry = 34854;
 -- TODO: immune masky pro snobolda
 
 -- 2nd encounter - Jaraxxus
+UPDATE creature_template SET InhabitType = 7 WHERE entry = 22517;
+
 UPDATE creature_template SET ScriptName = 'boss_jaraxxus' WHERE entry=34780;
 UPDATE creature_template SET ScriptName = 'npc_felflame_infernal' WHERE entry=34815;
 UPDATE creature_template SET ScriptName = 'npc_mistress_of_pain' WHERE entry=34826;
