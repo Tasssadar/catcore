@@ -178,10 +178,12 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         // NOTE: this duplicate of Instanceable(), but Instanceable() can be changed when BG also will be instanceable
         bool IsDungeon() const { return i_mapEntry && i_mapEntry->IsDungeon(); }
         bool IsRaid() const { return i_mapEntry && i_mapEntry->IsRaid(); }
-        bool IsRaidOrHeroicDungeon() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC; }
-        bool IsHeroicRaid10Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC; }
-        bool IsHeroicRaid25Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
-        bool IsHeroicRaid() const {return GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool IsRaidOrHeroicDungeon() const { return IsRaid() ? GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL : GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC; }
+        bool IsRaid10Man() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL || GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC); }
+        bool IsRaid25Man() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC); }
+        bool IsHeroicRaid10Man() const { return IsRaid() && GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC; }
+        bool IsHeroicRaid25Man() const { return IsRaid() && GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool IsHeroicRaid() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC); }
         bool IsBattleGround() const { return i_mapEntry && i_mapEntry->IsBattleGround(); }
         bool IsBattleArena() const { return i_mapEntry && i_mapEntry->IsBattleArena(); }
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
