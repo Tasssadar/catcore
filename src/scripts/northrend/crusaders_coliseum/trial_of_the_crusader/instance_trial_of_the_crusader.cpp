@@ -188,7 +188,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 HandleDoorsByData(GameObjectGuidMap[GO_GATE_SOUTH], uiData);
                 HandleDoorsByData(GameObjectGuidMap[GO_GATE_NORTH], uiData);
 
-                if (uiData == FAIL)
+                if (uiData == FAIL && isHeroic)
                 {
                     ++WipeCounter;
 

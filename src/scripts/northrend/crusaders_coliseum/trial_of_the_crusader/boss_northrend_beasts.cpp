@@ -450,8 +450,6 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 
     void HandleMerging(bool submerge)
     {
-        const uint32 spellId = m_bIsMobile ? SPELL_SUBMERGE_1 : SPELL_SUBMERGE_0;
-
         if (submerge)
         {
             EnableAttack(false);
@@ -493,7 +491,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         }
 
         m_bIsSubmerged = submerge;
-        m_creature->AddAndLinkAura(spellId, submerge);
+        m_creature->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
     }
     void UpdateAI(const uint32 /*uiDiff*/)
     {
@@ -584,10 +582,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
 
     void Reset()
     {
-        AddTimer(TIMER_BUTT, SPELL_FEROCIOUS_BUTT, 10000, 0, UNIT_SELECT_VICTIM);
-        AddTimer(TIMER_WHIRL, SPELL_WHIRL, 15000, 0, UNIT_SELECT_SELF);
-        AddTimer(TIMER_BREATH, SPELL_ARCTIC_BREATH, 20000, 0, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
-        AddNonCastTimer(TIMER_MASSIVE_CRASH, 35000, 0);
+        AddTimer(TIMER_BUTT, SPELL_FEROCIOUS_BUTT, 10000, 10000, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_WHIRL, SPELL_WHIRL, 15000, 15000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_BREATH, SPELL_ARCTIC_BREATH, 20000, 20000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
+        AddNonCastTimer(TIMER_MASSIVE_CRASH, 35000, 35000);
 
         isCastingBreath = false;
         m_uiChargeStepCount = -1;

@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Trial Of the crusader
 SD%Complete: 60%
-SDComment: event script by /dev/rsa
+SDComment: Spammca
 SDCategory: trial_of_the_crusader
 EndScriptData */
 
@@ -287,15 +287,13 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 {
                     case 1:
                     {
-                        if (m_pInstance->GetData(TYPE_JARAXXUS) == FAIL)
+                        if (m_pInstance->GetData(TYPE_JARAXXUS) == FAIL &&
+                            encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS))
                         {
-                            if (encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS))
-                            {
-                                encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
-                                encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                                ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
-                                encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                            }
+                            encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
+                            encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
+                            encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         }
                         else
                         {
@@ -333,7 +331,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     {
                         Coords coord = SpawnLoc[1];
                         coord.z += 2.5f;
-                        if (!encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000))
+                        encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000);
+                        if (!encounterCreature2)
                             Reset();
 
                         encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.f);
