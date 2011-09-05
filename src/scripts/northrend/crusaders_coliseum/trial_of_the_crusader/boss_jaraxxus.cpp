@@ -132,19 +132,21 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         //m_creature->ForcedDespawn();
 
-        if (m_pInstance)
+        if (m_pInstance && m_pInstance->GetData(TYPE_JARAXXUS) == IN_PROGRESS)
+        {
             m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
 
-        m_creature->CastSpell(m_creature, SPELL_JARAXXUS_CHAINS, false);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->CastSpell(m_creature, SPELL_JARAXXUS_CHAINS, false);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        }
     }
 
     void Aggro(Unit*)
     {
         DoScriptText(SAY_AGGRO, m_creature);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
+        //if (m_pInstance)
+        //    m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
     }
 
     void UpdateAI(const uint32 )

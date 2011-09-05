@@ -53,6 +53,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             EncounterData[i] = NOT_STARTED;
 
         WipeCounter = 0;
+        ChampionSpawnMask = 0;
 
         needsave = false;
     }
