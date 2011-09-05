@@ -364,7 +364,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 5:
                     {
                         Coords coord = SpawnLoc[1];
-                        coord.z += 5f;
+                        coord.z += 5.f;
                         if (!(encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000)))
                             Reset();
 
