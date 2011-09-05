@@ -319,8 +319,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 {
                     case 1:
                     {
-                        if (m_pInstance->GetData(TYPE_JARAXXUS) == FAIL &&
-                            encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS))
+                        encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS);
+                        if (encounterCreature2 && m_pInstance->GetData(TYPE_JARAXXUS) == FAIL)
                         {
                             encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                             encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -617,6 +617,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     Location.x += x_coef*2.5f;
                     Location.y += y_coef*5.f;
+                    encounterCreature2->GetMotionMaster()->MovePoint(POINT_TO_CENTER, Location.x, Location.y, Location.z, false);
                     encounterCreature2 = NULL;
                 }
                 if (encounterCreature)
