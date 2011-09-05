@@ -69,7 +69,6 @@ enum Jaraxxus
     SPELL_INFERNAL_ERUPTION     = 66258, // Infernal Eruption
     SPELL_NETHER_PORTAL         = 66269, // Nether Portal
     SPELL_NETHER_POWER          = 67009, // Nether Power
-    SPELL_FEL_LIGHTNING_IK      = 67888  // Fel Lightning - gnom instakill
 };
 
 enum Adds

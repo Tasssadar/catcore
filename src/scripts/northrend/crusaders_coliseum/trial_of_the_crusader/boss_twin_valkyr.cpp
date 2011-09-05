@@ -69,7 +69,7 @@ enum Spells
     SPELL_SURGE_OF_DARKNESS     = 65768,
     SPELL_TWIN_SPIKE_L          = 66075,
     SPELL_TWIN_SPIKE_D          = 66069,
-    SPELL_BERSERK               = 64238,
+    SPELL_BERSERK_VALKYR        = 64238,
     //SPELL_SUMM_CONC             = 66077,
 
     SPELL_REMOVE_TOUCH          = 68084,
@@ -125,7 +125,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         if (isHeroic)
             AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, urand(10000,15000), urand(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
 
-        AddTimer(TIMER_BERSERK, SPELL_BERSERK, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_BERSERK, SPELL_BERSERK_VALKYR, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         m_TimerMgr->AddToCastQueue(TIMER_SURGE);
 

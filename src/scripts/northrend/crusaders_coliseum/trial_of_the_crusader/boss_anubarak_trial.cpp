@@ -77,8 +77,6 @@ enum Spells
     SPELL_SUBMERGE_BOSS     = 65981,
     //SPELL_EMERGE_BOSS       = 65982,
 
-    SPELL_BERSERK           = 26662,
-
     // npc
     // frost sphere
     NPC_FROST_SPHERE        = 34606,

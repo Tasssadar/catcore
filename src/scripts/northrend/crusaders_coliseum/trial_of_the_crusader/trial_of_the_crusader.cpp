@@ -333,6 +333,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 1000;
                         break;
                     case 8:
+                    {
                         encounterCreature2->SetOrientation(encounterCreature->GetAngle(encounterCreature));
 
                         WorldPacket heart;
@@ -340,6 +341,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->SendMessageToSet(&heart, false);
                         cooldown = 4000;
                         break;
+                    }
                     case 9:
                         DoScriptText(SAY_STAGE_1_05, encounterCreature2);
                         cooldown = 3000;
