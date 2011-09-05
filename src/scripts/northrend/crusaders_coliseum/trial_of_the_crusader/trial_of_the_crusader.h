@@ -168,9 +168,9 @@ const Coords SpawnLoc[] =
     Coords(541.021f, 117.262f, 395.314f), // 24 - Light essence 1
     Coords(586.200f, 162.145f, 394.626f), // 25 - Light essence 2
     Coords(563.833f, 195.244f, 394.585f), // 26 - outdoor
-    Coords(548.610f, 139.807f, 394.321f), // 27 - fizzlebang end
+    Coords(563.670f, 158.877f, 394.321f), // 27 - fizzlebang end
     Coords(563.611f, 140.205f, 393.903f), // 28 - chest loc
-    Coords(571.610f, 139.807f, 394.321f), // 29 - jaroxxus portal leave
+    Coords(563.670f, 125.817f, 394.321f), // 29 - jaroxxus portal leave
 };
 
 enum uiWorldStates

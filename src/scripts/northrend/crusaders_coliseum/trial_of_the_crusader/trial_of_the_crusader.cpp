@@ -73,6 +73,8 @@ npc_toc_announcerAI::npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCrea
 {
     m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
     isHeroic = pCreature->GetMap()->IsHeroicRaid();
+    encounterCreature = NULL;
+    encounterCreature2 = NULL;
     Reset();
 }
 
@@ -88,6 +90,10 @@ void npc_toc_announcerAI::Reset()
     m_TimerMgr->SetUpdatable(false);
     currentEncounter = -1;
     encounterStage = 0;
+    if (encounterCreature)
+        encounterCreature->ForcedDespawn();
+    if (encounterCreature2)
+        encounterCreature2->ForcedDespawn();
     encounterCreature = NULL;
     encounterCreature2 = NULL;
 }
@@ -256,7 +262,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 7:
                         if (Player* randPlr = m_pInstance->GetRandomPlayerInMap())
                             if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
-                                encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, true);
+                                encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, false);
                         cooldown = isHeroic ? 173000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
                         break;
                     case 8:
@@ -283,10 +289,13 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     {
                         if (m_pInstance->GetData(TYPE_JARAXXUS) == FAIL)
                         {
-                            encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS);
-                            encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
-                            encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                            encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
+                            if (encounterCreature2 = m_pInstance->GetCreature(NPC_JARAXXUS))
+                            {
+                                encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
+                                encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                                ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
+                                encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
+                            }
                         }
                         else
                         {
@@ -298,11 +307,11 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 2:
                     {
-                        if (encounterCreature)
-                        {
-                            encounterCreature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                            encounterCreature->GetMotionMaster()->MovePoint(POINT_TO_CENTER, SpawnLoc[27].x, SpawnLoc[27].y, SpawnLoc[27].z, false);
-                        }
+                        if (!encounterCreature)
+                            Reset();
+
+                        encounterCreature->AddSplineFlag(SPLINEFLAG_WALKMODE);
+                        encounterCreature->GetMotionMaster()->MovePoint(POINT_TO_CENTER, SpawnLoc[27].x, SpawnLoc[27].y, SpawnLoc[27].z, false);
 
                         float pathLength = encounterCreature->GetDistance2d(SpawnLoc[27].x, SpawnLoc[27].y);
                         uint32 timeToPoint = uint32(pathLength/(encounterCreature->GetSpeed(MOVE_WALK)*0.001f));
@@ -314,13 +323,15 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 3:
                         DoScriptText(SAY_STAGE_1_02, encounterCreature);
                         cooldown = 9000;
+                        break;
                     case 4:
                         DoScriptText(SAY_STAGE_1_03, encounterCreature);
-                        encounterCreature2 = DoSpawnTocBoss(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[1], 0);
+                        DoSpawnTocBoss(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[1], 0);
                         cooldown = 1000;
                         break;
                     case 5:
-                        encounterCreature2->CastSpell(encounterCreature2, SPELL_WILFRED_PORTAL, false);
+                        if (encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, SpawnLoc[1], 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000))
+                            encounterCreature2->CastSpell(encounterCreature2, SPELL_WILFRED_PORTAL, false);
                         cooldown = 3500;
                         break;
                     case 6:
@@ -329,12 +340,17 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 500;
                         break;
                     case 7:
+                        if (!encounterCreature2)
+                            Reset();
+
                         encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, false);
                         cooldown = 1000;
                         break;
                     case 8:
                     {
-                        encounterCreature2->SetOrientation(encounterCreature->GetAngle(encounterCreature));
+                        encounterCreature2->SetOrientation(encounterCreature2->GetAngle(encounterCreature));
+                        Coords curc = encounterCreature2->GetPosition();
+                        encounterCreature2->SetSummonPoint(curc.x, curc.y, curc.z, encounterCreature->GetOrientation());
 
                         WorldPacket heart;
                         encounterCreature2->BuildHeartBeatMsg(&heart);
@@ -362,7 +378,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                         encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
-                        encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
+                        encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         break;
                 }
                 break;

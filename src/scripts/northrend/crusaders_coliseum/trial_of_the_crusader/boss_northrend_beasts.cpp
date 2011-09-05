@@ -382,8 +382,10 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         if (Acidmaw)
             AddNonCastTimer(TIMER_MERGING, 45000, 45000);
 
-        SetMobility(Dreadscale);
+        m_bIsMobile = Dreadscale;
         m_bIsSubmerged = false;
+
+        SetMobility();
     }
     
     Creature* GetBro()
@@ -395,17 +397,16 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         return crt;
     }
 
-    void SetMobility(bool mobile)
+    void SetMobility()
     {
-        m_bIsMobile = mobile;
-        SetCombatMovement(mobile);
+        SetCombatMovement(m_bIsMobile);
 
-        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobile);
-        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !mobile);
-        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !mobile);
-        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !mobile);
+        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
+        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
+        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
+        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
+        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
+        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
     }
 
     void Aggro(Unit *)
@@ -422,13 +423,14 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 
     void JustDied(Unit* )
     {
-        if (Creature* crt = GetBro())
+        Creature* bro = GetBro();
+        if (bro && bro->isAlive())
         {
-            crt->CastSpell(crt, SPELL_ENRAGE, false);
-            DoScriptText(SAY_BERSERK, crt);
+            bro->CastSpell(crt, SPELL_ENRAGE, false);
+            DoScriptText(SAY_BERSERK, bro);
         }
-
-        m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
+        else
+            m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
     }
 
     boss_jormungarsAI* GetBroAI()
@@ -440,7 +442,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         return (boss_jormungarsAI*)bro->AI();
     }
 
-    void DamageTaken(Unit */*pDoneBy*/, uint32 &uiDamage)
+    void DamageTaken(Unit *, uint32 &uiDamage)
     {
         if (m_bIsSubmerged)
             uiDamage = 0;
@@ -454,6 +456,10 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         {
             EnableAttack(false);
             SetCombatMovement(false);
+
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
             m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, false);
             m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, false);
             m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, false);
@@ -467,8 +473,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         }
         else
         {
-            SetMobility(!m_bIsMobile);
+            m_bIsMobile = !m_bIsMobile;
+            SetMobility();
             EnableAttack(m_bIsMobile);
+
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
             Coords coord = Center;
             float rand_o = rand_norm_f()*2*M_PI_F;

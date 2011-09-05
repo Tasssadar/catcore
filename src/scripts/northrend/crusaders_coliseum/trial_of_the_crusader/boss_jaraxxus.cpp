@@ -98,6 +98,8 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        EnableAttack(false);
         Reset();
     }
 
@@ -113,9 +115,12 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         AddTimer(TIMER_INFERNAL_ERUPTION, SPELL_INFERNAL_ERUPTION, urand(70000,90000), urand(110000,120000), UNIT_SELECT_SELF);
         AddTimer(TIMER_NETHER_PORTAL, SPELL_NETHER_PORTAL, urand(15000,25000), urand(110000,120000), UNIT_SELECT_SELF);
         AddTimer(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, 42000, UNIT_SELECT_SELF);
+
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        EnableAttack(false);
     }
 
-    void JustDied(Unit* /*pKiller*/)
+    void JustDied(Unit*)
     {
         DoScriptText(SAY_DEATH, m_creature);
 
@@ -130,9 +135,11 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
 
+        m_creature->CastSpell(m_creature, SPELL_JARAXXUS_CHAINS, false);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
-    void Aggro(Unit* /*pWho*/)
+    void Aggro(Unit*)
     {
         DoScriptText(SAY_AGGRO, m_creature);
 
@@ -140,7 +147,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
     }
 
-    void UpdateAI(const uint32 /*uiDiff*/)
+    void UpdateAI(const uint32 )
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
