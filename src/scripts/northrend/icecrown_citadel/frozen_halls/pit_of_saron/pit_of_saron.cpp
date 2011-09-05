@@ -126,6 +126,10 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     Creature *pTyrannus;
 
+    bool spawning;
+    uint32 m_spawnTimer;
+    uint8 m_spawnItr;
+
     void Reset()
     {
         if(!m_pInstance)
@@ -141,12 +145,16 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
             case 0:
                 SpawnIntro();
                 m_uiEventTimer = 5000;
+                spawning = true;
+                m_spawnTimer = 0;
+                m_spawnItr = 0;
                 eventStateInternal = 0;
                 pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS_INTRO));
                 if(!pTyrannus)
                     m_creature->ForcedDespawn();
                 break;
             default:
+                spawning = false;
                 stopped = true;
                 break;
         }
@@ -160,30 +168,33 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     void SpawnIntro()
     {
-        Creature *tmp;
-        for(uint8 i = 0; i < INTRO_MOB_COUNT_LEFT; ++i)
-        {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
-                                       0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[i][0], mobPosLeft[i][1], mobPosLeft[i][2]);
-            
-            leftHerosList.push_back(tmp);
-        }
-        for(uint8 i = 0; i < INTRO_MOB_COUNT_RIGHT; ++i)
-        {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
-                                        0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->GetMotionMaster()->MovePoint(1, mobPosRight[i][0], mobPosRight[i][1], mobPosRight[i][2]);
-            rightHerosList.push_back(tmp);
-        }
-        tmp = m_creature->SummonCreature(NPC_NECROLYTE, necrolytePos[0][0], necrolytePos[0][1], necrolytePos[0][2],
+        Creature *tmp = m_creature->SummonCreature(NPC_NECROLYTE, necrolytePos[0][0], necrolytePos[0][1], necrolytePos[0][2],
                                          0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
         rightHerosList.push_back(tmp);
+
         tmp = m_creature->SummonCreature(NPC_NECROLYTE, necrolytePos[1][0], necrolytePos[1][1], necrolytePos[1][2],
                                          0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
         leftHerosList.push_back(tmp);
 
         m_creature->GetMotionMaster()->MovePoint(1, guideGoPos[0], guideGoPos[1], guideGoPos[2]);
+    }
+
+    void DoSpawnNext()
+    {
+        Creature *tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], portalPos[0], portalPos[1], portalPos[2],
+                                                   0.104f, TEMPSUMMON_DEAD_DESPAWN, 0);
+        if(m_spawnItr > 9 || m_spawnItr%2 == 0)
+        {
+            uint8 id = m_spawnItr > 9 ? m_spawnItr - 5  : m_spawnItr/2;
+            tmp->GetMotionMaster()->MovePoint(1, mobPosRight[id][0], mobPosRight[id][1], mobPosRight[id][2]);
+            rightHerosList.push_back(tmp);
+        }
+        else
+        {
+            tmp->GetMotionMaster()->MovePoint(1, mobPosLeft[m_spawnItr/2][0], mobPosLeft[m_spawnItr/2][1], mobPosLeft[m_spawnItr/2][2]);
+            leftHerosList.push_back(tmp);
+        }
+        ++m_spawnItr;
     }
 
     void AttackStart(Unit* pWho)
@@ -193,13 +204,13 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
 
     void DoAttack()
     {
-        Creature *acolyte = rightHerosList[rightHerosList.size()-1];
-        rightHerosList.pop_back();
+        Creature *acolyte = rightHerosList[0];
+        rightHerosList.erase(rightHerosList.begin());
         for(std::vector<Creature*>::iterator itr = rightHerosList.begin(); itr != rightHerosList.end(); ++itr)
             (*itr)->AI()->AttackStart(acolyte);
 
-        acolyte = leftHerosList[leftHerosList.size()-1];
-        leftHerosList.pop_back();
+        acolyte = leftHerosList[0];
+        leftHerosList.erase(leftHerosList.begin());
         for(std::vector<Creature*>::iterator itr = leftHerosList.begin(); itr != leftHerosList.end(); ++itr)
         {
             (*itr)->AI()->AttackStart(acolyte);
@@ -279,6 +290,17 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
     {
         if(stopped)
             return;
+
+        if(spawning)
+        {
+            if(m_spawnTimer <= uiDiff)
+            {
+                DoSpawnNext();
+                if(m_spawnItr >= 16)
+                    spawning = false;
+                m_spawnTimer = 500;
+            }else m_spawnTimer -= uiDiff;
+        }
         
         if(m_uiEventTimer <= uiDiff)
         {
@@ -432,6 +454,9 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
             case 3:
                 DoMove(2);
                 break;
+            case 4:
+                m_creature->NearTeleportTo(tyrannusPos[0][0], tyrannusPos[0][1], tyrannusPos[0][2], 0);
+                break;
         }
     }
 
@@ -507,8 +532,10 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
 };
 
 const float sindragosaPos[4] = { 877.11, 202.16, 560.35, 5.921 };
-const float spawnPos[4] = { 1070.48, 103.21, 630.73, 2.13 };
+const float spawnPos[4] = { 1071.25, 80.25, 632, 2.13 };
+const float heroPos[4] = { 1070.48, 103.21, 630.73, 2.13 };
 const float endNpcPos[3] = { 1003.18, 154.61, 628.2};
+
 const float horPos[3] = { 1096.62, 241.87, 630 };
 
 const int32 slave_says[2] = {-1658313, -1658312 };
@@ -575,6 +602,10 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
     Creature *pSindragosa;
     Creature *pEndNpc;
 
+    bool m_spawning;
+    uint32 m_spawnTimer;
+    uint8 m_spawnItr;
+
     void Reset()
     {
         if(!m_pInstance)
@@ -585,11 +616,14 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         faction = m_pInstance->GetData(TYPE_FACTION);
         eventState = m_pInstance->GetData(TYPE_EVENT_STATE);
         stopped = true;
-        pEndNpc = m_creature->SummonCreature(faction ? NPC_END_HORDE : NPC_END_ALLI, spawnPos[0], spawnPos[1], spawnPos[2],
-                                             spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        pEndNpc = m_creature->SummonCreature(faction ? NPC_END_HORDE : NPC_END_ALLI, heroPos[0], heroPos[1], heroPos[2],
+                                             heroPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
         m_uiEventTimer = 5000;
         eventStateInternal = 0;
         m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        m_spawning = false;
+        m_spawnTimer = 0;
+        m_spawnItr = 0;
      }
 
     void SetEventState(uint32 state)
@@ -600,19 +634,22 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
 
     void SpawnMobs()
     {
-        Creature *tmp;
-        for(uint8 i = 0; i < OUTRO_MOB_COUNT; ++i)
-        {
-            tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], spawnPos[0], spawnPos[1], spawnPos[2],
-                                             spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
-            tmp->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-            tmp->GetMotionMaster()->MovePoint(1, outroPos[i][0], outroPos[i][1], outroPos[i][2]);
-            herosList.push_back(tmp);
-        }
-
         pEndNpc->GetMotionMaster()->MovePoint(1, endNpcPos[0], endNpcPos[1], endNpcPos[2]);
         pSindragosa = m_creature->SummonCreature(NPC_SINDRAGOSA, sindragosaPos[0], sindragosaPos[1], sindragosaPos[2],
                                                  sindragosaPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+    }
+
+    void SpawnHero()
+    {
+        float x, y, z;
+        m_creature->GetRandomPoint(spawnPos[0], spawnPos[1], spawnPos[2], 8, x, y, z);
+
+        Creature *tmp = m_creature->SummonCreature(heroIds[urand(0, 2)][faction], x, y, z, spawnPos[3], TEMPSUMMON_DEAD_DESPAWN, 0);
+        tmp->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        tmp->GetMotionMaster()->MovePoint(1, outroPos[m_spawnItr][0], outroPos[m_spawnItr][1], outroPos[m_spawnItr][2]);
+        herosList.push_back(tmp);
+        
+        ++m_spawnItr;
     }
 
     void AttackStart(Unit* pWho)
@@ -634,6 +671,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                 pEndNpc->AI()->DoAction(faction ? SAY_SLAVE_INTRO_H : SAY_SLAVE_INTRO_A);
                 break;
             case 1:
+                m_spawning = true;
                 SpawnMobs();
                 stopped = false;
                 break;
@@ -697,6 +735,17 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
     {
         if(stopped)
             return;
+
+        if(m_spawning)
+        {
+            if(m_spawnTimer <= uiDiff)
+            {
+                SpawnHero();
+                if(m_spawnItr >= OUTRO_MOB_COUNT)
+                    m_spawning = 0;
+                m_spawnTimer = 500;
+            }else m_spawnTimer -= uiDiff;
+        }
 
         if(m_uiEventTimer <= uiDiff)
         {
