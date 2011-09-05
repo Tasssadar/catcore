@@ -37,7 +37,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
 
     uint32 EncounterData[MAX_ENCOUNTER];
     uint32 WipeCounter;
-    uint32 m_auiNorthrendBeasts;
+    uint32 ChampionSpawnMask;
 
     GuidMap CreatureGuidMap;
     GuidMap GameObjectGuidMap;
@@ -85,7 +85,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
              case NPC_TIRION:
              case NPC_FIZZLEBANG:
              case NPC_GARROSH:
-             case NPC_RINN:
+             case NPC_WRYNN:
              case NPC_LICH_KING_0:
              case NPC_LICH_KING_1:
              case NPC_GORMOK:
@@ -102,7 +102,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 break;
          }
 
-         for(uint8 spec = CHAMPION_DEATH_KNIGHT; spec < CHAMPION_COUNT; ++spec)
+         for(uint8 spec = CHAMPION_DEATH_KNIGHT; spec < CHAMPION_ALL_COUNT; ++spec)
              if (pCreature->GetEntry() == FChampIDs[spec][FACTION_ALLIANCE] ||
                  pCreature->GetEntry() == FChampIDs[spec][FACTION_HORDE])
                  CreatureGuidMap[pCreature->GetEntry()] = pCreature->GetGUID();
@@ -132,7 +132,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case NPC_TIRION:
             case NPC_FIZZLEBANG:
             case NPC_GARROSH:
-            case NPC_RINN:
+            case NPC_WRYNN:
             case NPC_LICH_KING_0:
             case NPC_LICH_KING_1:
             case NPC_GORMOK:
@@ -154,7 +154,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 break;
         }
 
-        for(uint8 spec = CHAMPION_DEATH_KNIGHT; spec < CHAMPION_COUNT; ++spec)
+        for(uint8 spec = CHAMPION_DEATH_KNIGHT; spec < CHAMPION_ALL_COUNT; ++spec)
             for(uint8 faction = FACTION_ALLIANCE; faction < FACTION_COUNT; ++faction)
                 if (uiData == FChampIDs[spec][faction])
                     return CreatureGuidMap[uiData];
@@ -182,13 +182,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                     uiData = IN_PROGRESS;
                     needsave = false;
                 }
-
-                EncounterData[uiType] = uiData;
-                HandleDoorsByData(GameObjectGuidMap[GO_GATE_EAST], uiData);
-                HandleDoorsByData(GameObjectGuidMap[GO_GATE_SOUTH], uiData);
-                HandleDoorsByData(GameObjectGuidMap[GO_GATE_NORTH], uiData);
-
-                if (uiData == FAIL && isHeroic)
+                else if (uiData == FAIL && EncounterData[uiType] != FAIL && isHeroic)
                 {
                     ++WipeCounter;
 
@@ -201,8 +195,16 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                                     plr->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
                 }
 
+                EncounterData[uiType] = uiData;
+                HandleDoorsByData(GameObjectGuidMap[GO_GATE_EAST], uiData);
+                HandleDoorsByData(GameObjectGuidMap[GO_GATE_SOUTH], uiData);
+                HandleDoorsByData(GameObjectGuidMap[GO_GATE_NORTH], uiData);
                 break;
             }
+            case TYPE_CHAMPION_SPAWN_MASK:
+                ChampionSpawnMask = uiData;
+                needsave = true;
+                break;
             default:
                 break;
         }
@@ -222,6 +224,8 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case TYPE_LICH_KING:
             case TYPE_ANUBARAK:
                 return EncounterData[uiType];
+            case TYPE_CHAMPION_SPAWN_MASK:
+                return ChampionSpawnMask;
             default:
                 break;
         }
@@ -243,6 +247,8 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             saveStream << EncounterData[i] << " ";
 
         saveStream << WipeCounter << " ";
+        saveStream << ChampionSpawnMask << " ";
+
         m_strInstData = saveStream.str();
 
         SaveToDB();
@@ -271,6 +277,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         }
 
         loadStream >> WipeCounter;
+        loadStream >> ChampionSpawnMask;
 
         OUT_LOAD_INST_DATA_COMPLETE;
     }

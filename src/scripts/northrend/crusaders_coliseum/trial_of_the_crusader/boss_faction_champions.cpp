@@ -56,7 +56,8 @@ struct FactionedChampionAI : public ScriptedAI
         m_pInstance     = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty   = pCreature->GetMap()->GetDifficulty();
         m_faction       = FChampIDs[m_champType][FACTION_ALLIANCE] == pCreature->GetEntry() ? FACTION_ALLIANCE : FACTION_HORDE;
-        Reset();
+
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
 
     ScriptedInstance*   m_pInstance;
@@ -102,7 +103,7 @@ struct FactionedChampionAI : public ScriptedAI
     void RefreshListOfAliveChampions()
     {
         m_cAliveChampions.clear();
-         for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
+         for(uint8 i = 0; i < CHAMPION_ALL_COUNT; ++i)
             if (Creature* pCrt = GetClosestCreatureWithEntry(m_creature, FChampIDs[i][m_faction], DEFAULT_VISIBILITY_INSTANCE))
                 if (pCrt->isAlive())
                     m_cAliveChampions.push_back(pCrt);
@@ -126,7 +127,7 @@ struct FactionedChampionAI : public ScriptedAI
         if (!entry)
             return false;
 
-        for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
+        for(uint8 i = 0; i < CHAMPION_ALL_COUNT; ++i)
             if (FChampIDs[i][m_faction] == entry)
                 return true;
 
@@ -136,9 +137,8 @@ struct FactionedChampionAI : public ScriptedAI
     CreatureList GetAllFCh()
     {
         CreatureList list;
-        for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
-            if (Creature* pCrt = GetClosestCreatureWithEntry(m_creature, FChampIDs[i][m_faction], DEFAULT_VISIBILITY_INSTANCE))
-                list.push_back(pCrt);
+        for(uint8 i = 0; i < CHAMPION_ALL_COUNT; ++i)
+            GetCreatureListWithEntryInGrid(list, m_creature, FChampIDs[i][m_faction], DEFAULT_VISIBILITY_INSTANCE);
 
         return list;
     }
@@ -178,7 +178,6 @@ struct factioned_healerAI : public FactionedChampionAI
 {
     factioned_healerAI(Creature* pCreature, Champion pChamp) : FactionedChampionAI(pCreature, ROLE_HEALER, pChamp)
     {
-        Reset();
     }
 
     //SpellTimer m_heals[HEAL_COUNT];
@@ -463,7 +462,6 @@ struct factioned_meleeAI : public FactionedChampionAI
 {
     factioned_meleeAI(Creature* pCreature, Champion pChamp) : FactionedChampionAI(pCreature, ROLE_HEALER, pChamp)
     {
-        Reset();
     }
 };
 
@@ -494,7 +492,6 @@ struct factioned_rangedAI : public FactionedChampionAI
 {
     factioned_rangedAI(Creature* pCreature, Champion pChamp) : FactionedChampionAI(pCreature, ROLE_HEALER, pChamp)
     {
-        Reset();
     }
 };
 

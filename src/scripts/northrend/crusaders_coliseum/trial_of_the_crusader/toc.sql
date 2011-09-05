@@ -69,7 +69,7 @@ REPLACE INTO `script_texts` VALUES
 (-1649101, 'Let the games begin!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16037, 1, 0, 0, '34996'),
 (-1649100, 'Only by working together will you overcome the final challenge. From the depths of Icecrown come two of the Scourges most powerful lieutenants: fearsome valkyr, winged harbingers of the Lich King!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16050, 1, 0, 0, '34996'),
 (-1649099, 'A shallow and tragic victory. We are weaker as a whole from the losses suffered today. Who but the Lich King could benefit from such foolishness? Great warriors have lost their lives. And for what? The true threat looms ahead - the Lich King awaits us all in death.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16049, 1, 0, 0, '34996'),
-(-1649098, 'LOK-TAR OGAR!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16024, 1, 0, 0, '34995'),
+(-1649098, 'That was just a taste of what the future brings. FOR THE HORDE!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16024, 1, 0, 0, '34995'),
 (-1649097, 'GLORY OF THE ALLIANCE!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16067, 1, 0, 0, '34990'),
 (-1649096, 'Show them no mercy, Horde champions! LOK-TAR OGAR!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16022, 1, 0, 0, '34995'),
 (-1649095, 'Fight for the glory of the Alliance, heroes! Honor your king and your people!', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 16065, 1, 0, 0, '34990'),

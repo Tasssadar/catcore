@@ -16,16 +16,17 @@ enum
     TYPE_VALKIRIES              = 3,
     TYPE_LICH_KING              = 4,
     TYPE_ANUBARAK               = 5,
-    MAX_ENCOUNTER              = 6,
+    MAX_ENCOUNTER               = 6,
 
     TYPE_COUNTER                = 8,
-    TYPE_EVENT                  = 9,
+    TYPE_CHAMPION_SPAWN_MASK    = 9,
+    //TYPE_EVENT                  = 9,
 
     NPC_BARRENT                 = 34816,
     NPC_TIRION                  = 34996,
     NPC_FIZZLEBANG              = 35458,
     NPC_GARROSH                 = 34995,
-    NPC_RINN                    = 34990,
+    NPC_WRYNN                   = 34990,
     NPC_LICH_KING_0             = 16980,
     NPC_LICH_KING_1             = 35877,
 
@@ -40,9 +41,6 @@ enum
     NPC_ACIDMAW                 = 35144,
 
     NPC_JARAXXUS                = 34780,
-
-    NPC_CRUSADER_0_1            = 35465,
-    NPC_CRUSADER_0_2            = 35610,
 
     NPC_LIGHTBANE               = 34497,
     NPC_DARKBANE                = 34496,
@@ -107,7 +105,11 @@ enum Champion
     CHAMPION_WARRIOR        = 13,
     CHAMPION_LOCK_PET       = 14,
     CHAMPION_HUNTER_PET     = 15,
-    CHAMPION_COUNT          = 16
+
+    CHAMPION_HEALER_COUNT   = 4,
+    CHAMPION_DPS_COUNT      = 10,
+    CHAMPION_COUNT          = 14,
+    CHAMPION_ALL_COUNT      = 16
 };
 
 enum FactionFCH
@@ -117,7 +119,7 @@ enum FactionFCH
     FACTION_COUNT           = 2
 };
 
-const uint32 FChampIDs[CHAMPION_COUNT][FACTION_COUNT] =
+const uint32 FChampIDs[CHAMPION_ALL_COUNT][FACTION_COUNT] =
 {
     {34461, 34458},     // CHAMPION_DEATH_KNIGHT
     {34460, 34451},     // CHAMPION_B_DRUID
@@ -171,6 +173,16 @@ const Coords SpawnLoc[] =
     Coords(563.670f, 158.877f, 394.321f), // 27 - fizzlebang end
     Coords(563.611f, 140.205f, 393.903f), // 28 - chest loc
     Coords(563.670f, 125.817f, 394.321f), // 29 - jaroxxus portal leave
+    Coords(510.910f, 110.557f, 418.234f), // 30 - horde champ spawn 1
+    Coords(510.910f, 168.593f, 418.234f), // 31 - horde champ spawn 2
+    Coords(522.718f, 118.555f, 395.210f), // 32 - horde champ jump 1
+    Coords(522.995f, 160.063f, 395.024f), // 33 - horde champ jump 2
+    Coords(537.764f, 139.571f, 394.391f), // 34 - horde champ loc
+    Coords(617.262f, 168.593f, 418.234f), // 35 - ali champ spawn 1
+    Coords(617.262f, 110.557f, 418.234f), // 36 - ali champ spawn 2
+    Coords(605.405f, 160.063f, 395.209f), // 37 - ali champ jump 1
+    Coords(605.405f, 118.555f, 395.210f), // 38 - ali champ jump 2
+    Coords(590.654f, 139.571f, 394.393f), // 39 - ali champ loc
 };
 
 enum uiWorldStates
@@ -223,10 +235,13 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
     npc_toc_announcerAI(Creature* pCreature);
 
     ScriptedInstance* m_pInstance;
+    Difficulty m_dDifficulty;
     bool isHeroic;
+    bool is10Man;
 
     int32       currentEncounter;
     uint16      encounterStage;
+    uint32      customValue;
     Creature*   encounterCreature;
     Creature*   encounterCreature2;
 
