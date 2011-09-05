@@ -136,9 +136,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
         if(pGuide)
             m_creature->SetOrientation(m_creature->GetAngle(pGuide));
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
+        m_creature->SendHeartBeatMsg();
     }
 
     void DoAction(uint32 action)
@@ -233,9 +231,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                 {
                     m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
                     m_creature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
-                    WorldPacket heart;
-                    m_creature->BuildHeartBeatMsg(&heart);
-                    m_creature->SendMessageToSet(&heart, false);
+                    m_creature->SendHeartBeatMsg();
                     eventTimer = 2000;
                     break;
                 }
@@ -254,9 +250,7 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
                     
                     m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
                     m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
-                    WorldPacket heart;
-                    m_creature->BuildHeartBeatMsg(&heart);
-                    m_creature->SendMessageToSet(&heart, false);
+                    m_creature->SendHeartBeatMsg();
                     
                     m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, 0);
                     m_creature->GetMap()->CreatureRelocation(m_creature, x, y, z, 0);

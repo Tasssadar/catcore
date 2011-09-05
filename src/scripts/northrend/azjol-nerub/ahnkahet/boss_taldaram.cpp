@@ -293,9 +293,8 @@ struct MANGOS_DLL_DECL mob_flame_orbAI : public ScriptedAI
 
             DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_ORB : SPELL_FLAME_ORB_H);
             m_creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-            WorldPacket heart;
-            m_creature->BuildHeartBeatMsg(&heart);
-            m_creature->SendMessageToSet(&heart, false);
+            m_creature->SendHeartBeatMsg();
+
             direction = rand()%3;
             switch(direction)
             {

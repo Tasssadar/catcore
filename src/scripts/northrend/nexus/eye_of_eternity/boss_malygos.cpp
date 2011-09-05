@@ -517,12 +517,9 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
     }
 
     void DoMovement(float x, float y, float z, uint32 time, bool movepoint = true)
-    {        
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
-   
-        
+    {
+        m_creature->SendHeartBeatMsg();
+
         if (movepoint)
             m_creature->GetMotionMaster()->MovePoint(0, x,y,z);
         else
@@ -1322,9 +1319,7 @@ struct MANGOS_DLL_DECL mob_power_sparkAI : public ScriptedAI
         isDead = false;
         pMalygos = GetClosestCreatureWithEntry(m_creature, NPC_MALYGOS, 150.0f);
         m_uiCheckTimer = 2500;
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
+        m_creature->SendHeartBeatMsg();
     }
     void AttackStart(Unit *pWho)
     {
@@ -1453,9 +1448,7 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
     {
         isMoving = true;
         m_creature->m_movementInfo.SetMovementFlags(MovementFlags(MOVEFLAG_HOVER | MOVEFLAG_LEVITATING | MOVEFLAG_ONTRANSPORT));
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
+        m_creature->SendHeartBeatMsg();
         //Just rand point in range, not very smooth
         /*++m_uiMovePoint;
         uint32 x = urand(SHELL_MIN_X, SHELL_MAX_X);

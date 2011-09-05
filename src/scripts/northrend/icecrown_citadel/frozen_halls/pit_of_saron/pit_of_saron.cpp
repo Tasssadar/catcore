@@ -227,9 +227,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
         if(Creature *pKrick = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KRICK)))
             m_creature->SetOrientation(m_creature->GetAngle(pKrick));
-        WorldPacket heart;
-        m_creature->BuildHeartBeatMsg(&heart);
-        m_creature->SendMessageToSet(&heart, false);
+        m_creature->SendHeartBeatMsg();
     }
 
     void DoStrangulate(bool up, uint32 time)
@@ -271,9 +269,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
                 (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
                 (*itr)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
             }
-            WorldPacket heart;
-            (*itr)->BuildHeartBeatMsg(&heart);
-            (*itr)->SendMessageToSet(&heart, false);
+            (*itr)->SendHeartBeatMsg();
         }
     }
 
@@ -713,9 +709,8 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
 
         pSindragosa->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
         pSindragosa->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
-        WorldPacket heart;
-        pSindragosa->BuildHeartBeatMsg(&heart);
-        pSindragosa->SendMessageToSet(&heart, false);
+        pSindragosa->SendHeartBeatMsg();
+        
 
         float x, y ,z;
         pSindragosa->GetPosition(x, y, z);

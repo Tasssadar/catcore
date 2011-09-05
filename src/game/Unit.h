@@ -1522,6 +1522,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendThreatUpdate();
 
         void BuildHeartBeatMsg( WorldPacket *data ) const;
+        inline void SendHeartBeatMsg();
 
         virtual void MoveOutOfRange(Player &) {  };
 
