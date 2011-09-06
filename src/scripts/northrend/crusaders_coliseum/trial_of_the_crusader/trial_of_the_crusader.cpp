@@ -212,7 +212,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     break;
                 case DONE:
                     encounterStage = 50;
-                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, urand(3000,5000));
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6000);
                     break;
                 default:
                     break;
@@ -233,7 +233,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                         DoScriptText(SAY_STAGE_2_05h, m_pInstance->GetCreature(NPC_GARROSH));
 
                     encounterStage = 50;
-                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, urand(5000,9000));
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 8000);
                     break;
                 default:
                     break;
@@ -325,6 +325,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                             encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                             ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
+                            DoScriptText(SAY_AGGRO, encounterCreature2);
                             encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                             m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
                             cooldown = REALLY_BIG_COOLDOWN;
@@ -383,7 +384,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             Reset();
 
                         encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, false);
-                        cooldown = 1500;
+                        cooldown = 3000;
                         break;
                     case 8:
                         encounterCreature2->SetOrientation(encounterCreature2->GetAngle(encounterCreature));
@@ -414,24 +415,26 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
                         m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
+                        DoScriptText(SAY_AGGRO, encounterCreature2);
                         encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     case 51: //outro
                         DoScriptText(SAY_STAGE_1_08, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 20000;
+                        cooldown = 14000;
                         break;
                     case 52:
                         DoScriptText(SAY_STAGE_1_09, m_pInstance->GetCreature(NPC_GARROSH));
-                        cooldown = 20000;
+                        cooldown = 11000;
                         break;
                     case 53:
                         DoScriptText(SAY_STAGE_1_10, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 20000;
+                        cooldown = 6000;
                         break;
                     case 54:
                         DoScriptText(SAY_STAGE_1_11, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 20000;
+                        cooldown = 5000;
+                        break;
                     case 55:
                         Reset();
                         break;
@@ -451,7 +454,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             DoScriptText(SAY_STAGE_2_02h, m_pInstance->GetCreature(NPC_GARROSH));
                         else
                             DoScriptText(SAY_STAGE_2_02a, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 14000;
+                        cooldown = 17000;
                         break;
                     case 3:
                         DoScriptText(SAY_STAGE_2_03, m_pInstance->GetCreature(NPC_TIRION));
@@ -525,6 +528,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 51: // outro
                         DoScriptText(SAY_STAGE_2_06, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 5000;
+                        break;
+                    case 52:
                         uint32 chestId = 0;
                         switch(m_dDifficulty)
                         {
