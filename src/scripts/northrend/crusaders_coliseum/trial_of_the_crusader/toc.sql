@@ -24,6 +24,14 @@ UPDATE creature_template SET ScriptName = 'boss_jaraxxus' WHERE entry=34780;
 UPDATE creature_template SET ScriptName = 'npc_felflame_infernal' WHERE entry=34815;
 UPDATE creature_template SET ScriptName = 'npc_mistress_of_pain' WHERE entry=34826;
 
+--3nd cencounter - Factioned Champion
+UPDATE creature_template SET mindmg = 6000, maxdmg = 6500, baseattacktime = 3500, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 10643, mechanic_immune_mask = 0 WHERE entry in (34461,34458,34471,34456,34475,34453); -- war, dk, retri
+UPDATE creature_template SET mindmg = 2500, maxdmg = 3000, baseattacktime = 1600, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 9643, mechanic_immune_mask = 0 WHERE entry in (34460,34451,34465,34445,34470,34444,34469,34459); -- holy, balance, restosham, restodruid
+UPDATE creature_template SET mindmg = 4000, maxdmg = 5000, baseattacktime = 2550, minoffdmg = 2200, maxoffdmg = 2800, dmg_offmultiplier= 1, offattacktime = 2550, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 8043, mechanic_immune_mask = 0 WHERE entry in (34472,34454,34463,34455); -- enha, rogue
+UPDATE creature_template SET mindmg = 2000, maxdmg = 2500, baseattacktime = 1600, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 6343, mechanic_immune_mask = 0 WHERE entry in (34468,34449,34466,34447,34473,34441,34474,34450); -- mage, spriest, disko, lock
+UPDATE creature_template SET mindmg = 3500, maxdmg = 4000, baseattacktime = 2600, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 8043, mechanic_immune_mask = 0 WHERE entry in (34467,34448); -- hunt
+UPDATE creature_template SET mindmg = 1800, maxdmg = 2200, baseattacktime = 1700, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 7043, mechanic_immune_mask = 0 WHERE entry in (35465,35610); -- peti
+
 -- 4th encounter - Twin Valkyr
 UPDATE creature_template SET ScriptName = 'boss_twin_valkyr', InhabitType = 7 WHERE entry IN (34497,34496);
 UPDATE creature_template SET ScriptName = 'npc_concentrated' WHERE entry IN (34628,34630);

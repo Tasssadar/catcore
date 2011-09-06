@@ -87,8 +87,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
              case NPC_FIZZLEBANG:
              case NPC_GARROSH:
              case NPC_WRYNN:
-             case NPC_LICH_KING_0:
-             case NPC_LICH_KING_1:
+             case NPC_LICH_KING:
              case NPC_GORMOK:
              case NPC_ACIDMAW:
              case NPC_DREADSCALE:
@@ -114,6 +113,11 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         switch(pGo->GetEntry())
         {
             case GO_ARGENT_COLISEUM_FLOOR:
+                GameObjectGuidMap[pGo->GetEntry()] = pGo->GetGUID();
+                if (EncounterData[TYPE_LICH_KING] == DONE &&
+                    EncounterData[TYPE_ANUBARAK] != DONE)
+                    pGo->Delete();
+                break;
             case GO_MAIN_GATE_DOOR:
             case GO_GATE_EAST:
             case GO_GATE_SOUTH:
@@ -134,8 +138,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case NPC_FIZZLEBANG:
             case NPC_GARROSH:
             case NPC_WRYNN:
-            case NPC_LICH_KING_0:
-            case NPC_LICH_KING_1:
+            case NPC_LICH_KING:
             case NPC_GORMOK:
             case NPC_ACIDMAW:
             case NPC_DREADSCALE:
@@ -228,6 +231,8 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case TYPE_LICH_KING:
             case TYPE_ANUBARAK:
                 return EncounterData[uiType];
+            case TYPE_COUNTER:
+                return WipeCounter;
             case TYPE_CHAMPION_SPAWN_MASK:
                 return ChampionSpawnMask;
             default:

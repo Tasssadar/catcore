@@ -18,17 +18,17 @@ enum
     TYPE_ANUBARAK               = 5,
     MAX_ENCOUNTER               = 6,
 
-    TYPE_COUNTER                = 8,
-    TYPE_CHAMPION_SPAWN_MASK    = 9,
-    //TYPE_EVENT                  = 9,
+    TYPE_COUNTER                = 7,
+    TYPE_CHAMPION_SPAWN_MASK    = 8,
 
     NPC_BARRENT                 = 34816,
     NPC_TIRION                  = 34996,
     NPC_FIZZLEBANG              = 35458,
     NPC_GARROSH                 = 34995,
     NPC_WRYNN                   = 34990,
-    NPC_LICH_KING_0             = 16980,
-    NPC_LICH_KING_1             = 35877,
+    NPC_LICH_KING               = 35877,
+    NPC_OUTRO_TIRION            = 36095,
+    NPC_OUTRO_ARGENT_MAGE       = 36097,
 
     NPC_THRALL                  = 34994,
     NPC_PROUDMOORE              = 34992,
@@ -41,6 +41,8 @@ enum
     NPC_ACIDMAW                 = 35144,
 
     NPC_JARAXXUS                = 34780,
+    NPC_MISTRESS_OF_PAIN        = 34826,
+    NPC_FELFLAME_INFERNAL       = 34815,
 
     NPC_LIGHTBANE               = 34497,
     NPC_DARKBANE                = 34496,
@@ -56,15 +58,15 @@ enum
     GO_CRUSADERS_CACHE_10_H     = 195633,
     GO_CRUSADERS_CACHE_25_H     = 195635,
 
-    GO_TRIBUTE_CHEST_10H_25     = 195665,
-    GO_TRIBUTE_CHEST_10H_45     = 195666,
-    GO_TRIBUTE_CHEST_10H_50     = 195667,
-    GO_TRIBUTE_CHEST_10H_99     = 195668,
+    GO_TRIBUTE_CHEST_10H_0      = 195665,
+    GO_TRIBUTE_CHEST_10H_5      = 195666,
+    GO_TRIBUTE_CHEST_10H_25     = 195667,
+    GO_TRIBUTE_CHEST_10H_49     = 195668,
 
-    GO_TRIBUTE_CHEST_25H_25     = 195669,
-    GO_TRIBUTE_CHEST_25H_45     = 195670,
-    GO_TRIBUTE_CHEST_25H_50     = 195671,
-    GO_TRIBUTE_CHEST_25H_99     = 195672,
+    GO_TRIBUTE_CHEST_25H_0      = 195669,
+    GO_TRIBUTE_CHEST_25H_5      = 195670,
+    GO_TRIBUTE_CHEST_25H_25     = 195671,
+    GO_TRIBUTE_CHEST_25H_49     = 195672,
 
     GO_ARGENT_COLISEUM_FLOOR    = 195527, //20943
     GO_MAIN_GATE_DOOR           = 195647,
@@ -124,6 +126,51 @@ enum FactionFCH
     FACTION_HORDE           = 1,
     FACTION_COUNT           = 2
 };
+
+enum Says
+{
+    SAY_STAGE_0_01            = -1649070,
+    SAY_STAGE_0_02            = -1649071,
+    SAY_STAGE_0_03a           = -1649072,
+    SAY_STAGE_0_03h           = -1649073,
+    SAY_STAGE_0_04            = -1649074,
+    SAY_STAGE_0_05            = -1649075,
+    SAY_STAGE_0_06            = -1649076,
+    SAY_STAGE_0_WIPE          = -1649077,
+    SAY_STAGE_1_01            = -1649080,
+    SAY_STAGE_1_02            = -1649081,
+    SAY_STAGE_1_03            = -1649082,
+    SAY_STAGE_1_04            = -1649083,
+    SAY_STAGE_1_05            = -1649030, //INTRO Jaraxxus
+    SAY_STAGE_1_06            = -1649084,
+    SAY_STAGE_1_07            = -1649086,
+    SAY_STAGE_1_08            = -1649087,
+    SAY_STAGE_1_09            = -1649088,
+    SAY_STAGE_1_10            = -1649089,
+    SAY_STAGE_1_11            = -1649090,
+    SAY_STAGE_2_01            = -1649091,
+    SAY_STAGE_2_02a           = -1649092,
+    SAY_STAGE_2_02h           = -1649093,
+    SAY_STAGE_2_03            = -1649094,
+    SAY_STAGE_2_04a           = -1649095,
+    SAY_STAGE_2_04h           = -1649096,
+    SAY_STAGE_2_05a           = -1649097,
+    SAY_STAGE_2_05h           = -1649098,
+    SAY_STAGE_2_06            = -1649099,
+    SAY_STAGE_3_01            = -1649100,
+    SAY_STAGE_3_02            = -1649101,
+    SAY_STAGE_3_03a           = -1649102,
+    SAY_STAGE_3_03h           = -1649103,
+    SAY_STAGE_4_01            = -1649104,
+    SAY_STAGE_4_02            = -1649105,
+    SAY_STAGE_4_03            = -1649106,
+    SAY_STAGE_4_04            = -1649107,
+    SAY_STAGE_4_05            = -1649108,
+    SAY_STAGE_4_06            = -1649109,
+    SAY_STAGE_4_07            = -1649110
+};
+
+#define REALLY_BIG_COOLDOWN 3600000
 
 const uint32 FChampIDs[CHAMPION_ALL_COUNT][FACTION_COUNT] =
 {
@@ -195,6 +242,12 @@ const Coords SpawnLoc[] =
     Coords(555.833f, 170.544f, 403.209f), // 43 - twin dark step 1
     Coords(534.764f, 170.544f, 403.209f), // 44 - twin dark step 2
     Coords(534.764f, 139.571f, 403.209f), // 45 - twin dark step 3
+    Coords(534.764f, 172.456f, 394.387f), // 46 - lich king spawn
+    Coords(606.294f, 133.892f, 138.479f), // 47 - tirion down spawn
+    Coords(648.916f, 131.021f, 141.616f), // 48 - tirion down final
+    Coords(605.638f, 143.839f, 138.511f), // 49 - argent mage down spawn
+    Coords(649.161f, 142.039f, 141.306f), // 50 - argent mage down final
+    Coords(616.786f, 137.686f, 139.464f), // 51 - announcer down
 };
 
 enum uiWorldStates
@@ -244,8 +297,10 @@ enum Announcer
     SPELL_JARAXXUS_CHAINS   = 67924,
     SPELL_EMERGE_ACIDMAW    = 66947,
     SPELL_FEL_LIGHTNING_IK  = 67888,  // Fel Lightning - gnom instakill
+    SPELL_LK_GATE           = 50795,
+    SPELL_LK_NOVA           = 68198,
 
-    SPELL_BERSERK           = 26662,
+    SPELL_BERSERK           = 26662,    
 
     SAY_AGGRO_JARAXXUS      = -1649031
 };
@@ -280,6 +335,8 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
     void SummonToCBoss(uint32 id, uint32 id2 = 0);
 
     void UpdateAI(const uint32 /*diff*/);
+
+    void DeleteCreaturesAndRemoveAuras();
 
 };
 

@@ -164,6 +164,11 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
     void Reset()
     {
+        if (isHeroic && m_pInstance->GetData(TYPE_COUNTER) >= 50)
+            m_creature->ForcedDespawn();
+
+        m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
+
         currentPhase = 0;
 
         AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
@@ -184,9 +189,10 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
-        currentPhase = 1;
+        if (!currentPhase)
+            return;
 
         for(uint8 i = 0; i < 6; ++i)
             m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
@@ -197,9 +203,22 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             m_pInstance->SetData(TYPE_ANUBARAK, IN_PROGRESS);
     }
 
+    void MoveInLineOfSight(Unit * pWho)
+    {
+        if (currentPhase || !pWho || pWho->GetTypeId() != TYPEID_PLAYER || !pWho->isTargetableForAttack())
+            return;
+
+        if (m_creature->GetDistance(pWho) < 100)
+        {
+            m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, false);
+            currentPhase = 1;
+            DoScriptText(SAY_INTRO, m_creature);
+        }
+    }
+
     void AttackStart(Unit* pWho)
     {
-        if (currentPhase == 2)
+        if (!currentPhase || currentPhase == 2)
             return;
 
         ScriptedAI::AttackStart(pWho);
@@ -232,6 +251,9 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ANUBARAK, DONE);
+
+        if (GameObject* go = m_pInstance->GetGameObject(GO_ARGENT_COLISEUM_FLOOR))
+            go->Respawn();
     }
 
     void JustReachedHome()

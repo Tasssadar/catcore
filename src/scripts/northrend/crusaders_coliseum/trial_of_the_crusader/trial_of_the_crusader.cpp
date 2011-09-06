@@ -24,57 +24,15 @@ EndScriptData */
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
 
-enum Says
-{
-    SAY_STAGE_0_01            = -1649070,
-    SAY_STAGE_0_02            = -1649071,
-    SAY_STAGE_0_03a           = -1649072,
-    SAY_STAGE_0_03h           = -1649073,
-    SAY_STAGE_0_04            = -1649074,
-    SAY_STAGE_0_05            = -1649075,
-    SAY_STAGE_0_06            = -1649076,
-    SAY_STAGE_0_WIPE          = -1649077,
-    SAY_STAGE_1_01            = -1649080,
-    SAY_STAGE_1_02            = -1649081,
-    SAY_STAGE_1_03            = -1649082,
-    SAY_STAGE_1_04            = -1649083,
-    SAY_STAGE_1_05            = -1649030, //INTRO Jaraxxus
-    SAY_STAGE_1_06            = -1649084,
-    SAY_STAGE_1_07            = -1649086,
-    SAY_STAGE_1_08            = -1649087,
-    SAY_STAGE_1_09            = -1649088,
-    SAY_STAGE_1_10            = -1649089,
-    SAY_STAGE_1_11            = -1649090,
-    SAY_STAGE_2_01            = -1649091,
-    SAY_STAGE_2_02a           = -1649092,
-    SAY_STAGE_2_02h           = -1649093,
-    SAY_STAGE_2_03            = -1649094,
-    SAY_STAGE_2_04a           = -1649095,
-    SAY_STAGE_2_04h           = -1649096,
-    SAY_STAGE_2_05a           = -1649097,
-    SAY_STAGE_2_05h           = -1649098,
-    SAY_STAGE_2_06            = -1649099,
-    SAY_STAGE_3_01            = -1649100,
-    SAY_STAGE_3_02            = -1649101,
-    SAY_STAGE_3_03a           = -1649102,
-    SAY_STAGE_3_03h           = -1649103,
-    SAY_STAGE_4_01            = -1649104,
-    SAY_STAGE_4_02            = -1649105,
-    SAY_STAGE_4_03            = -1649106,
-    SAY_STAGE_4_04            = -1649107,
-    SAY_STAGE_4_05            = -1649108,
-    SAY_STAGE_4_06            = -1649109,
-    SAY_STAGE_4_07            = -1649110
-};
-
-#define REALLY_BIG_COOLDOWN 3600000
-
 npc_toc_announcerAI::npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCreature)
 {
     m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
     m_dDifficulty = pCreature->GetMap()->GetDifficulty();
     isHeroic = pCreature->GetMap()->IsHeroicRaid();
     is10Man = pCreature->GetMap()->IsRaid10Man();
+
+    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
     encounterCreature = NULL;
     encounterCreature2 = NULL;
     Reset();
@@ -85,10 +43,19 @@ void npc_toc_announcerAI::Reset()
     if (!m_pInstance)
         m_creature->ForcedDespawn();
 
-    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     m_creature->SetRespawnDelay(DAY);
-    m_creature->SetVisibility(VISIBILITY_ON);
-    m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
+
+    if (m_pInstance->GetData(TYPE_LICH_KING) == DONE)
+    {
+        m_creature->SetVisibility(VISIBILITY_ON);
+        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
+    }
+    else
+    {
+        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[51], 0);
+    }
+
     m_TimerMgr->SetUpdatable(false);
     currentEncounter = -1;
     encounterStage = 0;
@@ -143,6 +110,26 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
     AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 5000);
 }
 
+void npc_toc_announcerAI::DeleteCreaturesAndRemoveAuras()
+{
+    CreatureList deleteList;
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_LIGHT_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DARK_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_LIGHT, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_MISTRESS_OF_PAIN, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_FELFLAME_INFERNAL, DEFAULT_VISIBILITY_INSTANCE);
+    for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
+        (*itr)->ForcedDespawn(3500);
+
+    Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
+    if (!PlayerList.isEmpty())
+        for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+            if (Player* plr = iter->getSource())
+                for (uint8 d = 0; d < 12; ++d)
+                    plr->RemoveAurasDueToSpell(Dispell[d]);
+}
+
 void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
 {
     if (m_pInstance->GetData(encounterId) == DONE)
@@ -158,6 +145,7 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
         case TYPE_JARAXXUS:
         case TYPE_CRUSADERS:
         case TYPE_VALKIRIES:
+        case TYPE_ANUBARAK:
             startTimer = 1000;
             runaway = 2000;
             break;
@@ -197,14 +185,12 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     break;
                 case GORMOK_DONE:
                 case SNAKES_DONE:
-                {
                     if ((data == GORMOK_DONE && encounterStage == 4) || (data == SNAKES_DONE && encounterStage == 7))
                     {
                         m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
                         m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
                     }
                     break;
-                }
                 default:
                     break;
             }
@@ -215,11 +201,13 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
             switch(data)
             {
                 case FAIL:
+                    DeleteCreaturesAndRemoveAuras();
                     Reset();
                     break;
                 case DONE:
                     encounterStage = 50;
                     m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6500);
+                    DeleteCreaturesAndRemoveAuras();
                     break;
                 default:
                     break;
@@ -252,51 +240,48 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
             switch(data)
             {
                 case FAIL:
-                {
-                    CreatureList deleteList;
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_LIGHT_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DARK_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_LIGHT, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
-                    for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
-                        (*itr)->ForcedDespawn(3500);
-
-                    Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
-                    if (!PlayerList.isEmpty())
-                        for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
-                            if (Player* plr = iter->getSource())
-                                for (uint8 d = 0; d < 12; ++d)
-                                    plr->RemoveAurasDueToSpell(Dispell[d]);
-
+                    DeleteCreaturesAndRemoveAuras();
                     Reset();
                     break;
-                }
                 case DONE:
-                {
                     encounterStage = 50;
                     m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6000);
-
-                    CreatureList deleteList;
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_LIGHT_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DARK_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_LIGHT, DEFAULT_VISIBILITY_INSTANCE);
-                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
-                    for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
-                        (*itr)->ForcedDespawn(3500);
-
-                    Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
-                    if (!PlayerList.isEmpty())
-                        for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
-                            if (Player* plr = iter->getSource())
-                                for (uint8 d = 0; d < 12; ++d)
-                                    plr->RemoveAurasDueToSpell(Dispell[d]);
+                    DeleteCreaturesAndRemoveAuras();
                     break;
-                }
                 default:
                     break;
             }
             return;
         }
+        case TYPE_LICH_KING:
+        {
+            switch(data)
+            {
+                case FAIL:
+                    Reset();
+                    break;
+                default:
+                    break;
+            }
+            return;
+        }
+        case TYPE_ANUBARAK:
+        {
+            switch(data)
+            {
+                case DONE:
+                    currentEncounter = TYPE_ANUBARAK;
+                    encounterStage = 50;
+                    m_TimerMgr->SetUpdatable(true);
+                    AddNonCastTimer(TIMER_PHASE_HANDLING, 5000, 0);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -595,6 +580,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 5000;
                         break;
                     case 52:
+                    {
                         uint32 chestId = 0;
                         switch(m_dDifficulty)
                         {
@@ -604,9 +590,11 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             case RAID_DIFFICULTY_25MAN_HEROIC: chestId = GO_CRUSADERS_CACHE_25_H; break;
                             default: break;
                         }
-                        m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
+                        if (chestId)
+                            m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
                         Reset();
                         break;
+                    }
                 }
                 break;
             }
@@ -654,7 +642,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             crt->GetMotionMaster()->Clear(false, true);
                             crt->ChargeMonsterMove(path, SPLINETYPE_FACINGTARGET, crt->GetSplineFlags(), travelTime[second], crt2->GetGUID());
                         }
-
                         cooldown = (travelTime[0] > travelTime[1] ? travelTime[0] : travelTime[1]) + 5000;
                         break;
                     }
@@ -685,6 +672,144 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 }
                 break;
             }
+            case TYPE_LICH_KING:
+            {
+                switch(encounterStage)
+                {
+                    case 1:
+                        DoScriptText(SAY_STAGE_4_01, m_pInstance->GetCreature(NPC_TIRION));
+                        m_pInstance->SetData(TYPE_LICH_KING, IN_PROGRESS);
+                        cooldown = 18000;
+                        break;
+                    case 2:
+                        SummonToCBoss(NPC_LICH_KING);
+                        cooldown = 1000;
+                        break;
+                    case 3:
+                        DoScriptText(SAY_STAGE_0_02, encounterCreature);
+                        cooldown = 7000;
+                        break;
+                    case 4:
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[46], M_PI_F*1.5f)))
+                            Reset();
+
+                        encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
+                        encounterCreature2->CastSpell(encounterCreature2, SPELL_LK_GATE, false);
+                        cooldown = 4000;
+                        break;
+                    case 5:
+                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[46], M_PI_F*1.5f);
+                        encounterCreature->SendMonsterMove(SpawnLoc[46].x, SpawnLoc[46].y, SpawnLoc[46].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
+                        cooldown = 500;
+                        break;
+                    case 6:
+                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[18].x, SpawnLoc[19].y, SpawnLoc[18].z, false);
+                        cooldown = 3000;
+                        break;
+                    case 7:
+                        DoScriptText(SAY_STAGE_4_03, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 8000;
+                        break;
+                    case 8:
+                        DoScriptText(SAY_STAGE_4_04, encounterCreature);
+                        encounterCreature->HandleEmote(EMOTE_ONESHOT_LAUGH);
+                        cooldown = 13000;
+                        break;
+                    case 9:
+                        encounterCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
+                        cooldown = 5000;
+                        break;
+                    case 10:
+                        encounterCreature->HandleEmote(EMOTE_ONESHOT_KNEEL);
+                        cooldown = 2000;
+                        break;
+                    case 11:
+                        encounterCreature->CastSpell(encounterCreature, SPELL_LK_NOVA, false);
+                        cooldown = 500;
+                        break;
+                    case 12:
+                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[2], M_PI_F*1.5f);
+                        encounterCreature->SendMonsterMove(SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
+
+                        Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
+                        if (!PlayerList.isEmpty())
+                            for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+                                if (Player* plr = iter->getSource())
+                                    plr->KnockBackFrom(plr, 0, 20);
+
+                        if (GameObject* pFloor = m_pInstance->GetGameObject(GO_ARGENT_COLISEUM_FLOOR))
+                        {
+                            pFloor->TakenDamage(100, m_creature);
+                            pFloor->TakenDamage(100, m_creature);
+                        }
+                        cooldown = 2000;
+                        break;
+                    case 13:
+                        DoScriptText(SAY_STAGE_4_05, encounterCreature);
+                        cooldown = 5000;
+                        break;
+                    case 14:
+                    {
+                        m_pInstance->SetData(TYPE_LICH_KING, DONE);
+                        if (GameObject* pFloor = m_pInstance->GetGameObject(GO_ARGENT_COLISEUM_FLOOR))
+                            pFloor->Delete();
+                        Reset();
+                        break;
+                    }
+                }
+                break;
+            }
+        case TYPE_ANUBARAK:
+        {
+            switch(encounterStage)
+            {
+            case 51:
+                encounterCreature = DoSpawnTocBoss(NPC_OUTRO_TIRION, SpawnLoc[47], 0);
+                encounterCreature2 = DoSpawnTocBoss(NPC_OUTRO_ARGENT_MAGE, SpawnLoc[49], 0);
+                if (!encounterCreature || !encounterCreature2)
+                    Reset();
+
+                encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[48].x, SpawnLoc[48].y, SpawnLoc[48].z, false);
+                encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[50].x, SpawnLoc[50].y, SpawnLoc[50].z, false);
+                cooldown = 5000;
+                break;
+            case 52:
+                DoScriptText(SAY_STAGE_4_06, encounterCreature);
+                cooldown = 20000;
+                break;
+            case 53:
+                if (!isHeroic || m_pInstance->GetData(TYPE_COUNTER) >= 50)
+                {
+                    Reset();
+                    break;
+                }
+
+                DoScriptText(SAY_STAGE_4_07, encounterCreature);
+                cooldown = 5000;
+                break;
+            case 54:
+            {
+                uint32 chestId = 0;
+                uint32 wipes = m_pInstance->GetData(TYPE_COUNTER);
+                if (wipes == 0)
+                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_0 : GO_TRIBUTE_CHEST_25H_0;
+                else if (isInRange(1, wipes, 5))
+                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_5 : GO_TRIBUTE_CHEST_25H_5;
+                else if (isInRange(6, wipes, 25))
+                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_25 : GO_TRIBUTE_CHEST_25H_25;
+                else if (isInRange(26, wipes, 49))
+                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_49 : GO_TRIBUTE_CHEST_25H_49;
+                if (chestId)
+                    m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
+                Reset();
+                break;
+            }
+
+
+
+            }
+            break;
+        }
 
             default:
                 break;
@@ -802,7 +927,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
 CreatureAI* GetAI_npc_toc_announcer(Creature* pCreature)
 {
     return new npc_toc_announcerAI(pCreature);
-};
+}
 
 bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
 {
@@ -860,237 +985,6 @@ bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32
     return true;
 }
 
-/*struct MANGOS_DLL_DECL boss_lich_king_tocAI : public ScriptedAI
-{
-    boss_lich_king_tocAI(Creature *pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        WayPointList.clear();
-        JustRespawned();
-    }
-
-    ScriptedInstance* m_pInstance;
-    uint32 UpdateTimer;
-    uint32 event_state_lich_king;
-    bool Event;
-    bool MovementStarted;
-    std::list<WorldLocation> WayPointList;
-    std::list<WorldLocation>::iterator WayPoint;
-    uint32 WalkTimer;
-    bool IsWalking;
-    Creature* pPortal;
-
-    void Reset()
-    {
-        UpdateTimer = 0;
-        event_state_lich_king = 0;
-        Event = false;
-        MovementStarted = false;
-        m_creature->SetRespawnDelay(DAY);
-        pPortal = m_creature->SummonCreature(NPC_TRIGGER, SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, 5, TEMPSUMMON_CORPSE_TIMED_DESPAWN, DESPAWN_TIME);
-        pPortal->SetRespawnDelay(DAY);
-        pPortal->CastSpell(pPortal, 51807, false);
-        pPortal->SetDisplayId(17612);
-        if (m_pInstance) m_pInstance->SetData(TYPE_LICH_KING,IN_PROGRESS);
-    }
-
-    void AttackStart(Unit *who)
-    {
-        //ignore all attackstart commands
-        return;
-    }
-
-    void JustRespawned()
-    {
-        Reset();
-    }
-
-    void MoveInLineOfSight(Unit *who)
-    {
-    }
-
-    void StartMovement()
-    {
-        if (!WayPointList.empty() || MovementStarted)
-            return;
-
-        AddWaypoint(0, SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z);
-        AddWaypoint(1, SpawnLoc[17].x, SpawnLoc[17].y, SpawnLoc[17].z);
-        AddWaypoint(2, SpawnLoc[18].x, SpawnLoc[18].y, SpawnLoc[18].z);
-        m_creature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-        WayPoint = WayPointList.begin();
-        MovementStarted = true;
-        IsWalking = true;
-        WalkTimer = 200;
-        event_state_lich_king = 1;
-        UpdateTimer = m_pInstance->GetData(TYPE_EVENT_TIMER);
-    }
-
-    void AddWaypoint(uint32 id, float x, float y, float z)
-    {
-        WorldLocation loc(id, x,y,z);
-        WayPointList.push_back(loc);
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_LICH_KING_1)
-            return;
-    }
-};
-
-CreatureAI* GetAI_boss_lich_king_toc(Creature* pCreature)
-{
-    return new boss_lich_king_tocAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL npc_fizzlebang_tocAI : public ScriptedAI
-{
-    npc_fizzlebang_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)m_creature->GetInstanceData();
-        Reset();
-    }
-
-    InstanceData* m_pInstance;
-    uint32 UpdateTimer;
-    Creature* pPortal;
-    Creature* pTrigger;
-
-    void Reset()
-    {
-        m_creature->SetRespawnDelay(DAY);
-        m_creature->GetMotionMaster()->MovePoint(1, SpawnLoc[27].x, SpawnLoc[27].y, SpawnLoc[27].z);
-        pPortal = NULL;
-    }
-
-    void JustDied(Unit* pKiller)
-    {
-        DoScriptText(-1713715, m_creature, pKiller);
-        m_pInstance->SetData(TYPE_EVENT, 1180);
-        if (pPortal)
-            pPortal->ForcedDespawn();
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_FIZZLEBANG)
-            return;
-
-    }
-};
-
-CreatureAI* GetAI_npc_fizzlebang_toc(Creature* pCreature)
-{
-    return new npc_fizzlebang_tocAI(pCreature);
-}
-
-struct MANGOS_DLL_DECL npc_tirion_tocAI : public ScriptedAI
-{
-    npc_tirion_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)m_creature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    uint32 UpdateTimer;
-    uint32 crusader[12];
-    uint8 crusaderscount;
-
-    void Reset()
-    {
-        crusaderscount = 0;
-        memset(&crusader, 0, sizeof(crusader));
-    }
-
-    void AttackStart(Unit *who)
-    {
-        //ignore all attackstart commands
-        return;
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_TIRION)
-            return;
-        
-     }
-};
-
-CreatureAI* GetAI_npc_tirion_toc(Creature* pCreature)
-{
-    return new npc_tirion_tocAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL npc_garrosh_tocAI : public ScriptedAI
-{
-    npc_garrosh_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)m_creature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    uint32 UpdateTimer;
-
-    void Reset()
-    {
-    }
-
-    void AttackStart(Unit *who)
-    {
-        //ignore all attackstart commands
-        return;
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_GARROSH)
-            return;
-        
-    }
-};
-
-CreatureAI* GetAI_npc_garrosh_toc(Creature* pCreature)
-{
-    return new npc_garrosh_tocAI(pCreature);
-};
-
-struct MANGOS_DLL_DECL npc_rinn_tocAI : public ScriptedAI
-{
-    npc_rinn_tocAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)m_creature->GetInstanceData();
-        Reset();
-    }
-
-    ScriptedInstance* m_pInstance;
-    uint32 UpdateTimer;
-
-    void Reset()
-    {
-    }
-
-    void AttackStart(Unit *who)
-    {
-        //ignore all attackstart commands
-        return;
-    }
-
-    void UpdateAI(const uint32 diff)
-    {
-        if (!m_pInstance || m_pInstance->GetData(TYPE_EVENT_NPC) != NPC_RINN)
-            return;
-        
-    }
-};
-
-CreatureAI* GetAI_npc_rinn_toc(Creature* pCreature)
-{
-    return new npc_rinn_tocAI(pCreature);
-};*/
-
 void AddSC_trial_of_the_crusader()
 {
     Script* NewScript;
@@ -1101,29 +995,4 @@ void AddSC_trial_of_the_crusader()
     NewScript->pGossipHello = &GossipHello_npc_toc_announcer;
     NewScript->pGossipSelect = &GossipSelect_npc_toc_announcer;
     NewScript->RegisterSelf();
-
-    /*NewScript = new Script;
-    NewScript->Name = "boss_lich_king_toc";
-    NewScript->GetAI = &GetAI_boss_lich_king_toc;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "npc_fizzlebang_toc";
-    NewScript->GetAI = &GetAI_npc_fizzlebang_toc;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "npc_tirion_toc";
-    NewScript->GetAI = &GetAI_npc_tirion_toc;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "npc_garrosh_toc";
-    NewScript->GetAI = &GetAI_npc_garrosh_toc;
-    NewScript->RegisterSelf();
-
-    NewScript = new Script;
-    NewScript->Name = "npc_rinn_toc";
-    NewScript->GetAI = &GetAI_npc_rinn_toc;
-    NewScript->RegisterSelf();*/
 }
