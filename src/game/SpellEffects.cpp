@@ -7078,16 +7078,30 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
             }
 
-            // Mistress Kiss
-            if (m_spellInfo->SpellDifficultyId == 344)
-                m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
+            switch(m_spellInfo->SpellDifficultyId)
+            {
+                case 344:   // Mistress Kiss
+                    m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), true);
+                    break;
+                case 466:   // Twin's Pact
+                case 467:   // Twin's Pact
+                    unitTarget->CastSpell(unitTarget, 65916, true);
+                    break;
+                case 581:   // Powering Up
+                    Aura* pAura = unitTarget->GetAuraOnDifficulty(m_spellInfo->Id, EFFECT_INDEX_0);
+                    if (!pAura || pAura->GetStackAmount() < 100)
+                        break;
 
-            // Twin's Pact
-            else if (m_spellInfo->SpellDifficultyId == 467)
-                unitTarget->CastSpell(unitTarget, 65916, true);
-            else if (m_spellInfo->SpellDifficultyId == 466)
-                unitTarget->CastSpell(unitTarget, 65916, true);
+                    if (unitTarget->HasAuraOnDifficulty(65686))         // Light Essence
+                        unitTarget->CastSpell(unitTarget, 67218, true); // Empowered Light
+                    else if (unitTarget->HasAuraOnDifficulty(65684))    // Dark Essence
+                        unitTarget->CastSpell(unitTarget, 67215, true); // Empowered Darkness
 
+                    unitTarget->RemoveAura(pAura);
+                    break;
+                default:
+                    break;
+            }
             break;
         }
         case SPELLFAMILY_WARLOCK:
