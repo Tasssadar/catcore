@@ -204,7 +204,7 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // Pointer to spell timer manager of creature
     SpellTimerMgr* m_TimerMgr;
 
-    private:
+    protected:
         bool   m_bCombatMovement;
         uint32 m_uiEvadeCheckCooldown;
         bool   m_bAttackEnabled;

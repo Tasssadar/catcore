@@ -88,10 +88,10 @@ enum Spells
 
 const uint8 m_uiConcCount[MAX_DIFFICULTY] = {10, 15, 25, 35};
 
-bool isUnitLight(Unit* unit) const { return unit->HasAuraOnDifficulty(SPELL_LIGHT_ESSENCE);}
-bool isUnitDark(Unit* unit) const  { return unit->HasAuraOnDifficulty(SPELL_DARK_ESSENCE); }
-bool isEmpoweredByLight(Unit* unit) const { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_DARK); }
-bool isEmpoweredByDark(Unit *unit)  const { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_LIGHT); }
+bool isUnitLight(Unit* unit) { return unit->HasAuraOnDifficulty(SPELL_LIGHT_ESSENCE);}
+bool isUnitDark(Unit* unit)  { return unit->HasAuraOnDifficulty(SPELL_DARK_ESSENCE); }
+bool isEmpoweredByLight(Unit* unit) { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_DARK); }
+bool isEmpoweredByDark(Unit *unit)  { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_LIGHT); }
 
 struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 {
@@ -361,20 +361,11 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
 
         if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->isTargetableForAttack() && pWho->IsWithinDist(m_creature, 2))
         {
-            if (isLight)
-            {
-                if (pWho->HasAuraOnDifficulty(SPELL_LIGHT_ESSENCE))
-                    pWho->CastSpell(pWho, SPELL_POWERING_UP, true);
-                else
-                    m_creature->CastSpell(m_creature, SPELL_UNLEASHED_LIGHT, true);
-            }
+            if (isLight ? isUnitLight(pWho) : isUnitDark(pWho))
+                pWho->CastSpell(pWho, SPELL_POWERING_UP, true);
             else
-            {
-                if (pWho->HasAuraOnDifficulty(SPELL_DARK_ESSENCE))
-                    pWho->CastSpell(pWho, SPELL_POWERING_UP, true);
-                else
-                    m_creature->CastSpell(m_creature, SPELL_UNLEASHED_DARK, true);
-            }
+                m_creature->CastSpell(m_creature, isLight ? SPELL_UNLEASHED_LIGHT : SPELL_UNLEASHED_DARK, true);
+
             used = true;
             m_creature->ForcedDespawn(500);
         }
@@ -428,8 +419,8 @@ void AddSC_twin_valkyr()
     newscript->GetAI = &GetAI_npc_concentrated;
     newscript->RegisterSelf();
 
-    NewScript = new Script;
-    NewScript->Name = "npc_toc_essence";
-    NewScript->pGossipHello = &GossipHello_npc_toc_essence;
-    NewScript->RegisterSelf();
+    newscript = new Script;
+    newscript->Name = "npc_toc_essence";
+    newscript->pGossipHello = &GossipHello_npc_toc_essence;
+    newscript->RegisterSelf();
 }
