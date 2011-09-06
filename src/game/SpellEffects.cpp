@@ -7072,7 +7072,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 {
                     for(uint8 effC = 0; effC < MAX_EFFECT_INDEX; ++effC)
                         for(uint8 effE = 0; effE < MAX_EFFECT_INDEX; ++effE)
-                            if (Aura* pAura = unitTarget->GetAuraOnDifficulty(m_spellInfo->CalculateSimpleValue(effC), effE))
+                            if (Aura* pAura = unitTarget->GetAuraOnDifficulty(m_spellInfo->CalculateSimpleValue(SpellEffectIndex(effC)), SpellEffectIndex(effE)))
                                 unitTarget->RemoveAura(pAura);
                     break;
                 }
@@ -7088,6 +7088,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 65916, true);
                     break;
                 case 581:   // Powering Up
+                {
                     Aura* pAura = unitTarget->GetAuraOnDifficulty(m_spellInfo->Id, EFFECT_INDEX_0);
                     if (!pAura || pAura->GetStackAmount() < 100)
                         break;
@@ -7099,6 +7100,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     unitTarget->RemoveAura(pAura);
                     break;
+                }
                 default:
                     break;
             }

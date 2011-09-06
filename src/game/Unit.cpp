@@ -5621,10 +5621,10 @@ Aura* Unit::GetAuraOnDifficulty(uint32 spellId, SpellEffectIndex effindex)
 {
     SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
     if (!spellInfo)
-        return false;
+        return NULL;
 
     if (!spellInfo->SpellDifficultyId)
-        return HasAura(spellId);
+        return GetAura(spellId, effindex);
 
     SpellEntry const* spellInfoDiff = GetSpellEntryByDifficulty(spellInfo->SpellDifficultyId, GetMap()->GetDifficulty());
     return GetAura(spellInfoDiff->Id, effindex);
