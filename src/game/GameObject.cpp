@@ -1480,29 +1480,29 @@ bool GameObject::IsInRange(float x, float y, float z, float radius) const
 
 void GameObject::TakenDamage(uint32 damage, Unit* pKiller)
 {
-    if(!m_health)
+    if (!m_health)
         return;
 
-       if (m_health > damage)
-           m_health -= damage;
-       else
-           m_health = 0;
+    if (m_health > damage)
+        m_health -= damage;
+    else
+        m_health = 0;
 
-       if (HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED)) // from damaged to destroyed
-       {
-           RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
-           SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
-           SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
-           m_health = 0;
-       }
-    else if(!HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED))
+    if (HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED)) // from damaged to destroyed
+    {
+        RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
+        SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED);
+        SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.destroyedDisplayId);
+        m_health = 0;
+    }
+    else if (!HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DAMAGED) && !HasFlag(GAMEOBJECT_FLAGS,GO_FLAG_DESTROYED))
     {
         SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED);
         SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->destructibleBuilding.damagedDisplayId);
-        if(m_goInfo->destructibleBuilding.destroyedDisplayId)
+        if (m_goInfo->destructibleBuilding.destroyedDisplayId)
         {
             m_health = m_goInfo->destructibleBuilding.destroyedHealth;
-            if(!m_health)
+            if (!m_health)
                 m_health = 1;
         }
         else
@@ -1517,17 +1517,17 @@ void GameObject::Rebuild(Unit* pKiller)
        RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED + GO_FLAG_DESTROYED);
        SetUInt32Value(GAMEOBJECT_DISPLAYID, m_goInfo->displayId);
        m_health = m_goInfo->destructibleBuilding.damagedHealth;
-	   
-	   if (!pKiller)
-		   return;
+
+       if (!pKiller)
+           return;
 
        Player* unitPlayer;
        if (pKiller->GetTypeId() == TYPEID_PLAYER)
-		   unitPlayer = (Player*)pKiller;
+           unitPlayer = (Player*)pKiller;
        else if(((Creature*)pKiller)->isVehicle())
-		   unitPlayer = (Player*)pKiller->GetCharmerOrOwnerOrSelf();
+           unitPlayer = (Player*)pKiller->GetCharmerOrOwnerOrSelf();
        else
-		   unitPlayer = NULL;
+           unitPlayer = NULL;
 }
 
 // overwrite WorldObject function for proper name localization
