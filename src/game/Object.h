@@ -87,7 +87,26 @@ struct Coords
     Coords(Coords const &coord)
         : x(coord.x), y(coord.y), z(coord.z) {}
 
-    bool isNULL() const { return x == 0.f && y == 0.f && z == 0.f; }
+    bool isNULL() const
+    {
+        return x == 0.f && y == 0.f && z == 0.f;
+    }
+
+    float GetDistance2d(const Coords _coord) const
+    {
+        float xd = _coord.x - x;
+        float yd = _coord.y - y;
+        return sqrt((xd*xd) + (yd*yd));
+    }
+
+    float GetDistance(const Coords _coord) const
+    {
+        float xd = _coord.x - x;
+        float yd = _coord.y - y;
+        float zd = _coord.z - z;
+        return sqrt((xd*xd) + (yd*yd) + (zd*zd));
+    }
+
 };
 
 struct WorldLocation
