@@ -108,6 +108,8 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         isHeroic = pCreature->GetMap()->IsHeroicRaid();
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
         Reset();
     }
 
@@ -226,24 +228,25 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             return;
 
         Coords coord;
+        uint32 nextPoint = 0;
         switch(pointId)
         {
-            case POINT_LIGHT_FORW:  coord = SpawnLoc[41]; break;
-            case POINT_LIGHT_FORW+1:coord = SpawnLoc[42]; break;
-            case POINT_DARK_FORW:   coord = SpawnLoc[44]; break;
-            case POINT_DARK_FORW+1: coord = SpawnLoc[44]; break;
-            case POINT_LIGHT_FORW+2:
-            case POINT_DARK_FORW+2:
+            case POINT_LIGHT_1: coord = SpawnLoc[41]; nextPoint = POINT_LIGHT_2; break;
+            case POINT_LIGHT_2: coord = SpawnLoc[42]; nextPoint = POINT_LIGHT_3; break;
+            case POINT_DARK_1:  coord = SpawnLoc[44]; nextPoint = POINT_DARK_2; break;
+            case POINT_DARK_2:  coord = SpawnLoc[44]; nextPoint = POINT_DARK_3; break;
+            case POINT_LIGHT_3:
+            case POINT_DARK_3:
                 EnableAttack(true);
                 m_creature->SetFacingTo(m_creature->GetAngle(SpawnLoc[1].x, SpawnLoc[1].y));
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 break;
             default:
-                break;
+                return;
 
         }
-        if (!coord.isNULL())
-            m_creature->GetMotionMaster()->MovePoint(pointId+1, coord.x, coord.y, coord.z);
+        if (!coord.isNULL() && nextPoint)
+            m_creature->GetMotionMaster()->MovePoint(nextPoint, coord.x, coord.y, coord.z);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)

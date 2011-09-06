@@ -587,8 +587,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         DoScriptText(SAY_STAGE_3_02, m_pInstance->GetCreature(NPC_TIRION));
                         ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(false);
-                        encounterCreature->GetMotionMaster()->MovePoint(POINT_LIGHT_FORW, SpawnLoc[40].x, SpawnLoc[40].y, SpawnLoc[40].z, false);
-                        encounterCreature2->GetMotionMaster()->MovePoint(POINT_DARK_FORW, SpawnLoc[43].x, SpawnLoc[43].y, SpawnLoc[43].z, false);
+                        encounterCreature->GetMotionMaster()->MovePoint(POINT_LIGHT_1, SpawnLoc[40].x, SpawnLoc[40].y, SpawnLoc[40].z, false);
+                        encounterCreature2->GetMotionMaster()->MovePoint(POINT_DARK_1, SpawnLoc[43].x, SpawnLoc[43].y, SpawnLoc[43].z, false);
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     }

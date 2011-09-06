@@ -27,6 +27,7 @@ UPDATE creature_template SET ScriptName = 'npc_mistress_of_pain' WHERE entry=348
 -- 4th encounter - Twin Valkyr
 UPDATE creature_template SET ScriptName = 'boss_twin_valkyr' WHERE entry IN (34497,34496);
 UPDATE creature_template SET ScriptName = 'npc_concentrated' WHERE entry IN (34628,34630);
+UPDATE creature_template SET ScriptName = 'npc_toc_essence', IconName = 'Interact' WHERE entry IN (34567,34568);
 
 -- light
 INSERT IGNORE spell_script_target VALUES (65876, 1, 34496);

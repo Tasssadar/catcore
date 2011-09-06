@@ -228,8 +228,12 @@ enum Announcer
     TIMER_CUSTOM            = 103,
 
     POINT_PORT              = 100,
-    POINT_LIGHT_FORW        = 110,
-    POINT_DARK_FORW         = 120,
+    POINT_LIGHT_1           = 110,
+    POINT_LIGHT_2           = 111,
+    POINT_LIGHT_3           = 112,
+    POINT_DARK_1            = 120,
+    POINT_DARK_2            = 121,
+    POINT_DARK_3            = 122,
 
     NUM_MESSAGES            = 5,
 
