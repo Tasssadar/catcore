@@ -516,7 +516,6 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetVisibility(VISIBILITY_OFF);
-        
     }
 
     void UpdateAI(const uint32 uiDiff)
