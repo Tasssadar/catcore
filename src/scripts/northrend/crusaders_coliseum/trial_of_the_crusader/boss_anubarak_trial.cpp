@@ -152,13 +152,13 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        isHC = pCreature->GetMap()->IsHeroicRaid();
+        isHeroic = pCreature->GetMap()->IsHeroicRaid();
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     Difficulty m_dDifficulty;
-    bool isHC;
+    bool isHeroic;
 
     uint8 currentPhase;
 
@@ -176,7 +176,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         AddNonCastTimer(TIMER_PHASE, 80000, 60000);
         AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
 
-        if (isHC)
+        if (isHeroic)
             AddNonCastTimer(TIMER_BURROWER_STRIKE, urand(25000,30000), 30000);
         else
             AddNonCastTimer(TIMER_FROST_SPHERE, 30000, 90000);
@@ -301,7 +301,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             {
                 // timers for phase 3
                 // add to queue leeching swarm
-                if (!isHC)
+                if (!isHeroic)
                     m_TimerMgr->SetValue(TIMER_BURROWER_SPAWN, TIMER_VALUE_UPDATEABLE, false);
 
                 m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
