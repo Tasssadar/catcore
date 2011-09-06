@@ -432,7 +432,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 54:
                         DoScriptText(SAY_STAGE_1_11, m_pInstance->GetCreature(NPC_TIRION));
                         cooldown = 20000;
-                    case 54:
+                    case 55:
                         Reset();
                         break;
                 }
