@@ -389,22 +389,24 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->SetOrientation(encounterCreature2->GetAngle(encounterCreature));
                         encounterCreature2->SendHeartBeatMsg();
                         encounterCreature2->SetSummonPoint(SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, encounterCreature->GetOrientation());
+                        ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
                         cooldown = 4000;
                         break;
                     case 9:
                         DoScriptText(SAY_STAGE_1_05, encounterCreature2);
-                        cooldown = 3000;
+                        cooldown = 6000;
                         break;
                     case 10:
                         DoScriptText(SAY_STAGE_0_06, encounterCreature);
-                        cooldown = 700;
+                        cooldown = 1000;
                         break;
                     case 11:
                         encounterCreature2->CastSpell(encounterCreature, SPELL_FEL_LIGHTNING_IK, false);
-                        cooldown = 2000;
+                        cooldown = 3000;
                         break;
                     case 12:
                         DoScriptText(SAY_STAGE_1_07, m_pInstance->GetCreature(NPC_TIRION));
+                        ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(true);
                         cooldown = 5000;
                         break;
                     case 13:
@@ -417,18 +419,20 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 51: //outro
                         DoScriptText(SAY_STAGE_1_08, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 10000;
+                        cooldown = 20000;
                         break;
                     case 52:
                         DoScriptText(SAY_STAGE_1_09, m_pInstance->GetCreature(NPC_GARROSH));
-                        cooldown = 10000;
+                        cooldown = 20000;
                         break;
                     case 53:
                         DoScriptText(SAY_STAGE_1_10, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 10000;
+                        cooldown = 20000;
                         break;
                     case 54:
                         DoScriptText(SAY_STAGE_1_11, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 20000;
+                    case 54:
                         Reset();
                         break;
                 }
@@ -440,25 +444,25 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 {
                     case 1:
                         DoScriptText(SAY_STAGE_2_01, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 10000;
+                        cooldown = 9000;
                         break;
                     case 2:
                         if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
                             DoScriptText(SAY_STAGE_2_02h, m_pInstance->GetCreature(NPC_GARROSH));
                         else
                             DoScriptText(SAY_STAGE_2_02a, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 10000;
+                        cooldown = 14000;
                         break;
                     case 3:
                         DoScriptText(SAY_STAGE_2_03, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 10000;
+                        cooldown = 5000;
                         break;
                     case 4:
                         if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
                             DoScriptText(SAY_STAGE_2_04h, m_pInstance->GetCreature(NPC_GARROSH));
                         else
                             DoScriptText(SAY_STAGE_2_04a, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 10000;
+                        cooldown = 4000;
                         break;
                     case 5:
                     {
