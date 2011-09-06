@@ -5617,6 +5617,19 @@ Aura* Unit::GetAura(uint32 spellId, SpellEffectIndex effindex)
     return NULL;
 }
 
+Aura* Unit::GetAuraOnDifficulty(uint32 spellId, SpellEffectIndex effindex)
+{
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    if (!spellInfo)
+        return false;
+
+    if (!spellInfo->SpellDifficultyId)
+        return HasAura(spellId);
+
+    SpellEntry const* spellInfoDiff = GetSpellEntryByDifficulty(spellInfo->SpellDifficultyId, GetMap()->GetDifficulty());
+    return GetAura(spellInfoDiff->Id, effindex);
+}
+
 Aura* Unit::GetAura(AuraType type, uint32 family, uint64 familyFlag, uint32 familyFlag2, uint64 casterGUID)
 {
     AuraList const& auras = GetAurasByType(type);
