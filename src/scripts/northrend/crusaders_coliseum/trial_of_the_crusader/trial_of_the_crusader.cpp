@@ -212,7 +212,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     break;
                 case DONE:
                     encounterStage = 50;
-                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6000);
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6500);
                     break;
                 default:
                     break;
@@ -391,15 +391,15 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->SendHeartBeatMsg();
                         encounterCreature2->SetSummonPoint(SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, encounterCreature->GetOrientation());
                         ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
-                        cooldown = 7000;
+                        cooldown = 8500;
                         break;
                     case 9:
                         DoScriptText(SAY_STAGE_1_05, encounterCreature2);
-                        cooldown = 6000;
+                        cooldown = 7000;
                         break;
                     case 10:
                         DoScriptText(SAY_STAGE_1_06, encounterCreature);
-                        cooldown = 1000;
+                        cooldown = 800;
                         break;
                     case 11:
                         encounterCreature2->CastSpell(encounterCreature, SPELL_FEL_LIGHTNING_IK, false);
