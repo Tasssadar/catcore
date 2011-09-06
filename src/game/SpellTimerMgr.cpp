@@ -246,7 +246,11 @@ void SpellTimerMgr::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unT
     for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
     {
         SpellTimer* timer = itr->second;
+        if (!timer)
+            continue;
         SpellEntry const* spellInfo = sSpellStore.LookupEntry(timer->GetValue(TIMER_VALUE_SPELLID));
+        if (!spellInfo)
+            continue;
 
         if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) &&  timer->GetValue(TIMER_VALUE_TIMER) < unTimeMs)
             timer->Cooldown(unTimeMs);
