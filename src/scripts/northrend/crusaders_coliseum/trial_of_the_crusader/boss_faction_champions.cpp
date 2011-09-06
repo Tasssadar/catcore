@@ -81,7 +81,7 @@ struct FactionedChampionAI : public ScriptedAI
         return crt && IsEntryChampion(crt->GetEntry()) ? (FactionedChampionAI*)crt->AI() : NULL;
     }
 
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell)
     {
         for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
