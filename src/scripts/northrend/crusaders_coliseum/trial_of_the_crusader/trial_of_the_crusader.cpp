@@ -391,19 +391,19 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->SendHeartBeatMsg();
                         encounterCreature2->SetSummonPoint(SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, encounterCreature->GetOrientation());
                         ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
-                        cooldown = 4000;
+                        cooldown = 7000;
                         break;
                     case 9:
                         DoScriptText(SAY_STAGE_1_05, encounterCreature2);
                         cooldown = 6000;
                         break;
                     case 10:
-                        DoScriptText(SAY_STAGE_0_06, encounterCreature);
+                        DoScriptText(SAY_STAGE_1_06, encounterCreature);
                         cooldown = 1000;
                         break;
                     case 11:
                         encounterCreature2->CastSpell(encounterCreature, SPELL_FEL_LIGHTNING_IK, false);
-                        cooldown = 3000;
+                        cooldown = 4000;
                         break;
                     case 12:
                         DoScriptText(SAY_STAGE_1_07, m_pInstance->GetCreature(NPC_TIRION));
@@ -421,15 +421,15 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 51: //outro
                         DoScriptText(SAY_STAGE_1_08, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 14000;
+                        cooldown = 15000;
                         break;
                     case 52:
                         DoScriptText(SAY_STAGE_1_09, m_pInstance->GetCreature(NPC_GARROSH));
-                        cooldown = 11000;
+                        cooldown = 10000;
                         break;
                     case 53:
                         DoScriptText(SAY_STAGE_1_10, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 6000;
+                        cooldown = 7000;
                         break;
                     case 54:
                         DoScriptText(SAY_STAGE_1_11, m_pInstance->GetCreature(NPC_TIRION));
