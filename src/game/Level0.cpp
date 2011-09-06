@@ -367,8 +367,27 @@ bool ChatHandler::HandleLitakCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleTestCommand(const char * /*args*/)
+bool ChatHandler::HandleTestCommand(const char * args)
 {
+    if (!*args)
+        return false;
+
+    Unit* target = getSelectedUnit();
+
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+    uint32 emote = extractSpellIdFromLink((char*)args);
+    if (!emote)
+        return false;
+
+    target->HandleEmote(emote);
+
     return true;
 }
 
