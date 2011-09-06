@@ -545,8 +545,8 @@ class BattleGround
         void DoorClose(uint64 const& guid);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
-        virtual bool IsXYZPositionOK(float x, float y, float z) { return true; }
-        virtual bool ObjectInLOS(Unit* caster, Unit* target) { return false ; }
+        virtual bool IsXYZPositionOK(float /*x*/, float /*y*/, float /*z*/) { return true; }
+        virtual bool ObjectInLOS(Unit* /*caster*/, Unit* /*target*/) { return false ; }
 
         // since arenas can be AvA or Hvh, we have to get the "temporary" team of a player
         uint32 GetPlayerTeam(uint64 guid);
