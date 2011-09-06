@@ -7068,6 +7068,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
                     break;
                 }
+                case 67547:                     // Clear Val'kyr Essence
+                {
+                    for(uint8 effC = 0; effC < MAX_EFFECT_INDEX; ++effC)
+                        for(uint8 effE = 0; effE < MAX_EFFECT_INDEX; ++effE)
+                            if (Aura* pAura = unitTarget->GetAuraOnDifficulty(m_spellInfo->CalculateSimpleValue(effC), effE))
+                                unitTarget->RemoveAura(pAura);
+                    break;
+                }
             }
 
             // Mistress Kiss
