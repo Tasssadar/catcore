@@ -733,33 +733,51 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         Map::PlayerList const &lPlayers = pMap->GetPlayers();
         if (lPlayers.isEmpty())
             return;
-        
+
+        Player* pPlayer = NULL;
         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
         {
-            if (Player* pPlayer = itr->getSource())
+            pPlayer = itr->getSource();
+            if (!pPlayer || !pPlayer->IsInWorld() || !pPlayer->isAlive())
+                continue;
+            
+            if (pPlayer->GetVehicleGUID())
+                pPlayer->ExitVehicle();
+            if (Vehicle *pTemp = m_creature->SummonVehicle(NPC_WYRMREST_SKYTALON, pPlayer->GetPositionX(), pPlayer->GetPositionY(), OtherLoc[0].z, 0))
             {
-                if (pPlayer->GetVehicleGUID())
-                    pPlayer->ExitVehicle();
-
-                if (Vehicle *pTemp = m_creature->SummonVehicle(NPC_WYRMREST_SKYTALON, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0))
+                ((Creature*)pTemp)->SetCreatorGUID(pPlayer->GetGUID());
+                uint32 health = ((Creature*)pTemp)->GetHealth() + (pPlayer->GetMaxHealth()*2); // may be wrong
+                //((Creature*)pTemp)->SetArmor(pPlayer->GetArmor());  // ???
+                ((Creature*)pTemp)->SetMaxHealth(health);
+                ((Creature*)pTemp)->SetHealth(health);
+                m_creature->AddThreat((Creature*)pTemp, 1.0f);  // To not leave combat
+                pPlayer->EnterVehicle(pTemp, 0, false);
+                if (((Creature*)pTemp)->GetHealth() != health)
                 {
-                    ((Creature*)pTemp)->SetCreatorGUID(pPlayer->GetGUID());
-                    uint32 health = ((Creature*)pTemp)->GetHealth() + (pPlayer->GetMaxHealth()*2); // may be wrong
-                    //((Creature*)pTemp)->SetArmor(pPlayer->GetArmor());  // ???
                     ((Creature*)pTemp)->SetMaxHealth(health);
                     ((Creature*)pTemp)->SetHealth(health);
-                    m_creature->AddThreat((Creature*)pTemp, 1.0f);  // To not leave combat
-                    pPlayer->EnterVehicle(pTemp, 0, false);
-                    if (((Creature*)pTemp)->GetHealth() != health)
-                    {
-                        ((Creature*)pTemp)->SetMaxHealth(health);
-                        ((Creature*)pTemp)->SetHealth(health);
-                    }
-                    ((Creature*)pTemp)->SetFacingToObject(m_creature);
                 }
+                ((Creature*)pTemp)->SetFacingToObject(m_creature);
             }
         }
     }
+
+    void KnockUpPlayers()
+    {
+        Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+        if (lPlayers.isEmpty())
+            return;
+
+        Player* pPlayer = NULL;
+        for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+        {
+            pPlayer = itr->getSource();
+            if (!pPlayer || !pPlayer->IsInWorld() || !pPlayer->isAlive())
+                continue;
+            pPlayer->KnockBackFrom(pPlayer, 0, 40);
+        }
+    }
+    
     void DespawnCreatures(uint32 entry, float distance, bool discs = false)
     {
         //Because vehicles cant be found by GetCreatureListWithEntryInGrid()
@@ -1130,15 +1148,15 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                         pFloor->TakenDamage(100, m_creature);
                         pFloor->TakenDamage(100, m_creature);
                     }
-                    
-                    //Mount Players
-                    MountPlayers();
+
+                    //Knock up players
+                    KnockUpPlayers();
 
                     //Despawn bubbles and discs
                     DespawnCreatures(NPC_ARCANE_OVERLOAD, 70.0f);
                     DespawnCreatures(NPC_HOVER_DISC, 70.0f, true);
 
-                    m_uiTimer = 2000;
+                    m_uiTimer = 3500;
                     m_uiSubPhase = SUBPHASE_DESTROY_PLATFORM2;
                     m_pInstance->SetData(TYPE_LIGHT, LIGHT_NEBULASKY);
                 }else m_uiTimer -= uiDiff;
@@ -1146,7 +1164,11 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             }
             else if (m_uiSubPhase == SUBPHASE_DESTROY_PLATFORM2)
             {
-                if (m_uiTimer<= uiDiff){
+                if (m_uiTimer<= uiDiff)
+                {
+                    // Mount players
+                    MountPlayers();
+
                     uint32 time = m_creature->GetDistance(OtherLoc[0].x, OtherLoc[0].y, OtherLoc[0].z)/(10.0f*0.001f);
                     DoMovement(OtherLoc[0].x, OtherLoc[0].y, OtherLoc[0].z, time, false);
                     m_uiSubPhase = SUBPHASE_DESTROY_PLATFORM3;
