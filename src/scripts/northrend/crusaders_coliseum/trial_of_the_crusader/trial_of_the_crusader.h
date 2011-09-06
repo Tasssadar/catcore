@@ -45,6 +45,9 @@ enum
     NPC_LIGHTBANE               = 34497,
     NPC_DARKBANE                = 34496,
 
+    NPC_DARK_ESSENCE            = 34567,
+    NPC_LIGHT_ESSENCE           = 34568,
+
     NPC_ANUBARAK                = 34564,
 
     GO_CRUSADERS_CACHE_10       = 195631,
@@ -183,6 +186,12 @@ const Coords SpawnLoc[] =
     Coords(605.405f, 160.063f, 395.209f), // 37 - ali champ jump 1
     Coords(605.405f, 118.555f, 395.210f), // 38 - ali champ jump 2
     Coords(590.654f, 139.571f, 394.393f), // 39 - ali champ loc
+    Coords(571.833f, 170.544f, 395.209f), // 40 - twin light step 1
+    Coords(593.654f, 170.544f, 395.209f), // 41 - twin light step 2
+    Coords(593.654f, 139.571f, 395.209f), // 42 - twin light step 3
+    Coords(555.833f, 170.544f, 395.209f), // 43 - twin dark step 1
+    Coords(534.764f, 170.544f, 395.209f), // 44 - twin dark step 2
+    Coords(534.764f, 139.571f, 395.209f), // 45 - twin dark step 3
 };
 
 enum uiWorldStates
@@ -219,6 +228,8 @@ enum Announcer
     TIMER_CUSTOM            = 103,
 
     POINT_PORT              = 100,
+    POINT_LIGHT_FORW        = 110,
+    POINT_DARK_FORW         = 120,
 
     NUM_MESSAGES            = 5,
 

@@ -98,8 +98,6 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        EnableAttack(false);
         Reset();
     }
 

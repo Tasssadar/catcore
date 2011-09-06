@@ -127,9 +127,9 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
     Coords coord2;
     if (id2)
     {
-        coord2 = SpawnLoc[2];
-        coord.x -= 8.f;
-        coord2.x += 8.f;
+        coord2  = SpawnLoc[2];
+        coord.x += 8.f;
+        coord2.x-= 8.f;
     }
     encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f);
     if (id2)
@@ -152,6 +152,7 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
         case TYPE_BEASTS:
         case TYPE_JARAXXUS:
         case TYPE_CRUSADERS:
+        case TYPE_VALKIRIES:
             startTimer = 1000;
             runaway = 2000;
             break;
@@ -234,6 +235,22 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
 
                     encounterStage = 50;
                     m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 8000);
+                    break;
+                default:
+                    break;
+            }
+            return;
+        }
+        case TYPE_VALKIRIES:
+        {
+            switch(data)
+            {
+                case FAIL:
+                    Reset();
+                    break;
+                case DONE:
+                    encounterStage = 50;
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6000);
                     break;
                 default:
                     break;
@@ -387,8 +404,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 3000;
                         break;
                     case 8:
-                        encounterCreature2->SetOrientation(encounterCreature2->GetAngle(encounterCreature));
-                        encounterCreature2->SendHeartBeatMsg();
+                        encounterCreature2->SetFacingToObject(encounterCreature);
                         encounterCreature2->SetSummonPoint(SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, encounterCreature->GetOrientation());
                         ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
                         cooldown = 8500;
@@ -546,6 +562,50 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 }
                 break;
             }
+            case TYPE_VALKIRIES:
+            {
+                switch(encounterStage)
+                {
+                    case 1:
+                        DoScriptText(SAY_STAGE_3_01, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 20000;
+                        break;
+                    case 2:
+                        SummonToCBoss(NPC_LIGHTBANE, NPC_DARKBANE);
+                        for(uint8 i = 0; i < 4; ++i)
+                        {
+                            uint32 entry = i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE;
+                            DoSpawnTocBoss(entry, SpawnLoc[22+i], 0);
+                        }
+                        cooldown = 1000;
+                        break;
+                    case 3:
+                    {
+                        if (!encounterCreature || !encounterCreature2)
+                            Reset();
+
+                        DoScriptText(SAY_STAGE_3_02, m_pInstance->GetCreature(NPC_TIRION));
+                        ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
+                        ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(false);
+                        encounterCreature->GetMotionMaster()->MovePoint(POINT_LIGHT_FORW, SpawnLoc[40].x, SpawnLoc[40].y, SpawnLoc[40].z, false);
+                        encounterCreature2->GetMotionMaster()->MovePoint(POINT_DARK_FORW, SpawnLoc[43].x, SpawnLoc[43].y, SpawnLoc[43].z, false);
+                        cooldown = REALLY_BIG_COOLDOWN;
+                        break;
+                    }
+                    case 51: // outro
+                        if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
+                            DoScriptText(SAY_STAGE_3_03a, m_pInstance->GetCreature(NPC_WRYNN));
+                        else
+                            DoScriptText(SAY_STAGE_3_03h, m_pInstance->GetCreature(NPC_GARROSH));
+                        cooldown = 5000;
+                        break;
+                    case 52:
+                        Reset();
+                        break;
+                }
+                break;
+            }
+
             default:
                 break;
         }

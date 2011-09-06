@@ -71,13 +71,12 @@ enum Spells
     SPELL_TWIN_SPIKE_D          = 66069,
     SPELL_BERSERK_VALKYR        = 64238,
     //SPELL_SUMM_CONC             = 66077,
+    SPELL_EMPOWERED_LIGHT       = 65748,
+    SPELL_EMPOWERED_DARK        = 65724,
 
     SPELL_REMOVE_TOUCH          = 68084,
     SPELL_TOUCH_OF_LIGHT        = 65950,
     SPELL_TOUCH_OF_DARKNESS     = 66001,
-
-    NPC_DARK_ESSENCE            = 34567,
-    NPC_LIGHT_ESSENCE           = 34568,
 
     NPC_CONCENTRATED_DARKNESS   = 34628,
     NPC_CONCENTRATED_LIGHT      = 34630,
@@ -89,17 +88,26 @@ enum Spells
 
 const uint8 m_uiConcCount[MAX_DIFFICULTY] = {10, 15, 25, 35};
 
+bool isUnitLight(Unit* unit) const { return unit->HasAuraOnDifficulty(SPELL_LIGHT_ESSENCE);}
+bool isUnitDark(Unit* unit) const  { return unit->HasAuraOnDifficulty(SPELL_DARK_ESSENCE); }
+bool isEmpoweredByLight(Unit* unit) const { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_DARK); }
+bool isEmpoweredByDark(Unit *unit)  const { return unit->HasAuraOnDifficulty(SPELL_EMPOWERED_LIGHT); }
+
 struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 {
     boss_twin_valkyrAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        isLight = m_creature->GetEntry() == NPC_LIGHTBANE;
+        isDark = m_creature->GetEntry() == NPC_DARKBANE;
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        isLight = m_creature->GetEntry() == 34497;
-        isDark = m_creature->GetEntry() == 34496;
-        if (!isLight && !isDark)
+
+        if ((!isLight && !isDark) || !m_pInstance)
             pCreature->ForcedDespawn();
+
+        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         isHeroic = pCreature->GetMap()->IsHeroicRaid();
+
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         Reset();
     }
 
@@ -145,8 +153,21 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         return GetSis() ? GetSis()->GetTimerMgr() : NULL;
     }
 
-    void DamageTaken(Unit */*pDoneBy*/, uint32 &uiDamage)
+    void DamageTaken(Unit *pDoneBy, uint32 &uiDamage)
     {
+        if (!pDoneBy || pDoneBy->GetTypeId() != TYPEID_PLAYER)
+            return;
+
+        if (isLight ? isUnitDark(pDoneBy) : isUnitLight(pDoneBy))
+        {
+            if (isLight ? isEmpoweredByDark(pDoneBy) : isEmpoweredByLight(pDoneBy))
+                uiDamage *= 2.f;
+            else
+                uiDamage *= 1.5f;
+        }
+        else if (isLight ? isUnitLight(pDoneBy) : isUnitDark(pDoneBy))
+            uiDamage *= 0.5f;
+
         Creature* sis = GetSis();
         sis->SetHealth(sis->GetHealth()-uiDamage);
     }
@@ -154,25 +175,75 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
     void Aggro(Unit* pWho)
     {
         DoScriptText(SAY_AGGRO, m_creature);
+
+        m_pInstance->SetData(TYPE_VALKIRIES, IN_PROGRESS);
+
+        if (!m_bAttackEnabled)
+            return;
+
         AttackStart(pWho);
         if (Creature* sis = GetSis())
             sis->AI()->AttackStart(pWho);
     }
 
-    void JustDied(Unit* /*pWho*/)
+    void AttackStart(Unit* pWho)
+    {
+        if (!pWho)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+            m_creature->GetMotionMaster()->MoveChase(pWho);
+        }
+    }
+
+    void JustDied(Unit* )
     {
         DoScriptText(SAY_DEATH, m_creature);
-        if (sis)
-        {
-            if (!sis->isAlive())
-            { /* complete*/ }
-        }
+        if (!sis || !sis->isAlive())
+            m_pInstance->SetData(TYPE_VALKIRIES, DONE);
+    }
+
+    void JustReachedHome()
+    {
+        m_pInstance->SetData(TYPE_VALKIRIES, FAIL);
+
+        m_creature->ForcedDespawn();
     }
 
     void KilledUnit(Unit* pWho)
     {
         if (pWho->GetTypeId() == TYPEID_PLAYER)
             DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
+    }
+
+    void MovementInform(uint32 moveType, uint32 pointId)
+    {
+        if (moveType != POINT_MOTION_TYPE)
+            return;
+
+        Coords coord;
+        switch(pointId)
+        {
+            case POINT_LIGHT_FORW:  coord = SpawnLoc[41]; break;
+            case POINT_LIGHT_FORW+1:coord = SpawnLoc[42]; break;
+            case POINT_DARK_FORW:   coord = SpawnLoc[44]; break;
+            case POINT_DARK_FORW+1: coord = SpawnLoc[44]; break;
+            case POINT_LIGHT_FORW+2:
+            case POINT_DARK_FORW+2:
+                EnableAttack(true);
+                m_creature->SetFacingTo(m_creature->GetAngle(SpawnLoc[1].x, SpawnLoc[1].y));
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                break;
+            default:
+                break;
+
+        }
+        if (!coord.isNULL())
+            m_creature->GetMotionMaster()->MovePoint(pointId+1, coord.x, coord.y, coord.z);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -319,6 +390,20 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
             Ping();
     }*/
 };
+bool GossipHello_npc_toc_essence(Player* pPlayer, Creature* pCreature)
+{
+    ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    bool isLight = pCreature->GetEntry() == NPC_LIGHT_ESSENCE;
+    bool isDark = pCreature->GetEntry() == NPC_DARK_ESSENCE;
+    if (!m_pInstance || (!isLight && !isDark))
+        return false;
+
+    pPlayer->AddAndLinkAura(SPELL_DARK_ESSENCE, isDark);
+    pPlayer->AddAndLinkAura(SPELL_DARK_ESSENCE, isLight);
+    pPlayer->CLOSE_GOSSIP_MENU();
+    return true;
+}
+
 CreatureAI* GetAI_boss_twin_valkyr(Creature* pCreature)
 {
     return new boss_twin_valkyrAI(pCreature);
@@ -342,4 +427,9 @@ void AddSC_twin_valkyr()
     newscript->Name = "npc_concentrated";
     newscript->GetAI = &GetAI_npc_concentrated;
     newscript->RegisterSelf();
+
+    NewScript = new Script;
+    NewScript->Name = "npc_toc_essence";
+    NewScript->pGossipHello = &GossipHello_npc_toc_essence;
+    NewScript->RegisterSelf();
 }
