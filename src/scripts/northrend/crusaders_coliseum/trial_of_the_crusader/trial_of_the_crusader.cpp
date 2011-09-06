@@ -325,7 +325,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                             encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                             ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
-                            DoScriptText(SAY_AGGRO, encounterCreature2);
+                            DoScriptText(SAY_AGGRO_JARAXXUS, encounterCreature2);
                             encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                             m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
                             cooldown = REALLY_BIG_COOLDOWN;
@@ -415,7 +415,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
                         m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
-                        DoScriptText(SAY_AGGRO, encounterCreature2);
+                        DoScriptText(SAY_AGGRO_JARAXXUS, encounterCreature2);
                         encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;

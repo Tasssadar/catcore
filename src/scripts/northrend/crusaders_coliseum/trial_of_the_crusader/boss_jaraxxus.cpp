@@ -26,8 +26,8 @@ EndScriptData */
 
 enum Say
 {
-    SAY_INTRO               = -1649030,
-    SAY_AGGRO               = -1649031,
+    //SAY_INTRO               = -1649030,
+    //SAY_AGGRO               = -1649031,
     SAY_DEATH               = -1649032,
     EMOTE_INCINERATE        = -1649033,
     SAY_INCINERATE          = -1649034,

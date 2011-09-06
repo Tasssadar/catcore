@@ -227,7 +227,9 @@ enum Announcer
     SPELL_EMERGE_ACIDMAW    = 66947,
     SPELL_FEL_LIGHTNING_IK  = 67888,  // Fel Lightning - gnom instakill
 
-    SPELL_BERSERK           = 26662
+    SPELL_BERSERK           = 26662,
+
+    SAY_AGGRO_JARAXXUS      = -1649031
 };
 
 struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
