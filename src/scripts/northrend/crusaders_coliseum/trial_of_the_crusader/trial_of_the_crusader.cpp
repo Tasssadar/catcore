@@ -45,7 +45,7 @@ void npc_toc_announcerAI::Reset()
 
     m_creature->SetRespawnDelay(DAY);
 
-    if (m_pInstance->GetData(TYPE_LICH_KING) == DONE)
+    if (m_pInstance->GetData(TYPE_LICH_KING) != DONE)
     {
         m_creature->SetVisibility(VISIBILITY_ON);
         m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
@@ -145,6 +145,7 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
         case TYPE_JARAXXUS:
         case TYPE_CRUSADERS:
         case TYPE_VALKIRIES:
+        case TYPE_LICH_KING:
         case TYPE_ANUBARAK:
             startTimer = 1000;
             runaway = 2000;
@@ -728,6 +729,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 500;
                         break;
                     case 12:
+                    {
                         m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[2], M_PI_F*1.5f);
                         encounterCreature->SendMonsterMove(SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
 
@@ -744,6 +746,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         }
                         cooldown = 2000;
                         break;
+                    }
                     case 13:
                         DoScriptText(SAY_STAGE_4_05, encounterCreature);
                         cooldown = 5000;
