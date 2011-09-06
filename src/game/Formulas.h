@@ -21,6 +21,14 @@
 
 #include "World.h"
 
+inline bool isInRange(uint32 min_val, uint32 val, uint32 max_val, bool include = true)
+{
+    if (include)
+        return min_val <= val && val <= max_val;
+    else
+        return min_val < val && val < max_val;
+}
+
 namespace MaNGOS
 {
     namespace Honor
