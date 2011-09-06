@@ -78,9 +78,6 @@ enum Spells
     SPELL_TOUCH_OF_LIGHT        = 65950,
     SPELL_TOUCH_OF_DARKNESS     = 66001,
 
-    NPC_CONCENTRATED_DARKNESS   = 34628,
-    NPC_CONCENTRATED_LIGHT      = 34630,
-
     SPELL_POWERING_UP           = 67590,
     SPELL_UNLEASHED_LIGHT       = 65795,
     SPELL_UNLEASHED_DARK        = 65808
@@ -110,6 +107,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        m_creature->SetSplineFlags(SPLINEFLAG_UNKNOWN7);
         Reset();
     }
 
@@ -121,6 +119,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
     bool isDark;
 
     Creature* sis;
+
 
     void Reset()
     {
@@ -145,7 +144,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
     Creature* GetSis()
     {
         if (!sis)
-            sis = GetClosestCreatureWithEntry(m_creature, isLight ? 34496 : 34497, DEFAULT_VISIBILITY_INSTANCE);
+            sis = GetClosestCreatureWithEntry(m_creature, isLight ? NPC_DARKBANE : NPC_LIGHTBANE, DEFAULT_VISIBILITY_INSTANCE);
 
         return sis;
     }
@@ -171,7 +170,16 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             uiDamage *= 0.5f;
 
         Creature* sis = GetSis();
-        sis->SetHealth(sis->GetHealth()-uiDamage);
+        if (!sis || !sis->isAlive())
+            return;
+
+        uint32 sisHp = sis->GetHealth();
+        if (sisHp > uiDamage)
+            sisHp -= uiDamage;
+        else
+            sisHp = 1;
+
+        sis->SetHealth(sisHp);
     }
 
     void Aggro(Unit* pWho)
@@ -222,33 +230,6 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
-    void MovementInform(uint32 moveType, uint32 pointId)
-    {
-        if (moveType != POINT_MOTION_TYPE)
-            return;
-
-        Coords coord;
-        uint32 nextPoint = 0;
-        switch(pointId)
-        {
-            case POINT_LIGHT_1: coord = SpawnLoc[41]; nextPoint = POINT_LIGHT_2; break;
-            case POINT_LIGHT_2: coord = SpawnLoc[42]; nextPoint = POINT_LIGHT_3; break;
-            case POINT_DARK_1:  coord = SpawnLoc[44]; nextPoint = POINT_DARK_2; break;
-            case POINT_DARK_2:  coord = SpawnLoc[44]; nextPoint = POINT_DARK_3; break;
-            case POINT_LIGHT_3:
-            case POINT_DARK_3:
-                EnableAttack(true);
-                m_creature->SetFacingTo(m_creature->GetAngle(SpawnLoc[1].x, SpawnLoc[1].y));
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                break;
-            default:
-                return;
-
-        }
-        if (!coord.isNULL() && nextPoint)
-            m_creature->GetMotionMaster()->MovePoint(nextPoint, coord.x, coord.y, coord.z);
-    }
-
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -291,21 +272,21 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         // summon Concentrated
         if (m_TimerMgr->TimerFinished(TIMER_CONCENTRATED))
         {
-            Coords coord = Center;
-            float radius = 35.0f;
-            const uint32 id[2] = {NPC_CONCENTRATED_DARKNESS, NPC_CONCENTRATED_LIGHT};
             for (float angle = 0; angle < M_PI_F*2; angle += M_PI_F*2/m_uiConcCount[m_dDifficulty])
             {
-                float x = coord.x + radius*cos(angle);
-                float y = coord.y + radius*sin(angle);
-                for (uint8 i = 0; i < 2; ++i)
-                    m_creature->SummonCreature(id[i], x, y, coord.z, 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
+                Coords coord = Center;
+                coord.x += cos(angle)*35.f;
+                coord.y += sin(angle)*35.f;
+                if (Creature* pConc = m_creature->SummonCreature(isLight ? NPC_CONCENTRATED_LIGHT : NPC_CONCENTRATED_DARKNESS, coord, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
+                    pConc->SetRespawnDelay(7*DAY);
             }
         }
 
         // Berserk
         if (m_TimerMgr->TimerFinished(TIMER_BERSERK))
             DoScriptText(SAY_BERSERK, m_creature);
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -318,22 +299,16 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
         isDark = m_creature->GetEntry() == 34628;
         if (!isLight && !isDark)
             m_creature->ForcedDespawn();
-    }
-
-    bool isLight;
-    bool isDark;
-
-    bool used;
-
-    //Coords lastCoord;
-
-    void Reset()
-    {
-        //lastCoord = m_creature->GetPosition();
+        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
         used = false;
         Ping(START_POINT);
     }
 
+    bool isLight;
+    bool isDark;
+    bool used;
+
+    void Reset(){}
     void Ping(uint32 pointId)
     {
         float angleToMid = m_creature->GetAngle(Center.x, Center.y);
@@ -346,9 +321,8 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
         coord.x += distance*cos(angle);
         coord.y += distance*sin(angle);
 
-        m_creature->GetMotionMaster()->Clear();
+        m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MovePoint(pointId, coord.x, coord.y, coord.z);
-        //m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, m_creature->GetSplineFlags(), time);
     }
 
     void MovementInform(uint32 moveType, uint32 pointId)
@@ -357,44 +331,62 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
             Ping(pointId+1);
     }
 
-    void MoveInLineOfSight(Unit * pWho)
+    Player* GetNearestPlayerAndDist(float& dist)
     {
-        if (!pWho || used)
-            return;
-
-        if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->isTargetableForAttack() && pWho->IsWithinDist(m_creature, 2))
+        Player* nearest = NULL;
+        dist = 999.f;
+        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
         {
-            if (isLight ? isUnitLight(pWho) : isUnitDark(pWho))
-                pWho->CastSpell(pWho, SPELL_POWERING_UP, true);
-            else
-                m_creature->CastSpell(m_creature, isLight ? SPELL_UNLEASHED_LIGHT : SPELL_UNLEASHED_DARK, true);
+            Player* plr = itr->getSource();
+            if (!plr || !plr->isTargetableForAttack())
+                continue;
 
-            used = true;
-            m_creature->ForcedDespawn(500);
+            float currdist = m_creature->GetDistance2d(plr);
+            if (dist > currdist)
+            {
+                nearest = plr;
+                dist = currdist;
+            }
         }
+
+        return nearest;
     }
 
-    /*void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (used)
             return;
 
-        if (m_creature->GetDistance(Center.x, Center.y, Center.z) > 33 &&
-            m_creature->GetDistance(lastCoord.x, lastCoord.y, lastCoord.z) > 8)
-            Ping();
-    }*/
+        float distance;
+        Player* plr = GetNearestPlayerAndDist(distance);
+        if (!plr || distance > 4.f)
+            return;
+
+        if (isLight ? isUnitLight(plr) : isUnitDark(plr))
+            plr->CastSpell(plr, SPELL_POWERING_UP, true);
+        else
+            m_creature->CastSpell(m_creature, isLight ? SPELL_UNLEASHED_LIGHT : SPELL_UNLEASHED_DARK, true);
+
+        used = true;
+        m_creature->GetMotionMaster()->Clear(false, true);
+        m_creature->ForcedDespawn(500);
+    }
 };
+
 bool GossipHello_npc_toc_essence(Player* pPlayer, Creature* pCreature)
 {
     ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    if (!m_pInstance || m_pInstance->GetData(TYPE_VALKIRIES) != IN_PROGRESS)
+        return true;
+
     bool isLight = pCreature->GetEntry() == NPC_LIGHT_ESSENCE;
     bool isDark = pCreature->GetEntry() == NPC_DARK_ESSENCE;
-    if (!m_pInstance || (!isLight && !isDark))
-        return false;
+    if (!isLight && !isDark)
+        return true;
 
     pPlayer->AddAndLinkAura(SPELL_DARK_ESSENCE, isDark);
-    pPlayer->AddAndLinkAura(SPELL_DARK_ESSENCE, isLight);
-    pPlayer->CLOSE_GOSSIP_MENU();
+    pPlayer->AddAndLinkAura(SPELL_LIGHT_ESSENCE, isLight);
     return true;
 }
 

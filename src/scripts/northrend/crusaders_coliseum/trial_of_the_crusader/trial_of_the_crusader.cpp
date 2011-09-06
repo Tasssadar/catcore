@@ -112,9 +112,9 @@ void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
     }
 }
 
-Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori)
+Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z)
 {
-    Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 300000, true);
+    Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 300000, update_z);
     if (pTemp)
         pTemp->SetRespawnDelay(7*DAY);
 
@@ -124,16 +124,21 @@ Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori
 void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
 {
     Coords coord = SpawnLoc[2];
-    Coords coord2;
+    bool isFlying = false;
     if (id2)
     {
-        coord2  = SpawnLoc[2];
         coord.x += 8.f;
-        coord2.x-= 8.f;
+        coord.z += 5.f;
+        isFlying = true;
+
+        Coords coord2;
+        coord2 = SpawnLoc[2];
+        coord2.x -= 8.f;
+        coord2.z += 8.f;
+
+        encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f, !isFlying);
     }
-    encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f);
-    if (id2)
-        encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f);
+    encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f, !isFlying);
 
     AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 5000);
 }
@@ -172,8 +177,9 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
 void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
 {
     // if data already set, dont set again, mainly cause of factioned champions
-    if (m_pInstance->GetData(type) == data)
-        return;
+    // set in SetData
+    //if (m_pInstance->GetData(type) == data)
+    //    return;
 
     switch (type)
     {
@@ -246,12 +252,46 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
             switch(data)
             {
                 case FAIL:
+                {
+                    CreatureList deleteList;
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_LIGHT_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DARK_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_LIGHT, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
+                    for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
+                        (*itr)->ForcedDespawn(3500);
+
+                    Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
+                    if (!PlayerList.isEmpty())
+                        for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+                            if (Player* plr = iter->getSource())
+                                for (uint8 d = 0; d < 12; ++d)
+                                    plr->RemoveAurasDueToSpell(Dispell[d]);
+
                     Reset();
                     break;
+                }
                 case DONE:
+                {
                     encounterStage = 50;
                     m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6000);
+
+                    CreatureList deleteList;
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_LIGHT_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DARK_ESSENCE, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_LIGHT, DEFAULT_VISIBILITY_INSTANCE);
+                    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
+                    for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
+                        (*itr)->ForcedDespawn(3500);
+
+                    Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
+                    if (!PlayerList.isEmpty())
+                        for (Map::PlayerList::const_iterator iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+                            if (Player* plr = iter->getSource())
+                                for (uint8 d = 0; d < 12; ++d)
+                                    plr->RemoveAurasDueToSpell(Dispell[d]);
                     break;
+                }
                 default:
                     break;
             }
@@ -309,11 +349,19 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 5000;
                         break;
                     case 7:
-                        if (Player* randPlr = m_pInstance->GetRandomPlayerInMap())
-                            if (encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0))
-                                encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, false);
+                    {
+                        Player* randPlr = m_pInstance->GetRandomPlayerInMap();
+                        if (!randPlr)
+                            break;
+
+                        encounterCreature2 = DoSpawnTocBoss(NPC_ACIDMAW, randPlr->GetPosition(), 0);
+                        if (!encounterCreature2)
+                            break;
+
+                        encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, false);
                         cooldown = isHeroic ? 173000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
                         break;
+                    }
                     case 8:
                         SummonToCBoss(NPC_ICEHOWL);
                         DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
@@ -568,15 +616,13 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 {
                     case 1:
                         DoScriptText(SAY_STAGE_3_01, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 20000;
+                        cooldown = 12000;
                         break;
                     case 2:
                         SummonToCBoss(NPC_LIGHTBANE, NPC_DARKBANE);
                         for(uint8 i = 0; i < 4; ++i)
-                        {
-                            uint32 entry = i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE;
-                            DoSpawnTocBoss(entry, SpawnLoc[22+i], 0);
-                        }
+                            DoSpawnTocBoss(i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE, SpawnLoc[22+i], 0);
+
                         cooldown = 1000;
                         break;
                     case 3:
@@ -585,10 +631,44 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             Reset();
 
                         DoScriptText(SAY_STAGE_3_02, m_pInstance->GetCreature(NPC_TIRION));
-                        ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
-                        ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(false);
-                        encounterCreature->GetMotionMaster()->MovePoint(POINT_LIGHT_1, SpawnLoc[40].x, SpawnLoc[40].y, SpawnLoc[40].z, false);
-                        encounterCreature2->GetMotionMaster()->MovePoint(POINT_DARK_1, SpawnLoc[43].x, SpawnLoc[43].y, SpawnLoc[43].z, false);
+
+                        uint32 travelTime[2];
+                        for(uint8 second = 0; second < 2; ++second)
+                        {
+                            Creature* crt = second ? encounterCreature2 : encounterCreature;
+                            ((ScriptedAI*)crt->AI())->EnableAttack(false);
+
+                            const Coords& pos = crt->GetPosition();
+                            const Coords& node1 = second ? SpawnLoc[43] : SpawnLoc[40];
+                            const Coords& node2 = second ? SpawnLoc[44] : SpawnLoc[41];
+                            const Coords& node3 = second ? SpawnLoc[45] : SpawnLoc[42];
+
+                            PointPath path;
+                            path.resize(4);
+                            path.set(0, PathNode(pos.x, pos.y, pos.z));
+                            path.set(1, PathNode(node1.x, node1.y, node1.z));
+                            path.set(2, PathNode(node2.x, node2.y, node2.z));
+                            path.set(3, PathNode(node3.x, node3.y, node3.z));
+                            travelTime[second] = path.GetTotalLength()/(crt->GetSpeed(MOVE_RUN)*0.001f);
+                            Creature* crt2 = second ? encounterCreature : encounterCreature2;
+                            crt->GetMotionMaster()->Clear(false, true);
+                            crt->ChargeMonsterMove(path, SPLINETYPE_FACINGTARGET, crt->GetSplineFlags(), travelTime[second], crt2->GetGUID());
+                        }
+
+                        cooldown = (travelTime[0] > travelTime[1] ? travelTime[0] : travelTime[1]) + 5000;
+                        break;
+                    }
+                    case 4:
+                    {
+                        for(uint8 second = 0; second < 2; ++second)
+                        {
+                            Creature* crt = second ? encounterCreature2 : encounterCreature;
+                            Creature* crt2 = second ? encounterCreature : encounterCreature2;
+                            const Coords& node3 = second ? SpawnLoc[45] : SpawnLoc[42];
+                            m_pInstance->instance->CreatureRelocation(crt, node3, crt->GetAngle(crt2));
+                            ((ScriptedAI*)crt->AI())->EnableAttack(true);
+                            crt->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        }
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     }
@@ -730,7 +810,7 @@ bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
     if (!m_pInstance)
         return false;
 
-    bool isHeroic = pCreature->GetMap()->IsHeroicRaid();
+    //bool isHeroic = pCreature->GetMap()->IsHeroicRaid();
     char const* _message = "We are ready!";
 
     if (!pPlayer->getAttackers().empty() ||
@@ -751,7 +831,7 @@ bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
-bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
     ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
     if (!m_pInstance)

@@ -173,6 +173,9 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case TYPE_LICH_KING:
             case TYPE_ANUBARAK:
             {
+                if (uiData == EncounterData[uiType])
+                    break;
+
                 if (Creature* pAnnouncer = GetCreature(NPC_BARRENT))
                     ((npc_toc_announcerAI*)pAnnouncer->AI())->DataSet(uiType,uiData);
 
@@ -183,7 +186,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                     uiData = IN_PROGRESS;
                     needsave = false;
                 }
-                else if (uiData == FAIL && EncounterData[uiType] != FAIL && isHeroic)
+                else if (uiData == FAIL && isHeroic)
                 {
                     ++WipeCounter;
 

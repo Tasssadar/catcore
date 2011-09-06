@@ -44,9 +44,10 @@ enum
 
     NPC_LIGHTBANE               = 34497,
     NPC_DARKBANE                = 34496,
-
     NPC_DARK_ESSENCE            = 34567,
     NPC_LIGHT_ESSENCE           = 34568,
+    NPC_CONCENTRATED_DARKNESS   = 34628,
+    NPC_CONCENTRATED_LIGHT      = 34630,
 
     NPC_ANUBARAK                = 34564,
 
@@ -89,6 +90,8 @@ enum
 
     POINT_TO_CENTER             = 231
 };
+
+const uint32 Dispell[] = {65684, 67176, 67177, 67178, 65686, 67222, 67223, 67224, 67590, 67602, 67603, 67604};
 
 enum Champion
 {
@@ -142,7 +145,7 @@ const uint32 FChampIDs[CHAMPION_ALL_COUNT][FACTION_COUNT] =
     {35610, 35610},     // CHAMPION_HUNT_PET
 };
 
-const Coords Center(563.672974f, 139.571f, 393.837006f);
+const Coords Center(563.672974f, 139.571f, 396.837006f);
 
 const Coords SpawnLoc[] =
 {
@@ -186,12 +189,12 @@ const Coords SpawnLoc[] =
     Coords(605.405f, 160.063f, 395.209f), // 37 - ali champ jump 1
     Coords(605.405f, 118.555f, 395.210f), // 38 - ali champ jump 2
     Coords(590.654f, 139.571f, 394.393f), // 39 - ali champ loc
-    Coords(571.833f, 170.544f, 395.209f), // 40 - twin light step 1
-    Coords(593.654f, 170.544f, 395.209f), // 41 - twin light step 2
-    Coords(593.654f, 139.571f, 395.209f), // 42 - twin light step 3
-    Coords(555.833f, 170.544f, 395.209f), // 43 - twin dark step 1
-    Coords(534.764f, 170.544f, 395.209f), // 44 - twin dark step 2
-    Coords(534.764f, 139.571f, 395.209f), // 45 - twin dark step 3
+    Coords(571.833f, 170.544f, 403.209f), // 40 - twin light step 1
+    Coords(593.654f, 170.544f, 403.209f), // 41 - twin light step 2
+    Coords(593.654f, 139.571f, 403.209f), // 42 - twin light step 3
+    Coords(555.833f, 170.544f, 403.209f), // 43 - twin dark step 1
+    Coords(534.764f, 170.544f, 403.209f), // 44 - twin dark step 2
+    Coords(534.764f, 139.571f, 403.209f), // 45 - twin dark step 3
 };
 
 enum uiWorldStates
@@ -228,12 +231,12 @@ enum Announcer
     TIMER_CUSTOM            = 103,
 
     POINT_PORT              = 100,
-    POINT_LIGHT_1           = 110,
-    POINT_LIGHT_2           = 111,
-    POINT_LIGHT_3           = 112,
-    POINT_DARK_1            = 120,
-    POINT_DARK_2            = 121,
-    POINT_DARK_3            = 122,
+    //POINT_LIGHT_1           = 110,
+    //POINT_LIGHT_2           = 111,
+    //POINT_LIGHT_3           = 112,
+    //POINT_DARK_1            = 120,
+    //POINT_DARK_2            = 121,
+    //POINT_DARK_3            = 122,
 
     NUM_MESSAGES            = 5,
 
@@ -272,7 +275,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
 
     void MovementInform(uint32 uiType, uint32 uiPointId);
 
-    Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori);
+    Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z = true);
 
     void SummonToCBoss(uint32 id, uint32 id2 = 0);
 
