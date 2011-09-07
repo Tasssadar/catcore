@@ -242,7 +242,7 @@ const Coords SpawnLoc[] =
     Coords(555.833f, 170.544f, 403.209f), // 43 - twin dark step 1
     Coords(534.764f, 170.544f, 403.209f), // 44 - twin dark step 2
     Coords(534.764f, 139.571f, 403.209f), // 45 - twin dark step 3
-    Coords(534.764f, 172.456f, 394.387f), // 46 - lich king spawn
+    Coords(563.834f, 172.456f, 394.387f), // 46 - lich king spawn
     Coords(606.294f, 133.892f, 138.479f), // 47 - tirion down spawn
     Coords(648.916f, 131.021f, 141.616f), // 48 - tirion down final
     Coords(605.638f, 143.839f, 138.511f), // 49 - argent mage down spawn
@@ -324,7 +324,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
 
     void AttackStart(Unit* /*who*/);
 
-    void ChooseEvent(uint8 encounterId);
+    void ChooseEvent(uint8 encounterId, Player* chooser = NULL);
 
     void DataSet(uint32 type, uint32 data);
 

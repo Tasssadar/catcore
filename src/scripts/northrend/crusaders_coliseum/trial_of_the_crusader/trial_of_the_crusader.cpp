@@ -45,25 +45,23 @@ void npc_toc_announcerAI::Reset()
 
     m_creature->SetRespawnDelay(DAY);
 
-    if (m_pInstance->GetData(TYPE_LICH_KING) != DONE)
+    if (m_creature->GetVisibility() == VISIBILITY_OFF)
     {
         m_creature->SetVisibility(VISIBILITY_ON);
+        uint32 traveltime = 2000;
+        if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
+            traveltime = uint32(go->GetPosition().GetDistance2d(SpawnLoc[0])/0.0025.f);
+
+        m_creature->SendMonsterMove(SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE, traveltime, NULL, 5.0614f);
         m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
     }
-    else
-    {
-        m_creature->SetVisibility(VISIBILITY_OFF);
-        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[51], 0);
-    }
 
+    m_TimerMgr->RemoveTimer(TIMER_PHASE_HANDLING);
     m_TimerMgr->SetUpdatable(false);
     currentEncounter = -1;
     encounterStage = 0;
     customValue = 0;
-    //if (encounterCreature && encounterCreature->isAlive())
-    //    encounterCreature->ForcedDespawn();
-    //if (encounterCreature2 && encounterCreature2->isAlive())
-    //    encounterCreature2->ForcedDespawn();
+
     encounterCreature = NULL;
     encounterCreature2 = NULL;
 }
@@ -75,7 +73,7 @@ void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
     if (uiType == POINT_MOTION_TYPE && uiPointId == POINT_PORT)
     {
         m_creature->SetVisibility(VISIBILITY_OFF);
-        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
+        //m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
     }
 }
 
@@ -130,13 +128,11 @@ void npc_toc_announcerAI::DeleteCreaturesAndRemoveAuras()
                     plr->RemoveAurasDueToSpell(Dispell[d]);
 }
 
-void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
+void npc_toc_announcerAI::ChooseEvent(uint8 encounterId, Player *chooser)
 {
     if (m_pInstance->GetData(encounterId) == DONE)
         return;
 
-    currentEncounter = encounterId;
-    encounterStage = 0;
     uint32 startTimer = 0;
     uint32 runaway = 0;
     switch (encounterId)
@@ -146,9 +142,13 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId)
         case TYPE_CRUSADERS:
         case TYPE_VALKIRIES:
         case TYPE_LICH_KING:
-        case TYPE_ANUBARAK:
+            currentEncounter = encounterId;
+            encounterStage = 0;
             startTimer = 1000;
             runaway = 2000;
+            break;
+        case TYPE_ANUBARAK:
+            chooser->TeleportTo(WorldLocation(m_creature->GetMapId(), SpawnLoc[51], 0));
             break;
         default:
             break;
@@ -181,8 +181,8 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     Reset();
                     break;
                 case DONE:
-                    DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
-                    Reset();
+                    encounterStage = 50;
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6500);
                     break;
                 case GORMOK_DONE:
                 case SNAKES_DONE:
@@ -360,6 +360,10 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 10:
                         if (encounterCreature)
                             encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK, UNIT_SELECT_SELF);
+                        cooldown = REALLY_BIG_COOLDOWN;
+                        break;
+                    case 51: // outro
+                        DoScriptText(SAY_STAGE_0_06, m_pInstance->GetCreature(NPC_TIRION));
                         break;
                 }
                 break;
@@ -392,7 +396,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 2:
                     {
                         if (!encounterCreature)
-                            Reset();
+                            break;
 
                         encounterCreature->AddSplineFlag(SPLINEFLAG_WALKMODE);
                         encounterCreature->GetMotionMaster()->MovePoint(POINT_TO_CENTER, SpawnLoc[27].x, SpawnLoc[27].y, SpawnLoc[27].z, false);
@@ -418,7 +422,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         Coords coord = SpawnLoc[1];
                         coord.z += 5.f;
                         if (!(encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000)))
-                            Reset();
+                            break;
 
                         encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.f);
                         encounterCreature2->CastSpell(encounterCreature2, SPELL_WILFRED_PORTAL, false);
@@ -427,13 +431,12 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 6:
                         DoScriptText(SAY_STAGE_1_04, encounterCreature);
-                        encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, encounterCreature2->GetPosition(), encounterCreature->GetOrientation());
-                        cooldown = 1000;
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, encounterCreature2->GetPosition(), encounterCreature->GetOrientation())))
+                            break;
+
+                        cooldown = 500;
                         break;
                     case 7:
-                        if (!encounterCreature2)
-                            Reset();
-
                         encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, false);
                         cooldown = 3000;
                         break;
@@ -486,7 +489,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 5000;
                         break;
                     case 55:
-                        Reset();
                         break;
                 }
                 break;
@@ -593,7 +595,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         }
                         if (chestId)
                             m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
-                        Reset();
                         break;
                     }
                 }
@@ -617,7 +618,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 3:
                     {
                         if (!encounterCreature || !encounterCreature2)
-                            Reset();
+                            break;
 
                         DoScriptText(SAY_STAGE_3_02, m_pInstance->GetCreature(NPC_TIRION));
 
@@ -668,7 +669,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 5000;
                         break;
                     case 52:
-                        Reset();
                         break;
                 }
                 break;
@@ -679,20 +679,20 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 {
                     case 1:
                         DoScriptText(SAY_STAGE_4_01, m_pInstance->GetCreature(NPC_TIRION));
-                        m_pInstance->SetData(TYPE_LICH_KING, IN_PROGRESS);
-                        cooldown = 18000;
+                        cooldown = 19000;
                         break;
                     case 2:
                         SummonToCBoss(NPC_LICH_KING);
-                        cooldown = 1000;
+                        m_pInstance->SetData(TYPE_LICH_KING, IN_PROGRESS);
+                        cooldown = 500;
                         break;
                     case 3:
-                        DoScriptText(SAY_STAGE_0_02, encounterCreature);
+                        DoScriptText(SAY_STAGE_4_02, encounterCreature);
                         cooldown = 7000;
                         break;
                     case 4:
                         if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[46], M_PI_F*1.5f)))
-                            Reset();
+                            break;
 
                         encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
                         encounterCreature2->CastSpell(encounterCreature2, SPELL_LK_GATE, false);
@@ -700,11 +700,11 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 5:
                         m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[46], M_PI_F*1.5f);
-                        encounterCreature->SendMonsterMove(SpawnLoc[46].x, SpawnLoc[46].y, SpawnLoc[46].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
+                        //encounterCreature->SendMonsterMove(SpawnLoc[46].x, SpawnLoc[46].y, SpawnLoc[46].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
                         cooldown = 500;
                         break;
                     case 6:
-                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[18].x, SpawnLoc[19].y, SpawnLoc[18].z, false);
+                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[18].x, SpawnLoc[18].y, SpawnLoc[18].z, false);
                         cooldown = 3000;
                         break;
                     case 7:
@@ -749,80 +749,72 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 13:
                         DoScriptText(SAY_STAGE_4_05, encounterCreature);
-                        cooldown = 5000;
+                        cooldown = 10000;
                         break;
                     case 14:
                     {
                         m_pInstance->SetData(TYPE_LICH_KING, DONE);
                         if (GameObject* pFloor = m_pInstance->GetGameObject(GO_ARGENT_COLISEUM_FLOOR))
-                            pFloor->Delete();
-                        Reset();
+                            pFloor->Rebuild();
                         break;
                     }
                 }
                 break;
             }
-        case TYPE_ANUBARAK:
-        {
-            switch(encounterStage)
+            case TYPE_ANUBARAK:
             {
-            case 51:
-                encounterCreature = DoSpawnTocBoss(NPC_OUTRO_TIRION, SpawnLoc[47], 0);
-                encounterCreature2 = DoSpawnTocBoss(NPC_OUTRO_ARGENT_MAGE, SpawnLoc[49], 0);
-                if (!encounterCreature || !encounterCreature2)
-                    Reset();
-
-                encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[48].x, SpawnLoc[48].y, SpawnLoc[48].z, false);
-                encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[50].x, SpawnLoc[50].y, SpawnLoc[50].z, false);
-                cooldown = 5000;
-                break;
-            case 52:
-                DoScriptText(SAY_STAGE_4_06, encounterCreature);
-                cooldown = 20000;
-                break;
-            case 53:
-                if (!isHeroic || m_pInstance->GetData(TYPE_COUNTER) >= 50)
+                switch(encounterStage)
                 {
-                    Reset();
-                    break;
+                    case 51:
+                        if (!(encounterCreature = DoSpawnTocBoss(NPC_OUTRO_TIRION, SpawnLoc[47], 0)))
+                            break;
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_OUTRO_ARGENT_MAGE, SpawnLoc[49], 0)))
+                            break;
+
+                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[48].x, SpawnLoc[48].y, SpawnLoc[48].z, false);
+                        encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[50].x, SpawnLoc[50].y, SpawnLoc[50].z, false);
+                        cooldown = 10000;
+                        break;
+                    case 52:
+                        DoScriptText(SAY_STAGE_4_06, encounterCreature);
+                        cooldown = 15000;
+                        break;
+                    case 53:
+                        if (!isHeroic || m_pInstance->GetData(TYPE_COUNTER) >= 50)
+                            break;
+
+                        DoScriptText(SAY_STAGE_4_07, encounterCreature);
+                        cooldown = 5000;
+                        break;
+                    case 54:
+                    {
+                        uint32 chestId = 0;
+                        uint32 wipes = m_pInstance->GetData(TYPE_COUNTER);
+                        if (wipes == 0)
+                            chestId = is10Man ? GO_TRIBUTE_CHEST_10H_0 : GO_TRIBUTE_CHEST_25H_0;
+                        else if (isInRange(1, wipes, 5))
+                            chestId = is10Man ? GO_TRIBUTE_CHEST_10H_5 : GO_TRIBUTE_CHEST_25H_5;
+                        else if (isInRange(6, wipes, 25))
+                            chestId = is10Man ? GO_TRIBUTE_CHEST_10H_25 : GO_TRIBUTE_CHEST_25H_25;
+                        else if (isInRange(26, wipes, 49))
+                            chestId = is10Man ? GO_TRIBUTE_CHEST_10H_49 : GO_TRIBUTE_CHEST_25H_49;
+                        if (chestId)
+                            m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
+                        break;
+                    }
                 }
-
-                DoScriptText(SAY_STAGE_4_07, encounterCreature);
-                cooldown = 5000;
-                break;
-            case 54:
-            {
-                uint32 chestId = 0;
-                uint32 wipes = m_pInstance->GetData(TYPE_COUNTER);
-                if (wipes == 0)
-                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_0 : GO_TRIBUTE_CHEST_25H_0;
-                else if (isInRange(1, wipes, 5))
-                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_5 : GO_TRIBUTE_CHEST_25H_5;
-                else if (isInRange(6, wipes, 25))
-                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_25 : GO_TRIBUTE_CHEST_25H_25;
-                else if (isInRange(26, wipes, 49))
-                    chestId = is10Man ? GO_TRIBUTE_CHEST_10H_49 : GO_TRIBUTE_CHEST_25H_49;
-                if (chestId)
-                    m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
-                Reset();
                 break;
             }
-
-
-
-            }
-            break;
-        }
-
             default:
                 break;
         }
+
         cat_log("toc_announcer: Phase updating: Handling current encounter %u in encounter stage %u and setting cooldown to %u", currentEncounter, encounterStage, cooldown);
 
         if (cooldown)
             stepTimer->Cooldown(cooldown);
         else
-            stepTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+            Reset();
     }
 
     // open and closes doors
@@ -962,7 +954,7 @@ bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
 bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
     ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-    if (!m_pInstance)
+    if (!m_pInstance || !pPlayer)
         return false;
 
     pPlayer->CLOSE_GOSSIP_MENU();
@@ -975,7 +967,7 @@ bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32
             {
                 if (m_pInstance->GetData(i) != DONE )
                 {
-                    ((npc_toc_announcerAI*)pCreature->AI())->ChooseEvent(i);
+                    ((npc_toc_announcerAI*)pCreature->AI())->ChooseEvent(i, pPlayer);
                     break;
                 }
             }

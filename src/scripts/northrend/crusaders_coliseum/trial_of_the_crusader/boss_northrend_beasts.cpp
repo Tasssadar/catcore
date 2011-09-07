@@ -185,6 +185,8 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         // due to not working vehicles just make mob really fast
         m_creature->SetSpeedRate(MOVE_RUN, 10, true);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         Reset();
     }
 
