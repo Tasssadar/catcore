@@ -139,6 +139,20 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
         m_pInstance->SetData(TYPE_BEASTS, GORMOK_DONE);
     }
 
+    Player* GetSnoboledTarget()
+    {
+        PlrList allApropriate = GetRandomPlayersInRange(100, 3, 15, DEFAULT_VISIBILITY_INSTANCE, true);
+        PlrList noSnoboled;
+        for(PlrList::iterator itr = allApropriate.begin(); itr != allApropriate.end(); ++itr)
+            if (!(*itr)->HasAura(SPELL_SNOBOLLED) && (*itr)->getClass() != CLASS_HUNTER)
+                noSnoboled.push_back();
+
+        PlrList& selectList = noSnoboled.empty() ? allApropriate : noSnoboled;
+        PlrList::iterator itr = selectList.begin();
+        std::advance(itr, urand(0, selectList.size()-1));
+        return *itr;
+    }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -154,14 +168,14 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
         // Snobolds
         if (m_TimerMgr->TimerFinished(TIMER_DO_SNOBOLDS))
         {
-            Player* plr = SelectRandomPlayerInRange(3, 15, DEFAULT_VISIBILITY_INSTANCE, true);
+            Player* plr = GetSnoboledTarget();
             if (!plr)
                 return;
 
             if (Creature* crt = m_creature->SummonCreature(NPC_SNOBOLD_VASSAL, plr->GetPosition(), 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
             {
                 crt->AI()->AttackStart(plr);
-                crt->CastSpell(plr, SPELL_SNOBOLLED, true);
+                plr->CastSpell(plr, SPELL_SNOBOLLED, true, NULL, NULL, crt->GetGUID());
                 DoScriptText(SAY_SNOBOLLED, m_creature);
             }
         }
@@ -193,47 +207,17 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 
     void Reset()
     {
-        fixTarget = SelectNearestPlayer();
+        fixTarget = NULL;
 
-        if (!fixTarget)
-        {
-            sLog.outCatLog("npc_snoboldAI::Reset: Fix target not found :-/");
-            return;
-        }
-
-        AddTimer(TIMER_BATTER, SPELL_BATTER, 0, 10000, UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
-        AddTimer(TIMER_FIRE_BOMB, SPELL_FIRE_BOMB, 15000, urand(25000,30000), UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
-        AddTimer(TIMER_HEAD_CRACK, SPELL_HEAD_CRACK, urand(20000,25000), urand(30000,40000), UNIT_SELECT_GUID, CAST_TYPE_FORCE, fixTarget->GetGUID());
-    }
-
-    Player* SelectNearestPlayer()
-    {
-        Player* nearest = NULL;
-        float neardist = 999.0f;
-        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
-        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
-        {
-            Player* plr = itr->getSource();
-            if (!plr)
-                continue;
-
-            float currdist = plr->GetDistance(m_creature);
-            if (currdist < neardist)
-            {
-                nearest = plr;
-                neardist = currdist;
-            }
-        }
-        return nearest;
+        AddTimer(TIMER_BATTER, SPELL_BATTER, 0, 10000, UNIT_SELECT_NONE, CAST_TYPE_FORCE);
+        AddTimer(TIMER_FIRE_BOMB, SPELL_FIRE_BOMB, 15000, urand(25000,30000), UNIT_SELECT_NONE, CAST_TYPE_FORCE);
+        AddTimer(TIMER_HEAD_CRACK, SPELL_HEAD_CRACK, urand(20000,25000), urand(30000,40000), UNIT_SELECT_NONE, CAST_TYPE_FORCE);
     }
 
     void AttackStart(Unit* pWho)
     {
-        if (!pWho)
+        if (!pWho || !fixTarget)
             return;
-
-        if (pWho != fixTarget)
-            pWho = fixTarget;
 
         if (m_creature->Attack(pWho, true))
         {
@@ -251,15 +235,41 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
+        if (!fixTarget)
+        {
+            bool targetFound = false;
+            Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+            for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            {
+                Player* plr = i->getSource();
+                if (!plr || !plr->IsInWorld() || !plr->isAlive())
+                    continue;
+
+                Aura* pAur = plr->GetAura(SPELL_SNOBOLLED, EFFECT_INDEX_0);
+                if (!pAur)
+                    continue;
+
+                if (!pAur->GetCaster() || pAur->GetCaster()->GetGUID() != m_creature->GetGUID())
+                    continue;
+
+                fixTarget = plr;
+                targetFound = true;
+                break;
+            }
+
+            if (!targetFound)
+                return;
+        }
+
         // Batter
-        if (fixTarget && fixTarget->IsNonMeleeSpellCasted(false))
-            m_TimerMgr->TimerFinished(TIMER_BATTER);
+        if (fixTarget->IsNonMeleeSpellCasted(false))
+            m_TimerMgr->TimerFinished(TIMER_BATTER, fixTarget);
 
         // Fire Bomb
-        m_TimerMgr->TimerFinished(TIMER_FIRE_BOMB);
+        m_TimerMgr->TimerFinished(TIMER_FIRE_BOMB, fixTarget);
 
         // Head Crack
-        m_TimerMgr->TimerFinished(TIMER_HEAD_CRACK);
+        m_TimerMgr->TimerFinished(TIMER_HEAD_CRACK, fixTarget);
 
         DoMeleeAttackIfReady();
     }

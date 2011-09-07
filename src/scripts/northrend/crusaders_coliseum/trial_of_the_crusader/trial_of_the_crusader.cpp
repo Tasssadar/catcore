@@ -515,13 +515,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 5000;
                         break;
                     case 4:
-                        if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
-                            DoScriptText(SAY_STAGE_2_04h, m_pInstance->GetCreature(NPC_GARROSH));
-                        else
-                            DoScriptText(SAY_STAGE_2_04a, m_pInstance->GetCreature(NPC_WRYNN));
-                        cooldown = 4000;
-                        break;
-                    case 5:
                     {
                         uint32 spawnMask = 0;
                         if (!(spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK)))
@@ -561,9 +554,23 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     }
-                    case 6:
+                    case 5:
                     {
-                        uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
+                        uint32 textId, npcId, faction;
+                        if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
+                        {
+                            textId = SAY_STAGE_2_04h;
+                            npcId = NPC_GARROSH;
+                            faction = FACTION_HORDE;
+                        }
+                        else
+                        {
+                            textId = SAY_STAGE_2_04a;
+                            npcId = NPC_WRYNN;
+                            faction = FACTION_ALLIANCE;
+                        }
+
+                        DoScriptText(textId, m_pInstance->GetCreature(npcId));
                         CreatureList ChampionList;
                         for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
                             GetCreatureListWithEntryInGrid(ChampionList, m_creature, FChampIDs[i][faction], DEFAULT_VISIBILITY_INSTANCE);
@@ -577,6 +584,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             champ->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                             ((ScriptedAI*)champ->AI())->EnableAttack(true);
                         }
+
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     }
@@ -682,7 +690,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 19000;
                         break;
                     case 2:
-                        SummonToCBoss(NPC_LICH_KING);
+                        encounterCreature = DoSpawnTocBoss(NPC_LICH_KING, SpawnLoc[LOC_BACKDOOR], M_PI_F*1.5f);
+                        encounterCreature->SetVisibility(VISIBILITY_OFF);
                         m_pInstance->SetData(TYPE_LICH_KING, IN_PROGRESS);
                         cooldown = 500;
                         break;
@@ -691,14 +700,15 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 7000;
                         break;
                     case 4:
-                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f)))
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f, false)))
                             break;
 
-                        encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
+                        encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.8f);
                         encounterCreature2->CastSpell(encounterCreature2, SPELL_LK_GATE, false);
                         cooldown = 4000;
                         break;
                     case 5:
+                        encounterCreature->SetVisibility(VISIBILITY_ON);
                         m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f);
                         cooldown = 500;
                         break;
@@ -717,7 +727,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 9:
                         encounterCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
-                        cooldown = 5000;
+                        cooldown = 4000;
                         break;
                     case 10:
                         encounterCreature->HandleEmote(EMOTE_ONESHOT_KNEEL);
@@ -990,6 +1000,25 @@ bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32
     return true;
 }
 
+bool GossipHello_npc_toc_argentmage(Player* pPlayer, Creature* pCreature)
+{
+    char const* _message = "Please port me up to the surface!";
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _message, GOSSIP_SENDER_MAIN,GOSSIP_ACTION_INFO_DEF+1);
+    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
+    return true;
+}
+
+bool GossipSelect_npc_toc_argentmage(Player* pPlayer, Creature* , uint32 , uint32 uiAction)
+{
+    pPlayer->CLOSE_GOSSIP_MENU();
+
+    if (!uiAction != GOSSIP_ACTION_INFO_DEF+1)
+        return true;
+
+    pPlayer->TeleportTo(WorldLocation(pPlayer->GetMapId(), SpawnLoc[LOC_CENTER], 0));
+    return true;
+}
+
 void AddSC_trial_of_the_crusader()
 {
     Script* NewScript;
@@ -999,5 +1028,11 @@ void AddSC_trial_of_the_crusader()
     NewScript->GetAI = &GetAI_npc_toc_announcer;
     NewScript->pGossipHello = &GossipHello_npc_toc_announcer;
     NewScript->pGossipSelect = &GossipSelect_npc_toc_announcer;
+    NewScript->RegisterSelf();
+
+    NewScript = new Script;
+    NewScript->Name = "npc_toc_argentmage";
+    NewScript->pGossipHello = &GossipHello_toc_argentmage;
+    NewScript->pGossipSelect = &GossipSelect_toc_argentmage;
     NewScript->RegisterSelf();
 }
