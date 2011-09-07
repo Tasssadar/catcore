@@ -41,13 +41,14 @@ enum Say
 
 enum Timers
 {
-    TIMER_ESSENCE = 0,
-    TIMER_SPIKE,
-    TIMER_SURGE,
-    TIMER_SHIELD,
-    TIMER_HEAL,
-    TIMER_POWER_OF_TWINS,
-    TIMER_VORTEX,
+    //TIMER_ESSENCE = 0,
+    TIMER_SPIKE = 0,
+    //TIMER_SURGE,
+    //TIMER_SHIELD,
+    //TIMER_HEAL,
+    //TIMER_POWER_OF_TWINS,
+    //TIMER_VORTEX,
+    TIMER_SPECIAL,
     TIMER_CONCENTRATED,
     TIMER_TOUCH,
     TIMER_BERSERK
@@ -123,20 +124,20 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 
     void Reset()
     {
-        //m_TimerMgr->AddTimer(TIMER_ESSENCE, FL_LIGHT_VORTEX, 0, 0,UNIT_SELECT_SELF);
         AddTimer(TIMER_SPIKE, isLight ? SPELL_TWIN_SPIKE_L : SPELL_TWIN_SPIKE_D, 10000, urand(15000,20000), UNIT_SELECT_VICTIM);
-        AddTimer(TIMER_SURGE, isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS, 0, 0, UNIT_SELECT_SELF);
-        AddTimer(TIMER_SHIELD, isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS, urand(40000,50000), urand(40000,50000), UNIT_SELECT_SELF);
-        AddTimer(TIMER_HEAL, isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D, 0, 0, UNIT_SELECT_SELF);
-        //m_TimerMgr->AddTimer(TIMER_POWER_OF_TWINS, isLight ? SPELL_POWER_OF_THE_TWINS_L : SPELL_POWER_OF_THE_TWINS_D, 0,0,UNIT_SELECT_SELF);
-        AddTimer(TIMER_VORTEX, isLight ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX, urand(40000,50000),urand(40000,50000), UNIT_SELECT_SELF);
-        AddTimer(TIMER_CONCENTRATED, 0, urand(15000,20000), urand(40000,50000), UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
+        AddTimer(TIMER_BERSERK, SPELL_BERSERK_VALKYR, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
         if (isHeroic)
             AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, urand(10000,15000), urand(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
 
-        AddTimer(TIMER_BERSERK, SPELL_BERSERK_VALKYR, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddNonCastTimer(TIMER_CONCENTRATED, urand(15000,20000), urand(40000,50000));
+        if (isLight)
+            AddNonCastTimer(TIMER_SPECIAL, urand(30000,40000), urand(40000,45000));
 
-        m_TimerMgr->AddToCastQueue(TIMER_SURGE);
+
+
+
+
+        m_TimerMgr->AddSpellToQueue(isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS);
 
         sis = NULL;
     }
@@ -147,11 +148,6 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             sis = GetClosestCreatureWithEntry(m_creature, isLight ? NPC_DARKBANE : NPC_LIGHTBANE, DEFAULT_VISIBILITY_INSTANCE);
 
         return sis;
-    }
-
-    SpellTimerMgr* GetSisTimerMgr()
-    {
-        return GetSis() ? GetSis()->GetTimerMgr() : NULL;
     }
 
     void DamageTaken(Unit *pDoneBy, uint32 &uiDamage)
@@ -235,32 +231,20 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        bool specialCasted = false;
+        // shield + heal or vortex and random creature
+        if (m_TimerMgr->TimerFinished(TIMER_SPECIAL))
+        {
+            m_creature->InterruptNonMeleeSpells(false);
+            Creature* crt = urand(0,1) && GetSis() ? GetSis : m_creature;
+            SpellTimerMgr* mgr = crt->GetTimerMgr();
+            bool isVortex = urand(0,1);
+            bool isSelf = crt == m_creature;
 
-        if (m_TimerMgr->TimerFinished(TIMER_SHIELD)) // shield + heal
-        {
-            m_TimerMgr->AddToCastQueue(TIMER_HEAL);
-            DoScriptText(EMOTE_SHIELD, m_creature);
-            DoScriptText(SAY_SHIELD, m_creature);
-            specialCasted = true;
-        }
-        else if (m_TimerMgr->TimerFinished(TIMER_VORTEX))// vortex
-        {
-            specialCasted = true;
-            DoScriptText(isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX, m_creature);
-            DoScriptText(isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX, m_creature);
-        }
-
-        if (specialCasted)
-        {
-            // need to set cooldown manually, must me different value every time
-            m_TimerMgr->Cooldown(TIMER_SHIELD, urand(40000,50000));
-            m_TimerMgr->Cooldown(TIMER_VORTEX, urand(40000,50000));
-            if (SpellTimerMgr* sisMgr = GetSisTimerMgr())
-            {
-                sisMgr->Cooldown(TIMER_SHIELD, urand(40000,50000));
-                sisMgr->Cooldown(TIMER_VORTEX, urand(40000,50000));
-            }
+            mgr->AddSpellToQueue(isVortex ? isSelf ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX : isSelf ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
+            if (!isVortex)
+                mgr->AddSpellToQueue(isSelf ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
+            DoScriptText(isVortex ? isSelf ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX : EMOTE_SHIELD, crt);
+            DoScriptText(isVortex ? isSelf ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX : SAY_SHIELD, crt);
         }
 
         // Twin Spike
