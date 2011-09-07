@@ -1183,19 +1183,19 @@ void Object::BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_play
 void Object::AddToClientUpdateList()
 {
     sLog.outError("Unexpected call of Object::AddToClientUpdateList for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 void Object::RemoveFromClientUpdateList()
 {
     sLog.outError("Unexpected call of Object::RemoveFromClientUpdateList for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
 {
     sLog.outError("Unexpected call of Object::BuildUpdateData for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 WorldObject::WorldObject()
