@@ -677,14 +677,6 @@ bool ChatHandler::HandleGameObjectClickCommand(const char* args)
         return false;
     }
 
-    char* po = strtok(NULL, " ");
-    int iopen = po ? (int)atof(po) : 0;
-
-    if (iopen && iopen != 1)
-        return false;
-
-    bool open = iopen;
-
     obj->SetLootState(GO_READY);
 
     const char* status;
