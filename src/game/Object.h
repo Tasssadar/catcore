@@ -549,6 +549,11 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL, Vehicle *transport = NULL, uint8 seatId = 0);
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float ang, uint32 respawnTime);
+        GameObject* SummonGameobject(uint32 id, const Coords coord, float ang, uint32 respawnTime)
+        {
+            return SummonGameobject(id, coord.x, coord.y, coord.z, ang, respawnTime);
+        }
+
         GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime) {return SummonGameobject(entry,x,y,z,ang,respawnTime);}
     protected:
         explicit WorldObject();
