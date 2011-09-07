@@ -480,7 +480,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
-            Coords coord = Center;
+            Coords coord = SpawnLoc[LOC_CENTER];
             float rand_o = rand_norm_f()*2*M_PI_F;
             const float range = urand(0,30);
             coord.x += range*cos(rand_o);
@@ -775,10 +775,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
             m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-            pointPath[1].x = Center.x;
-            pointPath[1].y = Center.y;
-            pointPath[1].z = Center.z;
-            m_creature->SendMonsterMove(Center.x, Center.y, Center.z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
+            pointPath[1].x = SpawnLoc[LOC_CENTER].x;
+            pointPath[1].y = SpawnLoc[LOC_CENTER].y;
+            pointPath[1].z = SpawnLoc[LOC_CENTER].z;
+            m_creature->SendMonsterMove(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y, SpawnLoc[LOC_CENTER].z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
             m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
 
             m_uiChargeStepTimer = 1000;

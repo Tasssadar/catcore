@@ -50,10 +50,10 @@ void npc_toc_announcerAI::Reset()
         m_creature->SetVisibility(VISIBILITY_ON);
         uint32 traveltime = 2000;
         if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
-            traveltime = uint32(go->GetPosition().GetDistance2d(SpawnLoc[0])/0.0025.f);
+            traveltime = uint32(go->GetPosition().GetDistance2d(SpawnLoc[LOC_ANNOUNCER])/0.0025f);
 
-        m_creature->SendMonsterMove(SpawnLoc[0].x, SpawnLoc[0].y, SpawnLoc[0].z, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE, traveltime, NULL, 5.0614f);
-        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
+        m_creature->SendMonsterMove(SpawnLoc[LOC_ANNOUNCER].x, SpawnLoc[LOC_ANNOUNCER].y, SpawnLoc[LOC_ANNOUNCER].z, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE, traveltime, NULL, 5.0614f);
+        m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[LOC_ANNOUNCER], 5.0614f);
     }
 
     m_TimerMgr->RemoveTimer(TIMER_PHASE_HANDLING);
@@ -70,11 +70,8 @@ void npc_toc_announcerAI::AttackStart(Unit* /*who*/) { return; }
 
 void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
 {
-    if (uiType == POINT_MOTION_TYPE && uiPointId == POINT_PORT)
-    {
+    if (uiType == POINT_MOTION_TYPE && uiPointId == POINT_MOVE)
         m_creature->SetVisibility(VISIBILITY_OFF);
-        //m_pInstance->instance->CreatureRelocation(m_creature, SpawnLoc[0], 5.0614f);
-    }
 }
 
 Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z)
@@ -88,7 +85,7 @@ Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori
 
 void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
 {
-    Coords coord = SpawnLoc[2];
+    Coords coord = SpawnLoc[LOC_BACKDOOR];
     bool isFlying = false;
     if (id2)
     {
@@ -97,7 +94,7 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
         isFlying = true;
 
         Coords coord2;
-        coord2 = SpawnLoc[2];
+        coord2 = SpawnLoc[LOC_BACKDOOR];
         coord2.x -= 8.f;
         coord2.z += 8.f;
 
@@ -148,7 +145,7 @@ void npc_toc_announcerAI::ChooseEvent(uint8 encounterId, Player *chooser)
             runaway = 2000;
             break;
         case TYPE_ANUBARAK:
-            chooser->TeleportTo(WorldLocation(m_creature->GetMapId(), SpawnLoc[51], 0));
+            chooser->TeleportTo(WorldLocation(m_creature->GetMapId(), SpawnLoc[LOC_UNDERGROUND], 0));
             break;
         default:
             break;
@@ -380,7 +377,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                             encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                             ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
-                            DoScriptText(SAY_AGGRO_JARAXXUS, encounterCreature2);
+                            DoScriptText(SAY_STAGE_1_AGGRO, encounterCreature2);
                             encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                             m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
                             cooldown = REALLY_BIG_COOLDOWN;
@@ -399,10 +396,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             break;
 
                         encounterCreature->AddSplineFlag(SPLINEFLAG_WALKMODE);
-                        encounterCreature->GetMotionMaster()->MovePoint(POINT_TO_CENTER, SpawnLoc[27].x, SpawnLoc[27].y, SpawnLoc[27].z, false);
+                        encounterCreature->GetMotionMaster()->MovePoint(POINT_MOVE, SpawnLoc[LOC_FIZZLE_END], false);
 
-                        float pathLength = encounterCreature->GetDistance2d(SpawnLoc[27].x, SpawnLoc[27].y);
-                        uint32 timeToPoint = uint32(pathLength/(encounterCreature->GetSpeed(MOVE_WALK)*0.001f));
+                        uint32 timeToPoint = uint32(encounterCreature->GetPosition().GetDistance2d(SpawnLoc[LOC_FIZZLE_END])/0.0025.f);
 
                         m_TimerMgr->Cooldown(TIMER_DOOR_HANDLER, timeToPoint);
                         cooldown = timeToPoint + 1000;
@@ -414,12 +410,12 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 4:
                         DoScriptText(SAY_STAGE_1_03, encounterCreature);
-                        encounterCreature->SummonCreature(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[1], 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 8000);
+                        encounterCreature->SummonCreature(NPC_WILFRED_PORTAL_GROUND, SpawnLoc[LOC_CENTER], 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 8000);
                         cooldown = 2000;
                         break;
                     case 5:
                     {
-                        Coords coord = SpawnLoc[1];
+                        Coords coord = SpawnLoc[LOC_CENTER];
                         coord.z += 5.f;
                         if (!(encounterCreature2 = encounterCreature->SummonCreature(NPC_TRIGGER, coord, 1.5f*M_PI_F, TEMPSUMMON_TIMED_DESPAWN, 6000)))
                             break;
@@ -437,12 +433,12 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 500;
                         break;
                     case 7:
-                        encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, false);
+                        encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_JAROXXUS_END], false);
                         cooldown = 3000;
                         break;
                     case 8:
                         encounterCreature2->SetFacingToObject(encounterCreature);
-                        encounterCreature2->SetSummonPoint(SpawnLoc[29].x, SpawnLoc[29].y, SpawnLoc[29].z, encounterCreature->GetOrientation());
+                        encounterCreature2->SetSummonPoint(SpawnLoc[LOC_JAROXXUS_END].x, SpawnLoc[LOC_JAROXXUS_END].y, SpawnLoc[LOC_JAROXXUS_END].z, encounterCreature->GetOrientation());
                         ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
                         cooldown = 8500;
                         break;
@@ -468,7 +464,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
                         m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
-                        DoScriptText(SAY_AGGRO_JARAXXUS, encounterCreature2);
+                        DoScriptText(SAY_STAGE_1_AGGRO, encounterCreature2);
                         encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
@@ -561,7 +557,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 6:
                     {
-                        FactionFCH faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
+                        uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
                         CreatureList ChampionList;
                         for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
                             GetCreatureListWithEntryInGrid(ChampionList, m_creature, FChampIDs[i][faction], DEFAULT_VISIBILITY_INSTANCE);
@@ -594,7 +590,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             default: break;
                         }
                         if (chestId)
-                            m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
+                            m_creature->SummonGameobject(chestId, SpawnLoc[LOC_CENTER], M_PI_F*1.5f, 604800);
                         break;
                     }
                 }
@@ -611,7 +607,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 2:
                         SummonToCBoss(NPC_LIGHTBANE, NPC_DARKBANE);
                         for(uint8 i = 0; i < 4; ++i)
-                            DoSpawnTocBoss(i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE, SpawnLoc[22+i], 0);
+                            DoSpawnTocBoss(i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE, SpawnLoc[LOC_D_ESSENCE_1+i], 0);
 
                         cooldown = 1000;
                         break;
@@ -629,9 +625,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             ((ScriptedAI*)crt->AI())->EnableAttack(false);
 
                             const Coords& pos = crt->GetPosition();
-                            const Coords& node1 = second ? SpawnLoc[43] : SpawnLoc[40];
-                            const Coords& node2 = second ? SpawnLoc[44] : SpawnLoc[41];
-                            const Coords& node3 = second ? SpawnLoc[45] : SpawnLoc[42];
+                            const Coords& node1 = second ? SpawnLoc[LOC_D_VALKYR_1] : SpawnLoc[LOC_L_VALKYR_1];
+                            const Coords& node2 = second ? SpawnLoc[LOC_D_VALKYR_2] : SpawnLoc[LOC_L_VALKYR_2];
+                            const Coords& node3 = second ? SpawnLoc[LOC_D_VALKYR_3] : SpawnLoc[LOC_L_VALKYR_3];
 
                             PointPath path;
                             path.resize(4);
@@ -653,7 +649,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         {
                             Creature* crt = second ? encounterCreature2 : encounterCreature;
                             Creature* crt2 = second ? encounterCreature : encounterCreature2;
-                            const Coords& node3 = second ? SpawnLoc[45] : SpawnLoc[42];
+                            const Coords& node3 = second ? SpawnLoc[LOC_D_VALKYR_3] : SpawnLoc[LOC_L_VALKYR_3];
                             m_pInstance->instance->CreatureRelocation(crt, node3, crt->GetAngle(crt2));
                             ((ScriptedAI*)crt->AI())->EnableAttack(true);
                             crt->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -691,7 +687,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 7000;
                         break;
                     case 4:
-                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[46], M_PI_F*1.5f)))
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_TRIGGER, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f)))
                             break;
 
                         encounterCreature2->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.5f);
@@ -699,12 +695,11 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 4000;
                         break;
                     case 5:
-                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[46], M_PI_F*1.5f);
-                        //encounterCreature->SendMonsterMove(SpawnLoc[46].x, SpawnLoc[46].y, SpawnLoc[46].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
+                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f);
                         cooldown = 500;
                         break;
                     case 6:
-                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[18].x, SpawnLoc[18].y, SpawnLoc[18].z, false);
+                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_LICH_KING_E], false);
                         cooldown = 3000;
                         break;
                     case 7:
@@ -730,8 +725,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 12:
                     {
-                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[2], M_PI_F*1.5f);
-                        encounterCreature->SendMonsterMove(SpawnLoc[2].x, SpawnLoc[2].y, SpawnLoc[2].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
+                        m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[LOC_BACKDOOR], M_PI_F*1.5f);
+                        encounterCreature->SendMonsterMove(SpawnLoc[LOC_BACKDOOR].x, SpawnLoc[LOC_BACKDOOR].y, SpawnLoc[LOC_BACKDOOR].z, SPLINETYPE_NORMAL, encounterCreature->GetSplineFlags(), 1);
 
                         Map::PlayerList const &PlayerList = m_pInstance->instance->GetPlayers();
                         if (!PlayerList.isEmpty())
@@ -754,8 +749,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 14:
                     {
                         m_pInstance->SetData(TYPE_LICH_KING, DONE);
+                        encounterCreature->ForcedDespawn();
                         if (GameObject* pFloor = m_pInstance->GetGameObject(GO_ARGENT_COLISEUM_FLOOR))
-                            pFloor->Rebuild();
+                            pFloor->Rebuild(m_creature);
                         break;
                     }
                 }
@@ -766,13 +762,13 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 switch(encounterStage)
                 {
                     case 51:
-                        if (!(encounterCreature = DoSpawnTocBoss(NPC_OUTRO_TIRION, SpawnLoc[47], 0)))
+                        if (!(encounterCreature = DoSpawnTocBoss(NPC_OUTRO_TIRION, SpawnLoc[LOC_O_TIRION_S], 0)))
                             break;
-                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_OUTRO_ARGENT_MAGE, SpawnLoc[49], 0)))
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_OUTRO_ARGENT_MAGE, SpawnLoc[LOC_O_MAGE_S], 0)))
                             break;
 
-                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[48].x, SpawnLoc[48].y, SpawnLoc[48].z, false);
-                        encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[50].x, SpawnLoc[50].y, SpawnLoc[50].z, false);
+                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_O_TIRION_E], false);
+                        encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_O_MAGE_E], false);
                         cooldown = 10000;
                         break;
                     case 52:
@@ -799,7 +795,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         else if (isInRange(26, wipes, 49))
                             chestId = is10Man ? GO_TRIBUTE_CHEST_10H_49 : GO_TRIBUTE_CHEST_25H_49;
                         if (chestId)
-                            m_creature->SummonGameobject(chestId, SpawnLoc[28].x, SpawnLoc[28].y, SpawnLoc[28].z, CHEST_ORI, 604800);
+                            m_creature->SummonGameobject(chestId, SpawnLoc[LOC_UNDERGROUND], 0, 604800);
                         break;
                     }
                 }
@@ -841,7 +837,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             Coords coord = go->GetPosition();
             m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
             m_creature->SetSpeedRate(MOVE_RUN, 1.2f, true);
-            m_creature->GetMotionMaster()->MovePoint(POINT_PORT, coord.x, coord.y, coord.z, false);
+            m_creature->GetMotionMaster()->MovePoint(POINT_MOVE, coord.x, coord.y, coord.z, false);
         }
         runawayTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
     }
@@ -860,13 +856,13 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
         {
             uint32 customVal = customTimer->GetValue(TIMER_VALUE_CUSTOM);
             uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
-            FactionFCH faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
+            uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
 
-            Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[35] : SpawnLoc[30];
-            Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[36] : SpawnLoc[31];
-            Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[37] : SpawnLoc[32];
-            Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[38] : SpawnLoc[33];
-            Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[39] : SpawnLoc[34];
+            Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
+            Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
+            Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
+            Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
+            Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
 
             if (customVal == CHAMPION_COUNT && !encounterCreature && !encounterCreature2)
             {
@@ -887,7 +883,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     Location.x += x_coef*2.5f;
                     Location.y += y_coef*5.f;
-                    encounterCreature2->GetMotionMaster()->MovePoint(POINT_TO_CENTER, Location.x, Location.y, Location.z, false);
+                    encounterCreature2->GetMotionMaster()->MovePoint(POINT_MOVE, Location.x, Location.y, Location.z, false);
                     encounterCreature2 = NULL;
                 }
                 if (encounterCreature)

@@ -64,7 +64,7 @@ struct FactionedChampionAI : public ScriptedAI
     Difficulty          m_dDifficulty;
 
     RoleFCH             m_role;
-    FactionFCH          m_faction;
+    uint8               m_faction;
     Champion            m_champType;
 
     CreatureList        m_cAliveChampions;
@@ -102,9 +102,9 @@ struct FactionedChampionAI : public ScriptedAI
 
     void MovementInform(uint32 moveType, uint32 pointId)
     {
-        if (moveType == POINT_MOTION_TYPE && pointId == POINT_TO_CENTER)
+        if (moveType == POINT_MOTION_TYPE && pointId == POINT_MOVE)
         {
-            float angle = m_creature->GetAngle(SpawnLoc[1].x, SpawnLoc[1].y);
+            float angle = m_creature->GetAngle(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y);
             angle = floor(angle/M_PI_F*2+0.5)*M_PI_F/2;
             m_creature->SetOrientation(angle);
             m_creature->SendHeartBeatMsg();
@@ -112,13 +112,17 @@ struct FactionedChampionAI : public ScriptedAI
     }
 
 
-    void RefreshListOfAliveChampions()
+    void RefreshListOfAliveChampionsOnOwnDeath()
     {
         m_cAliveChampions.clear();
          for(uint8 i = 0; i < CHAMPION_ALL_COUNT; ++i)
             if (Creature* pCrt = GetClosestCreatureWithEntry(m_creature, FChampIDs[i][m_faction], DEFAULT_VISIBILITY_INSTANCE))
                 if (pCrt->isAlive())
                     m_cAliveChampions.push_back(pCrt);
+
+         m_cAliveChampions.remove(m_creature);
+         if (m_cAliveChampions.empty())
+             m_pInstance->SetData(TYPE_CRUSADERS, DONE);
     }
 
     PlrList GetPlayersInInstance(bool alive_only)

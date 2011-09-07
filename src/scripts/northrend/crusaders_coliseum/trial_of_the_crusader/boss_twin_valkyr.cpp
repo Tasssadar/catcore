@@ -274,7 +274,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         {
             for (float angle = 0; angle < M_PI_F*2; angle += M_PI_F*2/m_uiConcCount[m_dDifficulty])
             {
-                Coords coord = Center;
+                Coords coord = SpawnLoc[LOC_CENTER];
                 coord.x += cos(angle)*35.f;
                 coord.y += sin(angle)*35.f;
                 if (Creature* pConc = m_creature->SummonCreature(isLight ? NPC_CONCENTRATED_LIGHT : NPC_CONCENTRATED_DARKNESS, coord, 0, TEMPSUMMON_TIMED_DESPAWN, 60000))
@@ -311,7 +311,7 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
     void Reset(){}
     void Ping(uint32 pointId)
     {
-        float angleToMid = m_creature->GetAngle(Center.x, Center.y);
+        float angleToMid = m_creature->GetAngle(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y);
         float addAngle =  rand_norm_f()*M_PI_F*2/10*pow(-1.f, float(urand(1,2)));
         float angle = angleToMid + addAngle;
 
