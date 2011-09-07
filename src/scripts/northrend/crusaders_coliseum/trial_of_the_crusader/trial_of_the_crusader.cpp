@@ -102,7 +102,7 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
     }
     encounterCreature = DoSpawnTocBoss(id, coord, M_PI_F*1.5f, !isFlying);
 
-    AddNonCastTimer(TIMER_DOOR_HANDLER, 500, 5000);
+    AddNonCastTimer(TIMER_DOOR_HANDLER, dooropen, 5000);
 }
 
 void npc_toc_announcerAI::DeleteCreaturesAndRemoveAuras()
@@ -114,6 +114,10 @@ void npc_toc_announcerAI::DeleteCreaturesAndRemoveAuras()
     GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_CONCENTRATED_DARKNESS, DEFAULT_VISIBILITY_INSTANCE);
     GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_MISTRESS_OF_PAIN, DEFAULT_VISIBILITY_INSTANCE);
     GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_FELFLAME_INFERNAL, DEFAULT_VISIBILITY_INSTANCE);
+    // clean up useless corpses
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_GORMOK, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_ACIDMAW, DEFAULT_VISIBILITY_INSTANCE);
+    GetCreatureListWithEntryInGrid(deleteList, m_creature, NPC_DREADSCALE, DEFAULT_VISIBILITY_INSTANCE);
     for(CreatureList::iterator itr = deleteList.begin(); itr != deleteList.end(); ++itr)
         (*itr)->ForcedDespawn(3500);
 
@@ -303,35 +307,37 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 2:
                         DoScriptText(SAY_STAGE_0_02, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 10000;
+                        cooldown = 4000;
                         break;
                     case 3:
                         SummonToCBoss(NPC_GORMOK);
-                        if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
-                            DoScriptText(SAY_STAGE_0_03a, m_pInstance->GetCreature(NPC_WRYNN));
-                        else
-                            DoScriptText(SAY_STAGE_0_03h, m_pInstance->GetCreature(NPC_GARROSH));
-
                         //if (isHeroic)
                         //    AddNonCastTimer(TIMER_CUSTOM, 540000, 5000);
-                        cooldown = 2000;
+                        cooldown = 1000;
                         break;
                     case 4:
                         if (encounterCreature)
                             encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                        cooldown = isHeroic ? 178000 : REALLY_BIG_COOLDOWN;
-                        break;
-                    case 5:
-                        SummonToCBoss(NPC_DREADSCALE);
-                        DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 2000;
-                        break;
-                    case 6:
-                        if (encounterCreature)
-                            encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
                         cooldown = 5000;
                         break;
+                    case 5:
+                        if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
+                            DoScriptText(SAY_STAGE_0_03a, m_pInstance->GetCreature(NPC_WRYNN));
+                        else
+                            DoScriptText(SAY_STAGE_0_03h, m_pInstance->GetCreature(NPC_GARROSH));
+                        cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
+                        break;
+                    case 6:
+                        SummonToCBoss(NPC_DREADSCALE, NULL, 5500);
+                        DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 6000;
+                        break;
                     case 7:
+                        if (encounterCreature)
+                            encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
+                        cooldown = 4000;
+                        break;
+                    case 8:
                     {
                         Player* randPlr = m_pInstance->GetRandomPlayerInMap();
                         if (!randPlr)
@@ -342,19 +348,19 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             break;
 
                         encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, false);
-                        cooldown = isHeroic ? 173000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
+                        cooldown = isHeroic ? 170000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
                         break;
                     }
-                    case 8:
-                        SummonToCBoss(NPC_ICEHOWL);
-                        DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
-                        cooldown = 2000;
                     case 9:
+                        SummonToCBoss(NPC_ICEHOWL, NULL, 3500);
+                        DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
+                        cooldown = 4000;
+                    case 10:
                         if (encounterCreature)
                             encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                        cooldown = isHeroic ? 178000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
+                        cooldown = isHeroic ? 176000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
                         break;
-                    case 10:
+                    case 11:
                         if (encounterCreature)
                             encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK, UNIT_SELECT_SELF);
                         cooldown = REALLY_BIG_COOLDOWN;
@@ -434,7 +440,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 7:
                         encounterCreature2->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_JAROXXUS_END], false);
-                        cooldown = 3000;
+                        cooldown = 2300;
                         break;
                     case 8:
                         encounterCreature2->SetFacingToObject(encounterCreature);
@@ -551,7 +557,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         }
                         encounterCreature = NULL;
                         encounterCreature2 = NULL;
-                        AddNonCastTimer(TIMER_CUSTOM, 500, 1500);
+                        AddNonCastTimer(TIMER_CUSTOM, 500, 2000);
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     }
@@ -852,23 +858,24 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
         }*/
         if (currentEncounter == TYPE_CRUSADERS)
         {
-            uint32 customVal = customTimer->GetValue(TIMER_VALUE_CUSTOM);
-            uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
-            uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
+            uint32 timerCustom = customTimer->GetValue(TIMER_VALUE_CUSTOM);
 
-            Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
-            Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
-            Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
-            Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
-            Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
-
-            if (customVal == CHAMPION_COUNT && !encounterCreature && !encounterCreature2)
+            if (timerCustom == CHAMPION_COUNT && !encounterCreature && !encounterCreature2)
             {
                 customTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
                 m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 3000);
             }
             else
             {
+                uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
+                uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
+
+                Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
+                Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
+                Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
+                Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
+                Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
+
                 if (encounterCreature2)
                 {
                     int32 champOrder = customValue-2;
@@ -881,20 +888,29 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     Location.x += x_coef*2.5f;
                     Location.y += y_coef*5.f;
-                    encounterCreature2->GetMotionMaster()->MovePoint(POINT_MOVE, Location.x, Location.y, Location.z, false);
+
+                    PointPath path;
+                    path.resize(2);
+                    //path.set(0, champOrder%2 ? Jump2 : Jump1);
+                    path.set(0, encounterCreature2->GetPosition());
+                    path.set(1, Location);
+
+                    uint32 travelTime = path.GetTotalLength()/0.0025f;
+                    encounterCreature2->GetMotionMaster()->Clear(false, true);
+                    encounterCreature2->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE, travelTime[second], faction == FACTION_ALLIANCE ? M_PI_F : 0);
                     encounterCreature2 = NULL;
                 }
                 if (encounterCreature)
                 {
                     uint32 champOrder = customValue-1;
                     Coords& jump = champOrder%2 ? Jump2 : Jump1;
-                    m_creature->GetMotionMaster()->Clear(false, true);
-                    m_creature->GetMotionMaster()->MoveIdle();
-                    m_creature->TrajMonsterMove(jump.x, jump.y, jump.z, false, 80, 1000);
+                    encounterCreature->GetMotionMaster()->Clear(false, true);
+                    encounterCreature->GetMotionMaster()->MoveIdle();
+                    encounterCreature->TrajMonsterMove(jump.x, jump.y, jump.z, false, 80, 1000);
                     encounterCreature2 = encounterCreature;
                     encounterCreature = NULL;
                 }
-                for(uint8 i = customVal; i < CHAMPION_COUNT; ++i)
+                for(uint8 i = timerCustom; i < CHAMPION_COUNT; ++i)
                 {
                     customTimer->SetValue(TIMER_VALUE_CUSTOM, i+1);
                     if (spawnMask & (1 << i))

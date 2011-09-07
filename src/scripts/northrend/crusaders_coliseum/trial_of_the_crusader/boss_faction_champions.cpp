@@ -100,17 +100,16 @@ struct FactionedChampionAI : public ScriptedAI
         }
     }
 
-    void MovementInform(uint32 moveType, uint32 pointId)
-    {
-        if (moveType == POINT_MOTION_TYPE && pointId == POINT_MOVE)
-        {
-            float angle = m_creature->GetAngle(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y);
-            angle = floor(angle/M_PI_F*2+0.5)*M_PI_F/2;
-            m_creature->SetOrientation(angle);
-            m_creature->SendHeartBeatMsg();
-        }
-    }
-
+    //void MovementInform(uint32 moveType, uint32 pointId)
+    //{
+    //    if (moveType == POINT_MOTION_TYPE && pointId == POINT_MOVE)
+    //    {
+    //        float angle = m_creature->GetAngle(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y);
+    //        angle = floor(angle/M_PI_F*2+0.5)*M_PI_F/2;
+    //        m_creature->SetOrientation(angle);
+    //        m_creature->SendHeartBeatMsg();
+    //    }
+    //}
 
     void RefreshListOfAliveChampionsOnOwnDeath()
     {

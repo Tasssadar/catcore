@@ -104,54 +104,54 @@ enum GoEntries
 enum SaysGlobal
 {
     // 1 - northrend beast
-    SAY_STAGE_0_01            = -1649070,
-    SAY_STAGE_0_02            = -1649071,
-    SAY_STAGE_0_03a           = -1649072,
-    SAY_STAGE_0_03h           = -1649073,
-    SAY_STAGE_0_04            = -1649074,
-    SAY_STAGE_0_05            = -1649075,
-    SAY_STAGE_0_06            = -1649076,
-    SAY_STAGE_0_WIPE          = -1649077,
+    SAY_STAGE_0_01          = -1649070,
+    SAY_STAGE_0_02          = -1649071,
+    SAY_STAGE_0_03a         = -1649072,
+    SAY_STAGE_0_03h         = -1649073,
+    SAY_STAGE_0_04          = -1649074,
+    SAY_STAGE_0_05          = -1649075,
+    SAY_STAGE_0_06          = -1649076,
+    SAY_STAGE_0_WIPE        = -1649077,
 
     // 2 - jaraxxus
-    SAY_STAGE_1_01            = -1649080,
-    SAY_STAGE_1_02            = -1649081,
-    SAY_STAGE_1_03            = -1649082,
-    SAY_STAGE_1_04            = -1649083,
-    SAY_STAGE_1_05            = -1649030, //INTRO Jaraxxus
-    SAY_STAGE_1_AGGRO         = -1649031,
-    SAY_STAGE_1_06            = -1649084,
-    SAY_STAGE_1_07            = -1649086,
-    SAY_STAGE_1_08            = -1649087,
-    SAY_STAGE_1_09            = -1649088,
-    SAY_STAGE_1_10            = -1649089,
-    SAY_STAGE_1_11            = -1649090,
+    SAY_STAGE_1_01          = -1649080,
+    SAY_STAGE_1_02          = -1649081,
+    SAY_STAGE_1_03          = -1649082,
+    SAY_STAGE_1_04          = -1649083,
+    SAY_STAGE_1_05          = -1649030, //INTRO Jaraxxus
+    SAY_STAGE_1_AGGRO       = -1649031,
+    SAY_STAGE_1_06          = -1649084,
+    SAY_STAGE_1_07          = -1649086,
+    SAY_STAGE_1_08          = -1649087,
+    SAY_STAGE_1_09          = -1649088,
+    SAY_STAGE_1_10          = -1649089,
+    SAY_STAGE_1_11          = -1649090,
 
     // 3 - factioned champions
-    SAY_STAGE_2_01            = -1649091,
-    SAY_STAGE_2_02a           = -1649092,
-    SAY_STAGE_2_02h           = -1649093,
-    SAY_STAGE_2_03            = -1649094,
-    SAY_STAGE_2_04a           = -1649095,
-    SAY_STAGE_2_04h           = -1649096,
-    SAY_STAGE_2_05a           = -1649097,
-    SAY_STAGE_2_05h           = -1649098,
+    SAY_STAGE_2_01          = -1649091,
+    SAY_STAGE_2_02a         = -1649092,
+    SAY_STAGE_2_02h         = -1649093,
+    SAY_STAGE_2_03          = -1649094,
+    SAY_STAGE_2_04a         = -1649095,
+    SAY_STAGE_2_04h         = -1649096,
+    SAY_STAGE_2_05a         = -1649097,
+    SAY_STAGE_2_05h         = -1649098,
 
     // 4 - twin valkyrs
-    SAY_STAGE_2_06            = -1649099,
-    SAY_STAGE_3_01            = -1649100,
-    SAY_STAGE_3_02            = -1649101,
-    SAY_STAGE_3_03a           = -1649102,
-    SAY_STAGE_3_03h           = -1649103,
+    SAY_STAGE_2_06          = -1649099,
+    SAY_STAGE_3_01          = -1649100,
+    SAY_STAGE_3_02          = -1649101,
+    SAY_STAGE_3_03a         = -1649102,
+    SAY_STAGE_3_03h         = -1649103,
 
     // 5 - lich king + anubarak
-    SAY_STAGE_4_01            = -1649104,
-    SAY_STAGE_4_02            = -1649105,
-    SAY_STAGE_4_03            = -1649106,
-    SAY_STAGE_4_04            = -1649107,
-    SAY_STAGE_4_05            = -1649108,
-    SAY_STAGE_4_06            = -1649109,
-    SAY_STAGE_4_07            = -1649110
+    SAY_STAGE_4_01          = -1649104,
+    SAY_STAGE_4_02          = -1649105,
+    SAY_STAGE_4_03          = -1649106,
+    SAY_STAGE_4_04          = -1649107,
+    SAY_STAGE_4_05          = -1649108,
+    SAY_STAGE_4_06          = -1649109,
+    SAY_STAGE_4_07          = -1649110
 };
 
 enum SpellsGlobal
@@ -167,8 +167,8 @@ enum SpellsGlobal
 
 enum uiWorldStates
 {
-    UPDATE_STATE_UI_SHOW            = 4390,
-    UPDATE_STATE_UI_COUNT           = 4389
+    UPDATE_STATE_UI_COUNT   = 4389,
+    UPDATE_STATE_UI_SHOW    = 4390
 };
 
 enum AnnouncerMessages
@@ -345,7 +345,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
 
     Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z = true);
 
-    void SummonToCBoss(uint32 id, uint32 id2 = 0);
+    void SummonToCBoss(uint32 id, uint32 id2 = 0, uint32 dooropen = 500);
 
     void UpdateAI(const uint32 /*diff*/);
 

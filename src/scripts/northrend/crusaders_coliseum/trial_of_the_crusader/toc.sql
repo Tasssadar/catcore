@@ -1,7 +1,7 @@
 -- instance
 UPDATE creature SET spawnMask = 15 WHERE map = 649;
 UPDATE gameobject SET spawnMask = 15 WHERE map = 649;
-DELETE FROM creature WHERE id IN (35651, 35458, 36095, 36097);
+DELETE FROM creature WHERE id IN (35651, 35458, 36095, 36097, 35820, 35821);
 DELETE FROM gameobject WHERE id IN (195631, 195633);
 UPDATE creature_template SET ScriptName = 'npc_toc_announcer' WHERE entry =34816;
 INSERT IGNORE spell_script_target VALUES (67888, 1, 35458);
