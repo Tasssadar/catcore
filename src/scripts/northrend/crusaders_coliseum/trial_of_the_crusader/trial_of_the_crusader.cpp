@@ -187,7 +187,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     break;
                 case GORMOK_DONE:
                 case SNAKES_DONE:
-                    if ((data == GORMOK_DONE && encounterStage == 4) || (data == SNAKES_DONE && encounterStage == 7))
+                    if ((data == GORMOK_DONE && encounterStage == 5) || (data == SNAKES_DONE && encounterStage == 8))
                     {
                         m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
                         m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
@@ -310,7 +310,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 4000;
                         break;
                     case 3:
-                        SummonToCBoss(NPC_GORMOK);
+                        SummonToCBoss(NPC_GORMOK, 0, 100);
                         //if (isHeroic)
                         //    AddNonCastTimer(TIMER_CUSTOM, 540000, 5000);
                         cooldown = 1000;
@@ -328,7 +328,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = isHeroic ? 174000 : REALLY_BIG_COOLDOWN;
                         break;
                     case 6:
-                        SummonToCBoss(NPC_DREADSCALE, NULL, 5500);
+                        SummonToCBoss(NPC_DREADSCALE, NULL, 5100);
                         DoScriptText(SAY_STAGE_0_04, m_pInstance->GetCreature(NPC_TIRION));
                         cooldown = 6000;
                         break;
@@ -352,7 +352,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     }
                     case 9:
-                        SummonToCBoss(NPC_ICEHOWL, NULL, 3500);
+                        SummonToCBoss(NPC_ICEHOWL, NULL, 3100);
                         DoScriptText(SAY_STAGE_0_05, m_pInstance->GetCreature(NPC_TIRION));
                         cooldown = 4000;
                     case 10:
@@ -859,70 +859,70 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
         if (currentEncounter == TYPE_CRUSADERS)
         {
             uint32 timerCustom = customTimer->GetValue(TIMER_VALUE_CUSTOM);
+            uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
+            uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
 
-            if (timerCustom == CHAMPION_COUNT && !encounterCreature && !encounterCreature2)
+            Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
+            Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
+            Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
+            Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
+            Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
+
+            if (encounterCreature2)
             {
-                customTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
-                m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 3000);
+                int32 champOrder = customValue-2;
+                int32 x_coef = champOrder%2 ? 1 : -1;
+                int32 y_coef = champOrder/2 - (is10Man ? 1 : 2);
+                if (faction == FACTION_HORDE)
+                {
+                    x_coef *= -1;
+                    y_coef *= -1;
+                }
+                Location.x += x_coef*2.5f;
+                Location.y += y_coef*5.f;
+
+                PointPath path;
+                path.resize(2);
+                //path.set(0, champOrder%2 ? Jump2 : Jump1);
+                path.set(0, encounterCreature2->GetPosition());
+                path.set(1, Location);
+
+                uint32 travelTime = path.GetTotalLength()/0.0025f;
+                encounterCreature2->GetMotionMaster()->Clear(false, true);
+                encounterCreature2->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE,
+                travelTime, faction == FACTION_ALLIANCE ? M_PI_F : 0);
+                encounterCreature2 = NULL;
+
+                // if is last one set phase handler to travelTime
+                if (!timerCustom == CHAMPION_COUNT && !encounterCreature)
+                {
+                    customTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, travelTime);
+                    return;
+                }
             }
-            else
+            if (encounterCreature)
             {
-                uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
-                uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
-
-                Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
-                Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
-                Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
-                Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
-                Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
-
-                if (encounterCreature2)
-                {
-                    int32 champOrder = customValue-2;
-                    int32 x_coef = champOrder%2 ? 1 : -1;
-                    int32 y_coef = champOrder/2 - (is10Man ? 1 : 2);
-                    if (faction == FACTION_HORDE)
-                    {
-                        x_coef *= -1;
-                        y_coef *= -1;
-                    }
-                    Location.x += x_coef*2.5f;
-                    Location.y += y_coef*5.f;
-
-                    PointPath path;
-                    path.resize(2);
-                    //path.set(0, champOrder%2 ? Jump2 : Jump1);
-                    path.set(0, encounterCreature2->GetPosition());
-                    path.set(1, Location);
-
-                    encounterCreature2->GetMotionMaster()->Clear(false, true);
-                    encounterCreature2->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE,
-                        path.GetTotalLength()/0.0025f, faction == FACTION_ALLIANCE ? M_PI_F : 0);
-                    encounterCreature2 = NULL;
-                }
-                if (encounterCreature)
-                {
-                    uint32 champOrder = customValue-1;
-                    Coords& jump = champOrder%2 ? Jump2 : Jump1;
-                    encounterCreature->GetMotionMaster()->Clear(false, true);
-                    encounterCreature->GetMotionMaster()->MoveIdle();
-                    encounterCreature->TrajMonsterMove(jump.x, jump.y, jump.z, false, 80, 1000);
-                    encounterCreature2 = encounterCreature;
-                    encounterCreature = NULL;
-                }
-                for(uint8 i = timerCustom; i < CHAMPION_COUNT; ++i)
-                {
-                    customTimer->SetValue(TIMER_VALUE_CUSTOM, i+1);
-                    if (spawnMask & (1 << i))
-                    {
-                        Coords& spawn = customValue%2 ? Spawn2 : Spawn1;
-                        encounterCreature = DoSpawnTocBoss(FChampIDs[i][faction], spawn, 0);
-                        ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
-                        break;
-                    }
-                }
-                ++customValue;
+                uint32 champOrder = customValue-1;
+                Coords& jump = champOrder%2 ? Jump2 : Jump1;
+                encounterCreature->GetMotionMaster()->Clear(false, true);
+                encounterCreature->GetMotionMaster()->MoveIdle();
+                encounterCreature->TrajMonsterMove(jump.x, jump.y, jump.z, false, 80, 1000);
+                encounterCreature2 = encounterCreature;
+                encounterCreature = NULL;
             }
+            for(uint8 i = timerCustom; i < CHAMPION_COUNT; ++i)
+            {
+                customTimer->SetValue(TIMER_VALUE_CUSTOM, i+1);
+                if (spawnMask & (1 << i))
+                {
+                    Coords& spawn = customValue%2 ? Spawn2 : Spawn1;
+                    encounterCreature = DoSpawnTocBoss(FChampIDs[i][faction], spawn, 0);
+                    ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
+                    break;
+                }
+            }
+            ++customValue;
         }
         else
             customTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
