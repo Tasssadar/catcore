@@ -398,7 +398,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         encounterCreature->AddSplineFlag(SPLINEFLAG_WALKMODE);
                         encounterCreature->GetMotionMaster()->MovePoint(POINT_MOVE, SpawnLoc[LOC_FIZZLE_END], false);
 
-                        uint32 timeToPoint = uint32(encounterCreature->GetPosition().GetDistance2d(SpawnLoc[LOC_FIZZLE_END])/0.0025.f);
+                        uint32 timeToPoint = uint32(encounterCreature->GetPosition().GetDistance2d(SpawnLoc[LOC_FIZZLE_END])/0.0025f);
 
                         m_TimerMgr->Cooldown(TIMER_DOOR_HANDLER, timeToPoint);
                         cooldown = timeToPoint + 1000;

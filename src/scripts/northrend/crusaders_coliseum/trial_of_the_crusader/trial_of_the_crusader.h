@@ -7,7 +7,7 @@
 
 #include "precompiled.h"
 
-enum InstanceData
+enum InstanceDataValues
 {
     // encounter data
     TYPE_BEASTS                 = 0,
@@ -101,7 +101,7 @@ enum GoEntries
     GO_GATE_NORTH               = 195650
 };
 
-enum Says
+enum SaysGlobal
 {
     // 1 - northrend beast
     SAY_STAGE_0_01            = -1649070,
@@ -154,7 +154,7 @@ enum Says
     SAY_STAGE_4_07            = -1649110
 };
 
-enum Spells
+enum SpellsGlobal
 {
     SPELL_WILFRED_PORTAL    = 68424,
     SPELL_JARAXXUS_CHAINS   = 67924,
@@ -183,7 +183,7 @@ enum AnnouncerMessages
     NUM_MESSAGES        = 6
 };
 
-enum Timers
+enum TimersGlobal
 {
     TIMER_PHASE_HANDLING    = 100,
     TIMER_DOOR_HANDLER      = 101,
