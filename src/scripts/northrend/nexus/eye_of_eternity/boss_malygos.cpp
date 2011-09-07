@@ -785,7 +785,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
         {
             pPlayer = itr->getSource();
-            if (!pPlayer || !pPlayer->IsInWorld() || !pPlayer->isAlive())
+            if (!pPlayer || !pPlayer->IsInWorld())// || !pPlayer->isAlive()) -- we wanna get dead bodies out
                 continue;
             pPlayer->KnockBackFrom(pPlayer, 0, 40);
         }

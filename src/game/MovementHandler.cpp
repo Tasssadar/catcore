@@ -688,6 +688,15 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
 
         if (movementInfo.GetPos()->z < minz && !handledInBg)
         {
+            // In Eye of eternity, players should see "release spirit" instead of teleporting to graveyard
+            if(plMover->GetMapId() == 616)
+            {
+                if (plMover->isAlive())
+                    plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
+                // Stop falling
+                plMover->TeleportTo(616, movementInfo.GetPos()->x, movementInfo.GetPos()->y, -490.f, movementInfo.GetPos()->o);
+                return;
+            }
             // NOTE: this is actually called many times while falling
             // even after the player has been teleported away
             // TODO: discard movement packets after the player is rooted
