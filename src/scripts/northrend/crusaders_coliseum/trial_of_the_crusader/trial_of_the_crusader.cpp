@@ -83,7 +83,7 @@ Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori
     return pTemp;
 }
 
-void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2)
+void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2, uint32 dooropen)
 {
     Coords coord = SpawnLoc[LOC_BACKDOOR];
     bool isFlying = false;
@@ -895,9 +895,9 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     path.set(0, encounterCreature2->GetPosition());
                     path.set(1, Location);
 
-                    uint32 travelTime = path.GetTotalLength()/0.0025f;
                     encounterCreature2->GetMotionMaster()->Clear(false, true);
-                    encounterCreature2->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE, travelTime[second], faction == FACTION_ALLIANCE ? M_PI_F : 0);
+                    encounterCreature2->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, SPLINEFLAG_WALKMODE,
+                        path.GetTotalLength()/0.0025f, faction == FACTION_ALLIANCE ? M_PI_F : 0);
                     encounterCreature2 = NULL;
                 }
                 if (encounterCreature)

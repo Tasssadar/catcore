@@ -197,7 +197,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
         ++m_spawnItr;
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
         return;
     }
@@ -420,7 +420,7 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
         toInvis = false;
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
         return;
     }
@@ -451,7 +451,7 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
                 DoMove(2);
                 break;
             case 4:
-                m_creature->NearTeleportTo(tyrannusPos[0][0], tyrannusPos[0][1], tyrannusPos[0][2], 0);
+                m_creature->NearTeleportTo(tyrannusPos[0].x, tyrannusPos[0].y, tyrannusPos[0].z, 0);
                 break;
         }
     }
@@ -516,7 +516,7 @@ struct MANGOS_DLL_DECL mob_pos_heroAI : public ScriptedAI
         m_creature->SetVisibility(VISIBILITY_OFF);
     }
 
-    void UpdateAI(const uint32 uiDiff)
+    void UpdateAI(const uint32)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -645,7 +645,7 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         ++m_spawnItr;
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
         return;
     }
@@ -763,25 +763,23 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
                     Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
                     if(!lPlayers.isEmpty())
                     {
-                    
-                    std::vector<Player*> plrlist;
-                    for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
-                        if (Player* pPlayer = itr->getSource())
-                            plrlist.push_back(pPlayer);
-                    for(std::vector<Player*>::iterator itr = plrlist.begin(); itr != plrlist.end(); ++itr)
-                    {
-                            if(!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive())
-                            continue;
-                            (*itr)->CastSpell(*itr, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
+                        std::vector<Player*> plrlist;
+                        for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                            if (Player* pPlayer = itr->getSource())
+                                plrlist.push_back(pPlayer);
+
+                        for(std::vector<Player*>::iterator itr = plrlist.begin(); itr != plrlist.end(); ++itr)
+                            if (*itr && (*itr)->IsInWorld() && (*itr)->isAlive())
+                                (*itr)->CastSpell(*itr, faction ? SPELL_TELE_HORDE : SPELL_TELE_ALI, true);
                     }
-                    }
+
                     KillAll();
                     m_uiEventTimer = 3000;
                     break;
                 }
                 case 4:
                 {
-                    pSindragosa->GetMotionMaster()->MovePoint(2, tyrannusPos[0][0], tyrannusPos[0][1], tyrannusPos[0][2]);
+                    pSindragosa->GetMotionMaster()->MovePoint(2, tyrannusPos[0].x, tyrannusPos[0].y, tyrannusPos[0].z);
                     DoScriptText(guide_end[1][faction], m_creature);
                     m_uiEventTimer = faction? 13000 : 7000;
                     break;

@@ -32,4 +32,5 @@ enum
 
     GO_ICE_WALL        = 201885,
 };
+
 #endif

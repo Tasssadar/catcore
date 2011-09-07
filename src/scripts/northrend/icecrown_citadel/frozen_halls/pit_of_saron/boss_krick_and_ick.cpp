@@ -110,31 +110,20 @@ struct MANGOS_DLL_DECL boss_krickAI : public ScriptedAI
         m_creature->SetRespawnDelay(86400);
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
-        if(ickDead)
+        if (ickDead)
             return;
     }
 
-    void Aggro(Unit* pWho)
-    {
-    }
-
-    void JustDied(Unit* pKiller)
-    {
-    }
-
-    void KilledUnit(Unit* pVictim)
-    {
-    }
-    
     void MovementInform(uint32 uiMoveType, uint32 uiPointId)
     {
-        if(uiMoveType != POINT_MOTION_TYPE || uiPointId != 1)
+        if (uiMoveType != POINT_MOTION_TYPE || uiPointId != 1)
             return;
+
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveIdle();
-        if(pGuide)
+        if (pGuide)
             m_creature->SetOrientation(m_creature->GetAngle(pGuide));
         m_creature->SendHeartBeatMsg();
     }
@@ -320,24 +309,24 @@ struct MANGOS_DLL_DECL boss_ickAI : public ScriptedAI
         m_uiOrbsTimer = 30000;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
         pKrick = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_KRICK));
-        if(!pKrick)
+        if (!pKrick)
             EnterEvadeMode();
         pKrick->AI()->DoAction(SAY_AGGRO);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit*)
     {
-        if(m_creature->isVehicle())
+        if (m_creature->isVehicle())
         {
             m_pInstance->SetData(TYPE_ICK_AND_KRICK, DONE);
             pKrick->AI()->DoAction(ACTION_ICK_DEAD);
         }
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit*)
     {
         pKrick->AI()->DoAction(SAY_KILL1 - urand(0,1));
     }
@@ -479,7 +468,7 @@ struct MANGOS_DLL_DECL mob_exploding_orbAI : public ScriptedAI
         DoCast(m_creature, SPELL_EXPLODING_ORB_VISUAL, true);
     }
 
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
         return;
     }

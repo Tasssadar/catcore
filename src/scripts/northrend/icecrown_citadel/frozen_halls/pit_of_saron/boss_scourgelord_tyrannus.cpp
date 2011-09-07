@@ -131,12 +131,12 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         }
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit*)
     {
         pGuide->AI()->DoAction(1);
         pRimefang->AI()->DoAction(ACTION_END);
@@ -144,7 +144,7 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
         m_pInstance->SetData(TYPE_EVENT_STATE, 3);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit*)
     {
         DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
@@ -419,18 +419,14 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
     {
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
         pTyrannus = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_TYRANNUS));
-        if(pTyrannus)
+        if (pTyrannus)
         {
             m_intro = true; 
             pTyrannus->AI()->DoAction(ACTION_START_INTRO);
         }
-    }
-
-    void JustDied(Unit* pKiller)
-    {
     }
 
     void DoRandomFlight()

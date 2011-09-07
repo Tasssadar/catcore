@@ -6219,14 +6219,15 @@ bool ChatHandler::HandleInstanceSetDataCommand(const char *args)
         return false;
     }
 
-    if (!((InstanceMap*)map)->GetInstanceData())
+    InstanceData* iData = ((InstanceMap*)map)->GetInstanceData();
+    if (!iData)
     {
         PSendSysMessage("Map has no instance data.");
         SetSentErrorMessage(true);
         return false;
     }
 
-    char* cType = strtok(str, " ");
+    char* cType = strtok((char*)args, " ");
     char* cData = strtok(NULL, " ");
     if (!cType || !cData)
         return false;
@@ -6236,10 +6237,8 @@ bool ChatHandler::HandleInstanceSetDataCommand(const char *args)
     if (!Type || !Data)
         return false;
 
-
-    ((InstanceMap*)map)->GetInstanceData()->SetData(Type, Data);
+    iData->SetData(Type, Data);
     return true;
-
 }
 
 /// Display the list of GMs

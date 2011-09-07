@@ -88,19 +88,19 @@ struct MANGOS_DLL_DECL boss_forgemaster_gafrostAI : public ScriptedAI
         SetCombatMovement(true);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
         DoScriptText(SAY_AGGRO, m_creature);
         DoCast(m_creature, SPELL_PERMAFROST);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit*)
     {
         DoScriptText(SAY_DEATH, m_creature);
         m_pInstance->SetData(TYPE_GARFROST, DONE);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit*)
     {
         DoScriptText(urand(0,1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
