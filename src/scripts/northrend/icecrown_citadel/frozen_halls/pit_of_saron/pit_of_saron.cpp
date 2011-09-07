@@ -393,11 +393,11 @@ struct MANGOS_DLL_DECL mob_pos_guide_startAI : public ScriptedAI
     }
 };
 
-const float tyrannusPos [][3] =
+const Coords tyrannusPos[] =
 {
-    { 842.02f, 264.17f, 620.03f },
-    { 829.35f, 149.98f, 548.53f },
-    { 952.54f, 164.32f, 669.85f },
+    Coords(842.02f, 264.17f, 620.03f),
+    Coords(829.35f, 149.98f, 548.53f),
+    Coords(952.54f, 164.32f, 669.85f),
 };
 
 struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
@@ -461,10 +461,8 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
         PointPath path;
         path.resize(2);
         path.set(0, m_creature->GetPosition());
-        path.set(1, Coords(tyrannusPos[pos][0], tyrannusPos[pos][1], tyrannusPos[pos][2]));
-        uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
-        m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
-        m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
+        path.set(1, tyrannusPos[pos]);
+        m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING, path.GetTotalLength()/0.01f);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -710,19 +708,16 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         pSindragosa->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
         pSindragosa->SendHeartBeatMsg();
         
-
-        float x, y ,z;
-        pSindragosa->GetPosition(x, y, z);
-        z += 100.0f;
-        x += cos(pSindragosa->GetOrientation())*35;
-        y += sin(pSindragosa->GetOrientation())*35;
+        Coords finalPos = pSindragosa->GetPosition();
+        finalPos.x += cos(pSindragosa->GetOrientation())*35;
+        finalPos.y += sin(pSindragosa->GetOrientation())*35;
+        finalPos.z += 100.0f;
         
         PointPath path;
         path.resize(2);
         path.set(0, pSindragosa->GetPosition());
-        path.set(1, Coords(x,y,z));
-        pSindragosa->GetMotionMaster()->MoveCharge(path, 2000, 1, 1);
-        pSindragosa->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_NONE, 2000);
+        path.set(1, finalPos);
+        pSindragosa->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SPLINEFLAG_NONE, 2000);
     }
 
     void UpdateAI(const uint32 uiDiff)
