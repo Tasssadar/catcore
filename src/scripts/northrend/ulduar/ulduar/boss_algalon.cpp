@@ -667,6 +667,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
             m_creature->InterruptNonMeleeSpells(false);
             DoCast(m_creature->getVictim(), SPELL_BIGBANG);
             m_uiBigBangTimer = 90000;
+            m_uiCosmicSmashTimer = 32000;
         }
         else
             m_uiBigBangTimer -= uiDiff;
@@ -809,6 +810,7 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
     {
         m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
         m_creature->SummonCreature(NPC_VOID_ZONE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+        m_creature->CastSpell(m_creature, SPELL_BLACK_HOLE_EXPLOSION, true);
         ((TemporarySummon*)m_creature)->UnSummon();
     }
 
@@ -873,7 +875,7 @@ struct MANGOS_DLL_DECL mob_black_holeAI : public ScriptedAI
     mob_black_holeAI (Creature* pCreature) : ScriptedAI(pCreature)
     {
         Reset();
-        DoCastSpellIfCan(m_creature, SPELL_BLACK_HOLE_EXPLOSION);
+        
     }
 
     void Reset()
