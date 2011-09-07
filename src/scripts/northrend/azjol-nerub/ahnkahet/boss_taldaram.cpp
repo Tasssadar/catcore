@@ -221,7 +221,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                 else
                     continue;
 
-                m_creature->GetMotionMaster()->MoveChase(m_uEmbraceTarget);
+                m_creature->GetMotionMaster()->MoveFollow(m_uEmbraceTarget);
                 break;
             }
 
