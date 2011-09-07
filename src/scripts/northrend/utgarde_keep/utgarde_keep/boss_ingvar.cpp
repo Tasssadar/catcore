@@ -327,11 +327,12 @@ struct MANGOS_DLL_DECL npc_annhyldeAI : public ScriptedAI
         
         PointPath path;
         path.resize(2);
-        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
-        path.set(1, PathNode(x, y, z));
-        uint32 time = m_creature->GetDistance(x, y, z)/(10.0f*0.001f);
-        m_creature->GetMotionMaster()->MoveCharge(path, time ? time : (m_creature->GetDistance(x, y, z)/(10.0f*0.001f)), 1, 1);
-        m_creature->SendMonsterMove(x, y, z, SPLINETYPE_NORMAL , m_creature->GetSplineFlags(), time);
+        path.set(0, m_creature->GetPosition());
+        path.set(1, pIngvar->GetPosition());
+        path[1].z += 17.f;
+        uint32 time = path.GetTotalLength()/0.01f;
+        m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SPLINEFLAG_NONE, time);
+
         return time;
     }
 

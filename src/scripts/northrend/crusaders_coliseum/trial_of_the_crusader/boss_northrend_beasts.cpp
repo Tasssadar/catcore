@@ -576,7 +576,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
 
     bool isCastingBreath;
 
-    PathNode *m_chargeTargetPos;
+    Coords *m_chargeTargetPos;
     bool m_trample;
     bool m_sombodyDied;
     uint32 m_trampleTimer;
@@ -670,20 +670,18 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
                         m_creature->SetUInt64Value(UNIT_FIELD_TARGET, plr->GetGUID());
                         DoScriptText(SAY_TRAMPLE_STARE, m_creature, plr);
                         //emote
-                        m_chargeTargetPos = new PathNode(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
+                        m_chargeTargetPos = new Coords(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ());
                         m_uiChargeStepTimer = 2500;
                         break;
                     }
                     case 2:
                     {
-                        float ang;
                         PointPath pointPath;
                         pointPath.resize(2);
-                        m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-                        m_creature->GetPosition(pointPath[1].x, pointPath[1].y, pointPath[1].z);
+                        pointPath[0] = m_creature->GetPosition();
+                        pointPath[1] = m_creature->GetPosition();
                         
-                        ang = m_creature->GetFixedOrientation() + M_PI_F;
-                        ang = ang > M_PI_F*2 ? ang - M_PI_F*2 : ang;
+                        float ang = m_creature->GetFixedOrientation() + M_PI_F;
                         pointPath[1].x += cos(ang)*35.0f;
                         pointPath[1].y += sin(ang)*35.0f;
                         m_chargeTargetPos->x += cos(ang)*8;
@@ -698,10 +696,9 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
                         DoScriptText(SAY_TRAMPLE_START, m_creature);
                         PointPath pointPath;
                         pointPath.resize(2);
-                        m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
+                        pointPath.set(0, m_creature->GetPosition());
                         pointPath.set(1, *m_chargeTargetPos);
-                        m_creature->SendMonsterMove(m_chargeTargetPos->x, m_chargeTargetPos->y, m_chargeTargetPos->z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
-                        m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
+                        m_creature->ChargeMonsterMove(pointPath, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
                         m_uiChargeStepTimer = 1200;
                         m_hitPlayers.clear();
                         m_trample = true;
@@ -774,10 +771,8 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
             pointPath.resize(2);
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
-            m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-            pointPath[1].x = SpawnLoc[LOC_CENTER].x;
-            pointPath[1].y = SpawnLoc[LOC_CENTER].y;
-            pointPath[1].z = SpawnLoc[LOC_CENTER].z;
+            pointPath[0] = m_creature->GetPosition();
+            pointPath[1] = SpawnLoc[LOC_CENTER];
             m_creature->SendMonsterMove(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y, SpawnLoc[LOC_CENTER].z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);
             m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
 

@@ -21,6 +21,7 @@
 
 #include "Path.h"
 #include "MoveMapSharedDefines.h"
+#include "Object.h"
 #include "../recastnavigation/Detour/Include/DetourNavMesh.h"
 #include "../recastnavigation/Detour/Include/DetourNavMeshQuery.h"
 
@@ -62,10 +63,10 @@ class PathInfo
         inline void getEndPosition(float &x, float &y, float &z) { x = m_endPosition.x; y = m_endPosition.y; z = m_endPosition.z; }
         inline void getActualEndPosition(float &x, float &y, float &z) { x = m_actualEndPosition.x; y = m_actualEndPosition.y; z = m_actualEndPosition.z; }
 
-        inline PathNode getStartPosition() const { return m_startPosition; }
-        inline PathNode getNextPosition() const { return m_nextPosition; }
-        inline PathNode getEndPosition() const { return m_endPosition; }
-        inline PathNode getActualEndPosition() const { return m_actualEndPosition; }
+        inline Coords getStartPosition() const { return m_startPosition; }
+        inline Coords getNextPosition() const { return m_nextPosition; }
+        inline Coords getEndPosition() const { return m_endPosition; }
+        inline Coords getActualEndPosition() const { return m_actualEndPosition; }
 
         inline PointPath& getFullPath() { return m_pathPoints; }
         inline PathType getPathType() const { return m_type; }
@@ -80,10 +81,10 @@ class PathInfo
 
         bool            m_useStraightPath;  // type of path will be generated
 
-        PathNode        m_startPosition;    // {x, y, z} of current location
-        PathNode        m_nextPosition;     // {x, y, z} of next location on the path
-        PathNode        m_endPosition;      // {x, y, z} of the destination
-        PathNode        m_actualEndPosition;  // {x, y, z} of the closest possible point to given destination
+        Coords          m_startPosition;    // {x, y, z} of current location
+        Coords          m_nextPosition;     // {x, y, z} of next location on the path
+        Coords          m_endPosition;      // {x, y, z} of the destination
+        Coords          m_actualEndPosition;  // {x, y, z} of the closest possible point to given destination
 
         const Unit* const       m_sourceUnit;       // the unit that is moving
         const dtNavMesh*        m_navMesh;          // the nav mesh
@@ -91,10 +92,10 @@ class PathInfo
 
         dtQueryFilter m_filter;                     // use single filter for all movements, update it when needed
 
-        inline void setNextPosition(PathNode point) { m_nextPosition = point; }
-        inline void setStartPosition(PathNode point) { m_startPosition = point; }
-        inline void setEndPosition(PathNode point) { m_actualEndPosition = point; m_endPosition = point; }
-        inline void setActualEndPosition(PathNode point) { m_actualEndPosition = point; }
+        inline void setNextPosition(Coords point) { m_nextPosition = point; }
+        inline void setStartPosition(Coords point) { m_startPosition = point; }
+        inline void setEndPosition(Coords point) { m_actualEndPosition = point; m_endPosition = point; }
+        inline void setActualEndPosition(Coords point) { m_actualEndPosition = point; }
 
         inline void clear()
         {
@@ -105,7 +106,7 @@ class PathInfo
         dtPolyRef getPathPolyByPosition(dtPolyRef *polyPath, uint32 polyPathSize, const float* point, float *distance = NULL);
         dtPolyRef getPolyByLocation(const float* point, float *distance);
 
-        void BuildPolyPath(PathNode startPos, PathNode endPos);
+        void BuildPolyPath(Coords startPos, Coords endPos);
         void BuildPointPath(float *startPoint, float *endPoint);
         void BuildShortcut();
 
@@ -133,8 +134,7 @@ inline bool inRangeYZX(const float* v1, const float* v2, const float r, const fl
     return (dx*dx + dz*dz) < r*r && fabsf(dy) < h;
 }
 
-inline bool inRange(const PathNode p1, const PathNode p2,
-                    const float r, const float h)
+inline bool inRange(const Coords p1, const Coords p2, const float r, const float h)
 {
     const float dx = p2.x - p1.x;
     const float dy = p2.y - p1.y;

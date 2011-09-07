@@ -22,14 +22,7 @@
 #include "Common.h"
 #include <deque>
 
-struct PathNode
-{
-    PathNode(): x(0.0f), y(0.0f), z(0.0f) { }
-    PathNode(float _x, float _y, float _z): x(_x), y(_y), z(_z) { }
-    float x, y, z;
-};
-
-template<typename PathElem, typename PathNode = PathElem>
+template<typename PathElem, typename Coords = PathElem>
 class Path
 {
     public:

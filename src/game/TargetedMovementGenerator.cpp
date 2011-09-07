@@ -231,12 +231,12 @@ bool TargetedMovementGeneratorMedium<T,D>::Update(T &owner, const uint32 & time_
 
         float x,y,z;
         i_target->GetPosition(x, y, z);
-        PathNode next_point(x, y, z);
+        Coords next_point(x, y, z);
 
         bool targetMoved = false, needNewDest = false;
         if (i_path)
         {
-            PathNode end_point = i_path->getEndPosition();
+            Coords end_point = i_path->getEndPosition();
             next_point = i_path->getNextPosition();
 
             needNewDest = i_destinationHolder.HasArrived() && !inRange(next_point, i_path->getActualEndPosition(), dist, dist);

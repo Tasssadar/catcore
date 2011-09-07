@@ -25,7 +25,7 @@ enum
     SPELL_CYANIGOSA_TRANSFORM                 = 58668,
 };
 
-const float jumpPos[3]= {1883.90f, 805.69f, 38.402f};
+const Coords jumpPos(1883.90f, 805.69f, 38.402f);
 
 struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
 {
@@ -83,16 +83,8 @@ struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
                 {
                 case 0:
                 {
-                    PointPath pointPath;
-                    pointPath.resize(2);
-                    m_creature->GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-                    pointPath[1].x = jumpPos[0];
-                    pointPath[1].y = jumpPos[1];
-                    pointPath[1].z = jumpPos[2];
+                    m_creature->TrajMonsterMove(jumpPos.x, JumpPos.y, JumpPos.z, false, 80.f, 1000);
 
-                    m_creature->GetMotionMaster()->MoveCharge(pointPath, 1000.0f, 1, 1);
-                    m_creature->SendTrajMonsterMove(jumpPos[0], jumpPos[1], jumpPos[2], false, 80.0f, 1000, SPLINETYPE_NORMAL);
-                    
                     //she should jump here, no spell aviable for that, it doesn't work
                     RPPhase++;
                     RPTimer=5000;//10000;

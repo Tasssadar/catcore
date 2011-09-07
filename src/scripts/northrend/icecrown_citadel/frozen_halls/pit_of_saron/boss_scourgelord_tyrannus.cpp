@@ -336,13 +336,13 @@ struct MANGOS_DLL_DECL boss_tyrannusAI : public ScriptedAI
 };
 
 const float dismountPos[3] = { 1028.41f, 167.93, 628.2};
-const float fightPos[][3] =
+const Coords fightPos[] =
 {
-    { 966.32,  178.91, 670.93 },
-    { 1076.13, 138.98, 670.93 },
-    { 1035.96, 208.28, 670.93 },
-    { 988.35,  113.54, 670.93 },
-    { 1012.25, 160.87, 670.93 },
+    Coords(966.320f, 178.91f, 670.93f),
+    Coords(1076.13f, 138.98f, 670.93f),
+    Coords(1035.96f, 208.28f, 670.93f),
+    Coords(988.350f, 113.54f, 670.93f),
+    Coords(1012.25f, 160.87f, 670.93f),
 };
 
 #define FIGHT_POS 4
@@ -438,8 +438,8 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
         uint8 tmp = urand(0, FIGHT_POS);
         PointPath path;
         path.resize(2);
-        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
-        path.set(1, PathNode(fightPos[tmp][0], fightPos[tmp][1], fightPos[tmp][2]));
+        path.set(0, m_creature->GetPosition(););
+        path.set(1, fightPos[tmp]);
         uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);

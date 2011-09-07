@@ -507,10 +507,8 @@ void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velo
 {
     PointPath pointPath;
     pointPath.resize(2);
-    GetPosition(pointPath[0].x, pointPath[0].y, pointPath[0].z);
-    pointPath[1].x = x;
-    pointPath[1].y = y;
-    pointPath[1].z = z;
+    pointPath.set(0, GetPosition());
+    pointPath.set(1, Coords(x,y,z));
     GetMotionMaster()->MoveCharge(pointPath, time, 1, 1);
     SendTrajMonsterMove(x, y, z, knockback, velocity, time, SPLINETYPE_NORMAL);
 }
@@ -16182,8 +16180,8 @@ void Unit::MonsterMoveByPath(float x, float y, float z, uint32 speed, bool smoot
     MonsterMoveByPath(pointPath, 1, pointPath.size(), traveltime);
 }
 
-template<typename PathElem, typename PathNode>
-void Unit::MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, uint32 transitTime)
+template<typename PathElem, typename Coords>
+void Unit::MonsterMoveByPath(Path<PathElem,Coords> const& path, uint32 start, uint32 end, uint32 transitTime)
 {
     SplineFlags flags = GetTypeId() == TYPEID_PLAYER ? SPLINEFLAG_WALKMODE : ((Creature*)this)->GetSplineFlags();
     SendMonsterMoveByPath(path, start, end, flags, transitTime);
@@ -16206,7 +16204,7 @@ void Unit::MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, 
     }
 }
 
-template void Unit::MonsterMoveByPath<PathNode>(const Path<PathNode> &, uint32, uint32, uint32);
+template void Unit::MonsterMoveByPath<Coords>(const Path<Coords> &, uint32, uint32, uint32);
 
 struct SetPvPHelper
 {
@@ -16466,14 +16464,7 @@ void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpee
             velocity = float((height/10.0f)*8)/float(pow(time/1000.0f, 2.0f))*10.0f;
         }
 
-        SendTrajMonsterMove(fx, fy, fz, true, velocity, time, SPLINETYPE_NORMAL);
-        
-        // Creature relocation
-        PointPath path;
-        path.resize(2);
-        path.set(0, PathNode(GetPositionX(), GetPositionY(), GetPositionZ()));
-        path.set(1, PathNode(fx, fy, fz));
-        GetMotionMaster()->MoveCharge(path, time+800, 1, 1);
+        TrajMonsterMove(fx, fy, fz, true, velocity, time);
     }
 }
 
@@ -17028,7 +17019,7 @@ void Unit::SendMonsterMoveByPath(Path<Elem,Node> const& path, uint32 start, uint
     SendMessageToSet(&data, true);
 }
 
-template void Unit::SendMonsterMoveByPath<PathNode>(const Path<PathNode> &, uint32, uint32, SplineFlags, uint32);
+template void Unit::SendMonsterMoveByPath<Coords>(const Path<Coords> &, uint32, uint32, SplineFlags, uint32);
 template void Unit::SendMonsterMoveByPath<TaxiPathNodePtr, const TaxiPathNodeEntry>(const Path<TaxiPathNodePtr, const TaxiPathNodeEntry> &, uint32, uint32, SplineFlags, uint32);
 
 

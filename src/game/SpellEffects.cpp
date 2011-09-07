@@ -3107,7 +3107,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
 {
     Unit* target = unitTarget;
 
-    float x, y, z, direction, angle, velocity;
+    float direction, angle, velocity;
     SplineType splinetype = SPLINETYPE_NORMAL;
     // Death Grip
     if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_SELF2)
@@ -3125,38 +3125,39 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     if (!target)
         return;
 
+    Coords coord = target->GetPosition();
+
     angle = target->GetOrientation();
     angle += direction;
     angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
     angle = (angle <= 2*M_PI_F) ? angle : angle - 2 * M_PI_F;
-    target->GetPosition(x,y,z);
-    x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
-    y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
+    coord.x += cos(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
+    coord.y += sin(angle) * (target->GetObjectBoundingRadius() + CONTACT_DISTANCE);
 
     std::vector<float> list;
-    target->GetTerrain()->FindGroundLevels(&list, x, y);
+    target->GetTerrain()->FindGroundLevels(&list, coord.x, coord.y);
     float targetZ = INVALID_HEIGHT;
-    float range = m_caster->GetDistance(x, y, z);
+    float range = m_caster->GetPosition().GetDistance(coord);
     float lastDiff = INVALID_HEIGHT;
     for(uint8 i = 0; i < list.size(); ++i)
     {
-        float thisDiff = fabs(list[i] - z);
+        float thisDiff = fabs(list[i] - coord.z);
         if(lastDiff != INVALID_HEIGHT && thisDiff >= lastDiff)
             continue;
 
-        if((list[i] > z  && thisDiff <= range) || (list[i] <= z  && thisDiff <= 1.0f))
+        if((list[i] > coord.z  && thisDiff <= range) || (list[i] <= coord.z  && thisDiff <= 1.0f))
         {
             targetZ = list[i];
             lastDiff = thisDiff;
         }
     }
     if(targetZ == INVALID_HEIGHT) // if no fitting ground found, jump to the position of the target
-        target->GetPosition(x,y,z);
+        coord = target->GetPosition();
     else
-        z = targetZ;
+        coord.z = targetZ;
     list.clear();
 
-    float distance = m_caster->GetDistance2d(x,y);
+    float distance = m_caster->GetPosition().GetDistance2d(coord);
     float speed = 84.0f;
     if(m_spellInfo->Id == 49575) // death grip
         speed = 62.0f;
@@ -3175,13 +3176,12 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
         m_caster->InterruptNonMeleeSpells(true);
     }
 
-    float cx, cy, cz;
-    m_caster->GetPosition(cx, cy, cz);
+    Coords c_coord = m_caster->GetPosition();
 
     WorldPacket data(SMSG_MONSTER_MOVE);
     data << m_caster->GetPackGUID();
     data << uint8(0);
-    data << cx << cy << cz;
+    data << c_coord.x << c_coord.y << c_coord.z;
     data << uint32(getMSTime());
     data << uint8(splinetype);
     if (splinetype == SPLINETYPE_FACINGTARGET)
@@ -3191,7 +3191,7 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     data << float(velocity);
     data << uint32(0);
     data << uint32(1);
-    data << x << y << z;
+    data << coord.x << coord.y << coord.z;
 
     if (target->GetTypeId() == TYPEID_PLAYER)
     {
@@ -3205,8 +3205,8 @@ void Spell::EffectJumpToDest(SpellEffectIndex eff_idx)
     {
         PointPath path;
         path.resize(2);
-        path.set(0, PathNode(cx, cy, cz));
-        path.set(1, PathNode(x, y, z));
+        path.set(0, c_coord);
+        path.set(1, coord);
         m_caster->GetMotionMaster()->MoveCharge(path, traveltime+1000.0f, 1, 1);
     }
 }
@@ -8143,8 +8143,8 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
              // Creature relocation
             PointPath path;
             path.resize(2);
-            path.set(0, PathNode(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ()));
-            path.set(1, PathNode(cx, cy, cz));
+            path.set(0, Coords(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ()));
+            path.set(1, Coords(cx, cy, cz));
             unitTarget->GetMotionMaster()->MoveCharge(path, 100, 1, 1);
         }
     }

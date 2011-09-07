@@ -1502,8 +1502,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void MonsterMove(float x, float y, float z, uint32 transitTime);
         void MonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0);
         void MonsterMoveByPath(float x, float y, float z, uint32 speed, bool smoothPath = true);
-        template<typename PathElem, typename PathNode>
-        void MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
+        template<typename PathElem, typename Coords>
+        void MonsterMoveByPath(Path<PathElem,Coords> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
 
         // recommend use MonsterMove/MonsterMoveWithSpeed for most case that correctly work with movegens
         // if used additional args in ... part then floats must explicitly casted to double
@@ -1513,8 +1513,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...);
         void TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time);
         void ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags, uint32 Time, ...);
-        template<typename PathElem, typename PathNode>
-        void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
+        template<typename PathElem, typename Coords>
+        void SendMonsterMoveByPath(Path<PathElem,Coords> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
 
         void SendHighestThreatUpdate(HostileReference* pHostileReference);
         void SendThreatClear();
