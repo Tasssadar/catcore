@@ -1032,7 +1032,7 @@ void AddSC_trial_of_the_crusader()
 
     NewScript = new Script;
     NewScript->Name = "npc_toc_argentmage";
-    NewScript->pGossipHello = &GossipHello_toc_argentmage;
-    NewScript->pGossipSelect = &GossipSelect_toc_argentmage;
+    NewScript->pGossipHello = &GossipHello_npc_toc_argentmage;
+    NewScript->pGossipSelect = &GossipSelect_npc_toc_argentmage;
     NewScript->RegisterSelf();
 }

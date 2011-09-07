@@ -145,7 +145,7 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
         PlrList noSnoboled;
         for(PlrList::iterator itr = allApropriate.begin(); itr != allApropriate.end(); ++itr)
             if (!(*itr)->HasAura(SPELL_SNOBOLLED) && (*itr)->getClass() != CLASS_HUNTER)
-                noSnoboled.push_back();
+                noSnoboled.push_back(*itr);
 
         PlrList& selectList = noSnoboled.empty() ? allApropriate : noSnoboled;
         PlrList::iterator itr = selectList.begin();
