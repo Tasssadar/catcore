@@ -20,6 +20,7 @@
 #define MANGOSSERVER_PATH_H
 
 #include "Common.h"
+#include "Object.h"
 #include <deque>
 
 template<typename PathElem, typename Coords = PathElem>
@@ -50,8 +51,8 @@ class Path
             float len = 0.0f;
             for(unsigned int idx=start+1; idx < end; ++idx)
             {
-                PathNode const& node = i_nodes[idx];
-                PathNode const& prev = i_nodes[idx-1];
+                Coords const& node = i_nodes[idx];
+                Coords const& prev = i_nodes[idx-1];
                 float xd = node.x - prev.x;
                 float yd = node.y - prev.y;
                 float zd = node.z - prev.z;
@@ -68,7 +69,7 @@ class Path
 
             if (curnode > 0)
             {
-                PathNode const& node = i_nodes[curnode-1];
+                Coords const& node = i_nodes[curnode-1];
                 float xd = x - node.x;
                 float yd = y - node.y;
                 float zd = z - node.z;
@@ -78,8 +79,8 @@ class Path
             return len;
         }
 
-        PathNode& operator[](size_t idx) { return i_nodes[idx]; }
-        PathNode const& operator[](size_t idx) const { return i_nodes[idx]; }
+        Coords& operator[](size_t idx) { return i_nodes[idx]; }
+        Coords const& operator[](size_t idx) const { return i_nodes[idx]; }
 
         void set(size_t idx, PathElem elem) { i_nodes[idx] = elem; }
 
@@ -87,7 +88,7 @@ class Path
         std::deque<PathElem> i_nodes;
 };
 
-typedef Path<PathNode> PointPath;
+typedef Path<Coords> PointPath;
 
 
 #endif

@@ -32,13 +32,12 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
 
     creature.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 
-    if((m_start - m_end) == 0)
+     if (m_start == m_end)
     {
         float dist = creature.GetDistance(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
         float angle = creature.GetAngle(m_path[m_end].x, m_path[m_end].y);
         bool outdoor = creature.GetTerrain()->IsOutdoors(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
-        float x, y, z;
-        creature.GetPosition(x, y, z);
+        Coords pos = creature.GetPosition();
         float itr = 1;
         if(m_pointTime > 1000)
         {
@@ -52,15 +51,14 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
             m_path.resize(m_path.size()+1);
             m_path.set(m_end+1, m_path[m_end]);
 
-            x += cos(angle)*itr;
-            y += sin(angle)*itr;
-            creature.UpdateGroundPositionZ(x, y, z, outdoor ? 10.0f : 3.0f);
-             m_path.set(m_end, PathNode(x,y,z));
+            pos.x += cos(angle)*itr;
+            pos.y += sin(angle)*itr;
+            creature.UpdateGroundPositionZ(pos.x, pos.y, pos.z, outdoor ? 10.0f : 3.0f);
+            m_path.set(m_end, pos);
             ++m_end;
         }
         m_pointTime = float(m_pointTime)/float((m_end - m_start) + 1);
         i_nextMoveTime.Reset(m_pointTime);
-
     }
 }
 

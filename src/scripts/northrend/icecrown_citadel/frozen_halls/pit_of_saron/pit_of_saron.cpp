@@ -460,8 +460,8 @@ struct MANGOS_DLL_DECL mob_tyrannus_introAI : public ScriptedAI
     {
         PointPath path;
         path.resize(2);
-        path.set(0, PathNode(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()));
-        path.set(1, PathNode(tyrannusPos[pos][0], tyrannusPos[pos][1], tyrannusPos[pos][2]));
+        path.set(0, m_creature->GetPosition());
+        path.set(1, Coords(tyrannusPos[pos][0], tyrannusPos[pos][1], tyrannusPos[pos][2]));
         uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
         m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
         m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
@@ -719,8 +719,8 @@ struct MANGOS_DLL_DECL mob_pos_guide_endAI : public ScriptedAI
         
         PointPath path;
         path.resize(2);
-        path.set(0, PathNode(pSindragosa->GetPositionX(), pSindragosa->GetPositionY(), pSindragosa->GetPositionZ()));
-        path.set(1, PathNode(x,y,z));
+        path.set(0, pSindragosa->GetPosition());
+        path.set(1, Coords(x,y,z));
         pSindragosa->GetMotionMaster()->MoveCharge(path, 2000, 1, 1);
         pSindragosa->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_NONE, 2000);
     }

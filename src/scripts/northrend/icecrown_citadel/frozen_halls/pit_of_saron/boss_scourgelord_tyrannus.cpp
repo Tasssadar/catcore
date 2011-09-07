@@ -438,12 +438,11 @@ struct MANGOS_DLL_DECL boss_rimefang_posAI : public ScriptedAI
         uint8 tmp = urand(0, FIGHT_POS);
         PointPath path;
         path.resize(2);
-        path.set(0, m_creature->GetPosition(););
+        path.set(0, m_creature->GetPosition());
         path.set(1, fightPos[tmp]);
-        uint32 time = m_creature->GetDistance(path[1].x, path[1].y, path[1].z)/(10.0f*0.001f);
+        uint32 time = path.GetTotalLength()/0.01f;
         m_creature->GetMotionMaster()->Clear(false, true);
-        m_creature->GetMotionMaster()->MoveCharge(path, time, 1, 1);
-        m_creature->SendMonsterMove(path[1].x, path[1].y, path[1].z, SPLINETYPE_NORMAL , SPLINEFLAG_FLYING, time);
+        m_creature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SPLINEFLAG_FLYING,time);
     }
 
     void DoAction(uint32 action)

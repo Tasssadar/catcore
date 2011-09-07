@@ -83,7 +83,7 @@ struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
                 {
                 case 0:
                 {
-                    m_creature->TrajMonsterMove(jumpPos.x, JumpPos.y, JumpPos.z, false, 80.f, 1000);
+                    m_creature->TrajMonsterMove(jumpPos.x, jumpPos.y, jumpPos.z, false, 80.f, 1000);
 
                     //she should jump here, no spell aviable for that, it doesn't work
                     RPPhase++;
