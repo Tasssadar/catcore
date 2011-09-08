@@ -94,15 +94,12 @@ struct MANGOS_DLL_DECL northrend_beast_base : public ScriptedAI
     Difficulty m_dDifficulty;
     bool isHeroic;
 
-    /*void MovementInform(uint32 moveType, uint32 pointId)
+    void JustReachedHome()
     {
-        if (moveType == POINT_MOTION_TYPE && pointId == POINT_TO_CENTER)
-        {
-            m_bAttackEnabled = true;
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            AttackStart(m_pInstance->GetRandomPlayerInMap());
-        }
-    }*/
+        m_pInstance->SetData(TYPE_BEASTS, FAIL);
+
+        m_creature->ForcedDespawn();
+    }
 };
 
 struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
@@ -125,13 +122,6 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
     void Aggro(Unit* )
     {
         m_pInstance->SetData(TYPE_BEASTS, GORMOK_IN_PROGRESS);
-    }
-
-    void JustReachedHome()
-    {
-        m_pInstance->SetData(TYPE_BEASTS, FAIL);
-
-        m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit* )
@@ -419,13 +409,6 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         m_pInstance->SetData(TYPE_BEASTS, SNAKES_IN_PROGRESS);
     }
 
-    void JustReachedHome()
-    {
-        m_pInstance->SetData(TYPE_BEASTS, FAIL);
-
-        m_creature->ForcedDespawn();
-    }
-
     void JustDied(Unit* )
     {
         Creature* bro = GetBro();
@@ -587,10 +570,10 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
 
     void Reset()
     {
-        AddTimer(TIMER_BUTT, SPELL_FEROCIOUS_BUTT, 10000, 10000, UNIT_SELECT_VICTIM);
-        AddTimer(TIMER_WHIRL, SPELL_WHIRL, 15000, 15000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_BUTT, SPELL_FEROCIOUS_BUTT, RV(10000, 13000), RV(10000,15000), UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_WHIRL, SPELL_WHIRL, RV(15000, 17000), RV(10000,15000), UNIT_SELECT_SELF);
         AddTimer(TIMER_BREATH, SPELL_ARCTIC_BREATH, 20000, 20000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
-        AddNonCastTimer(TIMER_MASSIVE_CRASH, 35000, 35000);
+        AddNonCastTimer(TIMER_MASSIVE_CRASH, 35000, RV(30000,35000));
 
         isCastingBreath = false;
         m_uiChargeStepCount = -1;
@@ -610,13 +593,6 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
     void Aggro(Unit *)
     {
         m_pInstance->SetData(TYPE_BEASTS, ICEHOWL_IN_PROGRESS);
-    }
-
-    void JustReachedHome()
-    {
-        m_pInstance->SetData(TYPE_BEASTS, FAIL);
-
-        m_creature->ForcedDespawn();
     }
 
     void JustDied(Unit *)
@@ -761,7 +737,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
                 m_creature->FixOrientation();
                 isCastingBreath = false;
                 timer->Reset(TIMER_VALUE_SPELLID);
-                timer->Cooldown(TIMER_BREATH, 15000);
+                timer->Cooldown(15000);
             }
         }
 
