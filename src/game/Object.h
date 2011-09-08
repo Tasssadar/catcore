@@ -421,7 +421,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float &z, float maxDiff = 10.0f) const;
-        bool IsAtGroundLevel(const Coords coord = m_coords) const;
+        bool IsAtGroundLevel(Coords coord) const;
 
         void GetRandomPoint( float x, float y, float z, float distance, float &rand_x, float &rand_y, float &rand_z ) const;
 
