@@ -520,14 +520,14 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             case 1:
                 if (m_lSparkGUIDList.empty())
                     break;
-                for(std::vector<Creature*>::iterator itr = m_lSparkGUIDList.begin(); itr != m_lSparkGUIDList.end(); ++itr)
+                for(std::vector<Creature*>::iterator itr = m_lSparkGUIDList.begin(); !m_lSparkGUIDList.empty() && itr != m_lSparkGUIDList.end();)
                 {
                     if (!(*itr) || !(*itr)->IsInWorld() || !(*itr)->isAlive() ||
                         (*itr)->GetVisibility() == VISIBILITY_OFF || (*itr)->GetHealth() == 1)
                     {
                         m_lSparkGUIDList.erase(itr);
                         itr = m_lSparkGUIDList.begin();
-                    }
+                    }else ++itr;
                 }
                 break;
             case 2:
