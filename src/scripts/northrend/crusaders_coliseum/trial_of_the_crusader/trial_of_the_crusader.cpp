@@ -636,21 +636,19 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         for(uint8 second = 0; second < 2; ++second)
                         {
                             Creature* crt = second ? encounterCreature2 : encounterCreature;
-                            Creature* crt2 = second ? encounterCreature : encounterCreature2;
-
                             ((ScriptedAI*)crt->AI())->EnableAttack(false);
 
                             PointPath path;
-                            path.resize(4);
+                            path.resize(3);
                             path.set(0, crt->GetPosition());
                             path.set(1, second ? SpawnLoc[LOC_D_VALKYR_1] : SpawnLoc[LOC_L_VALKYR_1]);
                             path.set(2, second ? SpawnLoc[LOC_D_VALKYR_2] : SpawnLoc[LOC_L_VALKYR_2]);
-                            path.set(3, second ? SpawnLoc[LOC_D_VALKYR_3] : SpawnLoc[LOC_L_VALKYR_3]);
+                            //path.set(3, second ? SpawnLoc[LOC_D_VALKYR_3] : SpawnLoc[LOC_L_VALKYR_3]);
 
                             travelTime[second] = path.GetTotalLength()/(crt->GetSpeed(MOVE_RUN)*0.001f);
 
                             crt->GetMotionMaster()->Clear(false, true);
-                            crt->ChargeMonsterMove(path, SPLINETYPE_FACINGTARGET, crt->GetSplineFlags(), travelTime[second], crt2->GetGUID());
+                            crt->ChargeMonsterMove(path, SPLINETYPE_FACINGANGLE, crt->GetSplineFlags(), travelTime[second], M_PI_F*1.5f);
                         }
                         cooldown = (travelTime[0] > travelTime[1] ? travelTime[0] : travelTime[1]) + 5000;
                         break;
@@ -660,9 +658,6 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         for(uint8 second = 0; second < 2; ++second)
                         {
                             Creature* crt = second ? encounterCreature2 : encounterCreature;
-                            Creature* crt2 = second ? encounterCreature : encounterCreature2;
-                            const Coords& node3 = second ? SpawnLoc[LOC_D_VALKYR_3] : SpawnLoc[LOC_L_VALKYR_3];
-                            m_pInstance->instance->CreatureRelocation(crt, node3, crt->GetAngle(crt2));
                             ((ScriptedAI*)crt->AI())->EnableAttack(true);
                             crt->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         }

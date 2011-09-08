@@ -129,8 +129,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, RV(10000,15000), RV(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
 
         AddNonCastTimer(TIMER_CONCENTRATED, RV(15000,20000), RV(40000,50000));
-        if (isLight)
-            AddNonCastTimer(TIMER_SPECIAL, RV(30000,40000), RV(40000,45000));
+        AddNonCastTimer(TIMER_SPECIAL, RV(30000,40000), RV(40000,45000));
 
         m_TimerMgr->AddSpellToQueue(isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS);
 
@@ -161,7 +160,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             uiDamage *= 0.5f;
 
         Creature* sis = GetSis();
-        if (!sis || !sis->isAlive())
+        if (!sis || !sis->IsInWorld() || !sis->isAlive())
             return;
 
         uint32 sisHp = sis->GetHealth();
@@ -197,7 +196,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             m_creature->AddThreat(pWho);
             m_creature->SetInCombatWith(pWho);
             pWho->SetInCombatWith(m_creature);
-            m_creature->GetMotionMaster()->MoveChase(pWho);
+            m_creature->GetMotionMaster()->MoveChase(pWho, );
         }
     }
 
@@ -230,16 +229,17 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         if (m_TimerMgr->TimerFinished(TIMER_SPECIAL))
         {
             m_creature->InterruptNonMeleeSpells(false);
-            Creature* crt = urand(0,1) && GetSis() ? GetSis : m_creature;
-            SpellTimerMgr* mgr = crt->GetTimerMgr();
             bool isVortex = urand(0,1);
-            bool isSelf = crt == m_creature;
 
-            mgr->AddSpellToQueue(isVortex ? isSelf ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX : isSelf ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
+            m_TimerMgr->AddSpellToQueue(isVortex ? isLight ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX : isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
             if (!isVortex)
-                mgr->AddSpellToQueue(isSelf ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
-            DoScriptText(isVortex ? isSelf ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX : EMOTE_SHIELD, crt);
-            DoScriptText(isVortex ? isSelf ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX : SAY_SHIELD, crt);
+                m_TimerMgr->AddSpellToQueue(isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
+            DoScriptText(isVortex ? isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX : EMOTE_SHIELD, m_creature);
+            DoScriptText(isVortex ? isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX : SAY_SHIELD, m_creature);
+
+            // set cooldown on sis too
+            if (Creature* s = GetSis())
+                s->GetTimerMgr()->Cooldown(TIMER_SPECIAL);
         }
 
         // Twin Spike
