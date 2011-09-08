@@ -121,21 +121,16 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 
     Creature* sis;
 
-
     void Reset()
     {
-        AddTimer(TIMER_SPIKE, isLight ? SPELL_TWIN_SPIKE_L : SPELL_TWIN_SPIKE_D, 10000, urand(15000,20000), UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_SPIKE, isLight ? SPELL_TWIN_SPIKE_L : SPELL_TWIN_SPIKE_D, 10000, RV(15000,20000), UNIT_SELECT_VICTIM);
         AddTimer(TIMER_BERSERK, SPELL_BERSERK_VALKYR, isHeroic ? 360000: 600000, 60000, UNIT_SELECT_SELF, CAST_TYPE_FORCE);
         if (isHeroic)
             AddTimer(TIMER_TOUCH, isLight ? SPELL_TOUCH_OF_LIGHT : SPELL_TOUCH_OF_DARKNESS, RV(10000,15000), RV(17500,22500), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
 
-        AddNonCastTimer(TIMER_CONCENTRATED, urand(15000,20000), urand(40000,50000));
+        AddNonCastTimer(TIMER_CONCENTRATED, RV(15000,20000), RV(40000,50000));
         if (isLight)
-            AddNonCastTimer(TIMER_SPECIAL, urand(30000,40000), urand(40000,45000));
-
-
-
-
+            AddNonCastTimer(TIMER_SPECIAL, RV(30000,40000), RV(40000,45000));
 
         m_TimerMgr->AddSpellToQueue(isLight ? SPELL_SURGE_OF_LIGHT : SPELL_SURGE_OF_DARKNESS);
 
