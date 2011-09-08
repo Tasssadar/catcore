@@ -665,7 +665,7 @@ void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)
             (*itr)->Delete();
     }
 }
-void ScriptedAI::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit *caster)
+void ScriptedAI::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit *caster)
 {
     if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
         timer->Reset(TIMER_VALUE_ALL);
@@ -673,7 +673,7 @@ void ScriptedAI::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialT
         m_TimerMgr->AddTimer(timerId, initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo, caster);
 }
 
-void ScriptedAI::AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown)
+void ScriptedAI::AddNonCastTimer(uint32 timerId, RV initialTimer, RV cooldown)
 {
     if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
         timer->Reset(TIMER_VALUE_ALL);

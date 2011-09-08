@@ -171,13 +171,13 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
         currentPhase = 0;
 
-        AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, urand(0,15000), 15000, UNIT_SELECT_VICTIM);
-        AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, urand(0,20000), 20000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_SLASH, SPELL_FREEZING_SLASH, RV(0,15000), 15000, UNIT_SELECT_VICTIM);
+        AddTimer(TIMER_COLD, SPELL_PENETRATING_COLD, RV(0,20000), 20000, UNIT_SELECT_SELF);
         AddNonCastTimer(TIMER_PHASE, 80000, 60000);
-        AddNonCastTimer(TIMER_BURROWER_SPAWN, urand(5000,15000), urand(80000,90000));
+        AddNonCastTimer(TIMER_BURROWER_SPAWN, RV(5000,15000), RV(80000,90000));
 
         if (isHeroic)
-            AddNonCastTimer(TIMER_BURROWER_STRIKE, urand(25000,30000), 30000);
+            AddNonCastTimer(TIMER_BURROWER_STRIKE, RV(25000,30000), 30000);
         else
             AddNonCastTimer(TIMER_FROST_SPHERE, 30000, 90000);
 
@@ -474,7 +474,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
     void Reset()
     {
         m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
-        AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, urand(10000,45000), urand(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
+        AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, RV(10000,45000), RV(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* boss = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
         {

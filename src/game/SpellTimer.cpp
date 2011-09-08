@@ -2,11 +2,11 @@
 #include "DBCStores.h"
 #include "Map.h"
 
-SpellTimer::SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
-    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
+SpellTimer::SpellTimer(uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
+    initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), initialCooldown_m(initialCooldown), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
 {
     target_m = NULL;
-    SetInitialCooldown(initialCooldown);
+    CheckInitialCooldown();
     Reset(TIMER_VALUE_ALL);
 
 }
@@ -18,7 +18,7 @@ void SpellTimer::Reset(TimerValues value)
         case TIMER_VALUE_ALL:
             cooldown_m = initialCooldown_m;
             spellId_m = initialSpellId_m;
-            timer_m = initialTimer_m;
+            timer_m = initialTimer_m.GetVal();
             updateAllowed_m = true;
             shouldDeleteWhenFinish_m = false;
             justFinished_m = false;
@@ -31,7 +31,7 @@ void SpellTimer::Reset(TimerValues value)
             spellId_m = initialSpellId_m;
             break;
         case TIMER_VALUE_TIMER:
-            timer_m = initialTimer_m;
+            timer_m = initialTimer_m.GetVal();
             break;
         case TIMER_VALUE_UPDATEABLE:
             updateAllowed_m = true;
@@ -84,7 +84,7 @@ uint32 SpellTimer::GetValue(TimerValues value)
 {
     switch (value)
     {
-        case TIMER_VALUE_COOLDOWN:      return cooldown_m;
+        //case TIMER_VALUE_COOLDOWN:      return cooldown_m;
         case TIMER_VALUE_SPELLID:       return spellId_m;
         case TIMER_VALUE_TIMER:         return timer_m;
         case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
@@ -95,15 +95,13 @@ uint32 SpellTimer::GetValue(TimerValues value)
     }
 }
 
-void SpellTimer::SetInitialCooldown(int32 cooldown)
+void SpellTimer::CheckInitialCooldown()
 {
-    if (cooldown <= DBC_COOLDOWN)
+    if (initialCooldown_m.isEmpty())
     {
         SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
         initialCooldown_m = spellInfo ? spellInfo->RecoveryTime : 0;
     }
-    else
-        initialCooldown_m = cooldown;
 }
 
 void SpellTimer::Update(uint32 diff)
@@ -172,12 +170,12 @@ Unit* SpellTimer::findTarget(Unit* target)
     return target_m;
 }
 
-void SpellTimer::Cooldown(uint32 cd, bool permanent)
+void SpellTimer::Cooldown(RV cd, bool permanent)
 {
-    if (cd && permanent)
-        SetValue(TIMER_VALUE_COOLDOWN, cd);
+    if (!cd.isEmpty() && permanent)
+        cooldown_m = cd;
 
-    SetValue(TIMER_VALUE_TIMER, cd ? cd : cooldown_m);
+    timer_m = cd.isEmpty() ? cooldown_m.GetVal() : cd.GetVal();
 }
 
 bool SpellTimer::Finish(Unit *target)

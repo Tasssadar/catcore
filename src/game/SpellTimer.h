@@ -2,6 +2,7 @@
 #define SPELLTIMER_H
 
 #include "Unit.h"
+#include <Util.h>
 
 enum UnitSelectType
 {
@@ -33,20 +34,47 @@ enum TimerValues
     TIMER_VALUE_CUSTOM      =6
 };
 
-#define DBC_COOLDOWN 0
+struct RV
+{
+    uint32 uMin;
+    uint32 uMax;
+    uint32 uExact;
+    explicit RV(uint32 _min, uint32 _max) : uMin(_min), uMax(_max), uExact(0) {}
+    RV(uint32 _exact = 0) : uExact(_exact), uMin(0), uMax(0)  {}
+    RV(const RV &_rv) : uMin(_rv.uMin), uMax(_rv.uMax), uExact(_rv.uExact) {}
+
+    bool isEmpty() const
+    {
+        return uMin == 0 && uMax == 0 && uExact == 0;
+    }
+
+    bool isExact() const
+    {
+        return uExact != 0;
+    }
+
+    uint32 GetVal()
+    {
+        if (uExact)
+            return uExact;
+        else if (uMax < uMin)
+            return urand(uMax, uMin);
+        return urand(uMin, uMax);
+    }
+};
 
 struct SpellTimer
 {
-    SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = NULL, Unit* caster = NULL);
+    SpellTimer(uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = NULL, Unit* caster = NULL);
 
     public:
-        void SetInitialCooldown(int32 cooldown);
+        void CheckInitialCooldown();
 
         void Reset(TimerValues value);
         void SetValue(TimerValues value, uint32 newValue);
         uint32 GetValue(TimerValues value);
 
-        void Cooldown(uint32 cd = NULL, bool permanent = false);
+        void Cooldown(RV cd = NULL, bool permanent = false);
         void SetTarget(Unit* target) { target_m = target; }
 
         bool IsReady();
@@ -66,12 +94,12 @@ struct SpellTimer
 
     private:
         uint32 timer_m;
-        uint32 cooldown_m;
+        RV cooldown_m;
         uint32 spellId_m;
 
         uint32 initialSpellId_m;
-        uint32 initialTimer_m;
-        uint32 initialCooldown_m;
+        RV initialTimer_m;
+        RV initialCooldown_m;
 
         UnitSelectType targetType_m;
         CastType castType_m;

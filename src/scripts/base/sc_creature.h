@@ -196,10 +196,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     //****************
 
     // creating timer only for summon
-    void AddNonCastTimer(uint32 timerId, uint32 initialTimer, uint32 cooldown);
+    void AddNonCastTimer(uint32 timerId, RV initialTimer, RV cooldown);
 
     // used for adding timer in reset, if timer exist just reset
-    void AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
+    void AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
 
     // Pointer to spell timer manager of creature
     SpellTimerMgr* m_TimerMgr;
@@ -208,7 +208,6 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
         bool   m_bCombatMovement;
         uint32 m_uiEvadeCheckCooldown;
         bool   m_bAttackEnabled;
-
 };
 
 struct MANGOS_DLL_DECL Scripted_NoMovementAI : public ScriptedAI

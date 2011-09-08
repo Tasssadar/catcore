@@ -18,7 +18,7 @@ SpellTimerMgr::~SpellTimerMgr()
     delete m_GCD;
 }
 
-void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, uint32 initialTimer, int32 initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster)
+void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster)
 {
     if (timerId >= QUEUE_TIMER_ID)
     {
@@ -158,7 +158,7 @@ uint32 SpellTimerMgr::GetValue(uint32 timerId, TimerValues value)
     return 0;
 }
 
-void SpellTimerMgr::Cooldown(uint32 timerId, uint32 changedCD, bool permanent)
+void SpellTimerMgr::Cooldown(uint32 timerId, RV changedCD, bool permanent)
 {
     if (SpellTimer* timer = GetTimer(timerId))
         timer->Cooldown(changedCD, permanent);
