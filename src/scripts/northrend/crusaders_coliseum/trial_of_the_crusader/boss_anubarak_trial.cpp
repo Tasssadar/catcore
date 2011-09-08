@@ -195,7 +195,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             return;
 
         for(uint8 i = 0; i < 6; ++i)
-            m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0);
+            if (Creature* pSphere = m_creature->SummonCreature(NPC_FROST_SPHERE, SphereLoc[i], 0, TEMPSUMMON_MANUAL_DESPAWN, 0))
+                pSphere->SetRespawnDelay(7*DAY);
 
         DoScriptText(SAY_AGGRO, m_creature);
 
@@ -208,7 +209,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         if (currentPhase || !pWho || pWho->GetTypeId() != TYPEID_PLAYER || !pWho->isTargetableForAttack())
             return;
 
-        if (m_creature->GetDistance(pWho) < 100)
+        if (m_creature->GetDistance(pWho) < 150)
         {
             m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, false);
             currentPhase = 1;
@@ -260,6 +261,8 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
+
+        m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
     }
 
     void SwitchPhase(bool three = false)

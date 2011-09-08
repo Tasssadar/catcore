@@ -722,7 +722,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 9:
                         encounterCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
-                        cooldown = 4000;
+                        cooldown = 3000;
                         break;
                     case 10:
                         encounterCreature->HandleEmote(EMOTE_ONESHOT_KNEEL);
