@@ -1618,8 +1618,11 @@ bool WorldObject::IsPositionValid() const
     return MaNGOS::IsValidMapCoord(m_coords.x, m_coords.y, m_coords.z,m_orientation);
 }
 
-bool WorldObject::IsAtGroundLevel(const Coords coord) const
+bool WorldObject::IsAtGroundLevel(Coords coord) const
 {
+    if (coord.isNULL())
+        coord = m_coords;
+
     float groundZ = GetTerrain()->GetHeight(coord.x, coord.y, coord.z, true, 50);
     if (groundZ <= INVALID_HEIGHT || fabs(groundZ-coord.z) > 5.0f)
         return false;
