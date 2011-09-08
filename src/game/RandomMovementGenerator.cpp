@@ -86,7 +86,7 @@ RandomMovementGenerator<Creature>::_setRandomLocation(Creature &creature)
     i_destinationHolder.SetDestination(traveller, nx, ny, nz);
     creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
-    if (is_air_ok && !(creature.canWalk() && creature.IsAtGroundLevel(nx, ny, nz)))
+    if (is_air_ok && !(creature.canWalk() && creature.IsAtGroundLevel(Coords(nx, ny, nz))))
     {
         i_nextMoveTime.Reset(i_destinationHolder.GetTotalTravelTime());
         creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
@@ -106,7 +106,7 @@ void RandomMovementGenerator<Creature>::Initialize(Creature &creature)
         return;
 
     if (creature.canFly() && !(creature.canWalk() &&
-        creature.IsAtGroundLevel(creature.GetPositionX(), creature.GetPositionY(), creature.GetPositionZ())))
+        creature.IsAtGroundLevel()))
         creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
     else
         creature.AddSplineFlag(SPLINEFLAG_WALKMODE);
@@ -166,7 +166,7 @@ bool RandomMovementGenerator<Creature>::Update(Creature &creature, const uint32 
             else
                 creature.GetPosition(x,y,z);
 
-            if (creature.canFly() && !(creature.canWalk() && creature.IsAtGroundLevel(x,y,z)))
+            if (creature.canFly() && !(creature.canWalk() && creature.IsAtGroundLevel(Coords(x,y,z))))
                 creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
             else
                 creature.AddSplineFlag(SPLINEFLAG_WALKMODE);
@@ -273,7 +273,7 @@ void RandomCircleMovementGenerator<Creature>::Initialize(Creature &creature)
         return;
 
     if (creature.canFly() && !(creature.canWalk() &&
-        creature.IsAtGroundLevel(creature.GetPositionX(), creature.GetPositionY(), creature.GetPositionZ())))
+        creature.IsAtGroundLevel()))
         creature.AddSplineFlag(SPLINEFLAG_UNKNOWN7);
     else
         creature.AddSplineFlag(SPLINEFLAG_WALKMODE);

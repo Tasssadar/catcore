@@ -277,7 +277,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
 
                     if (!((Creature*)unit)->canWalk()
-                        || !unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ()))
+                        || !unit->IsAtGroundLevel())
                     {
                         unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     }
@@ -1618,10 +1618,10 @@ bool WorldObject::IsPositionValid() const
     return MaNGOS::IsValidMapCoord(m_coords.x, m_coords.y, m_coords.z,m_orientation);
 }
 
-bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
+bool WorldObject::IsAtGroundLevel(const Coords coord) const
 {
-    float groundZ = GetTerrain()->GetHeight(x, y, z, true, 50);
-    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 5.0f)
+    float groundZ = GetTerrain()->GetHeight(coord.x, coord.y, coord.z, true, 50);
+    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-coord.z) > 5.0f)
         return false;
     return true;
 }
