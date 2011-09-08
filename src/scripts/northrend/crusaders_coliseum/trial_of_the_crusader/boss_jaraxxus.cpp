@@ -280,7 +280,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             PlrList::iterator itr = manaList.begin();
             std::advance(itr, urand(0, manaList.size()-1));
 
-            m_TimerMgr->AddSpellToQueue(TIMER_MISTRESS_KISS, UNIT_SELECT_GUID, (*itr)->GetGUID());
+            m_TimerMgr->AddSpellToQueue(SPELL_MISTRESS_KISS, UNIT_SELECT_GUID, (*itr)->GetGUID());
         }
 
         DoMeleeAttackIfReady();
