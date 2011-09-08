@@ -68,7 +68,7 @@ enum Jaraxxus
     SPELL_LEGION_FLAME          = 66197, // Legion Flame
     SPELL_INFERNAL_ERUPTION     = 66258, // Infernal Eruption
     SPELL_NETHER_PORTAL         = 66269, // Nether Portal
-    SPELL_NETHER_POWER          = 67009, // Nether Power
+    SPELL_NETHER_POWER          = 67009  // Nether Power
 };
 
 enum Adds
@@ -167,13 +167,10 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             DoScriptText(SAY_INCINERATE, m_creature);
         }
 
-
         // Legion Flame
         if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME))
-        {
             if (Unit* target = timer->getTarget())
                 DoScriptText(EMOTE_LEGION_FLAME, m_creature, target);
-        }
 
         // Infernal Eruption
         if (m_TimerMgr->TimerFinished(TIMER_INFERNAL_ERUPTION))
@@ -212,6 +209,9 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
     {
         AddTimer(TIMER_FEL_STREAK, SPELL_FEL_STREAK, RV(8000,10000), RV(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 1);
         AddTimer(TIMER_FEL_INFERNO, SPELL_FEL_INFERNO, RV(10000,20000), RV(15000,25000), UNIT_SELECT_SELF);
+
+        if (m_pInstance)
+            AttackStart(m_pInstance->GetRandomPlayerInMap());
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -248,8 +248,12 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
     {
         AddTimer(TIMER_SHIVAN_SLASH, SPELL_SHIVAN_SLASH, 15000, 15000, UNIT_SELECT_VICTIM);
         AddTimer(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
+
         if (isHeroic)
-            AddTimer(TIMER_MISTRESS_KISS, SPELL_MISTRESS_KISS, 15000, 15000, UNIT_SELECT_NONE, CAST_TYPE_FORCE);
+            AddNonCastTimer(TIMER_MISTRESS_KISS, RV(10000,15000), RV(10000,15000);
+
+        if (m_pInstance)
+            AttackStart(m_pInstance->GetRandomPlayerInMap());
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -264,7 +268,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
         m_TimerMgr->TimerFinished(TIMER_SPINNING_PAIN_SPIKE);
 
         // Mistress's Kiss
-        if (m_TimerMgr->IsReady(TIMER_MISTRESS_KISS))
+        if (m_TimerMgr->TimerFinished(TIMER_MISTRESS_KISS))
         {
             PlrList fullList = GetAttackingPlayers(false);
 
@@ -276,7 +280,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             PlrList::iterator itr = manaList.begin();
             std::advance(itr, urand(0, manaList.size()-1));
 
-            m_TimerMgr->FinishTimer(TIMER_MISTRESS_KISS, *itr);
+            m_TimerMgr->AddSpellToQueue(TIMER_MISTRESS_KISS, UNIT_SELECT_GUID, (*itr)->GetGUID());
         }
 
         DoMeleeAttackIfReady();

@@ -84,7 +84,6 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
             pos.z += ((Creature*)&owner)->GetGroundOffset();
     }
 
-
     //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
     //ACE_hrtime_t elapsed;
     //timer.start();

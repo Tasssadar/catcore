@@ -33,10 +33,10 @@ void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTi
     m_TimerMap[timerId] = new SpellTimer(initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo, caster ? caster : m_owner);
 }
 
-void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, uint64 targetInfo, Unit *target)
+void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, uint64 targetInfo)
 {
     // target must be set right away
-    if (targetType == UNIT_SELECT_NONE && !target)
+    if (targetType == UNIT_SELECT_NONE)
         return;
 
     uint32 timerId = 0;
@@ -53,9 +53,6 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
 
     SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo, m_owner);
     m_TimerMap[timerId] = timer;
-
-    if (target)
-        timer->SetTarget(target);
 
     timer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
 
