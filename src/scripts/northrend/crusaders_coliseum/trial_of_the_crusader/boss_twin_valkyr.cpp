@@ -109,7 +109,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         pCreature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
         pCreature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
         pCreature->SetSplineFlags(SPLINEFLAG_UNKNOWN7);
-        pCreature->SetGroundOffset(8.f);
+        pCreature->SetGroundOffset(4.f);
         Reset();
     }
 
