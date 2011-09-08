@@ -95,8 +95,8 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 {
     boss_twin_valkyrAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        isLight = m_creature->GetEntry() == NPC_LIGHTBANE;
-        isDark = m_creature->GetEntry() == NPC_DARKBANE;
+        isLight = pCreature->GetEntry() == NPC_LIGHTBANE;
+        isDark = pCreature->GetEntry() == NPC_DARKBANE;
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
 
         if ((!isLight && !isDark) || !m_pInstance)
@@ -105,10 +105,11 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         isHeroic = pCreature->GetMap()->IsHeroicRaid();
 
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
-        m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-        m_creature->SetSplineFlags(SPLINEFLAG_UNKNOWN7);
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        pCreature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        pCreature->SetSplineFlags(SPLINEFLAG_UNKNOWN7);
+        pCreature->SetGroundOffset(8.f);
         Reset();
     }
 
@@ -196,7 +197,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             m_creature->AddThreat(pWho);
             m_creature->SetInCombatWith(pWho);
             pWho->SetInCombatWith(m_creature);
-            m_creature->GetMotionMaster()->MoveChase(pWho, );
+            m_creature->GetMotionMaster()->MoveChase(pWho);
         }
     }
 
@@ -342,13 +343,16 @@ struct MANGOS_DLL_DECL npc_concentratedAI : public ScriptedAI
         if (!plr || distance > 4.f)
             return;
 
+        m_creature->GetMotionMaster()->Clear(false, true);
+        m_creature->GetMotionMaster()->MoveIdle();
+
         if (isLight ? isUnitLight(plr) : isUnitDark(plr))
             plr->CastSpell(plr, SPELL_POWERING_UP, true);
         else
             m_creature->CastSpell(m_creature, isLight ? SPELL_UNLEASHED_LIGHT : SPELL_UNLEASHED_DARK, true);
 
         used = true;
-        m_creature->GetMotionMaster()->Clear(false, true);
+
         m_creature->ForcedDespawn(500);
     }
 };

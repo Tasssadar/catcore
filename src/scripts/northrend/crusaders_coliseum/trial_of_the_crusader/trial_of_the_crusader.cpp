@@ -89,13 +89,13 @@ void npc_toc_announcerAI::SummonToCBoss(uint32 id, uint32 id2, uint32 dooropen)
     bool isFlying = false;
     if (id2)
     {
-        coord.x += 8.f;
+        coord.x += 6.f;
         coord.z += 5.f;
         isFlying = true;
 
         Coords coord2;
         coord2 = SpawnLoc[LOC_BACKDOOR];
-        coord2.x -= 8.f;
+        coord2.x -= 6.f;
         coord2.z += 8.f;
 
         encounterCreature2 = DoSpawnTocBoss(id2, coord2, M_PI_F*1.5f, !isFlying);
@@ -623,7 +623,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         for(uint8 i = 0; i < 4; ++i)
                             DoSpawnTocBoss(i/2 ? NPC_LIGHT_ESSENCE : NPC_DARK_ESSENCE, SpawnLoc[LOC_D_ESSENCE_1+i], 0);
 
-                        cooldown = 1000;
+                        cooldown = 2000;
                         break;
                     case 3:
                     {

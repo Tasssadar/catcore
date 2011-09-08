@@ -417,7 +417,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
             GetNearPoint(obj, x, y, z, obj->GetObjectBoundingRadius(), distance2d, GetAngle(obj));
         }
 
-        virtual float GetObjectBoundingRadius() const { return DEFAULT_WORLD_OBJECT_SIZE; }
+        virtual float GetObjectBoundingRadius(bool /*is3D*/ = false) const { return DEFAULT_WORLD_OBJECT_SIZE; }
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float &z, float maxDiff = 10.0f) const;

@@ -78,7 +78,7 @@ void TargetedMovementGeneratorMedium<T,D>::_setTargetLocation(T &owner)
     // Just a temp hack, GetContactPoint/GetClosePoint in above code use UpdateGroundPositionZ (in GetNearPoint)
     // and then has the wrong z to use when creature try follow unit in the air.
     if (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->canFly())
-        pos.z = i_target->GetPositionZ()+ i_target->GetGroundOffset();
+        pos.z = i_target->GetPositionZ()+ ((Creature*)&owner)->GetGroundOffset();
 
   //ACE_High_Res_Timer timer = ACE_High_Res_Timer();
     //ACE_hrtime_t elapsed;

@@ -685,6 +685,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void SetGroundOffset(float groundOffset) { m_groundOffset = groundOffset; }
         float GetGroundOffset() const { return m_groundOffset; }
 
+        float GetObjectBoundingRadius(bool is3D = false) const;              // overwrite WorldObject version
+
     protected:
         bool CreateFromProto(uint32 guidlow,uint32 Entry,uint32 team, const CreatureData *data = NULL);
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);

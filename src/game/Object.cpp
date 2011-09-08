@@ -1262,14 +1262,13 @@ InstanceData* WorldObject::GetInstanceData() const
     Map *map = GetMap();
     return (map && map->IsDungeon()) ? ((InstanceMap*)map)->GetInstanceData() : NULL;
 }
-
                                                             //slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float dz = GetPositionZ() - obj->GetPositionZ();
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetObjectBoundingRadius(true) + obj->GetObjectBoundingRadius(true);
     float dist = sqrt((dx*dx) + (dy*dy) + (dz*dz)) - sizefactor;
     return ( dist > 0 ? dist : 0);
 }
@@ -1362,7 +1361,7 @@ bool WorldObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool
         float dz = GetPositionZ() - obj->GetPositionZ();
         distsq += dz*dz;
     }
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetObjectBoundingRadius(is3D) + obj->GetObjectBoundingRadius(is3D);
     float maxdist = dist2compare + sizefactor;
 
     return distsq < maxdist * maxdist;
