@@ -14,11 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-ALTER TABLE `creature_template` ADD `minoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `baseattacktime` ,
-ADD `maxoffdmg` FLOAT NOT NULL DEFAULT '0' AFTER `minoffdmg` ,
-ADD `dmgoffschool` TINYINT NOT NULL DEFAULT '4' AFTER `maxoffdmg` ,
-ADD `dmg_offmultiplier` FLOAT NOT NULL DEFAULT '1' AFTER `dmgoffschool` ,
-ADD `offattacktime` INT( 10 ) NOT NULL DEFAULT '0' AFTER `dmg_offmultiplier`
  */
 
 #include "Common.h"
@@ -124,7 +119,7 @@ m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
 m_isHardModeKill(false), m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
 m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE),
-m_DoNotInsertToInstanceCombatList(false)
+m_DoNotInsertToInstanceCombatList(false), m_groundOffset(0)
 {
     m_regenTimer = 200;
     m_CombatWithPlayerIntervalCheck = 30000; // 30 sec by default

@@ -71,10 +71,7 @@ bool PathInfo::Update(const float destX, const float destY, const float destZ, b
     Coords oldDest = getEndPosition();
     setEndPosition(newDest);
 
-    float x, y, z;
-    m_sourceUnit->GetPosition(x, y, z);
-    Coords newStart(x, y, z);
-    Coords oldStart = getStartPosition();
+    Coords newStart = m_sourceUnit->GetPosition();
     setStartPosition(newStart);
 
     m_useStraightPath = useStraightPath;
