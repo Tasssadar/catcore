@@ -26,7 +26,8 @@ struct SpellTimerMgr
         void UpdateTimers(uint32 const uiDiff);
         SpellTimer* TimerFinished(uint32 timerId, Unit* target = NULL);
         void AddToCastQueue(uint32 timerId) { m_IdToBeCasted.push_back(timerId); }
-        void AddSpellToQueue(uint32 spellId, UnitSelectType targetType = UNIT_SELECT_NONE, uint64 targetInfo = 0);
+        void AddSpellToQueue(uint32 spellId, UnitSelectType targetType, uint64 targetInfo = 0);
+        bool AddSpellCast(uint32 spellId, UnitSelectType targetType, uint64 targetInfo = 0);
 
         void Cooldown(uint32 timerId, RV changedCD = NULL, bool permanent = false);
         bool IsReady(uint32 timerId);
@@ -36,7 +37,7 @@ struct SpellTimerMgr
         uint32 GetValue(uint32 timerId, TimerValues value);
 
         bool CanBeTimerFinished(uint32 timerId);
-        bool FinishTimer(uint32 timerId, Unit* target = NULL);
+        bool FinishTimer(SpellTimer* timer, Unit* target = NULL);
 
         void ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs);
 

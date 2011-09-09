@@ -59,6 +59,19 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
     m_IdToBeCasted.push_back(timerId);
 }
 
+bool SpellTimerMgr::AddSpellCast(uint32 spellId, UnitSelectType targetType, uint64 targetInfo)
+{
+    // target must be set right away
+    if (targetType == UNIT_SELECT_NONE)
+        return false;
+
+    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_FORCE, targetInfo, m_owner);
+    bool succes = FinishTimer(timer);
+    delete timer;
+
+    return succes;
+}
+
 void SpellTimerMgr::RemoveTimer(uint32 timerId)
 {
     delete m_TimerMap[timerId];
@@ -109,8 +122,8 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
                 next = itr;
                 ++next;
                 if (uint32 timerId = *itr)
-                    if (m_TimerMap[timerId])
-                        if (!CanBeTimerFinished(timerId) || !FinishTimer(timerId))
+                    if (SpellTimer* timer = m_TimerMap[timerId])
+                        if (!CanBeTimerFinished(timerId) || !FinishTimer(timer))
                             continue;
 
                 m_IdToBeCasted.erase(itr);
@@ -212,16 +225,14 @@ SpellTimer* SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
 
     timer->SetTarget(target);
 
-    if (FinishTimer(timerId))
+    if (FinishTimer(timer))
         return timer;
 
     return NULL;
 }
 
-bool SpellTimerMgr::FinishTimer(uint32 timerId, Unit *target)
+bool SpellTimerMgr::FinishTimer(SpellTimer* timer, Unit *target)
 {
-    SpellTimer* timer = m_TimerMap[timerId];
-
     if (target)
         timer->SetTarget(target);
 
