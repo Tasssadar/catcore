@@ -101,7 +101,7 @@ class Vehicle : public Creature
         void InstallAllAccessories();
         Unit *GetPassenger(int8 seatId) const;
         void Respawn();
-        bool HasPlayerDriver();
+        bool HasCreatureDriver();
     protected:
         uint32 m_vehicleId;
         VehicleEntry const *m_vehicleInfo;
