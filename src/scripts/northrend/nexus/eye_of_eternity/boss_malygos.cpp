@@ -257,6 +257,7 @@ static const float OtherLoc[][4]=
     {749.0f, 1244.0f, 332.0f, 1.544f},      // Vortex FarSight loc
     {754.29f, 1301.18f, 266.17f, 0}, // Center of the platform, ground.
     {823.0f, 1241.0f, 299.0f, 0},          // Alexstrasza's  position
+    {787.0f, 1152.0f, 299.0f, 0},          // Alexstrasza spawn position
 };
 
 #define MAX_VORTEX              21
@@ -698,12 +699,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
     {
         //Nexus lords
         uint8 max_lords = m_bIsRegularMode ? NEXUS_LORD_COUNT : NEXUS_LORD_COUNT_H;
-        float x,y, z;
+        float x, y, z;
+        m_creature->getVictim()->GetPosition(x,y,z);
         for(uint8 i=0; i < max_lords;++i)
         {
-            m_creature->getVictim()->GetPosition(x,y,z);
-            x -= 5+rand()%10;
-            y -= 5+rand()%10;
             if (Creature *pLord = m_creature->SummonCreature(NPC_NEXUS_LORD, x, y, z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 pLord->AI()->AttackStart(m_creature->getVictim());
         }
@@ -1203,6 +1202,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
                     m_creature->SetHealth(1);
                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    m_creature->SetTargetGUID(0);
                     m_creature->GetMotionMaster()->Clear(false);        // No moving!
                     m_creature->GetMotionMaster()->MoveIdle();
                     m_uiSpeechCount = 0;
@@ -1212,13 +1212,19 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                     m_uiSpeechTimer[3] = 3000;
                     m_uiSpeechTimer[4] = 22000;
 
-                    if (Creature *pTemp = m_creature->SummonCreature(NPC_ALEXSTRASZA, OtherLoc[3][0], OtherLoc[3][1], OtherLoc[3][2], 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+                    if (Creature *pTemp = m_creature->SummonCreature(NPC_ALEXSTRASZA, OtherLoc[4][0], OtherLoc[4][1], OtherLoc[4][2], 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                     {
                         pTemp->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
-                        m_creature->SetFacingToObject(pTemp);
+                        m_creature->SetOrientation(m_creature->GetAngle(pTemp));
+                        m_creature->SendHeartBeatMsg();
                         pTemp->SetFacingToObject(m_creature);
-                        pTemp->SetVisibility(VISIBILITY_OFF);
                         pAlexstrasza = pTemp;
+
+                        PointPath path;
+                        path.resize(2);
+                        path.set(0, Coords(OtherLoc[4][0], OtherLoc[4][1], OtherLoc[4][2]));
+                        path.set(1, Coords(OtherLoc[3][0], OtherLoc[3][1], OtherLoc[3][2]));
+                        pAlexstrasza->ChargeMonsterMove(path, SPLINETYPE_FACINGTARGET, SPLINEFLAG_FLYING, 5000, m_creature->GetGUID());
                     }
 
                     m_uiSubPhase = 0;
@@ -1240,17 +1246,22 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
 
                     switch(m_uiSpeechCount)
                     {
-                        case 1:
-                            m_creature->SetVisibility(VISIBILITY_OFF);
-                            pAlexstrasza->SetVisibility(VISIBILITY_ON);
-                            pAlexstrasza->SetFacingToObject(m_creature->getVictim());
+                        case 2:
+                        {
+                            WorldPacket data(SMSG_DESTROY_OBJECT, 9);
+                            data << uint64(m_creature->GetGUID());
+                            data << uint8(1);
+                            m_creature->SendMessageToSet(&data, false);
                             break;
+                        }
                         case 4:
                             m_uiSubPhase = SUBPHASE_DIE;
+                            m_creature->SetVisibility(VISIBILITY_OFF);
+                            
                             //Summon exit portal, platform and loot
                             m_creature->SummonGameobject(GO_EXIT_PORTAL, GOPositions[2][0], GOPositions[2][1], GOPositions[2][2], GOPositions[2][3], 0);
                             m_creature->SummonGameobject(GO_PLATFORM, GOPositions[0][0], GOPositions[0][1], GOPositions[0][2], GOPositions[0][3], 0);
-                            if (GameObject *pGift = m_creature->SummonGameobject(m_bIsRegularMode ? GO_ALEXSTRASZAS_GIFT : GO_ALEXSTRASZAS_GIFT_H, GOPositions[1][0], GOPositions[1][1], GOPositions[1][2], GOPositions[1][3],604800))
+                            if (GameObject *pGift = m_creature->SummonGameobject(m_bIsRegularMode ? GO_ALEXSTRASZAS_GIFT : GO_ALEXSTRASZAS_GIFT_H, GOPositions[1][0], GOPositions[1][1], GOPositions[1][2]+4, GOPositions[1][3],604800))
                                 pAlexstrasza->SetFacingToObject(pGift);
                             m_creature->LogKill(m_creature->getVictim());
                             m_creature->getVictim()->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
