@@ -250,7 +250,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
         AddTimer(TIMER_SPINNING_PAIN_SPIKE, SPELL_SPINNING_PAIN_SPIKE, 16000, 16000, UNIT_SELECT_RANDOM_PLAYER);
 
         if (isHeroic)
-            AddNonCastTimer(TIMER_MISTRESS_KISS, RV(10000,15000), RV(10000,15000);
+            AddNonCastTimer(TIMER_MISTRESS_KISS, RV(10000,15000), RV(10000,15000));
 
         if (m_pInstance)
             AttackStart(m_pInstance->GetRandomPlayerInMap());
