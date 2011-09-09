@@ -362,7 +362,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 11:
                         if (encounterCreature)
-                            encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK, UNIT_SELECT_SELF);
+                            encounterCreature->GetTimerMgr()->AddSpellToQueue(SPELL_BERSERK);
                         cooldown = REALLY_BIG_COOLDOWN;
                         break;
                     case 51: // outro

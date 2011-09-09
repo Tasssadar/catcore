@@ -234,11 +234,11 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
 
             if (isCombo)
             {
-                m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS, UNIT_SELECT_SELF);
-                m_TimerMgr->AddSpellToQueue(isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D, UNIT_SELECT_SELF);
+                m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
+                m_TimerMgr->AddSpellToQueue(isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
             }
             else
-                m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS, UNIT_SELECT_SELF);
+                m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
 
             DoScriptText(isCombo ? EMOTE_SHIELD : isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX, m_creature);
             DoScriptText(isCombo ? SAY_SHIELD : isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX, m_creature);

@@ -292,11 +292,11 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
                 m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 m_TimerMgr->Cooldown(TIMER_PHASE, 60000);
-                m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB, UNIT_SELECT_SELF);
+                m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB);
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_COLD, TIMER_VALUE_UPDATEABLE, false);
                 m_TimerMgr->SetValue(TIMER_BURROWER_STRIKE, TIMER_VALUE_UPDATEABLE, false);
-                m_TimerMgr->AddSpellToQueue(SPELL_SPIKE_CALL, UNIT_SELECT_SELF);
+                m_TimerMgr->AddSpellToQueue(SPELL_SPIKE_CALL);
                 DoScriptText(SAY_BURROWER, m_creature);
                 break;
             }
@@ -307,7 +307,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
                 if (!isHeroic)
                     m_TimerMgr->SetValue(TIMER_BURROWER_SPAWN, TIMER_VALUE_UPDATEABLE, false);
 
-                m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM, UNIT_SELECT_SELF);
+                m_TimerMgr->AddSpellToQueue(SPELL_LEECHING_SWARM);
                 DoScriptText(EMOTE_LEECHING_SWARM, m_creature);
                 DoScriptText(SAY_LEECHING_SWARM, m_creature);
                 break;
@@ -403,8 +403,8 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
         // submerge handling
         AddNonCastTimer(TIMER_SUBMERGE, 2000, 2000);
 
-        m_TimerMgr->AddSpellToQueue(SPELL_SPIDER_FRENZY_AURA, UNIT_SELECT_SELF);
-        m_TimerMgr->AddSpellToQueue(SPELL_EXPOSER_WEAKNESS_A, UNIT_SELECT_SELF);
+        m_TimerMgr->AddSpellToQueue(SPELL_SPIDER_FRENZY_AURA);
+        m_TimerMgr->AddSpellToQueue(SPELL_EXPOSER_WEAKNESS_A);
         isSubmerged = false;
     }
 
@@ -476,7 +476,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
 
     void Reset()
     {
-        m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA, UNIT_SELECT_SELF);
+        m_TimerMgr->AddSpellToQueue(SPELL_ACID_MANIBLE_AURA);
         AddTimer(TIMER_DETERMINATION, SPELL_DETERMINATION, RV(10000,45000), RV(10000,45000), UNIT_SELECT_SELF, CAST_TYPE_FORCE);
 
         if (Creature* boss = GetClosestCreatureWithEntry(m_creature, BOSS_ANUBARAK, DEFAULT_VISIBILITY_INSTANCE))
@@ -556,8 +556,8 @@ struct MANGOS_DLL_DECL mob_frost_sphereAI : public ScriptedAI
             m_creature->RemoveAurasDueToSpell(SPELL_FROST_SPHERE);
             m_creature->SetDisplayId(11686);
             m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, 2.0f);
-            m_TimerMgr->AddSpellToQueue(SPELL_PERMAFROST_VISUAL, UNIT_SELECT_SELF);
-            m_TimerMgr->AddSpellToQueue(SPELL_PERMAFROST, UNIT_SELECT_SELF);
+            m_TimerMgr->AddSpellCast(SPELL_PERMAFROST_VISUAL);
+            m_TimerMgr->AddSpellCast(SPELL_PERMAFROST);
         }
     }
 };
