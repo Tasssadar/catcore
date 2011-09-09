@@ -501,6 +501,8 @@ void Unit::SendTrajMonsterMove(float x, float y, float z, bool knockback, float 
     data << uint32(1);
     data << x << y << z;
     SendMessageToSet(&data, true);
+
+    va_end(vargs);
 }
 
 void Unit::TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time)
@@ -555,19 +557,32 @@ void Unit::ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags,
     data << uint32(flags);
     data << uint32(Time);
     data << uint32(path.size()-1);
-    // destination
-    data << path[path.size()-1].x << path[path.size()-1].y << path[path.size()-1].z;
-    // all other points are relative to the center of the path
-    float mid_X = (cx + path[path.size()-1].x) * 0.5f;
-    float mid_Y = (cy + path[path.size()-1].y) * 0.5f;
-    float mid_Z = (cz + path[path.size()-1].z) * 0.5f;
-    for (uint32 i = 1; i < (path.size() - 1); ++i)
-        data.appendPackXYZ(mid_X - path[i].x, mid_Y - path[i].y, mid_Z - path[i].z);
-
+    if (flags & SplineFlags(SPLINEFLAG_FLYING | SPLINEFLAG_CATMULLROM))
+    {
+        for (uint32 i = 1; i < (path.size() - 1); ++i)
+        {
+            data << float(path[i].x);
+            data << float(path[i].y);
+            data << float(path[i].z);
+        }
+    }
+    else
+    {
+        // destination
+        data << path[path.size()-1].x << path[path.size()-1].y << path[path.size()-1].z;
+        // all other points are relative to the center of the path
+        float mid_X = (cx + path[path.size()-1].x) * 0.5f;
+        float mid_Y = (cy + path[path.size()-1].y) * 0.5f;
+        float mid_Z = (cz + path[path.size()-1].z) * 0.5f;
+        for (uint32 i = 1; i < (path.size() - 1); ++i)
+            data.appendPackXYZ(mid_X - path[i].x, mid_Y - path[i].y, mid_Z - path[i].z);
+    }
     SendMessageToSet(&data, true);
-    
+
     if (GetTypeId() != TYPEID_PLAYER)
-        GetMotionMaster()->MoveCharge(path, Time+(1000.0f/(path.size()-1)), 1, path.size()-1);
+        GetMotionMaster()->MoveCharge(path, Time/(path.size()-1), 1, path.size()-1);
+
+    va_end(vargs);
 }
 
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
@@ -637,6 +652,7 @@ void Unit::SendSplineMove(SplineWayPointMap *pWps, SplineType type, SplineFlags 
         player->GetSession()->SendPacket(&data);
     else
         SendMessageToSet( &data, true );
+    va_end(vargs);
 }
 void Unit::BuildHeartBeatMsg(WorldPacket *data) const
 {
@@ -1178,6 +1194,8 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
                 }
             }
         }
+
+        ExitVehicle();
 
         // last damage from non duel opponent or opponent controlled creature
         if (duel_hasEnded)
@@ -13291,7 +13309,6 @@ void Unit::setDeathState(DeathState s)
 
     if (s == JUST_DIED)
     {
-        ExitVehicle();
         RemoveAllAurasOnDeath();
         RemoveGuardians();
         UnsummonAllTotems();

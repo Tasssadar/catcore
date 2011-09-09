@@ -477,21 +477,27 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
         DoScriptText(SAY_KILL1_1-text, m_creature);
     }
 
-    void SummonedCreatureDespawn(Creature* pDespawned)
+    void SummonedCreatureJustDied(Creature* pDespawned)
     {
         if ((pDespawned->GetDisplayId() != 24316 && pDespawned->GetDisplayId() != 24317 &&
             pDespawned->GetDisplayId() != 24318 && pDespawned->GetDisplayId() != 24319)
             || m_uiPhase == PHASE_NOSTART)
             return;
 
-        float x,y,z;
-        pDespawned->GetPosition(x,y,z);
-        z = FLOOR_Z;
-        if (Vehicle *pDisc = m_creature->SummonVehicle(NPC_HOVER_DISC, x, y, z, 0))
+        if(pDespawned->GetVehicleGUID())
         {
+            Vehicle *pDisc = m_creature->GetMap()->GetVehicle(pDespawned->GetVehicleGUID());
             ((Creature*)pDisc)->SetSpeedRate(MOVE_FLIGHT, 3.5f, true);
             ((Creature*)pDisc)->SetSpeedRate(MOVE_RUN, 3.5f, true);
             ((Creature*)pDisc)->SetSpeedRate(MOVE_WALK, 3.5f, true);
+            ((Creature*)pDisc)->setFaction(35);
+
+            float x,y,z;
+            pDespawned->GetPosition(x,y,z);
+            pDespawned->UpdateGroundPositionZ(x, y, z, 100);
+            ((Creature*)pDisc)->GetMotionMaster()->Clear(false, true);
+            ((Creature*)pDisc)->GetMotionMaster()->MovePoint(0, x, y, z);
+
             m_lDiscGUIDList.push_back(((Creature*)pDisc)->GetGUID());
         }
     }
@@ -699,11 +705,11 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
     {
         //Nexus lords
         uint8 max_lords = m_bIsRegularMode ? NEXUS_LORD_COUNT : NEXUS_LORD_COUNT_H;
-        float x, y, z;
-        m_creature->getVictim()->GetPosition(x,y,z);
         for(uint8 i=0; i < max_lords;++i)
         {
-            if (Creature *pLord = m_creature->SummonCreature(NPC_NEXUS_LORD, x, y, z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            uint32 x = urand(SHELL_MIN_X, SHELL_MAX_X);
+            uint32 y = urand(SHELL_MIN_Y, SHELL_MAX_Y);
+            if (Creature *pLord = m_creature->SummonCreature(NPC_NEXUS_LORD, x, y, FLOOR_Z+10, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                 pLord->AI()->AttackStart(m_creature->getVictim());
         }
 
@@ -817,7 +823,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             return;
 
         for(CreatureList::iterator iter = m_pCreatures.begin(); iter != m_pCreatures.end(); ++iter)
+        {
+            (*iter)->DealDamage(*iter, (*iter)->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
             (*iter)->ForcedDespawn();
+        }
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -1450,13 +1459,26 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
     float destY;
     bool isMoving;
 
+    Creature *m_disc;
+
     void Reset()
     {
-        m_creature->SetSpeedRate(MOVE_WALK, 0.7f, true);
-        m_creature->SetSpeedRate(MOVE_RUN, 0.7f, true);
-        m_creature->SetSpeedRate(MOVE_FLIGHT, 0.7f, true);
         m_uiArcaneBarrageTimer = 5000 + rand()%15000;
         isMoving = false;
+        float x, y, z;
+        m_creature->GetPosition(x, y, z);
+        m_disc = m_creature->SummonVehicle(NPC_HOVER_DISC, x, y, z, 0);
+        if(!m_disc)
+            m_disc = m_creature;
+        else
+        {
+            m_creature->EnterVehicle((Vehicle*)m_disc, -1);
+            m_disc->setFaction(m_creature->getFaction());
+            m_disc->SetSpeedRate(MOVE_FLIGHT, 0.7f, true);
+            m_disc->m_movementInfo.SetMovementFlags2(MOVEFLAG2_ALLOW_PITCHING);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }
+
         InitMovement();
     }
     void InitMovement()
@@ -1467,8 +1489,10 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
         m_uiMoveTimer = 1000;
         m_fDistance = m_creature->GetDistance2d(OtherLoc[2][0], OtherLoc[2][1]); // From center of platform
 
+        m_fAngle = m_creature->GetAngle(OtherLoc[2][0], OtherLoc[2][1]) + M_PI_F;
+        m_fAngle = (m_fAngle <= 2*M_PI_F) ? m_fAngle : m_fAngle - 2 * M_PI_F;
         //Calculate angle - lol, i hope its right.
-        float m_fLenght = 2*M_PI_F*m_fDistance; // perimeter of circle
+        /*float m_fLenght = 2*M_PI_F*m_fDistance; // perimeter of circle
         m_fAngle = (M_PI_F - ((2*M_PI_F) / m_fLenght)) / 2; // (Triangle(PI) - angle at center of circle) / 2  =  one of two another angles, I wish this can be explain in ASCII image :/
 
         if (m_bClockWise)
@@ -1478,54 +1502,47 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
 
         //because it cant be lower than 0 or bigger than 2*PI
         m_fAngle = (m_fAngle >= 0) ? m_fAngle : 2 * M_PI_F + m_fAngle;
-        m_fAngle = (m_fAngle <= 2*M_PI_F) ? m_fAngle : m_fAngle - 2 * M_PI_F;
+        m_fAngle = (m_fAngle <= 2*M_PI_F) ? m_fAngle : m_fAngle - 2 * M_PI_F; */
     }
 
     void DoNextMovement()
     {
-        isMoving = true;
-        m_creature->m_movementInfo.SetMovementFlags(MovementFlags(MOVEFLAG_HOVER | MOVEFLAG_LEVITATING | MOVEFLAG_ONTRANSPORT));
-        m_creature->SendHeartBeatMsg();
-
         // Moving in "circles", <3 numberz :P
-        bool canIncerase = true;
-        bool canDecerase = true;
-        if (m_fDistance > 22)
-            canIncerase = false;
-        if (m_fDistance < 4)
-            canDecerase = false;
-
-        uint8 tmp = urand(0,2); // 0 nothing, 1 incerase, 2 decerase
-        if (tmp == 1 && canIncerase)
-            m_fDistance += 0.5f;
-        else if (tmp == 2 && canDecerase)
-            m_fDistance -= 0.5f; 
-
         float m_fLenght = 2*M_PI_F*m_fDistance;
         float m_fRotateAngle = (2*M_PI_F) / m_fLenght; // Moving by 1y every 700ms
 
-        if (m_bClockWise)
-            m_fAngle -= m_fRotateAngle;
-        else
-            m_fAngle += m_fRotateAngle;
+        PointPath path;
+        uint16 max = ceil((2*M_PI_F)/m_fRotateAngle);
+        if(max > 30)
+            max = 30;
+        path.resize(max+1);
+        path.set(0, m_creature->GetPosition());
+        m_uiMoveTimer = max/(double(m_disc->GetSpeed(MOVE_FLIGHT))*0.001);
 
-        //because it cant be lower than 0 or bigger than 2*PI
-        m_fAngle = (m_fAngle >= 0) ? m_fAngle : 2 * M_PI_F + m_fAngle;
-        m_fAngle = (m_fAngle <= 2*M_PI_F) ? m_fAngle : m_fAngle - 2 * M_PI_F;
+        for(uint16 itr = 1; itr <= max; ++itr)
+        {
+            if (m_bClockWise)
+                m_fAngle -= m_fRotateAngle;
+            else
+                m_fAngle += m_fRotateAngle;
 
-        destX = m_creature->GetPositionX();
-        destY = m_creature->GetPositionY();
+            //because it cant be lower than 0 or bigger than 2*PI
+            m_fAngle = (m_fAngle >= 0) ? m_fAngle : 2 * M_PI_F + m_fAngle;
+            m_fAngle = (m_fAngle <= 2*M_PI_F) ? m_fAngle : m_fAngle - 2 * M_PI_F;
 
-        destX += cos(m_fAngle);
-        destY += sin(m_fAngle);
+            destX = OtherLoc[2][0] + cos(m_fAngle)*m_fDistance;
+            destY = OtherLoc[2][1] + sin(m_fAngle)*m_fDistance;
 
-        MaNGOS::NormalizeMapCoord(destX);
-        MaNGOS::NormalizeMapCoord(destY);
+            MaNGOS::NormalizeMapCoord(destX);
+            MaNGOS::NormalizeMapCoord(destY);
+            path.set(itr, Coords(destX, destY, FLOOR_Z+10));
+            //m_creature->SummonCreature(1, destX, destY, FLOOR_Z+10, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
+        }
 
-        m_creature->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
-        m_creature->addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
-        m_creature->SendMonsterMove(destX, destY, m_creature->GetPositionZ(), SPLINETYPE_NORMAL , SPLINEFLAG_KNOCKBACK, 900);
+        m_disc->GetMotionMaster()->Clear(false, true);
+        m_disc->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SplineFlags(SPLINEFLAG_FLYING | SPLINEFLAG_CATMULLROM), m_uiMoveTimer);
     }
+
     void AttackStart(Unit *pWho)
     {
         if (pWho->GetTypeId() != TYPEID_PLAYER)
@@ -1538,6 +1555,7 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
             pWho->SetInCombatWith(m_creature);
         }
     }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -1548,25 +1566,83 @@ struct MANGOS_DLL_DECL mob_scion_of_eternityAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 int32 bpoints0 = m_bIsRegularMode ? int32(BP_BARRAGE0) : int32(BP_BARRAGE0_H);
-                m_creature->CastCustomSpell(pTarget, SPELL_ARCANE_BARRAGE, &bpoints0, 0, 0, false);  
+                m_creature->CastCustomSpell(pTarget, SPELL_ARCANE_BARRAGE, &bpoints0, 0, 0, false);
             }
             m_uiArcaneBarrageTimer = 3000 + rand()%19000;
         }else m_uiArcaneBarrageTimer -= uiDiff;
 
         if (m_uiMoveTimer <= uiDiff)
         {
-            m_uiMoveTimer = 800;
             DoNextMovement();
         }else m_uiMoveTimer -= uiDiff;
+    }
+};
 
-        if (isMoving)
+/*######
+## mob_nexus_lord
+######*/
+
+struct MANGOS_DLL_DECL mob_nexus_lordAI : public ScriptedAI
+{
+    mob_nexus_lordAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        Reset();
+    }
+
+    ScriptedInstance* m_pInstance;
+    bool m_bIsRegularMode;
+
+    Creature *m_disc;
+    Unit *curTarget;
+
+    void Reset()
+    {
+        float x, y, z;
+        m_creature->GetPosition(x, y, z);
+        m_disc = m_creature->SummonVehicle(NPC_HOVER_DISC, x, y, z, 0);
+        if(!m_disc)
+            m_disc = m_creature;
+        else
         {
-            float x = m_creature->GetPositionX();
-            float y = m_creature->GetPositionY();
-            x += cos(m_fAngle)*(1.0f/900.0f)*uiDiff;
-            y += sin(m_fAngle)*(1.0f/900.0f)*uiDiff;
-            m_creature->GetMap()->CreatureRelocation(m_creature, x, y, m_creature->GetPositionZ(), m_fAngle);
+            m_creature->EnterVehicle((Vehicle*)m_disc, -1);
+            m_disc->setFaction(m_creature->getFaction());
+            m_disc->m_movementInfo.SetMovementFlags2(MOVEFLAG2_ALLOW_PITCHING);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
+    }
+
+    void AttackStart(Unit *pWho)
+    {
+        if (pWho->GetTypeId() != TYPEID_PLAYER)
+            return;
+
+        if (m_creature->Attack(pWho, true))
+        {
+            m_creature->AddThreat(pWho);
+            m_creature->SetInCombatWith(pWho);
+            pWho->SetInCombatWith(m_creature);
+            curTarget = pWho;
+            m_disc->GetMotionMaster()->MoveFollow(pWho, 0, 0);
+            m_disc->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        }
+    }
+
+    void UpdateAI(const uint32)
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || !m_disc)
+            return;
+
+        if(m_creature->getVictim() != curTarget)
+        {
+            curTarget = m_creature->getVictim();
+            m_disc->GetMotionMaster()->Clear(false, true);
+            m_disc->GetMotionMaster()->MoveFollow(curTarget, 0, 0);
+            m_disc->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
+        }
+
+        DoMeleeAttackIfReady();
     }
 };
 
@@ -1643,7 +1719,12 @@ CreatureAI* GetAI_mob_power_spark(Creature* pCreature)
 CreatureAI* GetAI_mob_scion_of_eternity(Creature* pCreature)
 {
     return new mob_scion_of_eternityAI(pCreature);
-} 
+}
+
+CreatureAI* GetAI_mob_nexus_lord(Creature* pCreature)
+{
+    return new mob_nexus_lordAI(pCreature);
+}
 
 void AddSC_boss_malygos()
 {
@@ -1662,7 +1743,12 @@ void AddSC_boss_malygos()
     newscript = new Script;
     newscript->Name = "mob_scion_of_eternity";
     newscript->GetAI = &GetAI_mob_scion_of_eternity;
-    newscript->RegisterSelf(); 
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "mob_nexus_lord";
+    newscript->GetAI = &GetAI_mob_nexus_lord;
+    newscript->RegisterSelf();
 
     newscript = new Script;
     newscript->Name = "go_focusing_iris";
