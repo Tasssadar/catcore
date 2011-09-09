@@ -304,7 +304,7 @@ const Coords SpawnLoc[LOC_COUNT] =
     Coords(555.833f, 175.544f, 403.209f), // LOC_D_VALKYR_1
     Coords(541.602f, 175.544f, 403.209f), // LOC_D_VALKYR_2
     Coords(534.764f, 139.571f, 403.209f), // LOC_D_VALKYR_3 -- unused
-    Coords(562.877f, 182.987f, 398.571f), // LOC_LICH_KING_S
+    Coords(562.877f, 182.987f, 394.571f), // LOC_LICH_KING_S
     Coords(563.547f, 141.613f, 393.908f), // LOC_LICH_KING_E
     Coords(616.786f, 137.686f, 139.464f), // LOC_UNDERGROUND
     Coords(606.294f, 133.892f, 138.479f), // LOC_O_TIRION_S

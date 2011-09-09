@@ -686,7 +686,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 2:
                         encounterCreature = DoSpawnTocBoss(NPC_LICH_KING, SpawnLoc[LOC_BACKDOOR], M_PI_F*1.5f);
-                        encounterCreature->SetVisibility(VISIBILITY_OFF);
+                        encounterCreature->SetFloatValue(OBJECT_FIELD_SCALE_X, 0.1f);
                         m_pInstance->SetData(TYPE_LICH_KING, IN_PROGRESS);
                         cooldown = 500;
                         break;
@@ -703,14 +703,23 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         cooldown = 4000;
                         break;
                     case 5:
-                        encounterCreature->SetVisibility(VISIBILITY_ON);
+                        encounterCreature->SetFloatValue(OBJECT_FIELD_SCALE_X, 1.f);
                         m_pInstance->instance->CreatureRelocation(encounterCreature, SpawnLoc[LOC_LICH_KING_S], M_PI_F*1.5f);
                         cooldown = 500;
                         break;
                     case 6:
-                        encounterCreature->GetMotionMaster()->MovePoint(0, SpawnLoc[LOC_LICH_KING_E], false);
+                    {
+                        PointPath path;
+                        path.resize(2);
+                        path.set(0, SpawnLoc[LOC_LICH_KING_S]);
+                        path.set(1, SpawnLoc[LOC_LICH_KING_E]);
+
+                        encounterCreature->GetMotionMaster()->Clear(false, true);
+                        encounterCreature->GetMotionMaster()->MoveIdle();
+                        encounterCreature->ChargeMonsterMove(path, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, path.GetTotalLength()/0.0025f);
                         cooldown = 3000;
                         break;
+                    }
                     case 7:
                         DoScriptText(SAY_STAGE_4_03, m_pInstance->GetCreature(NPC_TIRION));
                         cooldown = 8000;
@@ -726,7 +735,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 10:
                         encounterCreature->HandleEmote(EMOTE_ONESHOT_KNEEL);
-                        cooldown = 2000;
+                        cooldown = 1000;
                         break;
                     case 11:
                         encounterCreature->CastSpell(encounterCreature, SPELL_LK_NOVA, false);
