@@ -454,6 +454,13 @@ void Vehicle::AddPassenger(Unit *unit, int8 seatId, bool force)
     if (seat == m_Seats.end())
         return;
 
+    if(unit->GetTypeId() == TYPEID_PLAYER && canFly())
+    {
+        m_movementInfo.RemoveMovementFlag(MOVEFLAG_LEVITATING);
+        m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+        m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+    }
+
     unit->SetVehicleGUID(GetGUID());
     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
     unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
@@ -769,11 +776,24 @@ void Vehicle::InstallAllAccessories()
         SendMessageToSet(&data, false);
     }
 }
+
 Unit *Vehicle::GetPassenger(int8 seatId) const
 {
     SeatMap::const_iterator seat = m_Seats.find(seatId);
     if (seat == m_Seats.end()) return NULL;
     return seat->second.passenger;
+}
+
+bool Vehicle::HasPlayerDriver()
+{
+    for(SeatMap::iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)
+    {
+        if ((itr->second.flags & SEAT_FULL) && (itr->second.vs_flags & SF_MAIN_RIDER))
+        {
+            Unit *passenger = itr->second.passenger;
+            return (passenger && passenger->GetTypeId() == TYPEID_PLAYER);
+        }
+    }
 }
 
 void Vehicle::Die()
