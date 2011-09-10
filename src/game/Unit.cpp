@@ -556,8 +556,13 @@ void Unit::ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags,
     }
     data << uint32(flags);
     data << uint32(Time);
+    if(flags & SplineFlags(SPLINEFLAG_TRAJECTORY))
+    {
+        data << float(0);
+        data << uint32(0);
+    }
     data << uint32(path.size()-1);
-    if (flags & SplineFlags(SPLINEFLAG_FLYING | SPLINEFLAG_CATMULLROM))
+    if (flags & SplineFlags(SPLINEFLAG_CATMULLROM))
     {
         for (uint32 i = 1; i < (path.size() - 1); ++i)
         {
