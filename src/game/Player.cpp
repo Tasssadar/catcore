@@ -2089,6 +2089,20 @@ void Player::ProcessDelayedOperations()
         sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
     }
 
+    if(m_DelayedOperations & DELAYED_WYRMREST_SKYTALON)
+    {
+         if (Vehicle *pTemp = SummonVehicle(30161, GetPositionX(), GetPositionY(), GetPositionZ(), 0))
+         {
+
+            EnterVehicle(pTemp, 0, false);
+
+            uint32 health = ((Creature*)pTemp)->GetHealth() + (GetMaxHealth()*2); // may be wrong
+            ((Creature*)pTemp)->SetCreatorGUID(GetGUID());
+            ((Creature*)pTemp)->SetMaxHealth(health);
+            ((Creature*)pTemp)->SetHealth(health);
+         }
+    }
+
     //we have executed ALL delayed ops, so clear the flag
     m_DelayedOperations = 0;
 }

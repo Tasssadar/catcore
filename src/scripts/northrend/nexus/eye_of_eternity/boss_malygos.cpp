@@ -102,6 +102,7 @@ enum
     SPELL_ARCANE_BARRAGE           = 58456, // I have to modify basepoints in this spell...
     BP_BARRAGE0                    = 14138,
     BP_BARRAGE0_H                  = 16965,
+    SPELL_TELEPORT_VISUAL          = 64446,
 
     //////////////// PHASE 3 ////////////////
     SPELL_STATIC_FIELD             = 57428, // Summon trigger and cast this on them should be enought
@@ -227,11 +228,12 @@ static const float SparkLoc[][2]=
 
 static const float OtherLoc[][4]=
 {
-    {808.0f, 1301.0f, 268.0f, 0},          // Phase 3 position 
-    {789.0f, 1302.0f, 288.0f, 2.86f},      // Vortex FarSight loc
-    {754.29f, 1301.18f, 266.17f, 0}, // Center of the platform, ground.
-    {823.0f, 1241.0f, 299.0f, 0},          // Alexstrasza's  position
-    {787.0f, 1152.0f, 299.0f, 0},          // Alexstrasza spawn position
+    {808.0f, 1301.0f, 268.0f, 0},          // 0 Phase 3 position 
+    {789.0f, 1302.0f, 288.0f, 2.86f},      // 1 Vortex FarSight loc
+    {754.29f, 1301.18f, 266.17f, 0},       // 2 Center of the platform, ground.
+    {823.0f, 1241.0f, 299.0f, 0},          // 3 Alexstrasza's  position
+    {787.0f, 1152.0f, 299.0f, 0},          // 4 Alexstrasza spawn position
+    {778.0f, 1280.12, 299.0f, 0},          // 5 Alexstrasza final position
 };
 
 #define MAX_VORTEX              21
@@ -777,7 +779,10 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             uint32 x = urand(SHELL_MIN_X, SHELL_MAX_X);
             uint32 y = urand(SHELL_MIN_Y, SHELL_MAX_Y);
             if (Creature *pLord = m_creature->SummonCreature(NPC_NEXUS_LORD, x, y, FLOOR_Z+10, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            {
+                pLord->CastSpell(pLord, SPELL_TELEPORT_VISUAL, true);
                 pLord->AI()->AttackStart(m_creature->getVictim());
+            }
         }
 
         //Scions of eternity
@@ -787,8 +792,11 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
             uint32 x = urand(SHELL_MIN_X, SHELL_MAX_X);
             uint32 y = urand(SHELL_MIN_Y, SHELL_MAX_Y);
             if (Creature *pScion = m_creature->SummonCreature(NPC_SCION_OF_ETERNITY, x, y, FLOOR_Z+10, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
+            {
+                pScion->CastSpell(pScion, SPELL_TELEPORT_VISUAL, true);
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pScion->AI()->AttackStart(pTarget);
+            }
         }
     }
 
@@ -842,7 +850,7 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                 ((Creature*)pTemp)->SetCreatorGUID(pPlayer->GetGUID());
                 ((Creature*)pTemp)->SetMaxHealth(health);
                 ((Creature*)pTemp)->SetHealth(health);
-                ((Creature*)pTemp)->SetFacingToObject(m_creature);
+                ((Creature*)pTemp)->SetFacingTo(((Creature*)pTemp)->GetAngle(OtherLoc[0][0], OtherLoc[0][1]));
             }
         }
     }
@@ -1317,17 +1325,19 @@ struct MANGOS_DLL_DECL boss_malygosAI : public ScriptedAI
                             break;
                         }
                         case 4:
+                        {
                             m_uiSubPhase = SUBPHASE_DIE;
                             m_creature->SetVisibility(VISIBILITY_OFF);
-
+                
                             //Summon exit portal, platform and loot
                             m_creature->SummonGameobject(GO_EXIT_PORTAL, GOPositions[2][0], GOPositions[2][1], GOPositions[2][2], GOPositions[2][3], 0);
-                            m_creature->SummonGameobject(GO_PLATFORM, GOPositions[0][0], GOPositions[0][1], GOPositions[0][2], GOPositions[0][3], 0);
-                            if (GameObject *pGift = m_creature->SummonGameobject(m_bIsRegularMode ? GO_ALEXSTRASZAS_GIFT : GO_ALEXSTRASZAS_GIFT_H, GOPositions[1][0], GOPositions[1][1], GOPositions[1][2]+4, GOPositions[1][3],604800))
+                            //m_creature->SummonGameobject(GO_PLATFORM, GOPositions[0][0], GOPositions[0][1], GOPositions[0][2], GOPositions[0][3], 0);
+                            if(GameObject *pGift = m_creature->SummonGameobject(m_bIsRegularMode ? GO_ALEXSTRASZAS_GIFT : GO_ALEXSTRASZAS_GIFT_H, OtherLoc[0][0], OtherLoc[0][1], OtherLoc[0][2]+15, GOPositions[1][3],604800))
                                 pAlexstrasza->SetFacingToObject(pGift);
                             m_creature->LogKill(m_creature->getVictim());
                             m_creature->getVictim()->DealDamage(m_creature, m_creature->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
                             break;
+                        }
                     }
                     ++m_uiSpeechCount;
                 }else m_uiSpeechTimer[m_uiSpeechCount] -= uiDiff;
