@@ -1792,6 +1792,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         DEBUG_LOG("Player %s is being teleported to map %u", GetName(), mapid);
     }
 
+    ExitVehicle();
+
     // if we were on a transport, leave
     if (!(options & TELE_TO_NOT_LEAVE_TRANSPORT) && m_transport)
     {
@@ -1799,7 +1801,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         m_transport = NULL;
         m_movementInfo.ClearTransportData();
     }
-    ExitVehicle();
 
     // The player was ported to another map and looses the duel immediately.
     // We have to perform this check before the teleport, otherwise the

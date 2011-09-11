@@ -16323,13 +16323,10 @@ void Unit::ExitVehicle()
         float v_size = 0.0f;
         if (Vehicle *vehicle = ObjectAccessor::GetVehicle(vehicleGUID))
         {
-            if (m_movementInfo.GetVehicleSeatFlags() & SF_MAIN_RIDER)
+            if (vehicle->GetVehicleFlags() & VF_DESPAWN_AT_LEAVE)
             {
-                if (vehicle->GetVehicleFlags() & VF_DESPAWN_AT_LEAVE)
-                {
-                    // will be deleted at next update
-                    vehicle->SetSpawnDuration(1);
-                }
+                // will be deleted at next update
+                vehicle->SetSpawnDuration(1);
             }
             v_size = vehicle->GetObjectBoundingRadius();
             vehicle->RemovePassenger(this);
