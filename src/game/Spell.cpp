@@ -5693,7 +5693,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             case SPELL_EFFECT_CHARGE:
             case SPELL_EFFECT_CHARGE2:
             {
-                if (m_caster->hasUnitState(UNIT_STAT_ROOT))
+                if (m_caster->hasUnitState(UNIT_STAT_ROOT) || m_caster->GetVehicleGUID())
                     return SPELL_FAILED_ROOTED;
 
                 Unit* target = m_targets.getUnitTarget();
