@@ -251,7 +251,7 @@ enum MovementStates
 };
 
 static float vortexAddAngle[2] = { M_PI_F, M_PI_F/2};
-static uint8 vortexCount[2] = { 2, 4 };
+static uint8 vortexCount[2] = { 2, 5 };
 
 struct Vortex
 {
