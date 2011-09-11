@@ -250,7 +250,7 @@ enum MovementStates
     MOVESTATE_COMPLETED         = 0x04,
 };
 
-static float vortexAddAngle[2] = { M_PI_F, M_PI_F/2};
+static float vortexAddAngle[2] = { M_PI_F, M_PI_F/2.5f };
 static uint8 vortexCount[2] = { 2, 5 };
 
 struct Vortex
