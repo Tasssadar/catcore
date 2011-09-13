@@ -206,6 +206,8 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
         if (!sis || !sis->isAlive())
             m_pInstance->SetData(TYPE_VALKIRIES, DONE);
+        else
+            m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
     }
 
     void JustReachedHome()
