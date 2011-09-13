@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
+#include "ObjectMgr.h"
 
 npc_toc_announcerAI::npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCreature)
 {
@@ -76,7 +77,9 @@ void npc_toc_announcerAI::MovementInform(uint32 uiType, uint32 uiPointId)
 
 Creature* npc_toc_announcerAI::DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z)
 {
-    Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 300000, update_z);
+    const CreatureInfo* cinfo = GetCreatureTemplateStore(id);
+    uint32 corpseDespTime = cinfo->lootid ? 300000 : 60000;
+    Creature* pTemp = m_creature->SummonCreature(id, coord, ori, TEMPSUMMON_CORPSE_TIMED_DESPAWN, corpseDespTime, update_z);
     if (pTemp)
         pTemp->SetRespawnDelay(7*DAY);
 
