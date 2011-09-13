@@ -416,9 +416,9 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
         ScriptedAI::AttackStart(pWho);
     }
 
-    void CastTargets(uint32 spellId, UnitList& targetList, SpellEffectIndex /*i*/)
+    void CastTargets(const SpellEntry * spellEntry, UnitList& targetList, SpellEffectIndex /*i*/)
     {
-        if (spellId == SPELL_SPIDER_FRENZY)
+        if (spellEntry->Id == SPELL_SPIDER_FRENZY)
         {
             for (UnitList::iterator itr = targetList.begin(); itr != targetList.end();)
             {

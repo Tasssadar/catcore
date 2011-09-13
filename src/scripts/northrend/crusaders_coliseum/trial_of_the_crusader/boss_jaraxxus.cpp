@@ -68,7 +68,8 @@ enum Jaraxxus
     SPELL_LEGION_FLAME          = 66197, // Legion Flame
     SPELL_INFERNAL_ERUPTION     = 66258, // Infernal Eruption
     SPELL_NETHER_PORTAL         = 66269, // Nether Portal
-    SPELL_NETHER_POWER          = 67009  // Nether Power
+    SPELL_NETHER_POWER          = 67009, // Nether Power
+    SPELL_BURNING_INFERNO       = 66242  // Incinerate Flesh proc - used for CastTargets check
 };
 
 enum Adds
@@ -112,7 +113,7 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         AddTimer(TIMER_LEGION_FLAME, SPELL_LEGION_FLAME, RV(10000,15000), RV(25000,30000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_QUEUE, 0);
         AddTimer(TIMER_INFERNAL_ERUPTION, SPELL_INFERNAL_ERUPTION, RV(70000,90000), RV(110000,120000), UNIT_SELECT_SELF);
         AddTimer(TIMER_NETHER_PORTAL, SPELL_NETHER_PORTAL, RV(15000,25000), RV(110000,120000), UNIT_SELECT_SELF);
-        AddTimer(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, 42000, UNIT_SELECT_SELF);
+        AddTimer(TIMER_NETHER_POWER, SPELL_NETHER_POWER, 2000, RV(25000,30000), UNIT_SELECT_SELF);
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         EnableAttack(false);
@@ -136,6 +137,23 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
 
             m_creature->CastSpell(m_creature, SPELL_JARAXXUS_CHAINS, false);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        }
+    }
+
+    void CastTargets(const SpellEntry * spellEntry, UnitList& targetList, SpellEffectIndex /*i*/)
+    {
+        if (spellEntry->Id == SPELL_BURNING_INFERNO) // erasing other units then players and pet (friendly audience, etc.)
+        {
+            for (UnitList::iterator itr = targetList.begin(); itr != targetList.end();)
+            {
+                if ((*itr)->GetTypeId() == TYPEID_UNIT && !((Creature*)*itr)->isPet())
+                {
+                    itr = targetList.erase(itr);
+                    continue;
+                }
+                else
+                    ++itr;
+            }
         }
     }
 
