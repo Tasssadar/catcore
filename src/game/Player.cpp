@@ -1792,6 +1792,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         DEBUG_LOG("Player %s is being teleported to map %u", GetName(), mapid);
     }
 
+    ExitVehicle();
+
     // if we were on a transport, leave
     if (!(options & TELE_TO_NOT_LEAVE_TRANSPORT) && m_transport)
     {
@@ -1799,7 +1801,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         m_transport = NULL;
         m_movementInfo.ClearTransportData();
     }
-    ExitVehicle();
 
     // The player was ported to another map and looses the duel immediately.
     // We have to perform this check before the teleport, otherwise the
@@ -2087,6 +2088,20 @@ void Player::ProcessDelayedOperations()
     {
         sLfgMgr.SendLfgUpdatePlayer(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
         sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+    }
+
+    if(m_DelayedOperations & DELAYED_WYRMREST_SKYTALON)
+    {
+         if (Vehicle *pTemp = SummonVehicle(30161, GetPositionX(), GetPositionY(), GetPositionZ(), 0))
+         {
+
+            EnterVehicle(pTemp, 0, false);
+
+            uint32 health = ((Creature*)pTemp)->GetHealth() + (GetMaxHealth()*2); // may be wrong
+            ((Creature*)pTemp)->SetCreatorGUID(GetGUID());
+            ((Creature*)pTemp)->SetMaxHealth(health);
+            ((Creature*)pTemp)->SetHealth(health);
+         }
     }
 
     //we have executed ALL delayed ops, so clear the flag

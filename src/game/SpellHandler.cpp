@@ -196,7 +196,7 @@ void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
     Player* pUser = _player;
 
     // ignore for remote control state
-    if (!pUser->IsSelfMover())
+    if (!pUser->IsSelfMover() && !_player->GetVehicleGUID())
         return;
 
     Item *pItem = pUser->GetItemByPos(bagIndex, slot);
@@ -270,7 +270,7 @@ void WorldSession::HandleGameObjectUseOpcode( WorldPacket & recv_data )
     DEBUG_LOG( "WORLD: Recvd CMSG_GAMEOBJ_USE Message [guid=%u]", GUID_LOPART(guid));
 
     // ignore for remote control state
-    if (!_player->IsSelfMover())
+    if (!_player->IsSelfMover() && !_player->GetVehicleGUID())
         return;
 
     GameObject *obj = GetPlayer()->GetMap()->GetGameObject(guid);
@@ -289,7 +289,7 @@ void WorldSession::HandleGameobjectReportUse(WorldPacket& recvPacket)
     DEBUG_LOG( "WORLD: Recvd CMSG_GAMEOBJ_REPORT_USE Message [in game guid: %u]", GUID_LOPART(guid));
 
     // ignore for remote control state
-    if (!_player->IsSelfMover())
+    if (!_player->IsSelfMover() && !_player->GetVehicleGUID())
         return;
 
     GameObject* go = GetPlayer()->GetMap()->GetGameObject(guid);

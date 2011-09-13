@@ -32,7 +32,7 @@ void ChargeMovementGenerator<Creature>::Initialize(Creature &creature)
 
     creature.addUnitState(UNIT_STAT_ROAMING|UNIT_STAT_ROAMING_MOVE);
 
-     if (m_start == m_end)
+    if (m_start == m_end)
     {
         float dist = creature.GetDistance(m_path[m_end].x, m_path[m_end].y, m_path[m_end].z);
         float angle = creature.GetAngle(m_path[m_end].x, m_path[m_end].y);
