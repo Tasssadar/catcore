@@ -475,6 +475,11 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
 
 SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty);
 
+SpellEntry const* GetDifficultySpellEntry(const SpellEntry* spellEntry, Difficulty difficulty = REGULAR_DIFFICULTY);
+SpellEntry const* GetDifficultySpellEntry(uint32 spellId, Difficulty difficulty = REGULAR_DIFFICULTY);
+uint32 GetDifficultySpellId(const SpellEntry* spellEntry, Difficulty difficulty = REGULAR_DIFFICULTY);
+uint32 GetDifficultySpellId(uint32 spellId, Difficulty difficulty = REGULAR_DIFFICULTY);
+
 // Spell proc event related declarations (accessed using SpellMgr functions)
 enum ProcFlags
 {

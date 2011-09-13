@@ -4574,8 +4574,39 @@ SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty)
     if (!spellDiff->spellId[difficulty])
         return NULL;
 
-    SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
-    return spellEntry;
+    return sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
+}
+
+SpellEntry const* GetDifficultySpellEntry(const SpellEntry *spellEntry, Difficulty difficulty)
+{
+    if (!spellEntry)
+        return NULL;
+
+    if (!spellEntry->SpellDifficultyId)
+        return spellEntry;
+
+    return GetSpellEntryByDifficulty(spellEntry->SpellDifficultyId, difficulty);
+}
+
+SpellEntry const* GetDifficultySpellEntry(uint32 spellId, Difficulty difficulty)
+{
+    return GetDifficultySpellEntry(sSpellStore.LookupEntry(spellId, difficulty));
+}
+
+uint32 GetDifficultySpellId(const SpellEntry *spellEntry, Difficulty difficulty)
+{
+    if (SpellEntry const* entry = GetDifficultySpellEntry(spellEntry, difficulty))
+        return entry->Id;
+
+    return 0;
+}
+
+uint32 GetDifficultySpellId(uint32 spellId, Difficulty difficulty)
+{
+    if (SpellEntry const* entry = GetDifficultySpellEntry(spellId, difficulty))
+        return entry->Id;
+
+    return 0;
 }
 
 bool SpellMgr::IsSelfOnlyCast(SpellEntry const *spellInfo)

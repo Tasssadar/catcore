@@ -11,6 +11,7 @@
 #include "sc_grid_searchers.h"
 #include "sc_instance.h"
 #include "Formulas.h"
+#include "SpellMgr.h"
 
 #ifdef WIN32
 #include <windows.h>

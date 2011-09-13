@@ -136,7 +136,7 @@ class MANGOS_DLL_SPEC CreatureAI
         virtual void ReceiveEmote(Player* /*pPlayer*/, uint32 /*text_emote*/) {}
 
         // Called when filling target map for creature's cast
-        virtual void CastTargets(uint32 /*spellId*/, UnitList& /*list*/, SpellEffectIndex /*idx*/) {}
+        virtual void CastTargets(const SpellEntry* /*spellEntry*/, UnitList& /*list*/, SpellEffectIndex /*idx*/) {}
 
         ///== Triggered Actions Requested ==================
 

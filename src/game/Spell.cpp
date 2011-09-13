@@ -662,8 +662,9 @@ void Spell::FillTargetMap()
         }
 
         // call to scripted AI if creature has one
-        if ( m_caster->GetTypeId()== TYPEID_UNIT && ((Creature*)m_caster)->AI() )
-            ((Creature*)m_caster)->AI()->CastTargets(m_spellInfo->Id, tmpUnitMap, SpellEffectIndex(i));
+        Unit* real_caster = GetAffectiveCaster();
+        if (real_caster && real_caster->GetTypeId()== TYPEID_UNIT && ((Creature*)real_caster)->AI() )
+            ((Creature*)real_caster)->AI()->CastTargets(GetDifficultySpellEntry(m_spellInfo), tmpUnitMap, SpellEffectIndex(i));
 
         for(std::list<Unit*>::const_iterator iunit = tmpUnitMap.begin(); iunit != tmpUnitMap.end(); ++iunit)
             AddUnitTarget((*iunit), SpellEffectIndex(i));
