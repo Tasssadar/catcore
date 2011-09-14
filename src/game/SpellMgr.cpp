@@ -4590,7 +4590,7 @@ SpellEntry const* GetDifficultySpellEntry(const SpellEntry *spellEntry, Difficul
 
 SpellEntry const* GetDifficultySpellEntry(uint32 spellId, Difficulty difficulty)
 {
-    return GetDifficultySpellEntry(sSpellStore.LookupEntry(spellId, difficulty));
+    return GetDifficultySpellEntry(sSpellStore.LookupEntry(spellId), difficulty);
 }
 
 uint32 GetDifficultySpellId(const SpellEntry *spellEntry, Difficulty difficulty)
