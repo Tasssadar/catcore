@@ -48,6 +48,8 @@ enum Timers
     TIMER_DISPEL    = 6
 };
 
+typedef std::map<uint32, uint8> ClassList;
+
 struct FactionedChampionAI : public ScriptedAI
 {
     FactionedChampionAI(Creature* pCreature, RoleFCH pRole, Champion pChamp) : ScriptedAI(pCreature),
@@ -67,13 +69,19 @@ struct FactionedChampionAI : public ScriptedAI
     uint8               m_faction;
     Champion            m_champType;
 
-    CreatureList        m_cAliveChampions;
+    CreatureList        m_lAliveChampions;
+    ClassList           m_playerClasses;
 
     bool                m_bHasMagicalCC;
 
     void Reset()
     {
         m_bHasMagicalCC = false;
+    }
+
+    void Aggro(Unit *)
+    {
+
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)
@@ -100,41 +108,26 @@ struct FactionedChampionAI : public ScriptedAI
         }
     }
 
-    //void MovementInform(uint32 moveType, uint32 pointId)
-    //{
-    //    if (moveType == POINT_MOTION_TYPE && pointId == POINT_MOVE)
-    //    {
-    //        float angle = m_creature->GetAngle(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y);
-    //        angle = floor(angle/M_PI_F*2+0.5)*M_PI_F/2;
-    //        m_creature->SetOrientation(angle);
-    //        m_creature->SendHeartBeatMsg();
-    //    }
-    //}
-
-    void RefreshListOfAliveChampionsOnOwnDeath()
+    void JustDied(Unit *)
     {
-        m_cAliveChampions.clear();
-         for(uint8 i = 0; i < CHAMPION_ALL_COUNT; ++i)
-            if (Creature* pCrt = GetClosestCreatureWithEntry(m_creature, FChampIDs[i][m_faction], DEFAULT_VISIBILITY_INSTANCE))
-                if (pCrt->isAlive())
-                    m_cAliveChampions.push_back(pCrt);
+        CreatureList allFCh = GetAllFCh();
+        CreatureList aliveFch;
+        for (CreatureList::iterator itr = allFCh.begin(); itr != allFCh.end(); ++itr)
+            if ((*itr)->isAlive() && (*itr)->IsInWorld())
+                aliveFch.push_back(*itr);
 
-         m_cAliveChampions.remove(m_creature);
-         if (m_cAliveChampions.empty())
-             m_pInstance->SetData(TYPE_CRUSADERS, DONE);
-    }
-
-    PlrList GetPlayersInInstance(bool alive_only)
-    {
-        PlrList plr_list;
-        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
-
-        if (!PlayerList.isEmpty())
-            for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-                if (!alive_only || i->getSource()->isAlive())
-                    plr_list.push_back(i->getSource());
-
-        return plr_list;
+        aliveFch.remove(m_creature);
+        if (aliveFch.empty())
+        {
+            m_pInstance->SetData(TYPE_CRUSADERS, DONE);
+        }
+        else
+        {
+            m_pInstance->SetData(TYPE_CRUSADERS, CHAMPION_DIED); // send to instance info that crusader died
+            for (CreatureList::iterator itr = aliveFch.begin(); itr != aliveFch.end(); ++itr)
+                if (FactionedChampionAI* FChAI = GetFactionedAI(*itr))
+                    FChAI->m_lAliveChampions = aliveFch;
+        }
     }
 
     bool IsEntryChampion(uint32 entry)
@@ -160,7 +153,7 @@ struct FactionedChampionAI : public ScriptedAI
 
     Creature* GetChampionWithDispellableCC()
     {
-        for(CreatureList::iterator itr = m_cAliveChampions.begin(); itr != m_cAliveChampions.end(); ++itr)
+        for(CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
             if (FactionedChampionAI* pTemp = GetFactionedAI(*itr))
                 if (pTemp->m_bHasMagicalCC)
                     return *itr;
@@ -179,8 +172,6 @@ struct FactionedChampionAI : public ScriptedAI
         //DoCast(m_creature, SPELL_PVP_TRINKET);
     }
 };
-
-typedef std::list<FactionedChampionAI*> FChampList;
 
 //////////////////
 ////  HEALERS ////
@@ -205,7 +196,7 @@ struct factioned_healerAI : public FactionedChampionAI
     Creature* SelectChampionWithLowestHp()
     {
         Creature* lowestCrt = NULL;
-        for(CreatureList::iterator itr = m_cAliveChampions.begin(); itr != m_cAliveChampions.end(); ++itr)
+        for(CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
             if (*itr)
                 if (!lowestCrt || (*itr)->GetHealthPercent() < lowestCrt->GetHealthPercent())
                     lowestCrt = *itr;
@@ -304,7 +295,7 @@ struct champ_rdruidAI : public factioned_healerAI
     bool CanCastTranquility()
     {
         uint8 counts[2] = {0, 0};
-        for(CreatureList::iterator itr = m_cAliveChampions.begin(); itr != m_cAliveChampions.end(); ++itr)
+        for(CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
         {
             bool lowHp = (*itr)->GetHealthPercent() < 50;
             ++counts[int(lowHp)];
