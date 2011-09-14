@@ -184,17 +184,29 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     DoScriptText(SAY_STAGE_0_WIPE, m_pInstance->GetCreature(NPC_TIRION));
                     Reset();
                     break;
+                case GORMOK_DONE:
+                    if (encounterStage != 5)
+                        break;
+
+                    m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
+                    break;
+                case SNAKES_ONE_DOWN:
+                    m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, getMSTime());
+                    break;
+                case SNAKES_DONE:
+                    if (encounterStage != 8)
+                        break;
+
+                    if (getMSTimeDiff(stepTimer->GetValue(TIMER_CUSTOM), getMSTime() < 10000)) // kill under 10 seconds
+                        m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_JORMUNGAR_10_SEC);
+
+                    m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
+                    m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
+                    break;
                 case DONE:
                     encounterStage = 50;
                     m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 6500);
-                    break;
-                case GORMOK_DONE:
-                case SNAKES_DONE:
-                    if ((data == GORMOK_DONE && encounterStage == 5) || (data == SNAKES_DONE && encounterStage == 8))
-                    {
-                        m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
-                        m_TimerMgr->Cooldown(TIMER_PHASE_HANDLING, 1000);
-                    }
                     break;
                 default:
                     break;
@@ -225,6 +237,10 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
             {
                 case FAIL:
                     Reset();
+                    break;
+                case CHAMPION_DIED:
+                    if (!m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM))
+                        m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, getMSTime());
                     break;
                 case DONE:
                     if (m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI)
@@ -578,6 +594,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         for(uint8 i = 0; i < CHAMPION_COUNT; ++i)
                             GetCreatureListWithEntryInGrid(ChampionList, m_creature, FChampIDs[i][faction], DEFAULT_VISIBILITY_INSTANCE);
 
+                        stepTimer->SetValue(TIMER_VALUE_CUSTOM, 0);
+
                         for(CreatureList::iterator itr = ChampionList.begin(); itr != ChampionList.end(); ++itr)
                         {
                             Creature* champ = *itr;
@@ -598,6 +616,10 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 52:
                     {
                         uint32 chestId = 0;
+                        m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS);
+                        if (getMSTimeDiff(stepTimer->GetValue(TIMER_CUSTOM), getMSTime() < 73000)) // kill under 60 seconds
+                            m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS_MINUTE);
+
                         switch(m_dDifficulty)
                         {
                             case RAID_DIFFICULTY_10MAN_NORMAL: chestId = GO_CRUSADERS_CACHE_10; break;

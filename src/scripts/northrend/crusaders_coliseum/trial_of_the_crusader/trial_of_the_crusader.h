@@ -26,9 +26,13 @@ enum InstanceDataValues
     GORMOK_IN_PROGRESS          = 5,
     GORMOK_DONE                 = 6,
     SNAKES_IN_PROGRESS          = 7,
-    SNAKES_DONE                 = 8,
-    ICEHOWL_IN_PROGRESS         = 9,
-    ICEHOWL_DONE                = 10
+    SNAKES_ONE_DOWN             = 8,
+    SNAKES_DONE                 = 9,
+    ICEHOWL_IN_PROGRESS         = 10,
+    ICEHOWL_DONE                = 11,
+
+    // data that marks FCh was killed
+    CHAMPION_DIED               = 5
 };
 
 enum NpcEntries
@@ -311,6 +315,13 @@ const Coords SpawnLoc[LOC_COUNT] =
     Coords(648.916f, 131.021f, 141.616f), // LOC_O_TIRION_E
     Coords(605.638f, 143.839f, 138.511f), // LOC_O_MAGE_S
     Coords(649.161f, 142.039f, 141.306f), // LOC_O_MAGE_E
+};
+
+enum AchievemntSpells
+{
+    SPELL_JORMUNGAR_10_SEC  = 68523,
+    SPELL_CHAMPIONS_MINUTE  = 68620,
+    SPELL_CHAMPIONS         = 68184
 };
 
 #define POINT_MOVE 100
