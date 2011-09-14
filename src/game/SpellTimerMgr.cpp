@@ -154,7 +154,7 @@ void SpellTimerMgr::Reset(uint32 timerId, TimerValues value)
         timer->Reset(value);
 }
 
-void SpellTimerMgr::SetValue(uint32 timerId, TimerValues value, uint32 newValue)
+void SpellTimerMgr::SetValue(uint32 timerId, TimerValues value, uint64 newValue)
 {
     if (SpellTimer* timer = GetTimer(timerId))
         timer->SetValue(value, newValue);

@@ -71,7 +71,7 @@ struct SpellTimer
         void CheckInitialCooldown();
 
         void Reset(TimerValues value);
-        void SetValue(TimerValues value, uint32 newValue);
+        void SetValue(TimerValues value, uint64 newValue);
         uint32 GetValue(TimerValues value);
 
         void Cooldown(RV cd = NULL, bool permanent = false);
@@ -111,7 +111,7 @@ struct SpellTimer
         bool updateAllowed_m;
         bool shouldDeleteWhenFinish_m;
         bool justFinished_m;
-        uint32 customValue_m;
+        uint64 customValue_m;
 };
 
 #endif // SPELLTIMER_H

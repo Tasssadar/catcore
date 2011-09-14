@@ -33,7 +33,7 @@ struct SpellTimerMgr
         bool IsReady(uint32 timerId);
 
         void Reset(uint32 timerId, TimerValues value);
-        void SetValue(uint32 timerId, TimerValues value, uint32 newValue);
+        void SetValue(uint32 timerId, TimerValues value, uint64 newValue);
         uint32 GetValue(uint32 timerId, TimerValues value);
 
         bool CanBeTimerFinished(uint32 timerId);

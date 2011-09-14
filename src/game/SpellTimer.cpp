@@ -50,7 +50,7 @@ void SpellTimer::Reset(TimerValues value)
     }
 }
 
-void SpellTimer::SetValue(TimerValues value, uint32 newValue)
+void SpellTimer::SetValue(TimerValues value, uint64 newValue)
 {
     switch (value)
     {
