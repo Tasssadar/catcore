@@ -72,5 +72,8 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
 
         // get team in instance
         InstanceSide GetInstanceSide();
+
+        // Update Achievement Criteria for all players in instance
+        void DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 = 0, uint32 miscValue2 = 0, Unit* unit = NULL);
 };
 #endif

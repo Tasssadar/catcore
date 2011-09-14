@@ -202,3 +202,13 @@ InstanceSide ScriptedInstance::GetInstanceSide()
 
     return INSTANCE_SIDE_HORDE;
 }
+
+void ScriptedInstance::DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 /*= 0*/, uint32 miscValue2 /*= 0*/, Unit* unit /*= NULL*/)
+{
+    Map::PlayerList const &PlayerList = instance->GetPlayers();
+
+    if (!PlayerList.isEmpty())
+        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            if (Player *pPlayer = i->getSource())
+                pPlayer->UpdateAchievementCriteria(type, miscValue1, miscValue2, unit);
+}
