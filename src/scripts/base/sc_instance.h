@@ -6,6 +6,7 @@
 #define SC_INSTANCE_H
 
 #include "InstanceData.h"
+#include "../ScriptMgr.h"
 #include "Map.h"
 
 enum EncounterState
@@ -67,8 +68,11 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
         // get gameobject from instanceData
         GameObject* GetGameObject(uint32 Data);
 
+        // get all players in map
+        PlrList GetAllPlayers(bool vitalOnly = true);
+
         // get random player in map
-        Player* GetRandomPlayerInMap();
+        Player* GetRandomPlayerInMap(bool vitalOnly = true);
 
         // get team in instance
         InstanceSide GetInstanceSide();

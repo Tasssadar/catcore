@@ -158,15 +158,27 @@ GameObject* ScriptedInstance::GetGameObject(uint32 Data)
     return instance ? instance->GetGameObject(guid) : NULL;
 }
 
-Player* ScriptedInstance::GetRandomPlayerInMap()
+PlrList ScriptedInstance::GetAllPlayers(bool vitalOnly)
 {
+    PlrList plr_list;
     Map::PlayerList const &players = instance->GetPlayers();
-    if (players.isEmpty())
+    if (!players.isEmpty())
+        for(Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+            if (Player* plr = i->getSource())
+                if (!vitalOnly || (plr->isAlive() && plr->IsInWorld()))
+                    plr_list.push_back(plr);
+
+    return plr_list;
+}
+
+Player* ScriptedInstance::GetRandomPlayerInMap(bool vitalOnly)
+{
+    PlrList plr_list = GetAllPlayers(vitalOnly);
+    if (plr_list.empty())
         return NULL;
 
-    uint32 playerOrder = urand(0, players.getSize()-1);
-    Map::PlayerList::const_iterator iter = players.begin();
-    for(uint32 i = 0; i < playerOrder; ++i, ++iter){}
+    PlrList::iterator iter = players.begin();
+    std::advance(iter, urand(0, plr_list.size()-1));
     return iter->getSource();
 }
 
