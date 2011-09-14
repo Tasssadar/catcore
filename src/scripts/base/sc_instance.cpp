@@ -177,9 +177,9 @@ Player* ScriptedInstance::GetRandomPlayerInMap(bool vitalOnly)
     if (plr_list.empty())
         return NULL;
 
-    PlrList::iterator iter = players.begin();
+    PlrList::iterator iter = plr_list.begin();
     std::advance(iter, urand(0, plr_list.size()-1));
-    return iter->getSource();
+    return *iter;
 }
 
 InstanceSide ScriptedInstance::GetInstanceSide()

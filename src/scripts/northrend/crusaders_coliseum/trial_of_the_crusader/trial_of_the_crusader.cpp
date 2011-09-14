@@ -198,7 +198,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
                     if (encounterStage != 8)
                         break;
 
-                    if (getMSTimeDiff(stepTimer->GetValue(TIMER_CUSTOM), getMSTime() < 10000)) // kill under 10 seconds
+                    if (getMSTimeDiff(m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM), getMSTime() < 10000)) // kill under 10 seconds
                         m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_JORMUNGAR_10_SEC);
 
                     m_TimerMgr->SetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_CUSTOM, m_TimerMgr->GetValue(TIMER_PHASE_HANDLING, TIMER_VALUE_TIMER));
@@ -617,7 +617,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     {
                         uint32 chestId = 0;
                         m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS);
-                        if (getMSTimeDiff(stepTimer->GetValue(TIMER_CUSTOM), getMSTime() < 73000)) // kill under 60 seconds
+                        if (getMSTimeDiff(stepTimer->GetValue(TIMER_VALUE_CUSTOM), getMSTime() < 73000)) // kill under 60 seconds
                             m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS_MINUTE);
 
                         switch(m_dDifficulty)
