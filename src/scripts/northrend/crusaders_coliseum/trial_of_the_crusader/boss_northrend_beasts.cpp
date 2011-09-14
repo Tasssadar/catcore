@@ -340,6 +340,13 @@ enum JormungarSpell
     //SPELL_BURNING_BILE_PROC     = 66869, // Burning Bite proc
 };
 
+enum PhaseAllow
+{
+    PHASE_MERGED    = 0,
+    PHASE_MOVE      = 1,
+    PHASE_STAND     = 2
+};
+
 struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 {
     boss_jormungarsAI(Creature* pCreature) : northrend_beast_base(pCreature)
@@ -377,10 +384,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         if (Acidmaw)
             AddNonCastTimer(TIMER_MERGING, 45000, 45000);
 
-        m_bIsMobile = Dreadscale;
-        m_bIsSubmerged = false;
-
-        SetMobility();
+        SetPhase(Dreadscale ? PHASE_MOVE : PHASE_STAND);
     }
     
     Creature* GetBro()
@@ -392,16 +396,22 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         return crt;
     }
 
-    void SetMobility()
+    void SetPhase(bool mobility)
     {
-        SetCombatMovement(m_bIsMobile);
+        m_bIsSubmerged = mobility == PHASE_MERGED;
+        if (mobility != PHASE_MERGED)
+            m_bIsMobile = mobility == PHASE_MOVE;
 
-        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
-        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
-        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, m_bIsMobile);
-        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
-        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
-        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, !m_bIsMobile);
+        bool canMoveAndAttack = mobility != PHASE_MERGED && m_bIsMobile;
+        EnableAttack(canMoveAndAttack);
+        SetCombatMovement(canMoveAndAttack);
+
+        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
+        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
+        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
     }
 
     void Aggro(Unit *)
@@ -416,6 +426,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         {
             bro->CastSpell(bro, SPELL_ENRAGE, false);
             DoScriptText(SAY_BERSERK, bro);
+            m_pInstance->SetData(TYPE_BEASTS, SNAKES_ONE_DOWN);
         }
         else
             m_pInstance->SetData(TYPE_BEASTS, SNAKES_DONE);
@@ -440,28 +451,16 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
     {
         if (submerge)
         {
-            EnableAttack(false);
-            SetCombatMovement(false);
-
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
-            m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, false);
-            m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, false);
-
-            m_TimerMgr->Cooldown(TIMER_MERGING, 10000);
+            SetPhase(PHASE_MERGED);
 
             DoScriptText(SAY_SUBMERGE, m_creature);
         }
         else
         {
-            m_bIsMobile = !m_bIsMobile;
-            SetMobility();
-            EnableAttack(m_bIsMobile);
+            SetPhase(m_bIsMobile ? PHASE_STAND : PHASE_MOVE);
 
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -473,26 +472,26 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             coord.y += range*sin(rand_o);
             m_creature->NearTeleportTo(coord, 0);
 
-            m_TimerMgr->Cooldown(TIMER_MERGING, 45000);
-
             DoScriptText(SAY_EMERGE, m_creature);
         }
 
-        m_bIsSubmerged = submerge;
         m_creature->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
     }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         // Merging
-        if (m_TimerMgr->TimerFinished(TIMER_MERGING))
+        if (SpellTimer* mergeTimer = m_TimerMgr->TimerFinished(TIMER_MERGING))
         {
             bool submerge = !m_bIsSubmerged; // switch submerge/emerge state
             HandleMerging(submerge);
             if (boss_jormungarsAI* ai = GetBroAI())
                 ai->HandleMerging(submerge);
+
+            mergeTimer->Cooldown(submerge ? 10000: 45000);
         }
 
         // Spew
