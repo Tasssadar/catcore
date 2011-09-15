@@ -232,18 +232,20 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         if (m_TimerMgr->TimerFinished(TIMER_SPECIAL))
         {
             m_creature->InterruptNonMeleeSpells(false);
-            bool isCombo = urand(0,1);
 
-            if (isCombo)
+            if (urand(0,1))
             {
                 m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
                 m_TimerMgr->AddSpellToQueue(isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
+                DoScriptText(EMOTE_SHIELD, m_creature);
+                DoScriptText(SAY_SHIELD, m_creature);
             }
             else
-                m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
-
-            DoScriptText(isCombo ? EMOTE_SHIELD : isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX, m_creature);
-            DoScriptText(isCombo ? SAY_SHIELD : isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX, m_creature);
+            {
+                m_TimerMgr->AddSpellCast(isLight ? SPELL_LIGHT_VORTEX : SPELL_DARK_VORTEX);
+                DoScriptText(isLight ? EMOTE_LIGHT_VORTEX : EMOTE_DARK_VORTEX, m_creature);
+                DoScriptText(isLight ? SAY_LIGHT_VORTEX : SAY_DARK_VORTEX, m_creature);
+            }
 
             // set cooldown on sis too
             if (Creature* s = GetSis())

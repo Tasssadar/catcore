@@ -402,6 +402,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         {
                             encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                             encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                            encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                            encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
                             ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
                             DoScriptText(SAY_STAGE_1_AGGRO, encounterCreature2);
                             encounterCreature2->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
@@ -488,6 +490,8 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 13:
                         encounterCreature2->RemoveAurasDueToSpell(SPELL_JARAXXUS_CHAINS);
                         encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                        encounterCreature2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
                         ((ScriptedAI*)encounterCreature2->AI())->EnableAttack(true);
                         m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
                         DoScriptText(SAY_STAGE_1_AGGRO, encounterCreature2);

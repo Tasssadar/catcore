@@ -389,7 +389,7 @@ bool ChatHandler::HandleTestCommand(const char * args)
     target->HandleEmote(emote);*/
     uint32 tspec = extractSpellIdFromLink((char*)args);
     if (!tspec)
-        return;
+        return false;
 
     TalentSpec spec = TalentSpec(tspec);
 

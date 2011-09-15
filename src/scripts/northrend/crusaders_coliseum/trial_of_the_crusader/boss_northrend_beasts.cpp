@@ -197,7 +197,7 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 
     void Reset()
     {
-        fixTarget = NULL;
+        fixTarget = SelectNearestPlayer();
 
         AddTimer(TIMER_BATTER, SPELL_BATTER, 0, 10000, UNIT_SELECT_NONE, CAST_TYPE_FORCE);
         AddTimer(TIMER_FIRE_BOMB, SPELL_FIRE_BOMB, 15000, RV(25000,30000), UNIT_SELECT_NONE, CAST_TYPE_FORCE);
@@ -206,8 +206,11 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 
     void AttackStart(Unit* pWho)
     {
-        if (!pWho || !fixTarget)
+        if (!pWho)
             return;
+
+        if (pWho != fixTarget)
+            pWho = fixTarget;
 
         if (m_creature->Attack(pWho, true))
         {
@@ -220,36 +223,31 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         }
     }
 
+    Player* SelectNearestPlayer()
+    {
+        Player* nearest = NULL;
+        float neardist = 999.0f;
+        Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
+        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+        {
+            Player* plr = itr->getSource();
+            if (!plr)
+                continue;
+
+            float currdist = plr->GetDistance(m_creature);
+            if (currdist < neardist)
+            {
+                nearest = plr;
+                neardist = currdist;
+            }
+        }
+        return nearest;
+    }
+
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        if (!fixTarget)
-        {
-            bool targetFound = false;
-            Map::PlayerList const &PlayerList = m_creature->GetMap()->GetPlayers();
-            for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-            {
-                Player* plr = i->getSource();
-                if (!plr || !plr->IsInWorld() || !plr->isAlive())
-                    continue;
-
-                Aura* pAur = plr->GetAura(SPELL_SNOBOLLED, EFFECT_INDEX_0);
-                if (!pAur)
-                    continue;
-
-                if (!pAur->GetCaster() || pAur->GetCaster()->GetGUID() != m_creature->GetGUID())
-                    continue;
-
-                fixTarget = plr;
-                targetFound = true;
-                break;
-            }
-
-            if (!targetFound)
-                return;
-        }
 
         // Batter
         if (fixTarget->IsNonMeleeSpellCasted(false))
@@ -439,7 +437,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         Creature* bro = GetBro();
         if (bro && bro->isAlive())
         {
-            bro->CastSpell(bro, SPELL_ENRAGE, false);
+            bro->CastSpell(bro, SPELL_ENRAGE, true);
             DoScriptText(SAY_BERSERK, bro);
             m_pInstance->SetData(TYPE_BEASTS, SNAKES_ONE_DOWN);
         }
