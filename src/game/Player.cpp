@@ -23393,3 +23393,59 @@ void Player::ModifyMatchmakerRating(int32 mod, uint8 slot)
     else
         m_matchmaker_rating[slot] += mod;
 }
+
+uint32 Player::TalentsInSpec(TalentSpec spec)
+{
+    uint32 talentsInSpec = 0;
+    for (PlayerTalentMap::iterator iter = m_talents[m_activeSpec].begin(); iter != m_talents[m_activeSpec].end(); ++iter)
+    {
+        if (iter->second.state == PLAYERSPELL_REMOVED)
+            continue;
+
+        TalentEntry const *talentInfo = iter->second.m_talentEntry;
+        if (!talentInfo || talentInfo->TalentTab != spec)
+            continue;
+
+        ++talentsInSpec;
+    }
+
+    return talentsInSpec;
+}
+
+TalentSpec Player::GetMainSpec()
+{
+    switch (getClass())
+    {
+        case CLASS_WARRIOR:     return GetMainSpec(TALENT_SPEC_WARRIOR_ARMS, TALENT_SPEC_WARRIOR_PROTECTION, TALENT_SPEC_WARRIOR_FURY);
+        case CLASS_PALADIN:     return GetMainSpec(TALENT_SPEC_PALADIN_RETRIBUTION, TALENT_SPEC_PALADIN_HOLY, TALENT_SPEC_PALADIN_PROTECTION);
+        case CLASS_HUNTER:      return GetMainSpec(TALENT_SPEC_HUNTER_BEAST_MASTERY, TALENT_SPEC_HUNTER_SURVIVAL, TALENT_SPEC_HUNTER_MARKSMANSHIP);
+        case CLASS_ROGUE:       return GetMainSpec(TALENT_SPEC_ROGUE_COMBAT, TALENT_SPEC_ROGUE_ASSASSINATION, TALENT_SPEC_ROGUE_SUBTLETY);
+        case CLASS_PRIEST:      return GetMainSpec(TALENT_SPEC_PRIEST_DISCIPLINE, TALENT_SPEC_PRIEST_HOLY, TALENT_SPEC_PRIEST_SHADOW);
+        case CLASS_DEATH_KNIGHT:return GetMainSpec(TALENT_SPEC_DEATH_KNIGHT_BLOOD, TALENT_SPEC_DEATH_KNIGHT_FROST, TALENT_SPEC_DEATH_KNIGHT_UNHOLY);
+        case CLASS_SHAMAN:      return GetMainSpec(TALENT_SPEC_SHAMAN_ELEMENTAL, TALENT_SPEC_SHAMAN_RESTORATION, TALENT_SPEC_SHAMAN_ENHANCEMENT);
+        case CLASS_MAGE:        return GetMainSpec(TALENT_SPEC_MAGE_FIRE, TALENT_SPEC_MAGE_FROST, TALENT_SPEC_MAGE_ARCANE);
+        case CLASS_WARLOCK:     return GetMainSpec(TALENT_SPEC_WARLOCK_DESTRUCTION, TALENT_SPEC_WARLOCK_AFFLICTION, TALENT_SPEC_WARLOCK_DEMONTOLOGY);
+        case CLASS_DRUID:       return GetMainSpec(TALENT_SPEC_DRUID_FERAL_COMBAT, TALENT_SPEC_DRUID_RESTORATION, TALENT_SPEC_DRUID_BALANCE);
+        default:                return TALENT_SPEC_NO_SPEC;
+    }
+}
+
+TalentSpec Player::GetMainSpec(TalentSpec spec1, TalentSpec spec2, TalentSpec spec3)
+{
+    uint32 p1 = TalentsInSpec(spec1);
+    uint32 p2 = TalentsInSpec(spec2);
+    uint32 p3 = TalentsInSpec(spec3);
+
+    if (!p1 && !p2 && !p3)
+        return TALENT_SPEC_NO_SPEC;
+
+    if (p1 >= p2 && p1 >= p3)
+        return spec1;
+    else if (p2 >= p1 && p2 >= p3)
+        return spec2;
+    else if (p3 >= p1 && p3 >= p2)
+        return spec3;
+
+    ASSERT(false);
+    return TALENT_SPEC_NO_SPEC;
+}

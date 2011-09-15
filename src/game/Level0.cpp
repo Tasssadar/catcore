@@ -372,7 +372,7 @@ bool ChatHandler::HandleTestCommand(const char * args)
     if (!*args)
         return false;
 
-    Unit* target = getSelectedUnit();
+    /*Unit* target = getSelectedUnit();
 
     if (!target)
     {
@@ -386,8 +386,14 @@ bool ChatHandler::HandleTestCommand(const char * args)
     if (!emote)
         return false;
 
-    target->HandleEmote(emote);
+    target->HandleEmote(emote);*/
+    uint32 tspec = extractSpellIdFromLink((char*)args);
+    if (!tspec)
+        return;
 
+    TalentSpec spec = TalentSpec(tspec);
+
+    PSendSysMessage("You talent points in spec %u is %u", tspec, m_session->GetPlayer()->TalentsInSpec(spec));
     return true;
 }
 

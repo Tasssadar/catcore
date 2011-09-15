@@ -2421,6 +2421,10 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void ModifyMatchmakerRating(int32 mod, uint8 slot);
         uint32 GetMatchmakerRating(uint8 slot) const { return m_matchmaker_rating[slot]; }
+
+        uint32 TalentsInSpec(TalentSpec spec);
+        TalentSpec GetMainSpec() const;
+        TalentSpec GetMainSpec(TalentSpec spec1, TalentSpec spec2, TalentSpec spec3);
     protected:
 
         uint32 m_contestedPvPTimer;
