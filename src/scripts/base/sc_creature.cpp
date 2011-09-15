@@ -78,25 +78,17 @@ void ScriptedAI::EnterCombat(Unit* pEnemy)
     Aggro(pEnemy);
 }
 
-void ScriptedAI::Aggro(Unit* pEnemy)
+void ScriptedAI::Aggro(Unit*)
 {
 }
 
-void ScriptedAI::UpdateAI(const uint32 uiDiff)
+void ScriptedAI::UpdateAI(const uint32 )
 {
     //Check if we have a current target
     if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
         return;
 
-    if (m_creature->isAttackReady())
-    {
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
-        {
-            m_creature->AttackerStateUpdate(m_creature->getVictim());
-            m_creature->resetAttackTimer();
-        }
-    }
+    DoMeleeAttackIfReady();
 }
 
 void ScriptedAI::EnterEvadeMode()

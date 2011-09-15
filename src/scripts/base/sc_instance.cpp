@@ -39,7 +39,6 @@ void ScriptedInstance::OpenDoor(uint64 uiGuid)
         {
             pGo->SetLootState(GO_READY);
             pGo->SetGoState(GO_STATE_ACTIVE);
-            cat_log("ScriptedInstance: Opening door %u on map %u in instance id %u", pGo->GetEntry(), instance->GetId(), instance->GetInstanceId());
         }
         else
             error_log("SD2: Script call OpenDoor can be used only on doors, but gameobject entry %u is type %u.", pGo->GetEntry(),pGo->GetGoType());
@@ -61,7 +60,6 @@ void ScriptedInstance::CloseDoor(uint64 uiGuid)
         {
             pGo->SetLootState(GO_READY);
             pGo->SetGoState(GO_STATE_READY);
-            cat_log("ScriptedInstance: Closing door %u on map %u in instance id %u", pGo->GetEntry(), instance->GetId(), instance->GetInstanceId());
         }
         else
             error_log("SD2: Script call CloseDoor, but gameobject entry %u is type %u.",pGo->GetEntry(),pGo->GetGoType());
