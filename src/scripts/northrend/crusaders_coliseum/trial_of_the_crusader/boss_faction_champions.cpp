@@ -48,7 +48,16 @@ enum Timers
     TIMER_DISPEL    = 6
 };
 
-typedef std::map<uint32, uint8> ClassList;
+enum PlayerRole
+{
+    PLAYER_ROLE_NONE    = 0,
+    PLAYER_ROLE_TANK    = 1,
+    PLAYER_ROLE_HEALER  = 2,
+    PLAYER_ROLE_RANGED  = 3,
+    PLAYER_ROLE_MELEE   = 4
+};
+
+typedef std::map<uint64, PlayerRole> ClassList;
 
 struct FactionedChampionAI : public ScriptedAI
 {
@@ -58,6 +67,9 @@ struct FactionedChampionAI : public ScriptedAI
         m_pInstance     = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty   = pCreature->GetMap()->GetDifficulty();
         m_faction       = FChampIDs[m_champType][FACTION_ALLIANCE] == pCreature->GetEntry() ? FACTION_ALLIANCE : FACTION_HORDE;
+
+        if (!m_pInstance)
+            pCreature->ForcedDespawn();
 
         pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
     }
@@ -81,7 +93,92 @@ struct FactionedChampionAI : public ScriptedAI
 
     void Aggro(Unit *)
     {
+        if (m_pInstance->GetData(TYPE_CRUSADERS) == NOT_STARTED)
+        {
+            m_pInstance->SetData(TYPE_CRUSADERS, IN_PROGRESS);
 
+            CreatureList allFCh = GetAllFCh();
+            m_lAliveChampions.clear();
+            for (CreatureList::iterator itr = allFCh.begin(); itr != allFCh.end(); ++itr)
+                if ((*itr)->isAlive() && (*itr)->IsInWorld())
+                    m_lAliveChampions.push_back(*itr);
+
+            m_playerClasses.clear();
+            PlrList allPlr = m_pInstance->GetAllPlayers();
+            for (PlrList::iterator itr = allPlr.begin(); itr != allPlr.end(); ++itr)
+                m_playerClasses[(*itr)->GetGUID()] = GetPlayerRole(*itr);
+
+            for (CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
+                if (FactionedChampionAI* FChAI = GetFactionedAI(*itr))
+                    FChAI->SetLists(m_lAliveChampions, m_playerClasses);
+        }
+    }
+
+    void SetLists(CreatureList crtL, ClassList clL)
+    {
+        m_lAliveChampions = crtL;
+        m_playerClasses = clL;
+    }
+
+    Unit* GetAppropriateTarget(bool ranged)
+    {
+
+    }
+
+
+    PlayerRole GetPlayerRole(Player* plr)
+    {
+        if (!plr)
+            return PLAYER_ROLE_NONE;
+
+        switch(plr->GetMainSpec())
+        {
+            case TALENT_SPEC_WARRIOR_PROTECTION:
+            case TALENT_SPEC_PALADIN_PROTECTION:
+            case TALENT_SPEC_DEATH_KNIGHT_FROST:
+                return PLAYER_ROLE_TANK;
+            case TALENT_SPEC_PRIEST_DISCIPLINE:
+            case TALENT_SPEC_PRIEST_HOLY:
+            case TALENT_SPEC_SHAMAN_RESTORATION:
+            case TALENT_SPEC_DRUID_RESTORATION:
+            case TALENT_SPEC_PALADIN_HOLY:
+                return PLAYER_ROLE_HEALER;
+            case TALENT_SPEC_MAGE_FIRE:
+            case TALENT_SPEC_MAGE_FROST:
+            case TALENT_SPEC_MAGE_ARCANE:
+            case TALENT_SPEC_PRIEST_SHADOW:
+            case TALENT_SPEC_SHAMAN_ELEMENTAL:
+            case TALENT_SPEC_DRUID_BALANCE:
+            case TALENT_SPEC_WARLOCK_DESTRUCTION:
+            case TALENT_SPEC_WARLOCK_AFFLICTION:
+            case TALENT_SPEC_WARLOCK_DEMONTOLOGY:
+            case TALENT_SPEC_HUNTER_BEAST_MASTERY:
+            case TALENT_SPEC_HUNTER_SURVIVAL:
+            case TALENT_SPEC_HUNTER_MARKSMANSHIP:
+                return PLAYER_ROLE_RANGED;
+            case TALENT_SPEC_WARRIOR_ARMS:
+            case TALENT_SPEC_WARRIOR_FURY:
+            case TALENT_SPEC_ROGUE_COMBAT:
+            case TALENT_SPEC_ROGUE_ASSASSINATION:
+            case TALENT_SPEC_ROGUE_SUBTLETY:
+            case TALENT_SPEC_SHAMAN_ENHANCEMENT:
+            case TALENT_SPEC_DRUID_FERAL_COMBAT:
+            case TALENT_SPEC_PALADIN_RETRIBUTION:
+            case TALENT_SPEC_DEATH_KNIGHT_BLOOD:
+            case TALENT_SPEC_DEATH_KNIGHT_UNHOLY:
+                return PLAYER_ROLE_HEALER;
+            default:
+                return PLAYER_ROLE_NONE;
+        }
+    }
+
+    PlayerRole FindRoleInMap(uint64 guid)
+    {
+        PlrList::iterator itr = m_playerClasses.find(guid);
+        if (itr != m_playerClasses.end())
+            return *itr;
+
+        return PLAYER_ROLE_NONE;
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)

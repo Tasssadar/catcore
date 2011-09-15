@@ -478,7 +478,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 11:
                         encounterCreature2->CastSpell(encounterCreature, SPELL_FEL_LIGHTNING_IK, false);
-                        cooldown = 4000;
+                        cooldown = 2000;
                         break;
                     case 12:
                         DoScriptText(SAY_STAGE_1_07, m_pInstance->GetCreature(NPC_TIRION));

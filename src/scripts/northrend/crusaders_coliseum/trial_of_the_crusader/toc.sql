@@ -30,6 +30,7 @@ UPDATE creature_template SET InhabitType = 7 WHERE entry = 22517;
 UPDATE creature_template SET ScriptName = 'boss_jaraxxus' WHERE entry=34780;
 UPDATE creature_template SET ScriptName = 'npc_felflame_infernal' WHERE entry=34815;
 UPDATE creature_template SET ScriptName = 'npc_mistress_of_pain' WHERE entry=34826;
+UPDATE creature_template SET AIName = 'NullAI' WHERE entry=34825;
 
 -- 3nd encounter - Factioned Champion
 UPDATE creature_template SET faction_A = 14, faction_H = 14, mindmg = 6000, maxdmg = 6500, baseattacktime = 3500, speed_walk = 1.2, speed_run = 1.2, dmg_multiplier = 1, resistance1 = 75, resistance2 = 75, resistance3 = 75, resistance4 = 75, resistance5 = 75, resistance6 = 75, armor = 10643, mechanic_immune_mask = 0 WHERE entry in (34461,34458,34471,34456,34475,34453); -- war, dk, retri
