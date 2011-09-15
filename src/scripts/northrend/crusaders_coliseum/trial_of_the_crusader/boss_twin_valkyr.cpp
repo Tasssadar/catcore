@@ -232,9 +232,8 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         if (m_TimerMgr->TimerFinished(TIMER_SPECIAL))
         {
             m_creature->InterruptNonMeleeSpells(false);
-            bool isCombo = urand(0,1);
 
-            if (isCombo)
+            if (urand(0,1))
             {
                 m_TimerMgr->AddSpellCast(isLight ? SPELL_SHIELD_OF_LIGHTS : SPELL_SHIELD_OF_DARKNESS);
                 m_TimerMgr->AddSpellToQueue(isLight ? SPELL_TWINS_PACT_L : SPELL_TWINS_PACT_D);
