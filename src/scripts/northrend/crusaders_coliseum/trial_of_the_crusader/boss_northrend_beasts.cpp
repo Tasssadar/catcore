@@ -413,6 +413,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->AttackStop();
         }
 
         //EnableAttack(canMoveAndAttack);
@@ -514,9 +515,9 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             if (bro)
                 bro->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
 
-            mergeTimer->Cooldown(submerge ? RV(5000, 10000): RV(40000,5000));
+            mergeTimer->Cooldown(submerge ? RV(5000, 10000): RV(40000,50000));
             if (bro)
-                bro->GetTimerMgr()->Cooldown(TIMER_MERGING, submerge ? RV(5000, 10000): RV(40000,5000));
+                bro->GetTimerMgr()->Cooldown(TIMER_MERGING, submerge ? RV(5000, 10000): RV(40000,50000));
         }
 
         // Spew
