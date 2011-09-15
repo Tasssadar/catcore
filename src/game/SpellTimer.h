@@ -24,14 +24,14 @@ enum CastType
 
 enum TimerValues
 {
-    TIMER_VALUE_ALL         =-1,
-    TIMER_VALUE_COOLDOWN    = 0,
-    TIMER_VALUE_SPELLID     = 1,
-    TIMER_VALUE_TIMER       = 2,
-    TIMER_VALUE_UPDATEABLE  = 3,
-    TIMER_VALUE_DELETE_AT_FINISH=4,
-    TIMER_VALUE_JUST_FINISHED=5,
-    TIMER_VALUE_CUSTOM      =6
+    TIMER_VALUE_ALL             =-1,
+    TIMER_VALUE_COOLDOWN        = 0,
+    TIMER_VALUE_SPELLID         = 1,
+    TIMER_VALUE_TIMER           = 2,
+    TIMER_VALUE_UPDATEABLE      = 3,
+    TIMER_VALUE_DELETE_AT_FINISH= 4,
+    TIMER_VALUE_JUST_FINISHED   = 5,
+    TIMER_VALUE_CUSTOM          = 6
 };
 
 struct RV
@@ -40,7 +40,7 @@ struct RV
     uint32 uMax;
     uint32 uExact;
     explicit RV(uint32 _min, uint32 _max) : uMin(_min), uMax(_max), uExact(0) {}
-    RV(uint32 _exact = 0) : uExact(_exact), uMin(0), uMax(0)  {}
+    RV(uint32 _exact = 0) : uMin(0), uMax(0), uExact(_exact) {}
     RV(const RV &_rv) : uMin(_rv.uMin), uMax(_rv.uMax), uExact(_rv.uExact) {}
 
     bool isEmpty() const
