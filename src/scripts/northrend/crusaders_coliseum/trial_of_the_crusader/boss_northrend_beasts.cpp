@@ -319,13 +319,13 @@ enum JormungarSpell
 
     //* Acidmaw
     //**********
-    SPELL_ACID_SPIT     = 66880, // Acid Spit
-    SPELL_PARALYTIC_SPRAY=66901, // Paralytic Spray
+    SPELL_ACID_SPIT      = 66880, // Acid Spit
+    SPELL_PARALYTIC_SPRAY= 66901, // Paralytic Spray
 
     //* Dreadscale
     //*************
-    SPELL_FIRE_SPIT      = 66880, // Fire Spit
-    SPELL_BURNING_SPRAY  = 66901, // Burning Spray
+    SPELL_FIRE_SPIT      = 66796, // Fire Spit
+    SPELL_BURNING_SPRAY  = 66902, // Burning Spray
 
     // merging
     SPELL_SUBMERGE_0     = 66845,
@@ -353,11 +353,12 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        Acidmaw = m_creature->GetEntry() == 35144;
-        Dreadscale = m_creature->GetEntry() == 34799;
+        Acidmaw = pCreature->GetEntry() == 35144;
+        Dreadscale = pCreature->GetEntry() == 34799;
         if (!Acidmaw && !Dreadscale)
-            m_creature->ForcedDespawn();
-        
+            pCreature->ForcedDespawn();
+
+        pCreature->SetSpeedRate(MOVE_RUN, 1.5f);
         Reset();
     }
 
@@ -369,21 +370,15 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 
     void Reset()
     {
-        AddTimer(TIMER_SLIME_POOL, SPELL_SLIME_POOL, RV(10000,12000),
-                 RV(30000,40000), UNIT_SELECT_NONE, CAST_TYPE_NONCAST);
-        AddTimer(TIMER_SPEW, Acidmaw ? SPELL_ACID_SPEW : SPELL_MOLTEN_SPEW, RV(20000,22000),
-                 RV(20000,22000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
-        AddTimer(TIMER_BITE, Acidmaw ?  SPELL_PARALYTIC_BITE : SPELL_BURNING_BITE,  Acidmaw ? RV (20000,25000) : RV(10000,15000),
-                 Acidmaw ? RV(23000,27000) : RV(13000, 17000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
-        AddTimer(TIMER_SWEEP, SPELL_SWEEP, RV(15000,17000),
-                 RV(15000,19000), UNIT_SELECT_SELF);
-        AddTimer(TIMER_SPIT, Acidmaw ? SPELL_ACID_SPIT : SPELL_FIRE_SPIT, 0,
-                 1000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
-        AddTimer(TIMER_SPRAY, Acidmaw ? SPELL_PARALYTIC_SPRAY : SPELL_BURNING_SPRAY, RV(20000,22000),
-                 RV(20000,24000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_FORCE, 0);
-        if (Acidmaw)
-            AddNonCastTimer(TIMER_MERGING, 45000, 45000);
+        AddTimer(TIMER_SLIME_POOL, SPELL_SLIME_POOL, RV(10000,12000), RV(30000,40000), UNIT_SELECT_NONE, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_SPEW, Acidmaw ? SPELL_ACID_SPEW : SPELL_MOLTEN_SPEW, RV(20000,22000), RV(20000,22000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_BITE, Acidmaw ?  SPELL_PARALYTIC_BITE : SPELL_BURNING_BITE,  Acidmaw ? RV (20000,25000) : RV(10000,15000), Acidmaw ? RV(23000,27000) : RV(13000, 17000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_SWEEP, SPELL_SWEEP, RV(15000,17000), RV(15000,19000), UNIT_SELECT_SELF);
+        AddTimer(TIMER_SPIT, Acidmaw ? SPELL_ACID_SPIT : SPELL_FIRE_SPIT, 0, 1000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
+        AddTimer(TIMER_SPRAY, Acidmaw ? SPELL_PARALYTIC_SPRAY : SPELL_BURNING_SPRAY, RV(20000,22000), RV(20000,24000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_FORCE, 0);
+        AddNonCastTimer(TIMER_MERGING, RV(40000,50000), RV(40000,50000));
 
+        cat_log("OWNER: %s is Dreadscale %u so phase is %u", m_creature->GetName(), uint32(Dreadscale), Dreadscale ? uint32(PHASE_MOVE) : uint32(PHASE_STAND));
         SetPhase(Dreadscale ? PHASE_MOVE : PHASE_STAND);
     }
     
@@ -393,25 +388,44 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         if (!crt)
             crt = m_pInstance->GetCreature(Acidmaw ? NPC_DREADSCALE : NPC_ACIDMAW);
 
+        if (!crt->isAlive() || !crt->IsInWorld())
+            return NULL;
+
         return crt;
     }
 
-    void SetPhase(bool mobility)
+    void SetPhase(PhaseAllow phase)
     {
-        m_bIsSubmerged = mobility == PHASE_MERGED;
-        if (mobility != PHASE_MERGED)
-            m_bIsMobile = mobility == PHASE_MOVE;
+        m_bIsSubmerged = phase == PHASE_MERGED;
 
-        bool canMoveAndAttack = mobility != PHASE_MERGED && m_bIsMobile;
-        EnableAttack(canMoveAndAttack);
-        SetCombatMovement(canMoveAndAttack);
+        if (phase == PHASE_MERGED)
+        {
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
-        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
-        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
-        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, mobility == PHASE_MOVE);
-        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
-        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
-        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, mobility == PHASE_STAND);
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveIdle();
+            m_creature->AttackStop();
+        }
+        else
+        {
+            m_bIsMobile = phase == PHASE_MOVE;
+
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }
+
+        //EnableAttack(canMoveAndAttack);
+        SetCombatMovement(phase == PHASE_MOVE);
+        cat_log("OWNER: %s phase is %u, submerged %u, mobility %u, canmove %u", m_creature->GetName(), uint32(phase),
+             uint32(m_bIsSubmerged), uint32(m_bIsMobile), uint32(phase == PHASE_MOVE));
+
+        m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, phase == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, phase == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_BITE, TIMER_VALUE_UPDATEABLE, phase == PHASE_MOVE);
+        m_TimerMgr->SetValue(TIMER_SWEEP, TIMER_VALUE_UPDATEABLE, phase == PHASE_STAND);
+        m_TimerMgr->SetValue(TIMER_SPIT, TIMER_VALUE_UPDATEABLE, phase == PHASE_STAND);
+        m_TimerMgr->SetValue(TIMER_SPRAY, TIMER_VALUE_UPDATEABLE, phase == PHASE_STAND);
     }
 
     void Aggro(Unit *)
@@ -447,37 +461,6 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             uiDamage = 0;
     }
 
-    void HandleMerging(bool submerge)
-    {
-        if (submerge)
-        {
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-
-            SetPhase(PHASE_MERGED);
-
-            DoScriptText(SAY_SUBMERGE, m_creature);
-        }
-        else
-        {
-            SetPhase(m_bIsMobile ? PHASE_STAND : PHASE_MOVE);
-
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-
-            Coords coord = SpawnLoc[LOC_CENTER];
-            float rand_o = rand_norm_f()*2*M_PI_F;
-            const float range = urand(0,30);
-            coord.x += range*cos(rand_o);
-            coord.y += range*sin(rand_o);
-            m_creature->NearTeleportTo(coord, 0);
-
-            DoScriptText(SAY_EMERGE, m_creature);
-        }
-
-        m_creature->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
-    }
-
     void UpdateAI(const uint32 /*uiDiff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -487,11 +470,53 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         if (SpellTimer* mergeTimer = m_TimerMgr->TimerFinished(TIMER_MERGING))
         {
             bool submerge = !m_bIsSubmerged; // switch submerge/emerge state
-            HandleMerging(submerge);
-            if (boss_jormungarsAI* ai = GetBroAI())
-                ai->HandleMerging(submerge);
+            Creature* bro = GetBro();
+            if (submerge)
+            {
+                SetPhase(PHASE_MERGED);
+                if (boss_jormungarsAI* ai = GetBroAI())
+                    ai->SetPhase(PHASE_MERGED);
+                DoScriptText(SAY_SUBMERGE, m_creature);
+                DoScriptText(SAY_SUBMERGE, bro);
+            }
+            else
+            {
+                bool thisShouldMove = !m_bIsMobile;
+                SetPhase(thisShouldMove ? PHASE_MOVE : PHASE_STAND);
+                if (boss_jormungarsAI* ai = GetBroAI())
+                    ai->SetPhase(thisShouldMove ? PHASE_STAND : PHASE_MOVE);
 
-            mergeTimer->Cooldown(submerge ? 10000: 45000);
+                Coords coord = SpawnLoc[LOC_CENTER];
+                Coords coord2 = SpawnLoc[LOC_CENTER];
+                const float rand_o = rand_norm_f()*2*M_PI_F;
+                const float range = urand(0,30);
+                coord.x += range*cos(rand_o);
+                coord.y += range*sin(rand_o);
+                coord2.x += range*cos(rand_o+M_PI_F);
+                coord2.y += range*sin(rand_o+M_PI_F);
+
+                if (Map* m = m_creature->GetMap())
+                {
+                    m->CreatureRelocation(m_creature, coord, 0);
+                    if (bro)
+                        m->CreatureRelocation(bro, coord2, 0);
+                }
+
+                DoScriptText(SAY_EMERGE, m_creature);
+                DoScriptText(SAY_EMERGE, bro);
+
+                AttackStart(m_pInstance->GetRandomPlayerInMap());
+                if (boss_jormungarsAI* ai = GetBroAI())
+                    ai->AttackStart(m_pInstance->GetRandomPlayerInMap());
+            }
+
+            m_creature->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
+            if (bro)
+                bro->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
+
+            mergeTimer->Cooldown(submerge ? RV(5000, 10000): RV(40000,5000));
+            if (bro)
+                bro->GetTimerMgr()->Cooldown(TIMER_MERGING, submerge ? RV(5000, 10000): RV(40000,5000));
         }
 
         // Spew
@@ -512,7 +537,8 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         // Spit
         m_TimerMgr->TimerFinished(TIMER_SPIT);
 
-        DoMeleeAttackIfReady();
+        if (m_bIsMobile)
+            DoMeleeAttackIfReady();
     }
 };
 

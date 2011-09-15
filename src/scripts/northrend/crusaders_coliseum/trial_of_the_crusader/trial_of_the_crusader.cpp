@@ -33,6 +33,7 @@ npc_toc_announcerAI::npc_toc_announcerAI(Creature* pCreature) : ScriptedAI(pCrea
     is10Man = pCreature->GetMap()->IsRaid10Man();
 
     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+    pCreature->SetVisibility(VISIBILITY_ON);
 
     encounterCreature = NULL;
     encounterCreature2 = NULL;
