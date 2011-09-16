@@ -2464,7 +2464,7 @@ void Creature::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs
 float Creature::GetObjectBoundingRadius(bool is3D) const
 {
     if (is3D && m_groundOffset && IsAtGroundLevel())
-        return sqrt(DEFAULT_WORLD_OBJECT_SIZE*DEFAULT_WORLD_OBJECT_SIZE + GetGroundOffset()*GetGroundOffset());
+        return sqrt(Unit::GetObjectBoundingRadius()*Unit::GetObjectBoundingRadius() + GetGroundOffset()*GetGroundOffset());
 
-    return DEFAULT_WORLD_OBJECT_SIZE;
+    return Unit::GetObjectBoundingRadius();
 }
