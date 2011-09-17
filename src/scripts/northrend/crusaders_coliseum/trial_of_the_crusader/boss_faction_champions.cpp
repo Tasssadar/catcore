@@ -174,9 +174,9 @@ struct FactionedChampionAI : public ScriptedAI
 
     PlayerRole FindRoleInMap(uint64 guid)
     {
-        PlrList::iterator itr = m_playerClasses.find(guid);
+        ClassList::iterator itr = m_playerClasses.find(guid);
         if (itr != m_playerClasses.end())
-            return *itr;
+            return itr->second;
 
         return PLAYER_ROLE_NONE;
     }
