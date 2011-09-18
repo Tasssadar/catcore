@@ -91,6 +91,13 @@ const static float bossPositions[][4] =
 
 #define MAX_SPAWNS 4
 
+static const uint32 addIds[3] = { 65000, 65001, 65002 };
+static const float addSpawnPos[][3] = 
+{
+    {841.89, -218.71, -72.04},
+    {949.32, -328.02, -71.75}
+};
+
 struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
 {
     boss_coren_direbrewAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -133,7 +140,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
         pUrsula = NULL;
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit*)
     {
         DoScriptText(SAY_AGGRO, m_creature);
     }
@@ -147,8 +154,8 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
     
     void AttackStart(Unit* pWho)
     {
-        if(m_uiPhase < PHASE_FIGHT_SECOND)
-            return;
+        //if(m_uiPhase < PHASE_FIGHT_SECOND)
+          //  return;
 
         ScriptedAI::AttackStart(pWho);
     }
@@ -165,8 +172,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
             || !m_creature->IsWithinLOSInMap(pWho))
             return;
         
-        m_creature->AddThreat(pWho, 0.0f);
-        m_creature->SetInCombatWith(pWho);
+        ScriptedAI::AttackStart(pWho);
         m_uiPhase = PHASE_FIGHT_FIRST;          
     }
     
@@ -185,7 +191,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                 m_creature->NearTeleportTo(bossPositions[2][0], bossPositions[2][1],bossPositions[2][2], bossPositions[2][3]);
                 break;
             case 2:
-                m_uiEventTimer = 0;
+               // m_uiEventTimer = 0;
                 break;
         }
     }
@@ -198,14 +204,39 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
             m_uiPhase = PHASE_MOVIE;
             SpawnCameras();
             m_creature->GetMotionMaster()->MovePoint(2, bossPositions[3][0], bossPositions[3][1],bossPositions[3][2]);    
-            m_uiEventTimer = 150000;
+            m_uiEventTimer = 17000;
             m_uiEventPhase = 0;
             DoScriptText(SAY_START_CAMERA, m_creature);
             return;
         }
+        for(uint8 i = 0; i < 2; ++i)
+        {
+            uint8 add = urand(0, 2);
+            Creature *pAdd = m_creature->SummonCreature(addIds[add], addSpawnPos[0][0], addSpawnPos[0][1], addSpawnPos[0][2], 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+            if (pAdd->Attack(m_creature->getVictim(), true))
+            {
+                pAdd->AddThreat(m_creature->getVictim());
+                pAdd->SetInCombatWith(m_creature->getVictim());
+                m_creature->getVictim()->SetInCombatWith(pAdd);
+                pAdd->GetMotionMaster()->MoveChase(m_creature->getVictim());
+            }
+        }
+        
+        for(uint8 i = 0; i < 2; ++i)
+        {
+            uint8 add = urand(0, 2);
+            Creature *pAdd = m_creature->SummonCreature(addIds[add], addSpawnPos[1][0], addSpawnPos[1][1], addSpawnPos[1][2], 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+            if (pAdd->Attack(m_creature->getVictim(), true))
+            {
+                pAdd->AddThreat(m_creature->getVictim());
+                pAdd->SetInCombatWith(m_creature->getVictim());
+                m_creature->getVictim()->SetInCombatWith(pAdd);
+                pAdd->GetMotionMaster()->MoveChase(m_creature->getVictim());
+            }
+        }
         
         ++m_uiSpawnCount;
-        m_uiSpawnTimer = 1500;
+        m_uiSpawnTimer = 40000;
     }
     
     void SpawnCameras()
@@ -224,6 +255,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                     plr->GetCamera().SetView(camera);
                     //CameraList.push_back(camera);
                     plr->SetClientControl(plr, 0);
+                    camera->AI()->DoAction(10);
                     m_creature->GetRandomPoint(bossPositions[4][0], bossPositions[4][1], bossPositions[4][2], 8, x, y, z);
                     plr->NearTeleportTo(x, y, z, bossPositions[4][3]);
                     plr->CombatStop();
@@ -290,7 +322,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                             m_uiEventTimer = 5000;
                             break;
                         case 3:
-                            m_uiEventTimer = 6000;
+                            m_uiEventTimer = 5500;
                             DoScriptText(SAY_INTRO4, m_creature);
                             for(uint8 i = 0; i < 2; ++i)
                             {
@@ -432,6 +464,8 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                             m_creature->SetTargetGUID(0);
                             m_creature->SetOrientation(m_creature->GetAngle(pUrsula));
                             pUrsula->SetOrientation(pUrsula->GetAngle(m_creature));
+                            pUrsula->SendHeartBeatMsg();
+                            m_creature->SendHeartBeatMsg();
                             DoScriptText(SAY_URSULA1, pUrsula);
                             m_uiEventTimer = 4000;
                             break;
@@ -483,6 +517,8 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
     uint32 m_uiEventTimer;
     uint8 m_uiEventPhase;
     bool stopped;
+    
+    std::vector<Creature*> CameraList;
 
     void Reset()
     {
@@ -494,6 +530,7 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
             doors->SetLootState(GO_READY);
             doors->SetGoState(GO_STATE_READY);
         }
+        CameraList.clear();
     }
     
     void DoAction(uint32 action)
@@ -538,6 +575,95 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
             }
         }
     }
+    
+    void SetCameras()
+    {
+        Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+        if(!lPlayers.isEmpty())
+        {
+            for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+            {
+                Player *plr = itr->getSource();
+                if (!plr || !plr->IsInWorld())
+                    continue;
+                switch(m_uiEventPhase)
+                {
+                    case 0:
+                        plr->GetCamera().SetView(m_creature);
+                        plr->SetClientControl(plr, 0);
+                        break;
+                    case 7:
+                    {
+                        float x, y, z;
+                        m_creature->GetPosition(x, y, z);
+                        Creature *camera = m_creature->SummonCreature(NPC_CAMERA, x, y, z, plr->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0);
+                        plr->GetCamera().SetView(camera);
+                        CameraList.push_back(camera);
+                        plr->SetClientControl(plr, 0);
+                        camera->AI()->DoAction(0);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    void MovePlayers()
+    {
+        
+        Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+        if(!lPlayers.isEmpty())
+        {
+            float angle_add;
+            float angle;
+            
+            switch(m_uiEventPhase)
+            {
+                case 0:
+                    angle_add = M_PI_F/lPlayers.getSize();
+                    angle = m_creature->GetOrientation()+M_PI_F/2;
+                    angle = angle > M_PI_F*2 ? angle - M_PI_F*2 : angle;
+                    break;
+                case 6:
+                    angle = m_creature->GetOrientation()-M_PI_F/2;
+                    angle_add = M_PI_F/lPlayers.getSize();
+                    angle = angle < 0 ? angle + M_PI_F*2 : angle;
+                    break;
+            }
+            
+            for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+            {
+                Player *plr = itr->getSource();
+                if (!plr || !plr->IsInWorld())
+                    continue;
+                switch(m_uiEventPhase)
+                {
+                    
+                    case 0:
+                    {
+                        float x = gatePos[0] + cos(angle)*4;
+                        float y = gatePos[1] + sin(angle)*4;
+                        plr->GetMotionMaster()->MovePoint(1, x, y, gatePos[2]);
+                        angle += angle_add;
+                        angle = angle > M_PI_F*2 ? angle - M_PI_F*2 : angle;
+                        break;
+                    }
+                    case 2:
+                        plr->KnockBackFrom(plr, -10.0f, 10.0f);
+                        break;
+                    case 6:
+                    {
+                        float x = goPos[0] + cos(angle)*4;
+                        float y = goPos[1] + sin(angle)*4;
+                        plr->GetMotionMaster()->MovePoint(1, x, y, goPos[2]);
+                        angle += angle_add;
+                        angle = angle > M_PI_F*2 ? angle - M_PI_F*2 : angle;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -552,13 +678,16 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
                     DoScriptText(SAY_GUIDE1, m_creature);
                     m_creature->GetMotionMaster()->MovePoint(1, gatePos[0], gatePos[1], gatePos[2]);
                     stopped = true;
+                    SetCameras();
+                    MovePlayers();
                     break;
                 case 1:
-                    //TODO: emote
+                    m_creature->HandleEmote(28);
                     m_uiEventTimer = 1000;
                     break;
                 case 2:
                 {
+                    m_creature->HandleEmote(0);
                     DoScriptText(SAY_GUIDE2, m_creature);
                     if(GameObject *doors = GetClosestGameObjectWithEntry(m_creature, GO_DOORS, 180.0f))
                     {
@@ -573,6 +702,7 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
                     m_creature->UpdateGroundPositionZ(x, y, z, 50);
                     m_creature->TrajMonsterMove(x, y, z, true, 10, 1500);
                     m_uiEventTimer = 3000;
+                    MovePlayers();
                     CastShake();
                     break;
                 }
@@ -583,23 +713,54 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
                     m_uiEventTimer = 3000;
                     break;
                 case 6:
-                    
                     stopped = true;
                     DoScriptText(SAY_GUIDE3, m_creature);
                     m_creature->GetMotionMaster()->MovePoint(2, goPos[0], goPos[1], goPos[2]);
+                    MovePlayers();
                     break;
                 case 7:
                     m_creature->SummonCreature(NPC_COREN, bossPos[0], bossPos[1], bossPos[2], bossPos[3],
                                                TEMPSUMMON_MANUAL_DESPAWN, 0);
-                    m_uiEventTimer = 15000;
+                    m_uiEventTimer = 14000;
+                    SetCameras();
                     break;
                 case 8:
+                {
+                    for(std::vector<Creature*>::iterator itr = CameraList.begin(); itr != CameraList.end(); ++itr)
+                        (*itr)->AI()->DoAction(1);
+                    m_uiEventTimer = 1000;
+                    break;
+                }
+                case 9:
+                {
                     DoScriptText(SAY_GUIDE4, m_creature);
                     m_creature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
                     m_creature->GetMotionMaster()->MovePoint(3, gatePos[0], gatePos[1], gatePos[2]);
+                    m_uiEventTimer = 2000;
+                    break;
+                }
+                case 10:
+                {
+                    for(std::vector<Creature*>::iterator itr = CameraList.begin(); itr != CameraList.end(); ++itr)
+                        (*itr)->AI()->DoAction(2);
+                    
+                    m_uiEventTimer = 1500;
+                    break;
+                }
+                case 11:
+                {
+                    for(std::vector<Creature*>::iterator itr = CameraList.begin(); itr != CameraList.end(); ++itr)
+                        (*itr)->AI()->DoAction(3);
+                    m_uiEventTimer = 1500;
+                    break;
+                }
+                case 12:
+                {
+                    for(std::vector<Creature*>::iterator itr = CameraList.begin(); itr != CameraList.end(); ++itr)
+                        (*itr)->AI()->DoAction(4);
                     stopped = true;
                     break;
-                
+                }
             }
             ++m_uiEventPhase;
         }else m_uiEventTimer -= uiDiff;
@@ -619,41 +780,92 @@ struct MANGOS_DLL_DECL npc_brewfest_cameraAI : public ScriptedAI
         cameraPath.set(4, Coords(882.06, -170.89, -40.64));
         cameraPath.set(5, Coords(884.06, -152.68, -42.63));
         cameraPath.set(6, Coords(875.84, -154.66, -48.56)); */
-        
-        cameraPath.resize(6);
-        cameraPath.set(1, Coords(902.82, -257.81, -36.60));
-        cameraPath.set(2, Coords(855.12, -232.85, -53.00));
-        cameraPath.set(3, Coords(769.81, -149.82, -66.73));
-        cameraPath.set(4, Coords(824.85, -77.59,  -48.27));
-        cameraPath.set(5, Coords(851.86, -145.83, -49.75));
-        
         Reset();
     }
     
     PointPath cameraPath;
     uint32 m_uiMoveTimer;
     uint8 m_movePhase;
-    
+    bool set;
     void Reset()
     {
         m_uiMoveTimer = 500;
         m_movePhase = 0;
+        set = false;
+    }
+    
+    void DoAction(uint32 id)
+    {
+        switch(id)
+        {
+            case 0:
+                set = true;
+                cameraPath.resize(2);
+                cameraPath.set(1, Coords(bossPos[0], bossPos[1], bossPos[2]));
+                m_movePhase = 10;
+                break;
+            case 1:
+                m_creature->NearTeleportTo(756.83, -111.56, -72.3, 3.39);
+                break;
+            case 2:
+            {
+                float ori = bossPos[3] + M_PI_F;
+                ori = ori > M_PI_F*2 ? ori - M_PI_F*2 : ori;
+                m_creature->NearTeleportTo(bossPos[0], bossPos[1], bossPos[2], ori);
+                break;
+            }
+            case 3:
+                m_creature->TrajMonsterMove(bossPositions[0][0], bossPositions[0][1],bossPositions[0][2],
+                                                               false, 50, 1500);
+                break;
+            case 4:
+            {
+                Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+                if(!lPlayers.isEmpty())
+                {
+                    for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+                    {
+                        Player *plr = itr->getSource();
+                       if (plr && plr->IsInWorld())
+                       {
+                            plr->SetClientControl(plr, 1);
+                            plr->GetCamera().SetView(plr);
+                        }
+                    }
+                }
+                m_creature->ForcedDespawn();
+                break;
+            }
+            case 10:
+                cameraPath.resize(6);
+                cameraPath.set(1, Coords(902.82, -257.81, -36.60));
+                cameraPath.set(2, Coords(855.12, -232.85, -53.00));
+                cameraPath.set(3, Coords(769.81, -149.82, -66.73));
+                cameraPath.set(4, Coords(824.85, -77.59,  -48.27));
+                cameraPath.set(5, Coords(851.86, -145.83, -49.75));
+                set = true;
+                m_movePhase = 0;
+                break;
+        }
     }
     
     void UpdateAI(const uint32 uiDiff)
     {
-       if(m_uiMoveTimer <= uiDiff)
-       {
-           switch(m_movePhase)
-           {
-               case 0:
+        if(!set)
+            return;
+        
+        if(m_uiMoveTimer <= uiDiff)
+        {
+            switch(m_movePhase)
+            {
+                case 0:
                     cameraPath.set(0, m_creature->GetPosition());
                     m_creature->ChargeMonsterMove(cameraPath, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 15000);
-                    m_uiMoveTimer = 20000;
+                    m_uiMoveTimer = 22000;
                     break;
-               case 1:
-               {
-                   Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
+                case 1:
+                {
+                    Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
                     if(!lPlayers.isEmpty())
                     {
                         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
@@ -663,13 +875,20 @@ struct MANGOS_DLL_DECL npc_brewfest_cameraAI : public ScriptedAI
                             {
                                 plr->SetClientControl(plr, 1);
                                 plr->GetCamera().SetView(plr);
-                            }
+                             }
                         }
                     }
                     m_creature->ForcedDespawn();
-                   break;
-               }
-           }
+                    set = false;
+                    break;
+                }
+                case 10:
+                    cameraPath.set(0, m_creature->GetPosition());
+                    m_creature->ChargeMonsterMove(cameraPath, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 2000);
+                    m_uiMoveTimer = 2000;
+                    set = false;
+                    break;
+            }
            ++m_movePhase;
        }else m_uiMoveTimer -=uiDiff;
     }
@@ -682,7 +901,7 @@ bool GossipHello_npc_brewfest_guide(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
-bool GossipSelect_npc_brewfest_guide(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+bool GossipSelect_npc_brewfest_guide(Player* pPlayer, Creature* pCreature, uint32, uint32 uiAction)
 {
     pPlayer->CLOSE_GOSSIP_MENU();
 
@@ -711,7 +930,7 @@ struct MANGOS_DLL_DECL npc_brewfest_barrelAI : public ScriptedAI
         m_uiTimer = 4000;
     }
     
-    void AttackStart(Unit* pWho)
+    void AttackStart(Unit*)
     {
         return;
     }
@@ -721,7 +940,7 @@ struct MANGOS_DLL_DECL npc_brewfest_barrelAI : public ScriptedAI
        if(m_uiTimer <= uiDiff)
        {
            DoCast(m_creature, SPELL_BLAST_WAVE);
-           m_creature->ForcedDespawn(1000);
+           m_creature->ForcedDespawn(500);
            m_uiTimer = 50000;
        }else m_uiTimer -=uiDiff;
     }
