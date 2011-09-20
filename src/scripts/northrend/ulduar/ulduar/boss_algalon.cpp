@@ -808,9 +808,10 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
+        if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f,
+            hole->CastSpell(hole, SPELL_BLACK_HOLE_EXPLOSION, true);
+        
         m_creature->SummonCreature(NPC_VOID_ZONE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
-        m_creature->CastSpell(m_creature, SPELL_BLACK_HOLE_EXPLOSION, true);
         ((TemporarySummon*)m_creature)->UnSummon();
     }
 
@@ -882,6 +883,11 @@ struct MANGOS_DLL_DECL mob_black_holeAI : public ScriptedAI
     {
         m_uiConstellationPhaseEffectTimer = 1000;
     }
+    
+    void AttackStart(Unit *pWho)
+    {
+        
+    }
 
     void UpdateAI(const uint32 uiDiff)
     {
@@ -893,7 +899,8 @@ struct MANGOS_DLL_DECL mob_black_holeAI : public ScriptedAI
             {
                 Unit* tempVoidZone = GetClosestCreatureWithEntry(m_creature, NPC_VOID_ZONE, 5.0f);
                 ((TemporarySummon*)target)->UnSummon();
-                ((TemporarySummon*)tempVoidZone)->UnSummon();
+                if(tempVoidZone)
+                    ((TemporarySummon*)tempVoidZone)->UnSummon();
                 ((TemporarySummon*)m_creature)->UnSummon();
             }
             m_uiConstellationPhaseEffectTimer = 1000;

@@ -46,8 +46,6 @@ enum
     SPELL_TELEPORT_VISUAL = 64446,
     SPELL_CAMERA_SHAKE    = 69235,
     
-    
-    NPC_ADD             = 45000,
     NPC_GUIDE           = 60000,
     NPC_STONE_GIANT     = 60001,
     NPC_COREN           = 23872, 
