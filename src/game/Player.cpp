@@ -23402,11 +23402,9 @@ uint32 Player::TalentsInSpec(TalentSpec spec)
         if (iter->second.state == PLAYERSPELL_REMOVED)
             continue;
 
-        TalentEntry const *talentInfo = iter->second.m_talentEntry;
-        if (!talentInfo || talentInfo->TalentTab != spec)
-            continue;
-
-        ++talentsInSpec;
+        if (TalentEntry const *talentInfo = iter->second.m_talentEntry)
+            if (talentInfo->TalentTab == spec)
+                talentsInSpec += iter->second.currentRank+1;
     }
 
     return talentsInSpec;
