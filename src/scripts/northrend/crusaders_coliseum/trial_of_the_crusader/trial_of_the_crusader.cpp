@@ -1046,7 +1046,7 @@ bool GossipSelect_npc_toc_argentmage(Player* pPlayer, Creature* , uint32 , uint3
 {
     pPlayer->CLOSE_GOSSIP_MENU();
 
-    if (!uiAction != GOSSIP_ACTION_INFO_DEF+1)
+    if (uiAction != GOSSIP_ACTION_INFO_DEF+1)
         return true;
 
     pPlayer->TeleportTo(WorldLocation(pPlayer->GetMapId(), SpawnLoc[LOC_CENTER], 0));
