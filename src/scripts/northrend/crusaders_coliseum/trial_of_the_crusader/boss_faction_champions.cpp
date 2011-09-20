@@ -166,7 +166,7 @@ struct FactionedChampionAI : public ScriptedAI
             case TALENT_SPEC_PALADIN_RETRIBUTION:
             case TALENT_SPEC_DEATH_KNIGHT_BLOOD:
             case TALENT_SPEC_DEATH_KNIGHT_UNHOLY:
-                return PLAYER_ROLE_HEALER;
+                return PLAYER_ROLE_MELEE;
             default:
                 return PLAYER_ROLE_NONE;
         }
