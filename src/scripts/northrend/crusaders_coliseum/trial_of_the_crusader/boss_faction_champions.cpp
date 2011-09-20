@@ -31,6 +31,15 @@ enum RoleFCH
     ROLE_MELEE              = 2
 };
 
+enum PlayerRole
+{
+    PLAYER_ROLE_NONE    = 0,
+    PLAYER_ROLE_TANK    = 1,
+    PLAYER_ROLE_HEALER  = 2,
+    PLAYER_ROLE_RANGED  = 3,
+    PLAYER_ROLE_MELEE   = 4
+};
+
 enum HealPower
 {
     HEAL_NOHEAL             = 0,
@@ -46,15 +55,6 @@ enum Timers
     // 1-100 reserved for mutual
     TIMER_HEAL      = 1, // 1-5
     TIMER_DISPEL    = 6
-};
-
-enum PlayerRole
-{
-    PLAYER_ROLE_NONE    = 0,
-    PLAYER_ROLE_TANK    = 1,
-    PLAYER_ROLE_HEALER  = 2,
-    PLAYER_ROLE_RANGED  = 3,
-    PLAYER_ROLE_MELEE   = 4
 };
 
 typedef std::map<uint64, PlayerRole> ClassList;
@@ -120,11 +120,54 @@ struct FactionedChampionAI : public ScriptedAI
         m_playerClasses = clL;
     }
 
-    Unit* GetAppropriateTarget(bool ranged)
+    Unit* GetAppropriateTarget()
     {
+        if (m_role == ROLE_HEALER)
+            return; // handled elsewhere
 
+        float speedCoef = m_creature->GetSpeed(MOVE_RUN)*0.001f;
+
+        Unit* tempUnit = NULL;
+        float tempValue = 0;
+
+        if (m_role == ROLE_HEALER)
+        {
+            for(CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
+            {
+                float calcDist = m_creature->GetDistance2d(*itr);
+
+                if (m_role == ROLE_RANGED)
+                    calcDist = calcDist > 40.f ? calcDist-40.f : 0;
+
+                float timeToDeath = calcDist/speedCoef + float((*itr)->GetHealth())/(*itr)->CalcArmorReducedDamage(*itr, 5000);
+                if (timeToDeath < tempValue || !tempValue)
+                {
+                    tempUnit = *itr;
+                    tempValue = timeToDeath;
+                }
+            }
+        }
+        else
+        {
+            PlrList allPlr = m_pInstance->GetAllPlayers();
+            for (PlrList::iterator itr = allPlr.begin(); itr != allPlr.end(); ++itr)
+            {
+                float calcDist = m_creature->GetDistance2d(*itr);
+
+                if (m_role == ROLE_RANGED)
+                    calcDist = calcDist > 30.f ? calcDist-30.f : 0;
+
+                float timeToKill = calcDist/speedCoef + float((*itr)->GetHealth())/(*itr)->CalcArmorReducedDamage(*itr, 5000);
+                if (timeToKill < tempValue || !tempValue)
+                {
+                    tempUnit = *itr;
+                    tempValue = timeToKill;
+                }
+            }
+        }
+
+        return tempUnit;
     }
-
 
     PlayerRole GetPlayerRole(Player* plr)
     {
@@ -172,13 +215,15 @@ struct FactionedChampionAI : public ScriptedAI
         }
     }
 
-    PlayerRole FindRoleInMap(uint64 guid)
+    PlayerRole FindRoleForPlayer(Player* plr)
     {
-        ClassList::iterator itr = m_playerClasses.find(guid);
+        ClassList::iterator itr = m_playerClasses.find(plr->GetGUID());
         if (itr != m_playerClasses.end())
             return itr->second;
 
-        return PLAYER_ROLE_NONE;
+        PlayerRole newRole = GetPlayerRole(plr);
+        m_playerClasses[plr->GetGUID()] = newRole;
+        return newRole;
     }
 
     FactionedChampionAI* GetFactionedAI(Creature* crt)
@@ -290,17 +335,6 @@ struct factioned_healerAI : public FactionedChampionAI
         FactionedChampionAI::Reset();
     }
 
-    Creature* SelectChampionWithLowestHp()
-    {
-        Creature* lowestCrt = NULL;
-        for(CreatureList::iterator itr = m_lAliveChampions.begin(); itr != m_lAliveChampions.end(); ++itr)
-            if (*itr)
-                if (!lowestCrt || (*itr)->GetHealthPercent() < lowestCrt->GetHealthPercent())
-                    lowestCrt = *itr;
-
-        return lowestCrt;
-    }
-
     HealPower GetAppropriateHealPowerForTarget(Creature* target)
     {
         if (target->GetHealthPercent() > 90)
@@ -333,7 +367,7 @@ struct factioned_healerAI : public FactionedChampionAI
 
     bool DoHeal()
     {
-        Creature* target = SelectChampionWithLowestHp();
+        Creature* target = GetAppropriateTarget();
         HealPower appropHealPower = GetAppropriateHealPowerForTarget(target);
         if (appropHealPower == HEAL_NOHEAL)
             return false;
@@ -342,7 +376,7 @@ struct factioned_healerAI : public FactionedChampionAI
         if (castedHP == HEAL_NOHEAL)
             return false;
 
-        m_TimerMgr->TimerFinished(TIMER_HEAL+castedHP, target);
+        m_TimerMgr->TimerFinished(timer(castedHP), target);
         return true;
     }
 
