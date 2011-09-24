@@ -234,7 +234,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
         }
         
         ++m_uiSpawnCount;
-        m_uiSpawnTimer = 40000;
+        m_uiSpawnTimer = 35000;
     }
     
     void SpawnCameras()
@@ -257,6 +257,8 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                     m_creature->GetRandomPoint(bossPositions[4][0], bossPositions[4][1], bossPositions[4][2], 8, x, y, z);
                     plr->NearTeleportTo(x, y, z, bossPositions[4][3]);
                     plr->CombatStop();
+                    if(!plr->isAlive())
+                        plr->ResurrectPlayer(100.0f);
                 }
             }
         }
@@ -320,7 +322,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                             m_uiEventTimer = 5000;
                             break;
                         case 3:
-                            m_uiEventTimer = 5500;
+                            m_uiEventTimer = 7000;
                             DoScriptText(SAY_INTRO4, m_creature);
                             for(uint8 i = 0; i < 2; ++i)
                             {
@@ -392,7 +394,7 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                             Map::PlayerList const &lPlayers = m_creature->GetMap()->GetPlayers();
                             if(!lPlayers.isEmpty())
                                 DoScriptText(SAY_TAVERN2, lPlayers.begin()->getSource());
-                            m_uiEventTimer = 2000;
+                            m_uiEventTimer = 5000;
                             break;
                         }
                         case 3:
@@ -516,6 +518,8 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
     uint8 m_uiEventPhase;
     bool stopped;
     
+    Creature *pCoren;
+    
     std::vector<Creature*> CameraList;
 
     void Reset()
@@ -529,13 +533,15 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
             doors->SetGoState(GO_STATE_READY);
         }
         CameraList.clear();
+        pCoren = NULL;
     }
     
     void DoAction(uint32 action)
     {
         if(action == 0)
         {
-            
+            if(pCoren)
+                pCoren->ForcedDespawn();
             stopped = false;
         }
     }
@@ -555,8 +561,15 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
                 stopped = false;
                 break;
             case 3:
-                m_creature->SetVisibility(VISIBILITY_OFF);
+            {
+                /*if(GameObject *doors = GetClosestGameObjectWithEntry(m_creature, GO_DOORS, 180.0f))
+                {
+                    doors->SetLootState(GO_READY);
+                    doors->SetGoState(GO_STATE_READY);
+                } */
+                //m_creature->SetVisibility(VISIBILITY_OFF);
                 break;
+            }
         }
     }
     
@@ -717,8 +730,8 @@ struct MANGOS_DLL_DECL npc_brewfest_guideAI : public ScriptedAI
                     MovePlayers();
                     break;
                 case 7:
-                    m_creature->SummonCreature(NPC_COREN, bossPos[0], bossPos[1], bossPos[2], bossPos[3],
-                                               TEMPSUMMON_MANUAL_DESPAWN, 0);
+                    pCoren = m_creature->SummonCreature(NPC_COREN, bossPos[0], bossPos[1], bossPos[2], bossPos[3],
+                                               TEMPSUMMON_CORPSE_TIMED_DESPAWN, 300000);
                     m_uiEventTimer = 14000;
                     SetCameras();
                     break;
@@ -859,7 +872,7 @@ struct MANGOS_DLL_DECL npc_brewfest_cameraAI : public ScriptedAI
                 case 0:
                     cameraPath.set(0, m_creature->GetPosition());
                     m_creature->ChargeMonsterMove(cameraPath, SPLINETYPE_NORMAL, SPLINEFLAG_TRAJECTORY, 15000);
-                    m_uiMoveTimer = 22000;
+                    m_uiMoveTimer = 25000;
                     break;
                 case 1:
                 {
@@ -938,7 +951,7 @@ struct MANGOS_DLL_DECL npc_brewfest_barrelAI : public ScriptedAI
        if(m_uiTimer <= uiDiff)
        {
            DoCast(m_creature, SPELL_BLAST_WAVE);
-           m_creature->ForcedDespawn(500);
+           m_creature->ForcedDespawn(200);
            m_uiTimer = 50000;
        }else m_uiTimer -=uiDiff;
     }

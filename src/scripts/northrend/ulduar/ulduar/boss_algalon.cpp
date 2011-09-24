@@ -808,7 +808,8 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)
     {
-        if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f,
+//        if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f,
+          if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0))
             hole->CastSpell(hole, SPELL_BLACK_HOLE_EXPLOSION, true);
         
         m_creature->SummonCreature(NPC_VOID_ZONE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
