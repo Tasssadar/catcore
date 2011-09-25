@@ -10,26 +10,22 @@ GUID OVERFLOW FIXER
 */
 
 #include "char_guid.h"
+char *buff_char = new char[500];
 
 void printLog(const char *fmt,...)
 {
-  char *msg = new char[500];
   va_list argptr;
   va_start(argptr,fmt);
-  vsprintf(msg,fmt,argptr);
-  printf("%s", msg);
-  fprintf(log_file, "%s", msg);
+  vsprintf(buff_char,fmt,argptr);
+  printf("%s", buff_char);
+  fprintf(log_file, "%s", buff_char);
   fflush(stdout);
   va_end(argptr);
-  delete[] msg;
 }
 
 MYSQL *connectToDb(char* database)
 {
     printLog("Connecting to database %s..\n", database);
-    //char *socket_loc = NULL;
-    //if(!server)
-      //  socket_loc = socket;
 
     MYSQL *con = mysql_init(NULL);
     if (!mysql_real_connect(con, server, user, password, database, 0, NULL, 0))
@@ -42,22 +38,18 @@ MYSQL *connectToDb(char* database)
 
 bool my_query(MYSQL *con, char *query,...)
 {
-    char *buff = new char[500];
-
     va_list argptr;
     va_start(argptr,query);
-    vsprintf(buff,query,argptr);
+    vsprintf(buff_char,query,argptr);
     va_end(argptr);
 
-    fprintf(log_file, "%s\n", buff);
+    fprintf(log_file, "%s\n", buff_char);
 
-    if (mysql_query(con, buff))
+    if (mysql_query(con, buff_char))
     {
         printLog("%s\n", mysql_error(con));
-        delete[] buff;
         return false;
     }
-    delete[] buff;
     return true;
 }
 
@@ -68,7 +60,6 @@ void incrementState()
     fwrite(&state, 1, 1, state_file);
     fflush(state_file);
 }
-
 
 int main()
 {
@@ -102,6 +93,8 @@ int main()
     time_t startTime = time(0);
     time_t time_c = time(0);
     printLog("Connected\n");
+
+    bool succes = true;
     for(uint8 i = 0; i < REPEATING; ++i)
     {
         while(state < MAX_STEPS)
@@ -111,7 +104,7 @@ int main()
                 case 0: // characters
                 {
                     printLog("        PROCESING CHARACTER GUIDs\n");
-                    changeGuids("characters", "guid", tab_char, char_tables_count, OFFSET_CHARACTERS, conn_char);
+                    succes = changeGuids(tab_char, char_tables_count, OFFSET_CHARACTERS, conn_char);
                     time_t curTime = time(0);
                     printLog("Characters converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                     break;
@@ -119,7 +112,7 @@ int main()
                 case 1:
                 {
                     printLog("        PROCESING GUILD GUIDs\n");
-                    changeGuids("guild", "guildid", tab_guild, guild_tables_count, OFFSET_GUILD, conn_char);
+                    succes = changeGuids(tab_guild, guild_tables_count, OFFSET_GUILD, conn_char);
                     time_t curTime = time(0);
                     printLog("Guilds converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                     break;
@@ -127,7 +120,7 @@ int main()
                 case 2:
                 {
                     printLog("        PROCESING ITEM GUIDs\n");
-                    changeGuids("item_instance", "guid", tab_item, item_tables_count, OFFSET_ITEMS, conn_char);
+                    succes = changeGuids(tab_item, item_tables_count, OFFSET_ITEMS, conn_char);
                     time_t curTime = time(0);
                     printLog("Items converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                     break;
@@ -135,7 +128,7 @@ int main()
                 case 3:
                 {
                     printLog("        PROCESING PET GUIDs\n");
-                    changeGuids("character_pet", "id", tab_pet, pet_tables_count, OFFSET_PETS, conn_char);
+                    succes = changeGuids(tab_pet, pet_tables_count, OFFSET_PETS, conn_char);
                     time_t curTime = time(0);
                     printLog("Pets converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                     break;
@@ -143,7 +136,7 @@ int main()
                 case 4:
                 {
                     printLog("        PROCESING MAIL GUIDs\n");
-                    changeGuids("mail", "id", tab_mail, mail_tables_count, OFFSET_MAIL, conn_char);
+                    succes = changeGuids(tab_mail, mail_tables_count, OFFSET_MAIL, conn_char);
                     time_t curTime = time(0);
                     printLog("Mails converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                     break;
@@ -154,7 +147,7 @@ int main()
                     if(conn_acc)
                     {
                         printLog("        PROCESING ACCOUNT GUIDs\n");
-                        changeGuids("account", "id", tab_acc, acc_tables_count, OFFSET_ACC, conn_acc, conn_char, tab_acc_char, acc_char_tables_count);
+                        succes = changeGuids(tab_acc, acc_tables_count, OFFSET_ACC, conn_acc, conn_char, tab_acc_char, acc_char_tables_count);
                         time_t curTime = time(0);
                         printLog("Accounts converted after %u seconds, total time is %u\n", curTime - time_c, curTime - startTime);
                         mysql_close(conn_acc);
@@ -164,10 +157,15 @@ int main()
                     break;
                 }
             }
+            if(!succes)
+                break;
+            
             time_c = time(0);
             incrementState();
         }
-        printLog("Iteration %u of %u complete\n", i+1, REPEATING);
+        printLog("Iteration %u of %u complete. Succes: %u\n", i+1, REPEATING, uint8(succes));
+        if(!succes)
+            break;
         state = 0;
         rewind(state_file);
         fwrite(&state, 1, 1, state_file);
@@ -179,7 +177,7 @@ int main()
     return 0;
 }
 
-bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint tables_count, uint offset, MYSQL *con,
+bool changeGuids(char *tables[][2], uint tables_count, uint offset, MYSQL *con,
                  MYSQL *con_acc, char *tables_acc[][2], uint tables_count_acc)
 {
     MYSQL_RES *res = NULL;
@@ -189,7 +187,7 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
     printLog("============================ \n");
 
 
-    if (!my_query(con, "SELECT COUNT(%s) FROM %s;", main_col, main_table))
+    if (!my_query(con, "SELECT COUNT(%s) FROM %s;", tables[0][1], tables[0][0]))
         return false;
 
     res = mysql_use_result(con);
@@ -205,7 +203,7 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
         guids_orig[i] = 0;
     }
 
-    if (!my_query(con, "SELECT %s FROM %s ORDER BY %s;", main_col, main_table, main_col))
+    if (!my_query(con, "SELECT %s FROM %s ORDER BY %s;", tables[0][1], tables[0][0], tables[0][1]))
         return false;
 
     res = mysql_use_result(con);
@@ -222,6 +220,10 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
     mysql_free_result(res);
 
     uint target_guid = (guids_new[count-2] > offset) ? guids_new[count-2] : offset;
+    printLog("max guid %u\n", target_guid);
+
+    std::qsort(guids_orig, count, sizeof(uint), compare);
+    std::qsort(guids_new, count, sizeof(uint), compare);
 
     for(uint i = 0; i < count; ++i)
     {
@@ -231,7 +233,9 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
             break;
         guids_new[i] = ++target_guid;
     }
-    std::sort(guids_new, guids_new+sizeof(guids_new) / sizeof(guids_new[0]));
+
+    printLog("max guid %u\n", guids_orig[count-1]);
+    //printLog("max guid %u\n", guids_new[count-1]);
 
     printLog("\nASSEMBLING FREE GUIDS \n ");
     printLog("============================ \n");
@@ -240,16 +244,19 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
 
     uint lastGuid = offset;
     uint y_free = 0;
+    uint free_size = 0;
     for(uint i = 0; i < count; ++i)
     {
-        if(guids_new[i] == 0)
+        if(guids_orig[i] == 0 || guids_orig[i] < offset)
             continue;
-        if(free.size() > count)
+
+        if(free_size > count)
             break;
-        if(guids_new[i] - lastGuid > 1)
+        if(guids_orig[i] - lastGuid > 1)
         {
+           // printLog("%u %u\n", guids_new[i], lastGuid);
             ++lastGuid;
-            for(;lastGuid < guids_new[i]; ++lastGuid)
+            for(;lastGuid < guids_orig[i] && free_size <= count; ++lastGuid)
             {
                 bool can = true;
                 for(; y_free < count; ++y_free)
@@ -263,9 +270,12 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
                         break;
                 }
                 if(can)
+                {
+                 //   printLog("%u\n", lastGuid);
                     free.push_back(lastGuid);
+                    ++free_size;
+                }
             }
-            
         }
         else
             ++lastGuid;
@@ -274,39 +284,56 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
         fflush(stdout);
     }
 
-    printLog("\nPREPARING GUIDS\n ");
+    printLog("\n\nPREPARING GUIDS\n ");
     printLog("============================ \n");
-    printLog("begin: %u, %u \n", guids_new[0], *(free.begin()), real_guid_count);
+    printLog("begin: %u, %u \n", guids_new[0], *(free.begin()));
 
-    float guids_pct = float(count)/100.0f;
+    
 
     for(long i = count-1; i > 0; --i)
     {
-        if(guids_new[i] == 0)
+        if(guids_new[i] == 0 || guids_new[i] <= *(free.begin()))
             continue;
 
-        if(free.empty() || guids_new[i] <= *(free.begin()))
+        if(free.empty())
+        {
+            printLog("Break - %u %u\n", guids_new[i], *(free.begin()));
             break;
+        }
+
+       // printLog("%u %u -> %u\n", guids_orig[i], guids_new[i], *(free.begin()));
         guids_new[i] = *(free.begin());
 
         free.pop_front();
         if(free.empty())
+        {
+     //       printLog("Break - empty()");
             break;
+        }
     }
-    std::sort(guids_new, guids_new+sizeof(guids_new) / sizeof(guids_new[0]));
-    std::sort(guids_orig, guids_orig+sizeof(guids_orig) / sizeof(guids_orig[0]));
+
+    printLog("\nSTATS\n ");
+    printLog("============================ \n");
+    uint updates_count = 0;
+    for(uint i = 0; i < count; ++i)
+    {
+        if(guids_new[i] == 0 || guids_orig[i] == guids_new[i])
+            continue;
+        ++updates_count;
+    }
+    printLog("Total guids: %u total changes: %u (%u%%)\n", count, updates_count, uint(updates_count/(float(count)/100.0f)));
+    float guids_pct = float(updates_count)/100.0f;
 
     printLog("\nCREATING PREPARED STATEMENTS\n ");
     printLog("============================ \n");
     
     {
-        my_query(con, "PREPARE %s_stm FROM \"UPDATE %s SET %s=? WHERE %s=?;\";", main_table, main_table, main_col, main_col);
         for(uint8 y = 0; y < tables_count; ++y)
-             my_query(con, "PREPARE %s_stm FROM \"UPDATE %s SET %s=? WHERE %s=?;\";",  tables[y][0],  tables[y][0], tables[y][1], tables[y][1]);
+             my_query(con, "PREPARE %s_%s_stm FROM \"UPDATE %s SET %s=? WHERE %s=?;\";",  tables[y][0], tables[y][1],  tables[y][0], tables[y][1], tables[y][1]);
         if(con_acc)
         {
             for(uint8 y = 0; y < tables_count_acc; ++y)
-                my_query(con_acc, "PREPARE %s_stm FROM \"UPDATE %s SET %s=? WHERE %s=?;\";",  tables_acc[y][0],  tables_acc[y][0], tables_acc[y][1], tables_acc[y][1]);
+                my_query(con_acc, "PREPARE %s_%s_stm FROM \"UPDATE %s SET %s=? WHERE %s=?;\";",  tables_acc[y][0],  tables_acc[y][1], tables_acc[y][0], tables_acc[y][1], tables_acc[y][1]);
         }
     }
     
@@ -315,17 +342,17 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
 
     uint counta = 0;
     uint guid_with_off = 0;
+    time_t curT = time(0);
+    time_t lastT = time(0);
+    uint lastTcount = 0;
+    float per_sec = 0;
+    uint eta = 0;
 
     for(long i = count-1; i > 0; --i)
     {
-        if(guids_new[i] == 0 || guids_orig[i] == 0)
+        if(guids_new[i] == guids_orig[i] || guids_new[i] == 0 || guids_orig[i] == 0)
             continue;
-        if(guids_new[i] == guids_orig[i])
-        {
-            printf("\r %u %u%% complete", counta, uint(counta/guids_pct));
-            ++counta;
-            continue;
-        }
+
         guid_with_off = guids_new[i];
         //printLog("%u %u\n", itr->first, guid_with_off);
 
@@ -333,24 +360,36 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
         my_query(con, "SET @guid_from = '%u';", guids_orig[i]);
         my_query(con, "SET @guid_to = '%u';", guid_with_off);
 
-        my_query(con, "EXECUTE %s_stm USING @guid_to, @guid_from;", main_table);
         for(uint8 y = 0; y < tables_count; ++y)
-            my_query(con, "EXECUTE %s_stm USING @guid_to, @guid_from;", tables[y][0]);
+            my_query(con, "EXECUTE %s_%s_stm USING @guid_to, @guid_from;", tables[y][0], tables[y][1]);
 
         if(con_acc)
         {
+            my_query(con_acc, "START TRANSACTION;");
+            my_query(con_acc, "SET @guid_from = '%u';", guids_orig[i]);
+            my_query(con_acc, "SET @guid_to = '%u';", guid_with_off);
             for(uint8 y = 0; y < tables_count_acc; ++y)
-                my_query(con_acc, "EXECUTE %s_stm USING @guid_to, @guid_from;", tables_acc[y][0]);
+                my_query(con_acc, "EXECUTE %s_%s_stm USING @guid_to, @guid_from;", tables_acc[y][0], tables_acc[y][1]);
+            my_query(con_acc, "COMMIT;");
         }
 
         my_query(con, "COMMIT;");
 
+        curT = time(0);
+        if(curT - lastT >= 5)
+        {
+            per_sec = float(counta-lastTcount)/5.0f;
+            lastT = curT;
+            lastTcount = counta;
+            eta = (updates_count-counta)/per_sec;
+        }
         fprintf(log_file, "\n    presunul %u -> %u\n", guids_orig[i], guid_with_off);
-        printf("\r %u %u%% complete", counta, uint(counta/guids_pct));
+        printf("\r %u %u%% complete, %3.2f guid per second, ETA: %us", counta, uint(counta/guids_pct), per_sec, eta);
         fflush(stdout);
-
+ 
         ++counta;
     }
+
     delete[] guids_new;
     delete[] guids_orig;
 
@@ -358,13 +397,12 @@ bool changeGuids(char *main_table, char *main_col, char *tables[][2], uint table
     printLog("============================ \n");
 
     {
-        my_query(con, "DEALLOCATE PREPARE %s_stm;", main_table);
         for(uint8 y = 0; y < tables_count; ++y)
-             my_query(con, "DEALLOCATE PREPARE %s_stm;", tables[y][0]);
+             my_query(con, "DEALLOCATE PREPARE %s_%s_stm;", tables[y][0], tables[y][1]);
         if(con_acc)
         {
             for(uint8 y = 0; y < tables_count_acc; ++y)
-                my_query(con_acc, "DEALLOCATE PREPARE %s_stm;", tables_acc[y][0]);
+                my_query(con_acc, "DEALLOCATE PREPARE %s_%s_stm;", tables_acc[y][0], tables_acc[y][1]);
         }
     }
     printf("\n");

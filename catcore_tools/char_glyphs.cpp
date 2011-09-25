@@ -54,10 +54,10 @@ int main()
     file << "char_glyphs_log_" << time(NULL);
     FILE *log = fopen(file.str().c_str(), "a");
 
-    char *server = "localhost";
-    char *user = "user";
-    char *password = ""; /* set me first */
-    char *database = "characters";
+    char *server = "valhalla-team.com";
+    char *user = "tass";
+    char *password = "0pt1musOn3"; /* set me first */
+    char *database = "mg2";
 
     conn = mysql_init(NULL);
 
