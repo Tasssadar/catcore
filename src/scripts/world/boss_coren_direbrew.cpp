@@ -258,7 +258,10 @@ struct MANGOS_DLL_DECL boss_coren_direbrewAI : public ScriptedAI
                     plr->NearTeleportTo(x, y, z, bossPositions[4][3]);
                     plr->CombatStop();
                     if(!plr->isAlive())
+                    {
                         plr->ResurrectPlayer(100.0f);
+                        plr->SpawnCorpseBones();
+                    }
                 }
             }
         }
