@@ -123,7 +123,7 @@ struct FactionedChampionAI : public ScriptedAI
     Unit* GetAppropriateTarget()
     {
         if (m_role == ROLE_HEALER)
-            return; // handled elsewhere
+            return NULL; // handled elsewhere
 
         float speedCoef = m_creature->GetSpeed(MOVE_RUN)*0.001f;
 
@@ -367,7 +367,7 @@ struct factioned_healerAI : public FactionedChampionAI
 
     bool DoHeal()
     {
-        Creature* target = GetAppropriateTarget();
+        Creature* target = (Creature*)GetAppropriateTarget();
         HealPower appropHealPower = GetAppropriateHealPowerForTarget(target);
         if (appropHealPower == HEAL_NOHEAL)
             return false;
