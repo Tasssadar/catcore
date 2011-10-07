@@ -6292,24 +6292,46 @@ void ObjectMgr::PackGroupIds()
 void ObjectMgr::SetHighestGuids()
 {
     QueryResult *result = CharacterDatabase.Query( "SELECT MAX(guid) FROM characters" );
+    uint32 maxGuid = 0;
     if ( result )
     {
-        m_CharGuids.Set((*result)[0].GetUInt32()+1);
+        maxGuid = (*result)[0].GetUInt32();
         delete result;
+        if(maxGuid >= ObjectGuid::GetMaxCounter(HIGHGUID_PLAYER)-1)
+        {
+            sLog.outError("%s guid overflow!! Can't continue, shutting down server. ",ObjectGuid::GetTypeName(HIGHGUID_PLAYER));
+            World::StopNow(ERROR_EXIT_CODE);
+            return;
+        }
+        m_CharGuids.Set(maxGuid+1);
     }
 
     result = WorldDatabase.Query( "SELECT MAX(guid) FROM creature" );
     if ( result )
     {
-        m_CreatureGuids.Set((*result)[0].GetUInt32()+1);
+        maxGuid = (*result)[0].GetUInt32();
         delete result;
+        if(maxGuid >= ObjectGuid::GetMaxCounter(HIGHGUID_UNIT)-1)
+        {
+            sLog.outError("%s guid overflow!! Can't continue, shutting down server. ",ObjectGuid::GetTypeName(HIGHGUID_UNIT));
+            World::StopNow(ERROR_EXIT_CODE);
+            return;
+        }
+        m_CreatureGuids.Set(maxGuid+1);
     }
 
     result = CharacterDatabase.Query( "SELECT MAX(guid) FROM item_instance" );
     if ( result )
     {
-        m_ItemGuids.Set((*result)[0].GetUInt32()+1);
+        maxGuid = (*result)[0].GetUInt32();
         delete result;
+        if(maxGuid >= ObjectGuid::GetMaxCounter(HIGHGUID_ITEM)-1)
+        {
+            sLog.outError("%s guid overflow!! Can't continue, shutting down server. ",ObjectGuid::GetTypeName(HIGHGUID_ITEM));
+            World::StopNow(ERROR_EXIT_CODE);
+            return;
+        }
+        m_ItemGuids.Set(maxGuid+1);
     }
 
     // Cleanup other tables from not existed guids (>=m_hiItemGuid)
