@@ -5,6 +5,10 @@
 #ifndef SC_SIMPLEAI_H
 #define SC_SIMPLEAI_H
 
+#include "precompiled.h"
+#include "Creature.h"
+#include "sc_creature.h"
+
 enum CastTarget
 {
     CAST_SELF = 0,                  //Self cast
@@ -21,7 +25,8 @@ enum CastTarget
 
 struct MANGOS_DLL_DECL SimpleAI : public ScriptedAI
 {
-    SimpleAI(Creature* pCreature);// : ScriptedAI(pCreature);
+public:
+    SimpleAI(Creature* pCreature);
 
     void Reset();
 

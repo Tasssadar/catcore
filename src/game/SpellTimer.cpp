@@ -1,6 +1,7 @@
 #include "SpellTimer.h"
 #include "DBCStores.h"
 #include "Map.h"
+#include "Creature.h"
 
 SpellTimer::SpellTimer(uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster) :
     initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), initialCooldown_m(initialCooldown), targetType_m(targetType), castType_m(castType), targetInfo_m(targetInfo), caster_m(caster)
@@ -146,7 +147,7 @@ Unit* SpellTimer::findTarget(Unit* target)
         case UNIT_SELECT_GUID:      SetTarget(caster_m->GetMap()->GetUnit(ObjectGuid(targetInfo_m))); break;
         case UNIT_SELECT_RANDOM_PLAYER:
             if (caster_m->GetTypeId() == TYPEID_UNIT)
-                SetTarget(((Creature*)caster_m)->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, targetInfo_m));
+                SetTarget((Unit*)((Creature*)caster_m)->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, targetInfo_m));
             break;
         case UNIT_SELECT_RANDOM_UNIT:
             if (caster_m->GetTypeId() == TYPEID_UNIT)

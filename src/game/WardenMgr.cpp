@@ -20,6 +20,8 @@
 #include "World.h"
 #include "Policies/SingletonImp.h"
 #include "ProgressBar.h"
+#include "Database/DatabaseEnv.h"
+#include "WorldSocket.h"
 
 /*
 Useful information:
