@@ -96,11 +96,14 @@ void Bag::SaveToDB()
     Item::SaveToDB();
 }
 
-bool Bag::LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result)
+bool Bag::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
 {
-    if (!Item::LoadFromDB(guid, owner_guid, result))
+    if (!Item::LoadFromDB(guid, owner_guid, itemid))
         return false;
 
+    // GetProto() checked in Item::LoadFromDB
+    SetUInt32Value(CONTAINER_FIELD_NUM_SLOTS, GetProto()->ContainerSlots);
+    
     // cleanup bag content related item value fields (its will be filled correctly from `character_inventory`)
     for (int i = 0; i < MAX_BAG_SIZE; ++i)
     {

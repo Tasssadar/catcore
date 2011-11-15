@@ -16,7 +16,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
       ${CMAKE_CXX_COMPILER}
         ARGS  ${CMAKE_CXX_COMPILER_ARG1} -dumpversion
         OUTPUT_VARIABLE gcc_compiler_version)
-    #MESSAGE("GCC Version: ${gcc_compiler_version}")
+    MESSAGE("GCC Version: ${gcc_compiler_version}")
     IF(gcc_compiler_version MATCHES "4\\.[0-9]\\.[0-9]")
         SET(PCHSupport_FOUND TRUE)
     ELSE(gcc_compiler_version MATCHES "4\\.[0-9]\\.[0-9]")
@@ -24,6 +24,9 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
             SET(PCHSupport_FOUND TRUE)
         ENDIF(gcc_compiler_version MATCHES "3\\.4\\.[0-9]")
     ENDIF(gcc_compiler_version MATCHES "4\\.[0-9]\\.[0-9]")
+    IF(gcc_compiler_version MATCHES "4.6")
+        SET(PCHSupport_FOUND TRUE)
+    ENDIF(gcc_compiler_version MATCHES "4.6")
 
   SET(_PCH_include_prefix "-I")
 

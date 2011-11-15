@@ -244,7 +244,7 @@ class MANGOS_DLL_SPEC Item : public Object
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
         virtual void SaveToDB();
-        virtual bool LoadFromDB(uint32 guid, uint64 owner_guid, QueryResult *result);
+        virtual bool LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid);
         virtual void DeleteFromDB();
         void DeleteFromInventoryDB();
 

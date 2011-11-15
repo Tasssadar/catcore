@@ -286,8 +286,8 @@ void AuctionHouseMgr::SendAuctionExpiredMail( AuctionEntry * auction )
 
 void AuctionHouseMgr::LoadAuctionItems()
 {
-    // data needs to be at first place for Item::LoadFromDB 0   1    2        3
-    QueryResult *result = CharacterDatabase.Query( "SELECT data,text,itemguid,item_template FROM auctionhouse JOIN item_instance ON itemguid = guid" );
+    // data needs to be at first place for Item::LoadFromDB 0       1
+    QueryResult *result = CharacterDatabase.Query( "SELECT itemguid,item_template FROM auctionhouse" );
 
     if ( !result )
     {
@@ -308,8 +308,8 @@ void AuctionHouseMgr::LoadAuctionItems()
         bar.step();
 
         fields = result->Fetch();
-        uint32 item_guid        = fields[2].GetUInt32();
-        uint32 item_template    = fields[3].GetUInt32();
+        uint32 item_guid        = fields[0].GetUInt32();
+        uint32 item_template    = fields[1].GetUInt32();
 
         ItemPrototype const *proto = ObjectMgr::GetItemPrototype(item_template);
 
@@ -321,7 +321,7 @@ void AuctionHouseMgr::LoadAuctionItems()
 
         Item *item = NewItemOrBag(proto);
 
-        if (!item->LoadFromDB(item_guid,0, result))
+        if (!item->LoadFromDB(item_guid,0,item_template))
         {
             delete item;
             continue;
