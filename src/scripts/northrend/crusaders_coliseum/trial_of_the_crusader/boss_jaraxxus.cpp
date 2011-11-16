@@ -171,13 +171,13 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
             return;
 
         // Fel Fireball
-        m_TimerMgr->TimerFinished(TIMER_FEL_FIRABALL);
+        m_TimerMgr->GetState(TIMER_FEL_FIRABALL);
 
         // Fel Lightning
-        m_TimerMgr->TimerFinished(TIMER_FEL_LIGHTNING);
+        m_TimerMgr->GetState(TIMER_FEL_LIGHTNING);
 
         // Incinerate Flesh
-        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_INCINERATE_FLESH))
+        if (SpellTimer* timer = m_TimerMgr->GetState(TIMER_INCINERATE_FLESH))
         {
             if (Unit* target = timer->getTarget())
                 DoScriptText(EMOTE_INCINERATE, m_creature, target);
@@ -186,26 +186,26 @@ struct MANGOS_DLL_DECL boss_jaraxxusAI : public ScriptedAI
         }
 
         // Legion Flame
-        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_LEGION_FLAME))
+        if (SpellTimer* timer = m_TimerMgr->GetState(TIMER_LEGION_FLAME))
             if (Unit* target = timer->getTarget())
                 DoScriptText(EMOTE_LEGION_FLAME, m_creature, target);
 
         // Infernal Eruption
-        if (m_TimerMgr->TimerFinished(TIMER_INFERNAL_ERUPTION))
+        if (m_TimerMgr->GetState(TIMER_INFERNAL_ERUPTION))
         {
             DoScriptText(EMOTE_INFERNAL_ERUPTION, m_creature);
             DoScriptText(SAY_INFERNAL_ERUPTION, m_creature);
         }
 
         // Nether Portal
-        if (m_TimerMgr->TimerFinished(TIMER_NETHER_PORTAL))
+        if (m_TimerMgr->GetState(TIMER_NETHER_PORTAL))
         {
             DoScriptText(EMOTE_NETHER_PORTAL, m_creature);
             DoScriptText(SAY_NETHER_PORTAL, m_creature);
         }
 
         // Nether Power
-        m_TimerMgr->TimerFinished(TIMER_NETHER_POWER);
+        m_TimerMgr->GetState(TIMER_NETHER_POWER);
 
         DoMeleeAttackIfReady();
     }
@@ -238,11 +238,11 @@ struct MANGOS_DLL_DECL npc_felflame_infernalAI : public ScriptedAI
             return;
 
         // Fel Streak
-        if (m_TimerMgr->TimerFinished(TIMER_FEL_STREAK))
+        if (m_TimerMgr->GetState(TIMER_FEL_STREAK))
             m_creature->CastSpell(m_creature, SPELL_FEL_STREAK_M, false);
 
         // Fel Inferno
-        m_TimerMgr->TimerFinished(TIMER_FEL_INFERNO);
+        m_TimerMgr->GetState(TIMER_FEL_INFERNO);
 
         DoMeleeAttackIfReady();
     }
@@ -280,13 +280,13 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
             return;
 
         // Shivan Slash
-        m_TimerMgr->TimerFinished(TIMER_SHIVAN_SLASH);
+        m_TimerMgr->GetState(TIMER_SHIVAN_SLASH);
 
         // Spinning Pain Spike
-        m_TimerMgr->TimerFinished(TIMER_SPINNING_PAIN_SPIKE);
+        m_TimerMgr->GetState(TIMER_SPINNING_PAIN_SPIKE);
 
         // Mistress's Kiss
-        if (m_TimerMgr->TimerFinished(TIMER_MISTRESS_KISS))
+        if (m_TimerMgr->GetState(TIMER_MISTRESS_KISS))
         {
             PlrList fullList = GetAttackingPlayers(false);
 

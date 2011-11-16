@@ -323,20 +323,20 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             return;
 
         // phase switcher
-        if (m_TimerMgr->TimerFinished(TIMER_PHASE))
+        if (m_TimerMgr->GetState(TIMER_PHASE))
         {
             SwitchPhase();
             return;
         }
 
         // Freezing Slash
-        m_TimerMgr->TimerFinished(TIMER_SLASH);
+        m_TimerMgr->GetState(TIMER_SLASH);
 
         // Penetrating Cold
-        m_TimerMgr->TimerFinished(TIMER_COLD);
+        m_TimerMgr->GetState(TIMER_COLD);
 
         // Burrower spawn
-        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_SPAWN))
+        if (m_TimerMgr->GetState(TIMER_BURROWER_SPAWN))
         {
             uint8 index[] = {0, 1, 2, 3};
             uint8 count = 0;
@@ -370,7 +370,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         }
 
         // Burrower Strike
-        if (m_TimerMgr->TimerFinished(TIMER_BURROWER_STRIKE))
+        if (m_TimerMgr->GetState(TIMER_BURROWER_STRIKE))
         {
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
@@ -380,7 +380,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         }
 
         // Frost Sphere spawn
-        if (m_TimerMgr->TimerFinished(TIMER_FROST_SPHERE))
+        if (m_TimerMgr->GetState(TIMER_FROST_SPHERE))
         {
             CreatureList list;
             GetCreatureListWithEntryInGrid(list, m_creature, NPC_BURROWER, DEFAULT_VISIBILITY_INSTANCE);
@@ -439,7 +439,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
             return;
 
         // submerge handling
-        if (m_TimerMgr->TimerFinished(TIMER_SUBMERGE))
+        if (m_TimerMgr->GetState(TIMER_SUBMERGE))
         {
             if (isSubmerged)
             {
@@ -495,7 +495,7 @@ struct MANGOS_DLL_DECL mob_scarab_tocAI : public ScriptedAI
             return;
 
         // Determination
-        m_TimerMgr->TimerFinished(TIMER_DETERMINATION);
+        m_TimerMgr->GetState(TIMER_DETERMINATION);
 
         DoMeleeAttackIfReady();
     }
@@ -646,7 +646,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff)
     {
-        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_SPIKES))
+        if (SpellTimer* timer = m_TimerMgr->GetState(TIMER_SPIKES))
         {
             ++speedLevel;
 

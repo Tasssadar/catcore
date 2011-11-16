@@ -310,7 +310,7 @@ void npc_toc_announcerAI::DataSet(uint32 type, uint32 data)
 void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
 {
     // custom event step handling
-    if (SpellTimer* stepTimer = m_TimerMgr->TimerFinished(TIMER_PHASE_HANDLING))
+    if (SpellTimer* stepTimer = m_TimerMgr->GetState(TIMER_PHASE_HANDLING))
     {
         uint32 cooldown = 0;
         ++encounterStage;
@@ -862,7 +862,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     }
 
     // open and closes doors
-    if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
+    if (SpellTimer* doorTimer = m_TimerMgr->GetState(TIMER_DOOR_HANDLER))
     {
         uint64 doorGuid = m_pInstance->GetData64(GO_MAIN_GATE_DOOR);
         if (!doorTimer->GetCustomValue())
@@ -878,7 +878,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     }
 
     // runaway of announcer
-    if (SpellTimer* runawayTimer = m_TimerMgr->TimerFinished(TIMER_RUNAWAY))
+    if (SpellTimer* runawayTimer = m_TimerMgr->GetState(TIMER_RUNAWAY))
     {
         if (GameObject* go = m_pInstance->GetGameObject(GO_GATE_EAST))
         {
@@ -891,7 +891,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     }
 
     // handling of custom timer in the event
-    if (SpellTimer* customTimer = m_TimerMgr->TimerFinished(TIMER_CUSTOM))
+    if (SpellTimer* customTimer = m_TimerMgr->GetState(TIMER_CUSTOM))
     {
         /*if (currentEncounter == TYPE_BEASTS)
         {
