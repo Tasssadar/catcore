@@ -16469,8 +16469,8 @@ void Player::_LoadInventory(QueryResult *result, uint32 timediff)
 
             if (!proto)
             {
-                CharacterDatabase.PExecute("DELETE FROM character_inventory WHERE item = '%u'", item_guid);
-                CharacterDatabase.PExecute("DELETE FROM item_instance WHERE guid = '%u'", item_guid);
+                //CharacterDatabase.PExecute("DELETE FROM character_inventory WHERE item = '%u'", item_guid);
+                //CharacterDatabase.PExecute("DELETE FROM item_instance WHERE guid = '%u'", item_guid);
                 sLog.outError( "Player::_LoadInventory: Player %s has an unknown item (id: #%u) in inventory, deleted.", GetName(),item_id );
                 continue;
             }
