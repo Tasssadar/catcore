@@ -10,19 +10,15 @@ SpellTimerMgr::SpellTimerMgr(Unit* unit) : m_owner(unit)
 
 SpellTimerMgr::~SpellTimerMgr()
 {
-    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
-        delete itr->second;
-
-    m_TimerMap.clear();
-
+    Clear();
     delete m_GCD;
 }
 
 void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit* caster)
 {
-    if (timerId >= QUEUE_TIMER_ID)
+    if (!timerId || timerId >= QUEUE_TIMER_ID)
     {
-        sLog.outError("SpellTimerMgr:: Could not add timer id %i for spell %u, because limit for timer id is %u, but seriously, do you need that number to be so high ?!?!", timerId, initialSpellId, uint32(QUEUE_TIMER_ID));
+        sLog->outError("SpellTimerMgr:: Could not add timer id %i for spell %u, because limit for timer id is %u, but seriously, do you need that number to be so high ?!?!", timerId, initialSpellId, uint32(QUEUE_TIMER_ID));
         return;
     }
 
@@ -52,10 +48,9 @@ void SpellTimerMgr::AddSpellToQueue(uint32 spellId, UnitSelectType targetType, u
     ASSERT(timerId != 0);
 
     SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_QUEUE, targetInfo, m_owner);
-    m_TimerMap[timerId] = timer;
-
     timer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
 
+    m_TimerMap[timerId] = timer;
     m_IdToBeCasted.push_back(timerId);
 }
 
@@ -65,17 +60,18 @@ bool SpellTimerMgr::AddSpellCast(uint32 spellId, UnitSelectType targetType, uint
     if (targetType == UNIT_SELECT_NONE)
         return false;
 
-    SpellTimer* timer = new SpellTimer(spellId, 0, 0, targetType, CAST_TYPE_FORCE, targetInfo, m_owner);
-    bool succes = FinishTimer(timer);
-    delete timer;
-
-    return succes;
+    SpellTimer tempTimer(spellId, 0, 0, targetType, CAST_TYPE_FORCE, targetInfo, m_owner);
+    return FinishTimer(&tempTimer);
 }
 
 void SpellTimerMgr::RemoveTimer(uint32 timerId)
 {
-    delete m_TimerMap[timerId];
-    m_TimerMap.erase(timerId);
+    SpellTimerMap::iterator itr = m_TimerMap.find(timerId);
+    if (itr != m_TimerMap.end())
+    {
+        delete itr->second;
+        m_TimerMap.erase(itr);
+    }
 }
 
 void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
@@ -85,59 +81,66 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
 
     m_GCD->Update(uiDiff);
 
-    if (!m_TimerMap.empty())
+    if (m_TimerMap.empty())
+        return;
+
+    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
     {
-        for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
+        if (SpellTimer* timer = itr->second)
         {
-            if (SpellTimer* timer = itr->second)
+            if (timer->JustFinished())
             {
-                if (timer->GetValue(TIMER_VALUE_UPDATEABLE))
+                if (timer->ShouldBeDeleted())
                 {
-                    if (timer->GetValue(TIMER_VALUE_JUST_FINISHED))
-                    {
-                        if (timer->GetValue(TIMER_VALUE_DELETE_AT_FINISH))
-                        {
-                            RemoveTimer(itr->first);
-                            break;
-                        }
-
-                        timer->SetTarget(NULL);
-                        timer->SetValue(TIMER_VALUE_JUST_FINISHED, false);
-                    }
-                    timer->Update(uiDiff);
+                    RemoveTimer(itr->first);
+                    continue;
                 }
+
+                timer->SetTarget(NULL);
+                timer->SetValue(TIMER_VALUE_JUST_FINISHED, false);
             }
-            else
-            {
-                uint32 timerId = itr->first;
-                sLog.outCatLog("SpellTimerMgr:: Update: Timer Manager for creature %u has wrong timer id %s known (%u), deleting it ...", m_owner->GetEntry(), timerId ? "IS" : "ISNOT", timerId);
-                m_TimerMap.erase(itr);
-            }
+            if (timer->IsUpdatable())
+                timer->Update(uiDiff);
         }
-
-        if (!m_IdToBeCasted.empty())
+        else
         {
-            for(TimerIdList::iterator itr = m_IdToBeCasted.begin(), next; itr != m_IdToBeCasted.end(); itr = next)
-            {
-                next = itr;
-                ++next;
-                if (uint32 timerId = *itr)
-                    if (SpellTimer* timer = m_TimerMap[timerId])
-                        if (!CanBeTimerFinished(timerId) || !FinishTimer(timer))
-                            continue;
+            sLog->outError("SpellTimerMgr:: Update: In TimerMap of unit with entry %u was found invalid SpellTimer, its iterator will be erased", m_owner->GetEntry());
+            m_TimerMap.erase(itr);
+            continue;
+        }
+    }
 
-                m_IdToBeCasted.erase(itr);
-            }
+    if (!m_IdToBeCasted.empty())
+    {
+        for(TimerIdList::iterator itr = m_IdToBeCasted.begin(), next; itr != m_IdToBeCasted.end(); itr = next)
+        {
+            next = itr;
+            ++next;
+            if (SpellTimer* timer = GetTimer(*itr))
+                if (!CanFinishTimer(timer) || !FinishTimer(timer))
+                    continue;
+            m_IdToBeCasted.erase(itr);
         }
     }
 }
 
 SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 {
-    if (m_TimerMap.find(timerId) != m_TimerMap.end())
-        return m_TimerMap[timerId];
+    if (!timerId)
+        return NULL;
 
-    return NULL;
+    SpellTimerMap::iterator itr = m_TimerMap.find(timerId);
+    if (itr == m_TimerMap.end())
+        return NULL;
+
+    if (!itr->second)
+    {
+        sLog->outError("SpellTimerMgr:: GetTimer: Invalid iterator found on key %u, erasing it from TimerMap ...", timerId);
+        m_TimerMap.erase(itr);
+        return NULL;
+    }
+
+    return itr->second;
 }
 
 bool SpellTimerMgr::IsReady(uint32 timerId)
@@ -174,9 +177,8 @@ void SpellTimerMgr::Cooldown(uint32 timerId, RV changedCD, bool permanent)
         timer->Cooldown(changedCD, permanent);
 }
 
-bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
+bool SpellTimerMgr::CanFinishTimer(SpellTimer* timer)
 {
-    SpellTimer* timer = m_TimerMap[timerId];
     if (!timer)
         return false;
 
@@ -192,43 +194,48 @@ bool SpellTimerMgr::CanBeTimerFinished(uint32 timerId)
     return true;
 }
 
-SpellTimer* SpellTimerMgr::TimerFinished(uint32 timerId, Unit *target)
+SpellTimer* SpellTimerMgr::GetState(uint32 timerId, Unit *target)
 {
     SpellTimer* timer = GetTimer(timerId);
 
     // timer with timerId not found
     if (!timer)
-    {
-        m_TimerMap.erase(timerId);
         return NULL;
-    }
 
     //  if timer isn't ready
     if (!timer->IsReady())
         return NULL;
 
     // custom handeling differed by cast type
-    if (timer->getCastType() == CAST_TYPE_NONCAST)
+    switch(timer->getCastType())
     {
-        if (!CanBeTimerFinished(timerId))
-            return NULL;
-    }
-    else if (timer->getCastType() == CAST_TYPE_QUEUE)
-    {
-        if (!CanBeTimerFinished(timerId))
+        case CAST_TYPE_NONCAST:
+        case CAST_TYPE_QUEUE:
         {
-            timer->SetTarget(target);
-            m_IdToBeCasted.push_back(timerId);
-            return NULL;
+            if (!CanFinishTimer(timer))
+            {
+                if (timer->getCastType() == CAST_TYPE_QUEUE)
+                {
+                    timer->SetTarget(target);
+                    m_IdToBeCasted.push_back(timerId);
+                }
+                return NULL;
+            }
+            break;
         }
+        case CAST_TYPE_FORCE:
+        case CAST_TYPE_IGNORE:
+            break;
+        default:
+            break;
     }
 
     timer->SetTarget(target);
 
-    if (FinishTimer(timer))
-        return timer;
+    if (!FinishTimer(timer))
+        return NULL;
 
-    return NULL;
+    return timer;
 }
 
 bool SpellTimerMgr::FinishTimer(SpellTimer* timer, Unit *target)
@@ -255,12 +262,25 @@ void SpellTimerMgr::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unT
     {
         SpellTimer* timer = itr->second;
         if (!timer)
+        {
+            sLog->outError("SpellTimerMgr:: ProhibitSpellSchool: Wrong iterator found while trying to prohibit spells, erasing it from map ...");
+            m_TimerMap.erase(itr);
             continue;
-        SpellEntry const* spellInfo = sSpellStore.LookupEntry(timer->GetValue(TIMER_VALUE_SPELLID));
+        }
+
+        SpellEntry const* spellInfo = timer->GetTimerSpellEntry();
         if (!spellInfo)
             continue;
 
-        if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) &&  timer->GetValue(TIMER_VALUE_TIMER) < unTimeMs)
+        if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) &&  timer->GetRemainingDuration() < unTimeMs)
             timer->Cooldown(unTimeMs);
     }
+}
+
+void SpellTimerMgr::Clear()
+{
+    for(SpellTimerMap::iterator itr = m_TimerMap.begin(); itr != m_TimerMap.end(); ++itr)
+        delete itr->second;
+
+    m_TimerMap.clear();
 }

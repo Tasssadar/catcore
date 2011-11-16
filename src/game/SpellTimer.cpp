@@ -9,7 +9,6 @@ SpellTimer::SpellTimer(uint32 initialSpellId, RV initialTimer, RV initialCooldow
     target_m = NULL;
     CheckInitialCooldown();
     Reset(TIMER_VALUE_ALL);
-
 }
 
 void SpellTimer::Reset(TimerValues value)
@@ -21,7 +20,7 @@ void SpellTimer::Reset(TimerValues value)
             spellId_m = initialSpellId_m;
             timer_m = initialTimer_m.GetVal();
             updateAllowed_m = true;
-            shouldDeleteWhenFinish_m = false;
+            shouldDelete_m = false;
             justFinished_m = false;
             customValue_m = 0;
             break;
@@ -38,7 +37,7 @@ void SpellTimer::Reset(TimerValues value)
             updateAllowed_m = true;
             break;
         case TIMER_VALUE_DELETE_AT_FINISH:
-            shouldDeleteWhenFinish_m = false;
+            shouldDelete_m = false;
             break;
         case TIMER_VALUE_JUST_FINISHED:
             justFinished_m = false;
@@ -68,7 +67,7 @@ void SpellTimer::SetValue(TimerValues value, uint64 newValue)
             updateAllowed_m = newValue;
             break;
         case TIMER_VALUE_DELETE_AT_FINISH:
-            shouldDeleteWhenFinish_m = newValue;
+            shouldDelete_m = newValue;
             break;
         case TIMER_VALUE_JUST_FINISHED:
             justFinished_m = newValue;
@@ -85,11 +84,10 @@ uint32 SpellTimer::GetValue(TimerValues value)
 {
     switch (value)
     {
-        //case TIMER_VALUE_COOLDOWN:      return cooldown_m;
         case TIMER_VALUE_SPELLID:       return spellId_m;
         case TIMER_VALUE_TIMER:         return timer_m;
         case TIMER_VALUE_UPDATEABLE:    return updateAllowed_m;
-        case TIMER_VALUE_DELETE_AT_FINISH: return shouldDeleteWhenFinish_m;
+        case TIMER_VALUE_DELETE_AT_FINISH: return shouldDelete_m;
         case TIMER_VALUE_JUST_FINISHED: return justFinished_m;
         case TIMER_VALUE_CUSTOM:        return customValue_m;
         default:                        return 0;
@@ -159,7 +157,7 @@ Unit* SpellTimer::findTarget(Unit* target)
 
     if (!target_m)
     {
-        // here could be used specific targets types for finding right target from implicitTargets
+        // here could be used specific targets types for finding right target from EffectImplicitTarget
         SpellEntry const *spellInfo = sSpellStore.LookupEntry(initialSpellId_m);
         if (spellInfo)
         {
@@ -186,7 +184,7 @@ bool SpellTimer::Finish(Unit *target)
     if (spellId_m)
     {
         // if timer for not existing spell, dont even try to finish it
-        SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId_m);
+        SpellEntry const *spellInfo = GetTimerSpellEntry();
         if (!spellInfo)
             return false;
 
@@ -220,4 +218,9 @@ bool SpellTimer::IsCastable()
         return false;
 
     return true;
+}
+
+SpellEntry const* SpellTimer::GetTimerSpellEntry()
+{
+    return spellId_m ? sSpellStore.LookupEntry(spellId_m) : NULL;
 }
