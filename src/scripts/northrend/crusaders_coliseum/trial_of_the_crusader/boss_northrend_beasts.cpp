@@ -150,13 +150,13 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
 
         // Impale
         if (isHeroic || !m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED))
-            m_TimerMgr->TimerFinished(TIMER_IMPALE);
+            m_TimerMgr->GetState(TIMER_IMPALE);
 
         // Staggering Stomp
-        m_TimerMgr->TimerFinished(TIMER_STAGGERING_STOMP);
+        m_TimerMgr->GetState(TIMER_STAGGERING_STOMP);
 
         // Snobolds
-        if (m_TimerMgr->TimerFinished(TIMER_DO_SNOBOLDS))
+        if (m_TimerMgr->GetState(TIMER_DO_SNOBOLDS))
         {
             Player* plr = GetSnoboledTarget();
             if (!plr)
@@ -251,13 +251,13 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 
         // Batter
         if (fixTarget->IsNonMeleeSpellCasted(false))
-            m_TimerMgr->TimerFinished(TIMER_BATTER, fixTarget);
+            m_TimerMgr->GetState(TIMER_BATTER, fixTarget);
 
         // Fire Bomb
-        m_TimerMgr->TimerFinished(TIMER_FIRE_BOMB, fixTarget);
+        m_TimerMgr->GetState(TIMER_FIRE_BOMB, fixTarget);
 
         // Head Crack
-        m_TimerMgr->TimerFinished(TIMER_HEAD_CRACK, fixTarget);
+        m_TimerMgr->GetState(TIMER_HEAD_CRACK, fixTarget);
 
         DoMeleeAttackIfReady();
     }
@@ -466,7 +466,7 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             return;
 
         // Merging
-        if (SpellTimer* mergeTimer = m_TimerMgr->TimerFinished(TIMER_MERGING))
+        if (SpellTimer* mergeTimer = m_TimerMgr->GetState(TIMER_MERGING))
         {
             bool submerge = !m_bIsSubmerged; // switch submerge/emerge state
             Creature* bro = GetBro();
@@ -519,22 +519,22 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         }
 
         // Spew
-        m_TimerMgr->TimerFinished(TIMER_SPEW);
+        m_TimerMgr->GetState(TIMER_SPEW);
 
         // Bite
-        m_TimerMgr->TimerFinished(TIMER_BITE);
+        m_TimerMgr->GetState(TIMER_BITE);
 
         // Slime Pool
-        m_TimerMgr->TimerFinished(TIMER_SLIME_POOL);
+        m_TimerMgr->GetState(TIMER_SLIME_POOL);
 
         // Spray
-        m_TimerMgr->TimerFinished(TIMER_SPRAY);
+        m_TimerMgr->GetState(TIMER_SPRAY);
 
         // Sweep
-        m_TimerMgr->TimerFinished(TIMER_SWEEP);
+        m_TimerMgr->GetState(TIMER_SWEEP);
 
         // Spit
-        m_TimerMgr->TimerFinished(TIMER_SPIT);
+        m_TimerMgr->GetState(TIMER_SPIT);
 
         if (m_bIsMobile)
             DoMeleeAttackIfReady();
@@ -739,13 +739,13 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
         }
 
         // Ferocious Butt
-        m_TimerMgr->TimerFinished(TIMER_BUTT);
+        m_TimerMgr->GetState(TIMER_BUTT);
 
         // Whirl
-        m_TimerMgr->TimerFinished(TIMER_WHIRL);
+        m_TimerMgr->GetState(TIMER_WHIRL);
 
         // Arctic Breath
-        if (SpellTimer* timer = m_TimerMgr->TimerFinished(TIMER_BREATH))
+        if (SpellTimer* timer = m_TimerMgr->GetState(TIMER_BREATH))
         {
             if (!isCastingBreath)
             {
@@ -766,7 +766,7 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
         }
 
         // Massive Crash
-        if (m_TimerMgr->TimerFinished(TIMER_MASSIVE_CRASH))
+        if (m_TimerMgr->GetState(TIMER_MASSIVE_CRASH))
         {
             setUpdatableForTimers(false);
 

@@ -18,7 +18,7 @@ void SpellTimerMgr::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTi
 {
     if (!timerId || timerId >= QUEUE_TIMER_ID)
     {
-        sLog->outError("SpellTimerMgr:: Could not add timer id %i for spell %u, because limit for timer id is %u, but seriously, do you need that number to be so high ?!?!", timerId, initialSpellId, uint32(QUEUE_TIMER_ID));
+        sLog.outError("SpellTimerMgr:: Could not add timer id %i for spell %u, because limit for timer id is %u, but seriously, do you need that number to be so high ?!?!", timerId, initialSpellId, uint32(QUEUE_TIMER_ID));
         return;
     }
 
@@ -104,7 +104,7 @@ void SpellTimerMgr::UpdateTimers(const uint32 uiDiff)
         }
         else
         {
-            sLog->outError("SpellTimerMgr:: Update: In TimerMap of unit with entry %u was found invalid SpellTimer, its iterator will be erased", m_owner->GetEntry());
+            sLog.outError("SpellTimerMgr:: Update: In TimerMap of unit with entry %u was found invalid SpellTimer, its iterator will be erased", m_owner->GetEntry());
             m_TimerMap.erase(itr);
             continue;
         }
@@ -135,7 +135,7 @@ SpellTimer* SpellTimerMgr::GetTimer(uint32 timerId)
 
     if (!itr->second)
     {
-        sLog->outError("SpellTimerMgr:: GetTimer: Invalid iterator found on key %u, erasing it from TimerMap ...", timerId);
+        sLog.outError("SpellTimerMgr:: GetTimer: Invalid iterator found on key %u, erasing it from TimerMap ...", timerId);
         m_TimerMap.erase(itr);
         return NULL;
     }
@@ -263,7 +263,7 @@ void SpellTimerMgr::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unT
         SpellTimer* timer = itr->second;
         if (!timer)
         {
-            sLog->outError("SpellTimerMgr:: ProhibitSpellSchool: Wrong iterator found while trying to prohibit spells, erasing it from map ...");
+            sLog.outError("SpellTimerMgr:: ProhibitSpellSchool: Wrong iterator found while trying to prohibit spells, erasing it from map ...");
             m_TimerMap.erase(itr);
             continue;
         }

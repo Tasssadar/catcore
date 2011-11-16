@@ -620,7 +620,7 @@ uint32 WorldSession::getDialogStatus(Player *pPlayer, Object* questgiver, uint32
             {
                 if (pPlayer->SatisfyQuestLevel(pQuest, false))
                 {
-                    if (pQuest->IsAutoComplete() || (pQuest->IsRepeatable() && pPlayer->getQuestStatusMap()[quest_id].m_rewarded))
+                    if (pQuest->IsAutoComplete() || (pQuest->IsRepeatable() && pPlayer->IsQuestRewarded(quest_id)))
                     {
                         dialogStatusNew = DIALOG_STATUS_REWARD_REP;
                     }

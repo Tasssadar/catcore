@@ -473,13 +473,10 @@ void WorldSession::HandleQueryQuestsCompleted( WorldPacket & /*recv_data */)
     WorldPacket data(SMSG_QUERY_QUESTS_COMPLETED_RESPONSE, 4+4*count);
     data << uint32(count);
 
-    for(QuestStatusMap::const_iterator itr = _player->getQuestStatusMap().begin(); itr != _player->getQuestStatusMap().end(); ++itr)
+    for(RewardedQuestSet::const_iterator itr = _player->GetRewardedQuestSet().begin(); itr != _player->GetRewardedQuestSet().end(); ++itr)
     {
-        if (itr->second.m_rewarded)
-        {
-            data << uint32(itr->first);
-            count++;
-        }
+        data << uint32(*itr);
+        count++;
     }
     data.put<uint32>(0, count);
     SendPacket(&data);

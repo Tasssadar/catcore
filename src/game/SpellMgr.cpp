@@ -4611,7 +4611,7 @@ uint32 GetDifficultySpellId(uint32 spellId, Difficulty difficulty)
 
 bool SpellMgr::IsSelfOnlyCast(SpellEntry const *spellInfo)
 {
-    for(uint8 eff_idx = 0; eff_idx < MAX_SPELL_EFFECTS; ++eff_idx)
+    for(uint8 eff_idx = 0; eff_idx < MAX_EFFECT_INDEX; ++eff_idx)
         if (spellInfo->EffectImplicitTargetA[eff_idx] &&
             spellInfo->EffectImplicitTargetA[eff_idx] != TARGET_SELF &&
             spellInfo->EffectImplicitTargetA[eff_idx] != TARGET_SELF2)

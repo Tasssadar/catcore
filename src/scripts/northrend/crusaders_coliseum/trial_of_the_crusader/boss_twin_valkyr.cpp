@@ -229,7 +229,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
             return;
 
         // shield + heal or vortex and random creature
-        if (m_TimerMgr->TimerFinished(TIMER_SPECIAL))
+        if (m_TimerMgr->GetState(TIMER_SPECIAL))
         {
             m_creature->InterruptNonMeleeSpells(false);
 
@@ -253,13 +253,13 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         }
 
         // Twin Spike
-        m_TimerMgr->TimerFinished(TIMER_SPIKE);
+        m_TimerMgr->GetState(TIMER_SPIKE);
 
         // Touch of Light/Darkness
-        m_TimerMgr->TimerFinished(TIMER_TOUCH);
+        m_TimerMgr->GetState(TIMER_TOUCH);
 
         // summon Concentrated
-        if (m_TimerMgr->TimerFinished(TIMER_CONCENTRATED))
+        if (m_TimerMgr->GetState(TIMER_CONCENTRATED))
         {
             for (float angle = 0; angle < M_PI_F*2; angle += M_PI_F*2/m_uiConcCount[m_dDifficulty])
             {
@@ -272,7 +272,7 @@ struct MANGOS_DLL_DECL boss_twin_valkyrAI : public ScriptedAI
         }
 
         // Berserk
-        if (m_TimerMgr->TimerFinished(TIMER_BERSERK))
+        if (m_TimerMgr->GetState(TIMER_BERSERK))
             DoScriptText(SAY_BERSERK, m_creature);
 
         DoMeleeAttackIfReady();

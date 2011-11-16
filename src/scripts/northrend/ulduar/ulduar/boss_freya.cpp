@@ -867,7 +867,7 @@ struct MANGOS_DLL_DECL boss_freyaAI : public ScriptedAI
                 return;
 
             // buffs
-            if (m_TimerMgr->TimerFinished(TIMER_BUFFS))
+            if (m_TimerMgr->GetState(TIMER_BUFFS))
             {
                 m_TimerMgr->SetValue(TIMER_BUFFS, TIMER_VALUE_UPDATEABLE, false);
 
