@@ -2473,17 +2473,17 @@ bool Creature::IsTargetWithinAttackRange(Unit *target)
     if (!IsInMap(target))
         return false;
 
-    float dx = GetPositionX() - obj->GetPositionX();
-    float dy = GetPositionY() - obj->GetPositionY();
-    float dz = GetPositionZ() - obj->GetPositionZ();
+    float dx = GetPositionX() - target->GetPositionX();
+    float dy = GetPositionY() - target->GetPositionY();
+    float dz = GetPositionZ() - target->GetPositionZ();
     float distsq = dx*dx + dy*dy + dz*dz;
 
     float sizefactor;
     if (m_groundOffset)
-        sizefactor = GetObjectBoundingRadius * GetObjectBoundingRadius() + m_groundOffset * m_groundOffset;
+        sizefactor = GetObjectBoundingRadius() * GetObjectBoundingRadius() + m_groundOffset * m_groundOffset;
     else
         sizefactor = GetObjectBoundingRadius();
-    if (float target_offset = target->GetTypeId() == TYPEID_UNIT ? target->GetGroundOffset() : 0.f)
+    if (float target_offset = target->GetTypeId() == TYPEID_UNIT ? ((Creature*)target)->GetGroundOffset() : 0.f)
         sizefactor += sqrt(target->GetObjectBoundingRadius() * target->GetObjectBoundingRadius() + target_offset * target_offset);
     else
         sizefactor += GetObjectBoundingRadius();

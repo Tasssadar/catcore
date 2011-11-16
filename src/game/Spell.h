@@ -27,7 +27,7 @@
 #include "Unit.h"
 #include "Player.h"
 
-#include "../../dep/tbb/include/tbb/concurrent_vector.h"
+#include <tbb/concurrent_vector.h>
 #include <memory>
 
 #define MAX_SPELL_ID  100000

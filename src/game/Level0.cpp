@@ -102,7 +102,7 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     char const* valhalla_rev = REVISION_VP;
     char const* valhalla_rev_date = REVISION_VP_DATE;
 
-    PSendSysMessage("CatCore [%s][%s] - MaNGOS modified for Valhalla Server", valhalla_rev, valhalla_rev_date);
+    PSendSysMessage("CatCore [%s][%s] - MaNGOS modified for Soulwell Server", valhalla_rev, valhalla_rev_date);
     
     if (GetAccessLevel() > SEC_PLAYER)
     {
@@ -119,7 +119,6 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
         PSendSysMessage(LANG_USING_WORLD_DB,sWorld.GetDBVersion());
         PSendSysMessage(LANG_USING_EVENT_AI,sWorld.GetCreatureEventAIVersion());
     }
-    SendSysMessage("Changelog: http://valhalla-team.com/web/changelog.php");
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
     PSendSysMessage("World diff time: %u", sWorld.GetDiffTime());
