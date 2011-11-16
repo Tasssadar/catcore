@@ -92,6 +92,16 @@ struct SpellTimer
         CastType getCastType()   const { return castType_m; }
         bool  isCasterCasting()  const { return caster_m && caster_m->IsNonMeleeSpellCasted(false); }
 
+        // all values can be achieved through GetValue() method, this way is used just to be more clearer
+        uint32 GetSpellId()             const { return spellId_m; }
+        uint32 GetRemainingDuration()   const { return timer_m; }
+        bool IsUpdatable()              const { return updateAllowed_m; }
+        bool ShouldBeDeleted()          const { return shouldDelete_m; }
+        bool JustFinished()             const { return justFinished_m; }
+        uint64 GetCustomValue()         const { return customValue_m; }
+
+        SpellEntry const* GetTimerSpellEntry();
+
     private:
         uint32 timer_m;
         RV cooldown_m;
@@ -109,7 +119,7 @@ struct SpellTimer
         Unit* target_m;
 
         bool updateAllowed_m;
-        bool shouldDeleteWhenFinish_m;
+        bool shouldDelete_m;
         bool justFinished_m;
         uint64 customValue_m;
 };

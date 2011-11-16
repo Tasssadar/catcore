@@ -368,7 +368,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                             break;
 
                         encounterCreature2->CastSpell(encounterCreature2, SPELL_EMERGE_ACIDMAW, false);
-                        cooldown = isHeroic ? 170000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
+                        cooldown = isHeroic ? 170000 + stepTimer->GetCustomValue() : REALLY_BIG_COOLDOWN;
                         break;
                     }
                     case 9:
@@ -378,7 +378,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     case 10:
                         if (encounterCreature)
                             encounterCreature->AI()->AttackStart(m_pInstance->GetRandomPlayerInMap());
-                        cooldown = isHeroic ? 176000 + stepTimer->GetValue(TIMER_VALUE_CUSTOM) : REALLY_BIG_COOLDOWN;
+                        cooldown = isHeroic ? 176000 + stepTimer->GetCustomValue() : REALLY_BIG_COOLDOWN;
                         break;
                     case 11:
                         if (encounterCreature)
@@ -622,7 +622,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     {
                         uint32 chestId = 0;
                         m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS);
-                        if (getMSTimeDiff(stepTimer->GetValue(TIMER_VALUE_CUSTOM), getMSTime() < 73000)) // kill under 60 seconds
+                        if (getMSTimeDiff(stepTimer->GetCustomValue(), getMSTime() < 73000)) // kill under 60 seconds
                             m_pInstance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_CHAMPIONS_MINUTE);
 
                         switch(m_dDifficulty)
@@ -865,7 +865,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
     if (SpellTimer* doorTimer = m_TimerMgr->TimerFinished(TIMER_DOOR_HANDLER))
     {
         uint64 doorGuid = m_pInstance->GetData64(GO_MAIN_GATE_DOOR);
-        if (!doorTimer->GetValue(TIMER_VALUE_CUSTOM))
+        if (!doorTimer->GetCustomValue())
         {
             m_pInstance->OpenDoor(doorGuid);
             doorTimer->SetValue(TIMER_VALUE_CUSTOM, true);
@@ -902,7 +902,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
         }*/
         if (currentEncounter == TYPE_CRUSADERS)
         {
-            uint32 timerCustom = customTimer->GetValue(TIMER_VALUE_CUSTOM);
+            uint32 timerCustom = customTimer->GetCustomValue();
             uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
             uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
 

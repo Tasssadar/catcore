@@ -650,7 +650,7 @@ struct MANGOS_DLL_DECL mob_anubarak_spikeAI : public ScriptedAI
         {
             ++speedLevel;
 
-            if (timer->GetValue(TIMER_VALUE_SPELLID) == SPELL_PURSUING_SPIKES_D)
+            if (timer->GetSpellId() == SPELL_PURSUING_SPIKES_D)
             {
                 if (Player* plr = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                     SetTarget(plr);
