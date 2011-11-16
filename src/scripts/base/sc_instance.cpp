@@ -123,7 +123,8 @@ void ScriptedInstance::CompleteAchievement(uint16 uiAchievementId, Player* pKill
             
             pl->CompletedAchievement(uiAchievementId);
         }
-    }else
+    }
+    else
         pKiller->CompletedAchievement(uiAchievementId);
 }
 
@@ -132,22 +133,15 @@ void ScriptedInstance::DoCompleteAchievement(uint32 uiAchievmentId)
     Map::PlayerList const& lPlayers = instance->GetPlayers();
 
     if (!lPlayers.isEmpty())
-    {
         for(Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
-        {
             if (Player* pPlayer = itr->getSource())
                 pPlayer->CompletedAchievement(uiAchievmentId);
-        }
-    }
-    else
-        debug_log("SD2: DoCompleteAchievement attempt set data but no players in map.");
 }
 
 Creature* ScriptedInstance::GetCreature(uint32 Data)
 {
     uint64 guid = GetData64(Data);
     return instance ? instance->GetCreature(guid) : NULL;
-
 }
 
 GameObject* ScriptedInstance::GetGameObject(uint32 Data)

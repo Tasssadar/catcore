@@ -2461,10 +2461,34 @@ void Creature::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs
         m_TimerMgr->ProhibitSpellSchool(idSchoolMask, unTimeMs);
 }
 
-float Creature::GetObjectBoundingRadius(bool is3D) const
+bool Creature::IsTargetWithinAttackRange(Unit *target)
 {
-    if (is3D && m_groundOffset && IsAtGroundLevel())
-        return sqrt(Unit::GetObjectBoundingRadius()*Unit::GetObjectBoundingRadius() + GetGroundOffset()*GetGroundOffset());
+    if (!target)
+    {
+        if (!getVictim())
+            return false;
+        target = getVictim();
+    }
 
-    return Unit::GetObjectBoundingRadius();
+    if (!IsInMap(target))
+        return false;
+
+    float dx = GetPositionX() - obj->GetPositionX();
+    float dy = GetPositionY() - obj->GetPositionY();
+    float dz = GetPositionZ() - obj->GetPositionZ();
+    float distsq = dx*dx + dy*dy + dz*dz;
+
+    float sizefactor;
+    if (m_groundOffset)
+        sizefactor = GetObjectBoundingRadius * GetObjectBoundingRadius() + m_groundOffset * m_groundOffset;
+    else
+        sizefactor = GetObjectBoundingRadius();
+    if (float target_offset = target->GetTypeId() == TYPEID_UNIT ? target->GetGroundOffset() : 0.f)
+        sizefactor += sqrt(target->GetObjectBoundingRadius() * target->GetObjectBoundingRadius() + target_offset * target_offset);
+    else
+        sizefactor += GetObjectBoundingRadius();
+
+    float maxdist = ATTACK_DISTANCE + sizefactor;
+
+    return distsq < maxdist * maxdist;
 }

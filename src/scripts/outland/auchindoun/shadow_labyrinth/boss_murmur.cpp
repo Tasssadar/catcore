@@ -133,7 +133,7 @@ struct MANGOS_DLL_DECL boss_murmurAI : public ScriptedAI
         }else MurmursTouch_Timer -= diff;
 
         //Resonance_Timer
-        if (!CanSonicBoom && !m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (!CanSonicBoom && !m_creature->IsTargetWithinAttackRange())
         {
             if (Resonance_Timer < diff)
             {

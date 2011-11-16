@@ -1347,7 +1347,7 @@ void CreatureEventAI::DoMeleeAttackIfReady()
         return;
 
     // If we are within range melee the target
-    if (!m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+    if (!m_creature->IsTargetWithinAttackRange())
         return;
 
     m_creature->AttackerStateUpdate(m_creature->getVictim());

@@ -147,7 +147,7 @@ struct MANGOS_DLL_DECL boss_omor_the_unscarredAI : public ScriptedAI
         else if (OrbitalStrike_Timer < diff)
         {
             Unit* temp = NULL;
-            if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+            if (m_creature->IsTargetWithinAttackRange())
                 temp = m_creature->getVictim();
             else temp = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM,0);
 

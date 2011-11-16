@@ -337,7 +337,7 @@ struct MANGOS_DLL_DECL dark_fiendAI : public ScriptedAI
             if (!get data Explosion == Done)
             */
             if (!Reached)
-                if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+                if (m_creature->IsTargetWithinAttackRange())
                 {
                     m_creature->SetVisibility(VISIBILITY_OFF);
                     if (pInstance && pInstance->GetData(DATA_MURU_EVENT) == NOT_STARTED)

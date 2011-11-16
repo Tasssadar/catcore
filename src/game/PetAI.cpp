@@ -164,7 +164,7 @@ void PetAI::UpdateAI(const uint32 diff)
             _stopAttack();
             return;
         }
-        else if (m_creature->IsStopped() || m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        else if (m_creature->IsStopped() || m_creature->IsTargetWithinAttackRange())
         {
             // required to be stopped cases
             if (m_creature->IsStopped() && m_creature->IsNonMeleeSpellCasted(false))

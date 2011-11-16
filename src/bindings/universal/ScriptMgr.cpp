@@ -367,7 +367,7 @@ void ScriptedAI::UpdateAI(const uint32)
     if (m_creature->isAlive() && m_creature->SelectHostileTarget() && m_creature->getVictim())
     {
         //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->IsTargetWithinAttackRange())
         {
             if (m_creature->isAttackReady())
             {

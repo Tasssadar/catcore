@@ -663,7 +663,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         uint8 GetGoAnimProgress() const { return GetByteValue(GAMEOBJECT_BYTES_1, 3); }
         void SetGoAnimProgress(uint8 animprogress) { SetByteValue(GAMEOBJECT_BYTES_1, 3, animprogress); }
 
-        float GetObjectBoundingRadius(bool /*is3D*/ = false) const;              // overwrite WorldObject version
+        float GetObjectBoundingRadius() const;              // overwrite WorldObject version
 
         void Use(Unit* user);
 

@@ -2276,7 +2276,7 @@ struct MANGOS_DLL_DECL mob_parasitic_shadowfiendAI : public ScriptedAI
     void DoMeleeAttackIfReady()
     {
         //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->IsTargetWithinAttackRange())
         {
             //Make sure our attack is ready and we aren't currently casting
             if (m_creature->isAttackReady() && !m_creature->IsNonMeleeSpellCasted(false))

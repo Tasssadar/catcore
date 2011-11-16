@@ -1002,7 +1002,7 @@ struct MANGOS_DLL_DECL boss_garaxxasAI : public boss_priestess_lackey_commonAI
 
         boss_priestess_lackey_commonAI::UpdateAI(diff);
 
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->IsTargetWithinAttackRange())
         {
             if (Wing_Clip_Timer < diff)
             {

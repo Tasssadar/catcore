@@ -56,7 +56,7 @@ void ScriptedAI::MoveInLineOfSight(Unit* pWho)
 
 void ScriptedAI::AttackStart(Unit* pWho)
 {
-    if (!pWho || !m_bAttackEnabled)
+    if (!pWho)
         return;
 
     if (m_creature->Attack(pWho, true))
@@ -131,11 +131,11 @@ void ScriptedAI::DoMeleeAttackIfReady()
     if (!m_bAttackEnabled)
         return;
 
-    if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+    if (m_creature->IsTargetWithinAttackRange())
     {
         if (m_creature->haveOffhandWeapon() && m_creature->isAttackReady(OFF_ATTACK))
         {
-            if(m_creature->isAttackReady())
+            if (m_creature->isAttackReady())
                 m_creature->setAttackTimer(OFF_ATTACK, m_creature->GetCreatureInfo()->offattacktime/2);
             else
             { 
