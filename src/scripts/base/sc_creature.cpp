@@ -579,24 +579,39 @@ void Scripted_NoMovementAI::AttackStart(Unit* pWho)
     }
 }
 
-PlrList ScriptedAI::GetAttackingPlayers(bool not_select_current_victim)
+PlrList ScriptedAI::GetAttackingPlayers(bool includeVictim)
 {
     PlrList pList;
-    ThreatList const& t_list = m_creature->getThreatManager().getPlayerThreatList();
-    for(ThreatList::const_iterator itr = t_list.begin(); itr != t_list.end(); ++itr)
-        if (Player* plr = sObjectMgr.GetPlayer((*itr)->getUnitGuid()))
-            if (plr->IsInWorld() && plr->isAlive() && (plr != m_creature->getVictim() || !not_select_current_victim))
-                pList.push_back(plr);
+    ThreatList const& tList = m_creature->getThreatManager().getPlayerThreatList();
+    for(ThreatList::const_iterator itr = tList.begin(); itr != tList.end(); ++itr)
+    {
+       Player* plr = sObjectMgr.GetPlayer((*itr)->getUnitGuid());
+       if (!plr || !plr->IsInWorld() || !plr->isAlive())
+           continue;
+
+       if (includeVictim || plr != m_creature->getVictim())
+           pList.push_back(plr);
+    }
 
     return pList;
 }
 
-PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool not_select_current_victim)
+PlrList ScriptedAI::GetPlayersInRange(float minRange, float maxRange, bool includeVictim)
 {
-    PlrList pList = GetAttackingPlayers(not_select_current_victim);
+    PlrList pList = GetAttackingPlayers(includeVictim);
+    if (!pList.empty())
+        for(PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+            if (!m_creature->IsInRange(*itr, minRange, maxRange))
+                pList.erase(itr);
 
-    uint8 erase_count = (pList.size() > count) ? (pList.size() - count) : 0;
-    for(uint8 i = 0; i < erase_count; ++i)
+    return pList;
+}
+
+PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool includeVictim)
+{
+    PlrList pList = GetAttackingPlayers(includeVictim);
+    uint8 ToBeErased = (pList.size() > count) ? (pList.size() - count) : 0;
+    for(uint8 i = 0; i < ToBeErased; ++i)
     {
         PlrList::iterator itr = pList.begin();
         std::advance(itr, urand(0, pList.size()-1));
@@ -606,34 +621,26 @@ PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool not_select_current_victim
     return pList;
 }
 
-PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range, bool not_select_current_victim)
+PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 minPlayersInRange, float minRange, float maxRange, bool includeVictim)
 {
-    // fill list of all player
-    PlrList fullList = GetAttackingPlayers(not_select_current_victim);
-    if (fullList.empty())
-        return fullList;
-    
-    PlrList inRangeList;
-    // fill list of players in range
-    for(PlrList::iterator itr = fullList.begin(); itr != fullList.end(); ++itr)
-        if (m_creature->IsInRange(m_creature, min_range, max_range))
-            inRangeList.push_back(*itr);
+    PlrList pList = GetPlayersInRange(minRange, maxRange, includeVictim);
+    if (pList.size() < minPlayersInRange)
+        pList = GetAttackingPlayers(includeVictim);
 
-    PlrList& finalList = (inRangeList.size() < min_count) ? fullList : inRangeList;
-    uint8 erase_count = (finalList.size() > count) ? (finalList.size() - count) : 0;
-    for(uint8 i = 0; i < erase_count; ++i)
+    uint8 ToBeErased = (pList.size() > count) ? (pList.size() - count) : 0;
+    for(uint8 i = 0; i < ToBeErased; ++i)
     {
-        PlrList::iterator itr = finalList.begin();
-        std::advance(itr, urand(0, finalList.size()-1));
-        finalList.erase(itr);
+        PlrList::iterator itr = pList.begin();
+        std::advance(itr, urand(0, pList.size()-1));
+        pList.erase(itr);
     }
 
-    return finalList;
+    return pList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerInRange(uint8 minPlayersInRange, float minRange, float maxRange, bool includeVictim)
 {
-    PlrList inRangeList = GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim);
+    PlrList inRangeList = GetRandomPlayersInRange(1, minPlayersInRange, minRange, maxRange, includeVictim);
     if (!inRangeList.empty())
         return inRangeList.front();
 

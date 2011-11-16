@@ -288,7 +288,7 @@ struct MANGOS_DLL_DECL npc_mistress_of_painAI : public ScriptedAI
         // Mistress's Kiss
         if (m_TimerMgr->GetState(TIMER_MISTRESS_KISS))
         {
-            PlrList fullList = GetAttackingPlayers(false);
+            PlrList fullList = GetAttackingPlayers();
 
             PlrList manaList;
             for(PlrList::iterator itr = fullList.begin(); itr != fullList.end(); ++itr)

@@ -131,16 +131,19 @@ struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
 
     Player* GetSnoboledTarget()
     {
-        PlrList allApropriate = GetRandomPlayersInRange(100, 3, 15, DEFAULT_VISIBILITY_INSTANCE, true);
-        PlrList noSnoboled;
-        for(PlrList::iterator itr = allApropriate.begin(); itr != allApropriate.end(); ++itr)
-            if (!(*itr)->HasAura(SPELL_SNOBOLLED) && (*itr)->getClass() != CLASS_HUNTER)
-                noSnoboled.push_back(*itr);
+        PlrList pList = GetAttackingPlayers(false);
+        for(PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+            if ((*itr)->HasAura(SPELL_SNOBOLLED) || (*itr)->getPowerType() != POWER_MANA  || (*itr)->getClass() == CLASS_HUNTER)
+                pList.erase(itr);
 
-        PlrList& selectList = noSnoboled.empty() ? allApropriate : noSnoboled;
-        PlrList::iterator itr = selectList.begin();
-        std::advance(itr, urand(0, selectList.size()-1));
-        return *itr;
+        if (!pList.empty())
+        {
+            PlrList::iterator itr = pList.begin();
+            std::advance(itr, urand(0, pList.size()-1));
+            return *itr;
+        }
+        else
+            return m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
     }
 
     void UpdateAI(const uint32 /*uiDiff*/)
@@ -181,7 +184,7 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         // due to not working vehicles just make mob really fast
-        m_creature->SetSpeedRate(MOVE_RUN, 10, true);
+        m_creature->SetSpeedRate(MOVE_RUN, 5, true);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         Reset();
