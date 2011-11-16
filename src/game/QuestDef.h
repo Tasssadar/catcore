@@ -362,13 +362,14 @@ enum QuestUpdateState
 {
     QUEST_UNCHANGED = 0,
     QUEST_CHANGED = 1,
-    QUEST_NEW = 2
+    QUEST_NEW = 2,
+    QUEST_DELETED = 3,
 };
 
 struct QuestStatusData
 {
     QuestStatusData()
-        : m_status(QUEST_STATUS_NONE),m_rewarded(false),
+        : m_status(QUEST_STATUS_NONE),
         m_explored(false), m_timer(0), uState(QUEST_NEW)
     {
         memset(m_itemcount, 0, QUEST_ITEM_OBJECTIVES_COUNT * sizeof(uint32));
@@ -376,7 +377,6 @@ struct QuestStatusData
     }
 
     QuestStatus m_status;
-    bool m_rewarded;
     bool m_explored;
     uint32 m_timer;
     QuestUpdateState uState;

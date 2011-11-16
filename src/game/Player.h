@@ -620,6 +620,8 @@ enum AtLoginFlags
 };
 
 typedef std::map<uint32, QuestStatusData> QuestStatusMap;
+typedef std::set<uint32> RewardedQuestSet;
+typedef std::map<uint32,uint8> RewardedQuestSave;
 
 enum QuestSlotOffsets
 {
@@ -873,6 +875,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADAURAS,
     PLAYER_LOGIN_QUERY_LOADSPELLS,
     PLAYER_LOGIN_QUERY_LOADQUESTSTATUS,
+    PLAYER_LOGIN_QUERY_LOADREWARDEDQUESTSTATUS,
     PLAYER_LOGIN_QUERY_LOADDAILYQUESTSTATUS,
     PLAYER_LOGIN_QUERY_LOADREPUTATION,
     PLAYER_LOGIN_QUERY_LOADINVENTORY,
@@ -1402,6 +1405,18 @@ class MANGOS_DLL_SPEC Player : public Unit
         void CompleteQuest( uint32 quest_id );
         void IncompleteQuest( uint32 quest_id );
         void RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver, bool announce = true );
+        bool IsQuestRewarded(uint32 quest_id) const
+        {
+            return mRewardedQuest.find(quest_id) != mRewardedQuest.end();
+        }
+        uint32 GetRewardedQuestCount() { return mRewardedQuest.size(); }
+        RewardedQuestSet& GetRewardedQuestSet() { return mRewardedQuest; }
+        void EraseRewardedQuest(uint32 id)
+        {
+            mRewardedQuest.erase(id);
+            mRewardedQuestSave.erase(id);
+            mRewardedQuestSave.insert(std::make_pair<uint32, uint8>(id, QUEST_DELETED));
+        }
 
         void FailQuest( uint32 quest_id );
         bool SatisfyQuestSkillOrClass( Quest const* qInfo, bool msg ) const;
@@ -2468,6 +2483,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadMails(QueryResult *result);
         void _LoadMailedItems(QueryResult *result);
         void _LoadQuestStatus(QueryResult *result);
+        void _LoadRewardedQuestStatus(QueryResult *result);
         void _LoadDailyQuestStatus(QueryResult *result);
         void _LoadWeeklyQuestStatus(QueryResult *result);
         void _LoadGroup(QueryResult *result);
@@ -2556,6 +2572,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         int8 m_comboPoints;
 
         QuestStatusMap mQuestStatus;
+        RewardedQuestSet mRewardedQuest;
+        RewardedQuestSave mRewardedQuestSave;
 
         SkillStatusMap mSkillStatus;
 
