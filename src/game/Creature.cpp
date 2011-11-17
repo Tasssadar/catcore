@@ -447,7 +447,8 @@ void Creature::Update(uint32 diff)
                 //Call AI respawn virtual function
                 i_AI->JustRespawned();
 
-                GetMap()->Add(this);
+                if(!IsInWorld())
+                    GetMap()->Add(this);
             }
             break;
         }

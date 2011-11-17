@@ -370,7 +370,7 @@ void LfgGroup::TeleportToDungeon()
 
     DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
     //Set Leader
-    m_leaderGuid = 0;   
+    m_leaderGuid = 0;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
@@ -390,11 +390,13 @@ void LfgGroup::TeleportToDungeon()
             break;
         }
     }
+
     if (m_leaderGuid == 0)
     {
         m_leaderGuid = m_memberSlots.begin()->guid;
         m_leaderName = m_memberSlots.begin()->name;
     }
+
     m_lootMethod = GROUP_LOOT;
     m_lootThreshold = ITEM_QUALITY_UNCOMMON;
     m_looterGuid = m_leaderGuid;
@@ -413,11 +415,11 @@ void LfgGroup::TeleportToDungeon()
         if (!plr || !plr->GetSession())
             continue;
 
-        plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);   
+        plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);
         TeleportPlayer(plr, dungeonInfo, GetDungeonInfo(true)->ID);
     }
     m_lfgFlags |= LFG_GRP_IN_DUNGEON;
-    
+
     //Save to DB
     CharacterDatabase.PExecute("DELETE FROM groups WHERE groupId ='%u' OR leaderGuid='%u'", m_Id, GUID_LOPART(m_leaderGuid));    
     CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus,LfgFlags) "
@@ -498,7 +500,7 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
         CharacterDatabase.PExecute("INSERT INTO group_member(groupId,memberGuid,assistant,subgroup,lfg_join_x,lfg_join_y,lfg_join_z,lfg_join_o,lfg_join_map,taxi_start,taxi_end,mount_spell) "
             "VALUES('%u','%u','%u','%u','%f','%f','%f','%f','%u','%u','%u','%u')",
             m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.x(), joinLoc.y(), joinLoc.z(), joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
-        
+
         //Set info to player
         plr->m_lookingForGroup.joinLoc = joinLoc;
         plr->m_lookingForGroup.taxi_start = taxi_start;
@@ -592,7 +594,7 @@ bool LfgGroup::SelectRandomDungeon()
                 {
                     options.erase(itrDung);
                     break;
-                }                   
+                }
             }
         }
     }
