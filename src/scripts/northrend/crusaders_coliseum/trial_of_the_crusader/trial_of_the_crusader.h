@@ -85,16 +85,16 @@ enum GoEntries
     GO_CRUSADERS_CACHE_25_H     = 195635,
 
     // bonus chest heroic by attempts - 10 man
-    GO_TRIBUTE_CHEST_10H_0      = 195665,
-    GO_TRIBUTE_CHEST_10H_5      = 195666,
-    GO_TRIBUTE_CHEST_10H_25     = 195667,
-    GO_TRIBUTE_CHEST_10H_49     = 195668,
+    GO_TRIBUTE_CHEST_10H_1      = 195665,
+    GO_TRIBUTE_CHEST_10H_25     = 195666,
+    GO_TRIBUTE_CHEST_10H_45     = 195667,
+    GO_TRIBUTE_CHEST_10H_50     = 195668,
 
     // bonus chest heroic by attempts - 25 man
-    GO_TRIBUTE_CHEST_25H_0      = 195669,
-    GO_TRIBUTE_CHEST_25H_5      = 195670,
-    GO_TRIBUTE_CHEST_25H_25     = 195671,
-    GO_TRIBUTE_CHEST_25H_49     = 195672,
+    GO_TRIBUTE_CHEST_25H_1      = 195669,
+    GO_TRIBUTE_CHEST_25H_25     = 195670,
+    GO_TRIBUTE_CHEST_25H_45     = 195671,
+    GO_TRIBUTE_CHEST_25H_50     = 195672,
 
     GO_ARGENT_COLISEUM_FLOOR    = 195527,
 
@@ -166,7 +166,7 @@ enum SpellsGlobal
     SPELL_FEL_LIGHTNING_IK  = 67888,
     SPELL_LK_GATE           = 50795,
     SPELL_LK_NOVA           = 68198,
-    SPELL_BERSERK           = 26662
+    SPELL_BERSERK_NB        = 26662
 };
 
 enum uiWorldStates
@@ -274,11 +274,17 @@ enum Loc
     LOC_LICH_KING_S     = 25,
     LOC_LICH_KING_E     = 26,
     LOC_UNDERGROUND     = 27,
-    LOC_O_TIRION_S      = 28,
-    LOC_O_TIRION_E      = 29,
-    LOC_O_MAGE_S        = 30,
-    LOC_O_MAGE_E        = 31,
-    LOC_COUNT           = 32
+    LOC_ANUB_START      = 28,
+    LOC_ANUB_END        = 29,
+    LOC_NERUB_SPAWN_1   = 30,
+    LOC_NERUB_SPAWN_2   = 31,
+    LOC_NERUB_SPAWN_3   = 32,
+    LOC_NERUB_SPAWN_4   = 33,
+    LOC_O_TIRION_S      = 34,
+    LOC_O_TIRION_E      = 35,
+    LOC_O_MAGE_S        = 36,
+    LOC_O_MAGE_E        = 37,
+    LOC_COUNT           = 38
 };
 
 const Coords SpawnLoc[LOC_COUNT] =
@@ -311,56 +317,31 @@ const Coords SpawnLoc[LOC_COUNT] =
     Coords(562.877f, 182.987f, 394.571f), // LOC_LICH_KING_S
     Coords(563.547f, 141.613f, 393.908f), // LOC_LICH_KING_E
     Coords(616.786f, 137.686f, 139.464f), // LOC_UNDERGROUND
+    Coords(787.932f, 133.289f, 142.612f), // LOC_ANUB_START
+    Coords(695.240f, 137.834f, 142.200f), // LOC_ANUB_END
+    Coords(694.886f, 102.484f, 142.119f), // LOC_NERUB_SPAWN_1
+    Coords(694.500f, 185.363f, 142.117f), // LOC_NERUB_SPAWN_2
+    Coords(731.987f,  83.382f, 142.119f), // LOC_NERUB_SPAWN_3
+    Coords(740.184f, 193.443f, 142.117f), // LOC_NERUB_SPAWN_4
     Coords(606.294f, 133.892f, 138.479f), // LOC_O_TIRION_S
     Coords(648.916f, 131.021f, 141.616f), // LOC_O_TIRION_E
     Coords(605.638f, 143.839f, 138.511f), // LOC_O_MAGE_S
     Coords(649.161f, 142.039f, 141.306f), // LOC_O_MAGE_E
+
 };
 
-enum AchievemntSpells
+enum AchievementSpells
 {
     SPELL_JORMUNGAR_10_SEC  = 68523,
     SPELL_CHAMPIONS_MINUTE  = 68620,
-    SPELL_CHAMPIONS         = 68184
+    SPELL_CHAMPIONS         = 68184,
+    SPELL_TRAITOR_KING_10   = 68186,
+    SPELL_TRAITOR_KING_25   = 68515
 };
 
 #define POINT_MOVE 100
 #define REALLY_BIG_COOLDOWN 3600000
 
 const uint32 Dispell[] = {65684, 67176, 67177, 67178, 65686, 67222, 67223, 67224, 67590, 67602, 67603, 67604};
-
-struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
-{
-    npc_toc_announcerAI(Creature* pCreature);
-
-    ScriptedInstance* m_pInstance;
-    Difficulty m_dDifficulty;
-    bool isHeroic;
-    bool is10Man;
-
-    int32       currentEncounter;
-    uint16      encounterStage;
-    uint32      customValue;
-    Creature*   encounterCreature;
-    Creature*   encounterCreature2;
-
-    void Reset();
-
-    void AttackStart(Unit* /*who*/);
-
-    void ChooseEvent(uint8 encounterId, Player* chooser = NULL);
-
-    void DataSet(uint32 type, uint32 data);
-
-    void MovementInform(uint32 uiType, uint32 uiPointId);
-
-    Creature* DoSpawnTocBoss(uint32 id, Coords coord, float ori, bool update_z = true);
-
-    void SummonToCBoss(uint32 id, uint32 id2 = 0, uint32 dooropen = 500);
-
-    void UpdateAI(const uint32 /*diff*/);
-
-    void DeleteCreaturesAndRemoveAuras();
-};
 
 #endif

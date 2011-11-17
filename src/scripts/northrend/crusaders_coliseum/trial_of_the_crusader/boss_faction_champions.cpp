@@ -16,7 +16,7 @@
 
 /* ScriptData
 SDName: faction_champions
-SD%Complete: 60%
+SD%Complete: nevim%
 SDComment:
 SDCategory: Crusader Coliseum
 EndScriptData */

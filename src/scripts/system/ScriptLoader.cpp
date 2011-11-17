@@ -289,6 +289,7 @@ extern void AddSC_boss_jaraxxus();
 extern void AddSC_boss_faction_champions();
 extern void AddSC_twin_valkyr();
 extern void AddSC_boss_anubarak_trial();
+extern void AddSC_npc_toc_announcer();
 extern void AddSC_trial_of_the_crusader();
 extern void AddSC_instance_trial_of_the_crusader();
 extern void AddSC_boss_argent_challenge();                 //Crusaders' Coliseum, trial_of_the_champion
@@ -765,6 +766,7 @@ void AddScripts()
     AddSC_boss_faction_champions();
     AddSC_twin_valkyr();
     AddSC_boss_anubarak_trial();
+    AddSC_npc_toc_announcer();
     AddSC_trial_of_the_crusader();
     AddSC_instance_trial_of_the_crusader();
     AddSC_boss_argent_challenge();                          //Crusaders' Coliseum, trial_of_the_champion

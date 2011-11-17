@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: trial_of_the_crusader
-SD%Complete: 80%
-SDComment: by /dev/rsa
+SD%Complete: nevim%
+SDComment:
 SDCategory: Crusader Coliseum
 EndScriptData */
 

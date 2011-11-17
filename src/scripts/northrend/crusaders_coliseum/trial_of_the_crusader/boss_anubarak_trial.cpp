@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: boss_anubarak_trial
-SD%Complete: 70%
-SDComment: by /dev/rsa
+SD%Complete: nevim%
+SDComment:
 SDCategory:
 EndScriptData */
 
@@ -167,7 +167,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         if (isHeroic && m_pInstance->GetData(TYPE_COUNTER) >= 50)
             m_creature->ForcedDespawn();
 
-        m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
+        m_creature->AuraLink(SPELL_SUBMERGE_BOSS, true);
 
         currentPhase = 0;
 
@@ -211,7 +211,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
 
         if (m_creature->GetDistance(pWho) < 150)
         {
-            m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, false);
+            m_creature->AuraLink(SPELL_SUBMERGE_BOSS, false);
             currentPhase = 1;
             DoScriptText(SAY_INTRO, m_creature);
         }
@@ -262,7 +262,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ANUBARAK, FAIL);
 
-        m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
+        m_creature->AuraLink(SPELL_SUBMERGE_BOSS, true);
     }
 
     void SwitchPhase(bool three = false)
@@ -278,7 +278,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             case 1:
             {
                 // timers for phase 1
-                m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, false);
+                m_creature->AuraLink(SPELL_SUBMERGE_BOSS, false);
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 m_TimerMgr->Cooldown(TIMER_PHASE, 80000);
                 m_TimerMgr->SetValue(TIMER_SLASH, TIMER_VALUE_UPDATEABLE, true);
@@ -289,7 +289,7 @@ struct MANGOS_DLL_DECL boss_anubarak_tocAI : public ScriptedAI
             case 2:
             {
                 // timers for phase 2
-                m_creature->AddAndLinkAura(SPELL_SUBMERGE_BOSS, true);
+                m_creature->AuraLink(SPELL_SUBMERGE_BOSS, true);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 m_TimerMgr->Cooldown(TIMER_PHASE, 60000);
                 m_TimerMgr->AddSpellToQueue(SPELL_SUMMON_SCARAB);
@@ -448,7 +448,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
                 {
                     m_creature->SetHealth(m_creature->GetMaxHealth());
                     isSubmerged = false;
-                    m_creature->AddAndLinkAura(SPELL_SUBMERGE_BURR_D, isSubmerged);
+                    m_creature->AuraLink(SPELL_SUBMERGE_BURR_D, isSubmerged);
                 }
                 m_creature->SetHealth(m_creature->GetHealth()+healthToAdd);
             }
@@ -458,7 +458,7 @@ struct MANGOS_DLL_DECL mob_burrowerAI : public ScriptedAI
                     !m_creature->HasAura(SPELL_PERMAFROST))
                 {
                     isSubmerged = true;
-                    m_creature->AddAndLinkAura(SPELL_SUBMERGE_BURR_D, isSubmerged);
+                    m_creature->AuraLink(SPELL_SUBMERGE_BURR_D, isSubmerged);
                 }
             }
         }

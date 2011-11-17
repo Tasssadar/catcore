@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: northrend_beasts
-SD%Complete: 90% 
-SDComment: by /dev/rsa
+SD%Complete: nevim%
+SDComment:
 SDCategory:
 EndScriptData */
 
@@ -36,7 +36,7 @@ enum Say
     //Icehowl
     SAY_TRAMPLE_STARE    = -1649020,
     SAY_TRAMPLE_FAIL     = -1649021,
-    SAY_TRAMPLE_START    = -1649022,
+    SAY_TRAMPLE_START    = -1649022
 };
 
 ///////////////////////////
@@ -52,13 +52,10 @@ enum GormokTimers
 
 enum GormokSpells
 {
-
     SPELL_IMPALE            = 66331, // Impale
     SPELL_STAGGERING_STOMP  = 66330, // Staggering Stomp
-
-    // Snobolds
-    SPELL_RISING_ANGER      = 66636,
-    SPELL_SNOBOLLED         = 66406,
+    SPELL_RISING_ANGER      = 66636, // Rising Anger (casted during snobolds)
+    SPELL_SNOBOLLED         = 66406, // Snobolled (casted on Snobold Vassal's target)
     NPC_SNOBOLD_VASSAL      = 34800,
     NPC_FIRE_BOMB           = 34854
 };
@@ -81,13 +78,12 @@ struct MANGOS_DLL_DECL northrend_beast_base : public ScriptedAI
 {
     northrend_beast_base(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        if (!(m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData()))
+            pCreature->ForcedDespawn();
+
         m_dDifficulty = pCreature->GetMap()->GetDifficulty();
         isHeroic = pCreature->GetMap()->IsHeroicRaid();
         pCreature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
-        //m_bAttackEnabled = false;
-        if (!m_pInstance)
-            m_creature->ForcedDespawn();
     }
 
     ScriptedInstance* m_pInstance;
@@ -97,20 +93,13 @@ struct MANGOS_DLL_DECL northrend_beast_base : public ScriptedAI
     void JustReachedHome()
     {
         m_pInstance->SetData(TYPE_BEASTS, FAIL);
-
         m_creature->ForcedDespawn();
     }
 };
 
 struct MANGOS_DLL_DECL boss_gormokAI : public northrend_beast_base
 {
-    boss_gormokAI(Creature* pCreature) : northrend_beast_base(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        isHeroic = pCreature->GetMap()->IsHeroicRaid();
-        Reset();
-    }
+    boss_gormokAI(Creature* pCreature) : northrend_beast_base(pCreature) { Reset(); }
 
     void Reset()
     {
@@ -181,21 +170,18 @@ struct MANGOS_DLL_DECL npc_snoboldAI : public ScriptedAI
 {
     npc_snoboldAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
+        if (!(m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData()))
+            pCreature->ForcedDespawn();
+
+        pCreature->RemoveSplineFlag(SPLINEFLAG_WALKMODE);
         // due to not working vehicles just make mob really fast
-        m_creature->SetSpeedRate(MOVE_RUN, 5, true);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        pCreature->SetSpeedRate(MOVE_RUN, 5, true);
+        pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
-    Difficulty m_dDifficulty;
-
-    uint32 m_uiBatterTimer;
-    uint32 m_uiFireBombTimer;
-    uint32 m_uiHeadCrackTimer;
     Unit* fixTarget;
 
     void Reset()
@@ -281,6 +267,19 @@ CreatureAI* GetAI_npc_snobold(Creature* pCreature)
 ///////////////////////////
 /////   JORMUNGARS    /////
 ///////////////////////////
+enum BossEntry
+{
+    BOSS_ACIDMAW    = 0,
+    BOSS_DREADSCALE = 1,
+    BOSS_COUNT      = 2
+};
+
+const uint32 bossModelId[BOSS_COUNT][2] =
+{   // stationary   mobile
+    {29815,         29816}, // Acidmaw
+    {26935,         24564}, // Dreadscale
+};
+
 enum JormungarTimer
 {
     TIMER_SLIME_POOL,
@@ -295,46 +294,21 @@ enum JormungarTimer
 enum JormungarSpell
 {
     SPELL_ENRAGE        = 68335, // Enrage
+    SPELL_SLIME_POOL    = 66883, // Slime Pool summon -- mobile only
+    NPC_SLIME_POOL      = 35176, // Slime Pool npc -- mobile only
+    SPELL_ACID_SPEW     = 66818, // Acidic Spew -- mobile only, acidmaw
+    SPELL_PARALYTIC_BITE= 66824, // Paralytic Bite -- mobile only, acidmaw
+    SPELL_MOLTEN_SPEW   = 66821, // Molten Spew -- mobile only, dreadscale
+    SPELL_BURNING_BITE  = 66879, // Burning Bite -- mobile only, dreadscale
+    SPELL_SWEEP         = 66794, // Sweep -- stationary only
+    SPELL_ACID_SPIT     = 66880, // Acid Spit  -- stationary only, acidmaw
+    SPELL_PARALYTIC_SPRAY= 66901,// Paralytic Spray  -- stationary only, acidmaw
+    SPELL_FIRE_SPIT     = 66796, // Fire Spit  -- stationary only, dreadscale
+    SPELL_BURNING_SPRAY = 66902, // Burning Spray  -- stationary only, dreadscale
+    SPELL_SUBMERGE_0    = 53421, // merge -- submerge
+    SPELL_EMERGE_0      = 66947  // merge -- emerge
 
-    //**************
-    //* MOBILE ONLY
-    //**************
-    SPELL_SLIME_POOL    = 66883, // Slime Pool summon
-    NPC_SLIME_POOL      = 35176, // Slime Pool npc
-
-    //* Acidmaw
-    //**********
-    SPELL_ACID_SPEW     = 66818, // Acidic Spew
-    SPELL_PARALYTIC_BITE= 66824, // Paralytic Bite
-
-    //* Dreadscale
-    //*************
-    SPELL_MOLTEN_SPEW   = 66821, // Molten Spew
-    SPELL_BURNING_BITE  = 66879, // Burning Bite
-
-
-    //******************
-    //* STATIONARY ONLY
-    //******************
-    SPELL_SWEEP         = 66794, // Sweep
-
-    //* Acidmaw
-    //**********
-    SPELL_ACID_SPIT      = 66880, // Acid Spit
-    SPELL_PARALYTIC_SPRAY= 66901, // Paralytic Spray
-
-    //* Dreadscale
-    //*************
-    SPELL_FIRE_SPIT      = 66796, // Fire Spit
-    SPELL_BURNING_SPRAY  = 66902, // Burning Spray
-
-    // merging
-    SPELL_SUBMERGE_0     = 66845,
-    SPELL_SUBMERGE_1     = 66948,
-    SPELL_EMERGE_0       = 66947,
-    SPELL_EMERGE_1       = 66949
-
-    //SPELL_SLIME_POOL_PROC       = 66882, // Slime Pool proc
+    //SPELL_SLIME_POOL_PROC       = 66882 // Slime Pool proc
     //SPELL_ACID_SPEW_PROC        = 66819, // Acidic Spew proc
     //SPELL_PARALYTIC_TOXIN_PROC  = 66823, // Paralytic Bite - proc
     //SPELL_MOLTEN_SPEW_PROC      = 66879, // Molten Spew proc
@@ -352,19 +326,17 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 {
     boss_jormungarsAI(Creature* pCreature) : northrend_beast_base(pCreature)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        Acidmaw = pCreature->GetEntry() == 35144;
-        Dreadscale = pCreature->GetEntry() == 34799;
-        if (!Acidmaw && !Dreadscale)
+        if (pCreature->GetEntry() == 35144)
+            m_entry = BOSS_ACIDMAW;
+        else if (pCreature->GetEntry() == 34799)
+            m_entry = BOSS_DREADSCALE;
+        else
             pCreature->ForcedDespawn();
 
-        pCreature->SetSpeedRate(MOVE_RUN, 1.5f);
         Reset();
     }
 
-    bool Acidmaw;
-    bool Dreadscale;
+    BossEntry m_entry;
 
     bool m_bIsSubmerged;
     bool m_bIsMobile;
@@ -372,22 +344,21 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
     void Reset()
     {
         AddTimer(TIMER_SLIME_POOL, SPELL_SLIME_POOL, RV(10000,12000), RV(30000,40000), UNIT_SELECT_NONE, CAST_TYPE_NONCAST);
-        AddTimer(TIMER_SPEW, Acidmaw ? SPELL_ACID_SPEW : SPELL_MOLTEN_SPEW, RV(20000,22000), RV(20000,22000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
-        AddTimer(TIMER_BITE, Acidmaw ?  SPELL_PARALYTIC_BITE : SPELL_BURNING_BITE,  Acidmaw ? RV (20000,25000) : RV(10000,15000), Acidmaw ? RV(23000,27000) : RV(13000, 17000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_SPEW, m_entry == BOSS_ACIDMAW ? SPELL_ACID_SPEW : SPELL_MOLTEN_SPEW, RV(20000,22000), RV(20000,22000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
+        AddTimer(TIMER_BITE, m_entry == BOSS_ACIDMAW ?  SPELL_PARALYTIC_BITE : SPELL_BURNING_BITE,  m_entry == BOSS_ACIDMAW ? RV (20000,25000) : RV(10000,15000), m_entry == BOSS_ACIDMAW ? RV(23000,27000) : RV(13000, 17000), UNIT_SELECT_VICTIM, CAST_TYPE_NONCAST);
         AddTimer(TIMER_SWEEP, SPELL_SWEEP, RV(15000,17000), RV(15000,19000), UNIT_SELECT_SELF);
-        AddTimer(TIMER_SPIT, Acidmaw ? SPELL_ACID_SPIT : SPELL_FIRE_SPIT, 0, 1000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
-        AddTimer(TIMER_SPRAY, Acidmaw ? SPELL_PARALYTIC_SPRAY : SPELL_BURNING_SPRAY, RV(20000,22000), RV(20000,24000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_FORCE, 0);
+        AddTimer(TIMER_SPIT, m_entry == BOSS_ACIDMAW ? SPELL_ACID_SPIT : SPELL_FIRE_SPIT, 0, 1000, UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_NONCAST, 0);
+        AddTimer(TIMER_SPRAY, m_entry == BOSS_ACIDMAW ? SPELL_PARALYTIC_SPRAY : SPELL_BURNING_SPRAY, RV(20000,22000), RV(20000,24000), UNIT_SELECT_RANDOM_PLAYER, CAST_TYPE_FORCE, 0);
         AddNonCastTimer(TIMER_MERGING, RV(40000,50000), RV(40000,50000));
 
-        cat_log("OWNER: %s is Dreadscale %u so phase is %u", m_creature->GetName(), uint32(Dreadscale), Dreadscale ? uint32(PHASE_MOVE) : uint32(PHASE_STAND));
-        SetPhase(Dreadscale ? PHASE_MOVE : PHASE_STAND);
+        SetPhase(m_entry == BOSS_DREADSCALE ? PHASE_MOVE : PHASE_STAND);
     }
     
     Creature* GetBro()
     {
-        Creature* crt = GetClosestCreatureWithEntry(m_creature, Acidmaw ? 34799 : 35144, DEFAULT_VISIBILITY_INSTANCE);
+        Creature* crt = GetClosestCreatureWithEntry(m_creature, m_entry == BOSS_ACIDMAW ? 34799 : 35144, DEFAULT_VISIBILITY_INSTANCE);
         if (!crt)
-            crt = m_pInstance->GetCreature(Acidmaw ? NPC_DREADSCALE : NPC_ACIDMAW);
+            crt = m_pInstance->GetCreature(m_entry == BOSS_ACIDMAW ? NPC_DREADSCALE : NPC_ACIDMAW);
 
         if (!crt->isAlive() || !crt->IsInWorld())
             return NULL;
@@ -412,6 +383,8 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         {
             m_bIsMobile = phase == PHASE_MOVE;
 
+            m_creature->SetDisplayId(bossModelId[m_entry][m_bIsMobile]);
+
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->AttackStop();
@@ -419,8 +392,8 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
 
         //EnableAttack(canMoveAndAttack);
         SetCombatMovement(phase == PHASE_MOVE);
-        cat_log("OWNER: %s phase is %u, submerged %u, mobility %u, canmove %u", m_creature->GetName(), uint32(phase),
-             uint32(m_bIsSubmerged), uint32(m_bIsMobile), uint32(phase == PHASE_MOVE));
+        m_creature->GetMotionMaster()->Clear();
+        m_creature->GetMotionMaster()->MoveIdle();
 
         m_TimerMgr->SetValue(TIMER_SLIME_POOL, TIMER_VALUE_UPDATEABLE, phase == PHASE_MOVE);
         m_TimerMgr->SetValue(TIMER_SPEW, TIMER_VALUE_UPDATEABLE, phase == PHASE_MOVE);
@@ -471,9 +444,9 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
         // Merging
         if (SpellTimer* mergeTimer = m_TimerMgr->GetState(TIMER_MERGING))
         {
-            bool submerge = !m_bIsSubmerged; // switch submerge/emerge state
+            bool newSubmergeState = !m_bIsSubmerged; // switch submerge/emerge state
             Creature* bro = GetBro();
-            if (submerge)
+            if (newSubmergeState)
             {
                 SetPhase(PHASE_MERGED);
                 if (boss_jormungarsAI* ai = GetBroAI())
@@ -483,10 +456,10 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
             }
             else
             {
-                bool thisShouldMove = !m_bIsMobile;
-                SetPhase(thisShouldMove ? PHASE_MOVE : PHASE_STAND);
+                bool thisOneShouldMove = !m_bIsMobile;
+                SetPhase(thisOneShouldMove ? PHASE_MOVE : PHASE_STAND);
                 if (boss_jormungarsAI* ai = GetBroAI())
-                    ai->SetPhase(thisShouldMove ? PHASE_STAND : PHASE_MOVE);
+                    ai->SetPhase(thisOneShouldMove ? PHASE_STAND : PHASE_MOVE);
 
                 Coords coord = SpawnLoc[LOC_CENTER];
                 Coords coord2 = SpawnLoc[LOC_CENTER];
@@ -497,11 +470,11 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
                 coord2.x += range*cos(rand_o+M_PI_F);
                 coord2.y += range*sin(rand_o+M_PI_F);
 
-                if (Map* m = m_creature->GetMap())
+                if (Map* _m = m_creature->GetMap())
                 {
-                    m->CreatureRelocation(m_creature, coord, 0);
+                    _m->CreatureRelocation(m_creature, coord, 0);
                     if (bro)
-                        m->CreatureRelocation(bro, coord2, 0);
+                        _m->CreatureRelocation(bro, coord2, 0);
                 }
 
                 DoScriptText(SAY_EMERGE, m_creature);
@@ -512,13 +485,13 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
                     ai->AttackStart(m_pInstance->GetRandomPlayerInMap());
             }
 
-            m_creature->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
+            m_creature->AuraLink(SPELL_SUBMERGE_0, submerge);
             if (bro)
-                bro->AddAndLinkAura(SPELL_SUBMERGE_0, submerge);
+                bro->AuraLink(SPELL_SUBMERGE_0, submerge);
 
-            mergeTimer->Cooldown(submerge ? RV(5000, 10000): RV(40000,50000));
+            mergeTimer->Cooldown(newSubmergeState ? RV(5000, 10000): RV(40000,50000));
             if (bro)
-                bro->GetTimerMgr()->Cooldown(TIMER_MERGING, submerge ? RV(5000, 10000): RV(40000,50000));
+                bro->GetTimerMgr()->Cooldown(TIMER_MERGING, newSubmergeState ? RV(5000, 10000): RV(40000,50000));
         }
 
         // Spew
@@ -576,13 +549,7 @@ enum IcehowlSpell
 
 struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
 {
-    boss_icehowlAI(Creature* pCreature) : northrend_beast_base(pCreature)
-    {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_dDifficulty = pCreature->GetMap()->GetDifficulty();
-        Reset();
-    }
-
+    boss_icehowlAI(Creature* pCreature) : northrend_beast_base(pCreature) { Reset(); }
 
     uint32 m_uiChargeStepTimer;
     int8 m_uiChargeStepCount;
@@ -773,10 +740,11 @@ struct MANGOS_DLL_DECL boss_icehowlAI : public northrend_beast_base
         {
             setUpdatableForTimers(false);
 
-            PointPath pointPath;
-            pointPath.resize(2);
             SetCombatMovement(false);
             m_creature->GetMotionMaster()->Clear(false, true);
+
+            PointPath pointPath;
+            pointPath.resize(2);
             pointPath[0] = m_creature->GetPosition();
             pointPath[1] = SpawnLoc[LOC_CENTER];
             m_creature->SendMonsterMove(SpawnLoc[LOC_CENTER].x, SpawnLoc[LOC_CENTER].y, SpawnLoc[LOC_CENTER].z, SPLINETYPE_NORMAL, SPLINEFLAG_WALKMODE, 1000);

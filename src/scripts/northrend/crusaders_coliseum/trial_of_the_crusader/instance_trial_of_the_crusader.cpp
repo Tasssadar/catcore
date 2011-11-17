@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: instance_trial_of_the_crusader
-SD%Complete: 80%
-SDComment: by /dev/rsa
+SD%Complete: nevim%
+SDComment:
 SDCategory: Trial of the Crusader
 EndScriptData */
 
@@ -36,7 +36,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
     }
 
     uint32 EncounterData[MAX_ENCOUNTER];
-    uint32 WipeCounter;
+    uint32 AttemptsRemaining;
     uint32 ChampionSpawnMask;
 
     GuidMap CreatureGuidMap;
@@ -52,7 +52,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             EncounterData[i] = NOT_STARTED;
 
-        WipeCounter = 0;
+        AttemptsRemaining = 0;
         ChampionSpawnMask = 0;
 
         needsave = false;
@@ -69,10 +69,13 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
 
     void OnPlayerEnter(Player *m_player)
     {
+        if (!m_player)
+            return;
+
         if (isHeroic)
         {
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW,1);
-            m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
+            m_player->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, AttemptsRemaining);
         }
         else
             m_player->SendUpdateWorldState(UPDATE_STATE_UI_SHOW,0);
@@ -191,15 +194,12 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 }
                 else if (uiData == FAIL && isHeroic)
                 {
-                    ++WipeCounter;
+                    --AttemptsRemaining;
 
                     // update wipe counter for all players in instance
                     Map::PlayerList const &PlayerList = instance->GetPlayers();
-                    if (!PlayerList.isEmpty())
-                        for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
-                            if (Player* plr = i->getSource())
-                                if (plr->IsInWorld())
-                                    plr->SendUpdateWorldState(UPDATE_STATE_UI_COUNT, MAX_WIPES-WipeCounter);
+                    for(Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                        OnPlayerEnter(i->getSource());
                 }
 
                 EncounterData[uiType] = uiData;
@@ -232,7 +232,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
             case TYPE_ANUBARAK:
                 return EncounterData[uiType];
             case TYPE_COUNTER:
-                return WipeCounter;
+                return AttemptsRemaining;
             case TYPE_CHAMPION_SPAWN_MASK:
                 return ChampionSpawnMask;
             default:
@@ -255,7 +255,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
         for(uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             saveStream << EncounterData[i] << " ";
 
-        saveStream << WipeCounter << " ";
+        saveStream << AttemptsRemaining << " ";
         saveStream << ChampionSpawnMask << " ";
 
         m_strInstData = saveStream.str();
@@ -285,7 +285,7 @@ struct MANGOS_DLL_DECL instance_trial_of_the_crusader : public ScriptedInstance
                 EncounterData[i] = NOT_STARTED;
         }
 
-        loadStream >> WipeCounter;
+        loadStream >> AttemptsRemaining;
         loadStream >> ChampionSpawnMask;
 
         OUT_LOAD_INST_DATA_COMPLETE;
