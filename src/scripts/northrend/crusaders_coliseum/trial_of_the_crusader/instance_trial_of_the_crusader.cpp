@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "trial_of_the_crusader.h"
+#include "npc_toc_announcer.h"
 
 #define MAX_WIPES 50
 

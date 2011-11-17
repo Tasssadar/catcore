@@ -32,11 +32,7 @@ struct MANGOS_DLL_DECL npc_toc_announcerAI : public ScriptedAI
     void DeleteCreaturesAndRemoveAuras();
 };
 
-bool OnGossipHello(Player* player, Creature* creature);
-bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action);
-CreatureAI* GetAI(Creature* creature) const
-{
-    return new npc_toc_announcerAI(creature);
-}
-
+bool GossipHello_npc_toc_announcer(Player* player, Creature* creature);
+bool GossipSelect_npc_toc_announcer(Player* player, Creature* creature, uint32 /*sender*/, uint32 action);
+CreatureAI* GetAI_npc_toc_announcer(Creature* creature);
 #endif

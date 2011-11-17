@@ -485,9 +485,9 @@ struct MANGOS_DLL_DECL boss_jormungarsAI : public northrend_beast_base
                     ai->AttackStart(m_pInstance->GetRandomPlayerInMap());
             }
 
-            m_creature->AuraLink(SPELL_SUBMERGE_0, submerge);
+            m_creature->AuraLink(SPELL_SUBMERGE_0, newSubmergeState);
             if (bro)
-                bro->AuraLink(SPELL_SUBMERGE_0, submerge);
+                bro->AuraLink(SPELL_SUBMERGE_0, newSubmergeState);
 
             mergeTimer->Cooldown(newSubmergeState ? RV(5000, 10000): RV(40000,50000));
             if (bro)

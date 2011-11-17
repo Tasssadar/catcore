@@ -451,7 +451,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                     }
                     case 6:
                         DoScriptText(SAY_STAGE_1_04, encounterCreature);
-                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, encounterCreature2->GetPos(), encounterCreature->GetOrientation())))
+                        if (!(encounterCreature2 = DoSpawnTocBoss(NPC_JARAXXUS, encounterCreature2->GetPosition(), encounterCreature->GetOrientation())))
                             break;
 
                         cooldown = 500;
@@ -462,7 +462,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                         break;
                     case 8:
                         encounterCreature2->SetFacingToObject(encounterCreature);
-                        encounterCreature2->SetSummonPoint(encounterCreature->GetPositionX(), encounterCreature->GetPositionY(), encounterCreature->GetPositionZ(), encounterCreature->GetOrientation())
+                        encounterCreature2->SetSummonPoint(encounterCreature->GetPositionX(), encounterCreature->GetPositionY(), encounterCreature->GetPositionZ(), encounterCreature->GetOrientation());
                         ((ScriptedAI*)encounterCreature2->AI())->SetCombatMovement(false);
                         cooldown = 8500;
                         break;
@@ -898,11 +898,11 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             uint32 spawnMask = m_pInstance->GetData(TYPE_CHAMPION_SPAWN_MASK);
             uint8 faction = m_pInstance->GetInstanceSide() == INSTANCE_SIDE_ALI ? FACTION_HORDE : FACTION_ALLIANCE;
 
-            Position Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
-            Position Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
-            Position Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
-            Position Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
-            Position Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
+            const Coords Spawn1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_1] : SpawnLoc[LOC_FCH_H_SPAWN_1];
+            const Coords Spawn2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_SPAWN_2] : SpawnLoc[LOC_FCH_H_SPAWN_2];
+            const Coords Jump1 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_1] : SpawnLoc[LOC_FCH_H_JUMP_1];
+            const Coords Jump2 = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_JUMP_2] : SpawnLoc[LOC_FCH_H_JUMP_2];
+            Coords Location = faction == FACTION_ALLIANCE ? SpawnLoc[LOC_FCH_A_MOVE] : SpawnLoc[LOC_FCH_H_MOVE];
 
             if (encounterCreature2)
             {
@@ -940,7 +940,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
             if (encounterCreature)
             {
                 uint32 champOrder = customValue-1;
-                Coords& jump = champOrder%2 ? Jump2 : Jump1;
+                const Coords& jump = champOrder%2 ? Jump2 : Jump1;
                 encounterCreature->GetMotionMaster()->Clear(false, true);
                 encounterCreature->GetMotionMaster()->MoveIdle();
                 encounterCreature->TrajMonsterMove(jump.x, jump.y, jump.z, false, 80, 1000);
@@ -952,7 +952,7 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
                 customTimer->SetValue(TIMER_VALUE_CUSTOM, i+1);
                 if (spawnMask & (1 << i))
                 {
-                    Coords& spawn = customValue%2 ? Spawn2 : Spawn1;
+                    const Coords& spawn = customValue%2 ? Spawn2 : Spawn1;
                     encounterCreature = DoSpawnTocBoss(FChampIDs[i][faction], spawn, 0);
                     ((ScriptedAI*)encounterCreature->AI())->EnableAttack(false);
                     break;
@@ -972,5 +972,12 @@ CreatureAI* GetAI_npc_toc_announcer(Creature* pCreature)
 
 void AddSC_npc_toc_announcer()
 {
-    new npc_toc_announcer();
+    Script* NewScript;
+
+    NewScript = new Script;
+    NewScript->Name = "npc_toc_announcer";
+    NewScript->GetAI = &GetAI_npc_toc_announcer;
+    NewScript->pGossipHello = &GossipHello_npc_toc_announcer;
+    NewScript->pGossipSelect = &GossipSelect_npc_toc_announcer;
+    NewScript->RegisterSelf();
 }
