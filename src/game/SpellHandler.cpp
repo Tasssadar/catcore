@@ -275,7 +275,8 @@ void WorldSession::HandleGameObjectUseOpcode( WorldPacket & recv_data )
 
     GameObject *obj = GetPlayer()->GetMap()->GetGameObject(guid);
 
-    if (!obj)
+    // Hack for EoE chest, it is looted on dragons, some of the clients has difficulties with that
+    if (!obj || obj->GetEntry() == 193905 || obj->GetEntry() == 193967)
         return;
 
     obj->Use(_player);
@@ -298,6 +299,17 @@ void WorldSession::HandleGameobjectReportUse(WorldPacket& recvPacket)
 
     if (!go->IsWithinDistInMap(_player,INTERACTION_DISTANCE))
         return;
+
+    // Hack for EoE chest, it is looted on dragons, some of the clients has difficulties with that
+    if(go->GetEntry() == 193905 || go->GetEntry() == 193967)
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(61437);
+        Spell *spell = new Spell(_player, spellInfo, true, 0, NULL, 0);
+
+        SpellCastTargets targets;
+        targets.setGOTarget(go);
+        spell->prepare(&targets, 0);
+    }
 
     _player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_GAMEOBJECT, go->GetEntry());
 }
@@ -392,6 +404,14 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         // if rank not found then function return NULL but in explicit cast case original spell can be casted and later failed with appropriate error message
         if (SpellEntry const *actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(spellInfo, target->getLevel()))
             spellInfo = actualSpellInfo;
+    }
+
+    // Hack for EoE chest, it is looted on dragons, some of the clients has difficulties with that
+    if(uint64 goGuid = targets.getGOTargetGUID())
+    {
+        GameObject* go = GetPlayer()->GetMap()->GetGameObject(goGuid);
+        if(go && (go->GetEntry() == 193905 || go->GetEntry() == 193967))
+            return;
     }
 
     Spell *spell = new Spell(mover, spellInfo, false);
