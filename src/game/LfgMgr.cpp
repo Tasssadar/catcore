@@ -1104,7 +1104,7 @@ void LfgMgr::BuildRewardBlock(WorldPacket *data, uint32 dungeon, Player *plr)
     *data << uint32((plr->getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)) ? 0 : reward->questInfo->XPValue( plr ));
     *data << uint32(0);                                      // some "variable" money?
     *data << uint32(0);                                      // some "variable" xp?
-    
+
     ItemPrototype const *rewItem = sObjectMgr.GetItemPrototype(reward->questInfo->RewItemId[0]);   // Only first item is for dungeon finder
     if (!rewItem)
         *data << uint8(0);   // have not reward item
@@ -1319,7 +1319,7 @@ void LfgMgr::LoadDungeonsInfo()
         if (!sObjectMgr.GetCreatureTemplate(fields[2].GetUInt32()) && fields[2].GetUInt32() != 0)
         {
             sLog.outErrorDb("Entry listed in 'lfg_dungeon_info' has non-exist creature_template entry %u, skipping.", fields[2].GetUInt32());
-            continue;   
+            continue;
         }
 
         itr->second->name             = fields[1].GetCppString();
