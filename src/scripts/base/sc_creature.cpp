@@ -600,9 +600,15 @@ PlrList ScriptedAI::GetPlayersInRange(float minRange, float maxRange, bool inclu
 {
     PlrList pList = GetAttackingPlayers(includeVictim);
     if (!pList.empty())
-        for(PlrList::iterator itr = pList.begin(); itr != pList.end(); ++itr)
+    {
+        for(PlrList::iterator itr = pList.begin(); itr != pList.end(); )
+        {
             if (!m_creature->IsInRange(*itr, minRange, maxRange))
-                pList.erase(itr);
+                itr = pList.erase(itr);
+            else
+                ++itr;
+        }
+    }
 
     return pList;
 }
