@@ -112,14 +112,14 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
                 {
                     citr_next = citr;
                     ++citr_next;
-                    
+
                     Player *plr = sObjectMgr.GetPlayer(citr->guid);
                     if (!plr || !plr->GetSession())
                     {
                         error = LFG_JOIN_DISCONNECTED;
                         break;
                     }
-                    
+
                     if (plr->HasAura(LFG_DESERTER))
                         error = LFG_JOIN_PARTY_DESERTER;
                     else if (dungeonInfo->type == LFG_TYPE_RANDOM && plr->HasAura(LFG_RANDOM_COOLDOWN))
