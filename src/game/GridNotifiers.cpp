@@ -175,7 +175,7 @@ void
 ObjectMessageDistDeliverer::Visit(CameraMapType &m)
 {
     bool isPacketMessage = i_message->GetOpcode() == SMSG_MESSAGECHAT;
-    RpState sourceRp = i_source->GetTypeId() == TYPEID_PLAYER ? ((Player*)i_source)->GetRpState() : RP_STATE_ALL;
+    RpState sourceRp = i_object.->GetTypeId() == TYPEID_PLAYER ? ((Player*)i_object)->GetRpState() : RP_STATE_ALL;
     for(CameraMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         if (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_object,i_dist))
