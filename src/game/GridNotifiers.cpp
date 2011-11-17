@@ -174,12 +174,45 @@ MessageDistDeliverer::Visit(CameraMapType &m)
 void
 ObjectMessageDistDeliverer::Visit(CameraMapType &m)
 {
+    bool isPacketMessage = i_message->GetOpcode() == SMSG_MESSAGECHAT;
+    RpState sourceRp = i_source->GetTypeId() == TYPEID_PLAYER ? ((Player*)i_source)->GetRpState() : RP_STATE_ALL;
     for(CameraMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         if (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_object,i_dist))
         {
             if (!i_object.InSamePhase(iter->getSource()->GetBody()))
                 continue;
+
+            if (isPacketMessage)
+            {
+                uint8 msgtype;
+                i_message->rpos(0);
+                *i_message >> msgtype;
+                i_message->rpos(0);
+                bool shouldStop = false;
+
+                switch(msgtype)
+                {
+                    case CHAT_MSG_SAY:
+                    case CHAT_MSG_YELL:
+                    case CHAT_MSG_EMOTE:
+                    {
+                        switch(iter->getSource()->GetOwner()->GetRpState())
+                        {
+                            case RP_STATE_ON:  shouldStop = sourceRp != RP_STATE_ON; break;
+                            case RP_STATE_OFF: shouldStop = sourceRp == RP_STATE_ON; break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+
+                if (shouldStop)
+                    continue;
+            }
 
             if (WorldSession* session = iter->getSource()->GetOwner()->GetSession())
                 session->SendPacket(i_message);
