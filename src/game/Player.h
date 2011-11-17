@@ -178,6 +178,13 @@ enum ActionButtonType
     ACTION_BUTTON_ITEM      = 0x80
 };
 
+enum RpState
+{
+    RP_STATE_ALL    = 0,
+    RP_STATE_ON     = 1,
+    RP_STATE_OFF    = 2
+};
+
 #define ACTION_BUTTON_ACTION(X) (uint32(X) & 0x00FFFFFF)
 #define ACTION_BUTTON_TYPE(X)   ((uint32(X) & 0xFF000000) >> 24)
 #define MAX_ACTION_BUTTON_ACTION_VALUE (0x00FFFFFF+1)
@@ -2440,6 +2447,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 TalentsInSpec(TalentSpec spec);
         TalentSpec GetMainSpec();
         TalentSpec GetMainSpec(TalentSpec spec1, TalentSpec spec2, TalentSpec spec3);
+
+        RpState GetRpState() const { return rpState; }
+        void SetRpState(RpState state) { rpState = state; }
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2762,6 +2772,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_fakeTeam; // 0 nothing, 1 blue(ali), 2 red(horde)
 
         uint16 m_matchmaker_rating[MAX_ARENA_SLOT];
+
+        RpState rpState;
 };
 
 void AddItemsSetItem(Player*player,Item *item);

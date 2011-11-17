@@ -741,6 +741,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "arenainfo",      SEC_PLAYER,         true,  &ChatHandler::HandleArenaInfoCommand,           "", NULL },
         { "currspells",     SEC_GAMEMASTER,     true,  &ChatHandler::HandleCurrSpellsCommand,          "", NULL },
         { "mmap",           SEC_GAMEMASTER,     false, NULL,                                           "", mmapCommandTable },
+        { "rp",             SEC_PLAYER,         false, &ChatHandler::HandleRpCommand,                  "", NULL },
 
 
         { NULL,             0,                  false, NULL,                                           "", NULL }

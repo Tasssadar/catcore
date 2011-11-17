@@ -6765,3 +6765,65 @@ bool ChatHandler::HandleMmapTestArea(const char* args)
                 */
     return true;
 }
+
+bool ChatHandler::HandleRpCommand(const char *args)
+{
+    if (!*args)
+    {
+        SendSysMessage("Unknown subcommand. Use 'all'/'on'/'off' to switch your RP state. Use 'self' print your RP state, 'target' print target's RP state");
+        return true;
+    }
+
+    std::string argstr = (char*)args;
+    RpState state;
+    if (argstr == "self")
+    {
+        std::string s;
+        switch (m_session->GetPlayer()->GetRpState())
+        {
+            case RP_STATE_ALL: s = "all"; break;
+            case RP_STATE_ON:  s = "on";  break;
+            case RP_STATE_OFF: s = "off"; break;
+            default: break;
+        }
+
+        PSendSysMessage("Your RP state is : %s", s.c_str());
+        return true;
+    }
+    else if (argstr == "target")
+    {
+        Player* tarPlr = getSelectedPlayer();
+        if (!tarPlr)
+        {
+            SendSysMessage(LANG_NO_CHAR_SELECTED);
+            return true;
+        }
+
+        std::string s;
+        switch (tarPlr->GetRpState())
+        {
+            case RP_STATE_ALL: s = "all"; break;
+            case RP_STATE_ON: s = "on"; break;
+            case RP_STATE_OFF: s = "off"; break;
+            default:  break;
+        }
+
+        PSendSysMessage("Target player (Name: %s) has RP state: %s", tarPlr->GetName(), s.c_str());
+        return true;
+    }
+    else if (argstr == "all")
+        state = RP_STATE_ALL;
+    else if (argstr == "on")
+        state = RP_STATE_ON;
+    else if (argstr == "off")
+        state = RP_STATE_OFF;
+    else
+    {
+        SendSysMessage("Unknown subcommand. Use 'all'/'on'/'off' to switch your RP state. Use 'self' print your RP state, 'target' print target's RP state");
+        return true;
+    }
+    PSendSysMessage("Your RP state is now set to: %s", argstr.c_str());
+    CharacterDatabase.PExecute("UPDATE characters SET rpState = '%u' WHERE guid = '%u'", uint8(state), m_session->GetPlayer()->GetGUIDLow());
+    m_session->GetPlayer()->SetRpState(state);
+    return true;
+}
