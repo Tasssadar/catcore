@@ -12575,7 +12575,7 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
 void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid /*= 0*/ ) const
 {
     DEBUG_LOG( "WORLD: Sent SMSG_INVENTORY_CHANGE_FAILURE (%u)", msg);
-    WorldPacket data(SMSG_INVENTORY_CHANGE_FAILURE, 1+8+8+1);
+    WorldPacket data(SMSG_INVENTORY_CHANGE_FAILURE, 38);
     data << uint8(msg);
 
     if (msg != EQUIP_ERR_OK)
@@ -12605,7 +12605,10 @@ void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid
             case EQUIP_ERR_ITEM_MAX_LIMIT_CATEGORY_EQUIPPED_EXCEEDED_IS:
             {
                 ItemPrototype const* proto = pItem ? pItem->GetProto() : sObjectMgr.GetItemPrototype(itemid);
-                data << uint32(proto ? proto->ItemLimitCategory : 0);
+                uint32 limitCat = 2; // if we send 0, client crashes
+                if(proto && proto->ItemLimitCategory != 0)
+                    limitCat = proto->ItemLimitCategory;
+                data << uint32(limitCat);
                 break;
             }
             default:
