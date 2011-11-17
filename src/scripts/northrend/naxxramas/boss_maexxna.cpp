@@ -110,12 +110,12 @@ struct MANGOS_DLL_DECL boss_maexxnaAI : public ScriptedAI
         // Web Wrap
         if (m_TimerMgr->GetState(TIMER_WEB_WRAP))
         {
-            PlrList list = GetRandomPlayers(m_bIsRegularMode ? 1 : 2, false);
+            PlrList list = GetRandomPlayers(Is25Man ? 2 : 1, false);
             for(PlrList::iterator itr = list.begin(); itr != list.end(); ++itr)
             {
                 Player* plr = *itr;
                 if (!plr) continue;         // this should never happen
-                Coords& warpLoc = WebWrapLoc[rand()%3];
+                const Coords& warpLoc = WebWrapLoc[rand()%3];
                 DoTeleportPlayer(plr, warpLoc.x, warpLoc.y, warpLoc.z, plr->GetOrientation());
                 if (Creature* pWrap = m_creature->SummonCreature(16486, warpLoc.x, warpLoc.y, warpLoc.y, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120000))
                 {
