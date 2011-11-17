@@ -404,7 +404,6 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
     // and allow use "FSetState(ITEM_REMOVED); SaveToDB();" for deleting item from DB
     Object::_Create(guid, 0, HIGHGUID_ITEM);
     SetUInt32Value(OBJECT_FIELD_ENTRY, itemid);
-    SetUInt64Value(ITEM_FIELD_OWNER, owner_guid);
 
     ItemPrototype const* proto = GetProto();
     if (!proto)
@@ -413,8 +412,8 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
     QueryResult *result = CharacterDatabase.PQuery(
     //          0            1                2      3         4        5      6
         "SELECT creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, "
-    //   7                 8           9           10
-        "randomPropertyId, durability, playedTime, text FROM item_instance WHERE guid = '%u'", guid);
+    //   7                 8           9           10    11
+        "randomPropertyId, durability, playedTime, text, owner_guid FROM item_instance WHERE guid = '%u'", guid);
 
     if (!result)
     {
@@ -501,6 +500,15 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
     //std::string strText = fields[10].GetString();
     //SetText(strText);
 
+     // set correct owner
+    uint64 set_owner_guid = MAKE_NEW_GUID(fields[11].GetUInt32(), 0, HIGHGUID_PLAYER);
+    if (owner_guid != 0 && set_owner_guid != owner_guid)
+    {
+        set_owner_guid = owner_guid;
+        need_save = true;
+    }
+    SetOwnerGUID(set_owner_guid);
+
     if (need_save)                                          // normal item changed state set not work at loading
     {
          std::ostringstream ss;
@@ -508,7 +516,8 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
           ss << "UPDATE item_instance SET duration = '" << GetUInt32Value(ITEM_FIELD_DURATION)
              << "', flags = '" << GetUInt32Value(ITEM_FIELD_FLAGS) << "', randomPropertyId = '"
              << GetItemRandomPropertyId() << "', durability = '"
-             << GetUInt32Value(ITEM_FIELD_DURABILITY) << "' WHERE guid = '" << guid << "'";
+             << GetUInt32Value(ITEM_FIELD_DURABILITY) << "', owner_guid = '"
+             << GUID_LOPART(set_owner_guid) << "'  WHERE guid = '" << guid << "'";
 
          CharacterDatabase.Execute( ss.str().c_str() );
     }
