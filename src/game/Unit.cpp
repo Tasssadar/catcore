@@ -17189,7 +17189,7 @@ bool Unit::CanCharge(Unit *target, float x, float y, float z, float maxElev, flo
     return true;
 }
 
-void Unit::AddAndLinkAura(uint32 auraId, bool apply)
+void Unit::AuraLink(uint32 auraId, bool apply)
 {
     if (apply)
     {

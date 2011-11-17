@@ -1317,7 +1317,7 @@ struct MANGOS_DLL_DECL mob_freya_groundAI : public ScriptedAI
                 else
                     m_fSize = float(urand(1,300))/100;
 
-                m_creature->AddAndLinkAura(SPELL_POTENT_PHEROMONES, m_fSize > 1);
+                m_creature->AuraLink(SPELL_POTENT_PHEROMONES, m_fSize > 1);
                 m_creature->SetFloatValue(OBJECT_FIELD_SCALE_X, m_fSize);
                 m_uiHealthyGrow_Timer = 3000;
             }else m_uiHealthyGrow_Timer -= uiDiff;

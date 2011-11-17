@@ -3055,7 +3055,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         creature->AddSplineFlag(SPLINEFLAG_FLYING);
                     }
 
-                    target->AddAndLinkAura(64438, apply);
+                    target->AuraLink(64438, apply);
                     
                     target->GetMap()->CreatureRelocation((Creature*)target, x, y, z, M_PI_F);
                     target->SendMonsterMove(x,y,z, SPLINETYPE_NORMAL, ((Creature*)target)->GetSplineFlags(), 1);
@@ -10201,7 +10201,7 @@ void Aura::HandleAuraOfDespair(bool apply, bool Real)
     if (target->HasSpell(30823) ||                                                      // Shamanistic Rage
         target->HasSpell(31785) || target->HasSpell(33776) ||                           // Spiritual Attunement
         target->HasSpell(31876) || target->HasSpell(31877) ||target->HasSpell(31878))   // Judgements of the Wise
-        target->AddAndLinkAura(64646, apply);                                           // Corrupted Wisdom
+        target->AuraLink(64646, apply);                                           // Corrupted Wisdom
 }
 
 //returns if we applied haste
