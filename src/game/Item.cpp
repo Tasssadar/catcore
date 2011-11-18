@@ -495,10 +495,7 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
 
     SetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME, fields[9].GetUInt32());
 
-  
-    // FIXME: Not used? wtf? Not loading on MaNGOS, but its in DB
-    //std::string strText = fields[10].GetString();
-    //SetText(strText);
+    SetText(fields[10].GetCppString());
 
      // set correct owner
     uint64 set_owner_guid = MAKE_NEW_GUID(fields[11].GetUInt32(), 0, HIGHGUID_PLAYER);

@@ -37,8 +37,8 @@ enum
     SPELL_FLAME_ORB_SPAWN_EFFECT    = 55891, // Orb Grow up
     SPELL_FLAME_ORB_VISUAL          = 55928, // Flame orb effect
     SPELL_FLAME_ORB_DEATH           = 55947, // Despawn effect
-    SPELL_FLAME_ORB                 = 57750, // Flame orb damage    
-    SPELL_FLAME_ORB_H               = 58937,
+    SPELL_FLAME_ORB                 = 55926, // Flame orb damage
+    SPELL_FLAME_ORB_H               = 59508,
 
     NPC_FLAME_ORB                   = 30702,
 
@@ -51,8 +51,6 @@ enum
     SAY_SLAY_2                      = -1619014,
     SAY_SLAY_3                      = -1619015,
     SAY_DEATH                       = -1619016,
-
-    FLAME_ORB_Z                     = 17,
 
     FLAME_ORB_UP_X                  = 383,
     FLAME_ORB_UP_Y                  = -984,
@@ -132,19 +130,29 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
             m_pInstance->SetData(TYPE_TALDARAM, DONE);
     }
 
+    void StopEmbrace()
+    {
+        m_creature->InterruptNonMeleeSpells(false);
+        SetCombatMovement(true);
+        if(m_creature->getVictim())
+        {
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+        }
+        m_uiVanishPhase = 0;
+    }
+
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if (m_creature->IsNonMeleeSpellCasted(false))
+        if (m_uiVanishPhase == 1 && m_creature->IsNonMeleeSpellCasted(false))
         {
             m_uiDamageTaken += uiDamage;
             uint32 m_uiMinDamage = m_bIsRegularMode ? 20000 : 40000;
             if (m_uiDamageTaken >= m_uiMinDamage)
-            {
-                m_uiVanishPhase = 0; 
-                m_creature->InterruptNonMeleeSpells(false);
-            }
+                StopEmbrace();
         }
     }
+
     void UpdateAI(const uint32 uiDiff)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -155,10 +163,9 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
             if (m_uiVanishPhase_Timer <= uiDiff)
-            {
-                m_creature->InterruptNonMeleeSpells(false);
-                m_uiVanishPhase = 0;
-            }else m_uiVanishPhase_Timer -= uiDiff;
+                StopEmbrace();
+            else
+                m_uiVanishPhase_Timer -= uiDiff;
 
             if (m_uiVanishPhase != 1)
                 return;
@@ -171,9 +178,16 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                     case 0: DoScriptText(SAY_FEED_1, m_creature); break;
                     case 1: DoScriptText(SAY_FEED_2, m_creature); break;
                 }
+
                 m_creature->SetVisibility(VISIBILITY_ON);
                 if (m_uEmbraceTarget && m_uEmbraceTarget->isAlive())
+                {
+                    float x, y, z;
+                    m_uEmbraceTarget->GetPosition(x, y, z);
+                    m_uEmbraceTarget->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 1.0f, M_PI_F);
+                    m_creature->NearTeleportTo(x, y, z, 0);
                     DoCast(m_uEmbraceTarget, m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H);
+                }
                 m_uiDamageTaken = 0;
                 m_uiVanishPhase = 2;
             }else m_uiEmbrace_Timer -= uiDiff;    
@@ -192,7 +206,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         {
             for(int i = 0; i <= 3; ++i)
             {
-                m_creature->SummonCreature(NPC_FLAME_ORB, m_creature->GetPositionX(), m_creature->GetPositionY(), FLAME_ORB_Z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_FLAME_ORB, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ()+12, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
                 if (m_bIsRegularMode)
                     break;
             }
@@ -220,8 +234,9 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                     stop = true;
                 else
                     continue;
-
-                m_creature->GetMotionMaster()->MoveFollow(m_uEmbraceTarget, 0, 0);
+                SetCombatMovement(false);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
                 break;
             }
 
@@ -271,6 +286,7 @@ struct MANGOS_DLL_DECL mob_flame_orbAI : public ScriptedAI
         DoCast(m_creature, SPELL_FLAME_ORB_SPAWN_EFFECT);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetVisibility(VISIBILITY_OFF);
     }
     void AttackStart(Unit* pWho)
     {
@@ -299,19 +315,17 @@ struct MANGOS_DLL_DECL mob_flame_orbAI : public ScriptedAI
             switch(direction)
             {
                 case 0: // Up
-                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_UP_X, FLAME_ORB_UP_Y, FLAME_ORB_Z);
+                default:
+                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_UP_X, FLAME_ORB_UP_Y, m_creature->GetPositionZ());
                     break;
                 case 1: // Down
-                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_DOWN_X, FLAME_ORB_DOWN_Y, FLAME_ORB_Z);
+                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_DOWN_X, FLAME_ORB_DOWN_Y, m_creature->GetPositionZ());
                     break;
                 case 2: // Right
-                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_RIGHT_X, FLAME_ORB_RIGHT_Y, FLAME_ORB_Z);
+                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_RIGHT_X, FLAME_ORB_RIGHT_Y, m_creature->GetPositionZ());
                     break;
                 case 3: // Left
-                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_LEFT_X, FLAME_ORB_LEFT_Y, FLAME_ORB_Z);
-                    break;
-                default:
-                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_UP_X, FLAME_ORB_UP_Y, FLAME_ORB_Z);
+                    m_creature->GetMotionMaster()->MovePoint(0, FLAME_ORB_LEFT_X, FLAME_ORB_LEFT_Y, m_creature->GetPositionZ());
                     break;
 
             }

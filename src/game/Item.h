@@ -240,7 +240,7 @@ class MANGOS_DLL_SPEC Item : public Object
 
         void SetBinding(bool val) { ApplyModFlag(ITEM_FIELD_FLAGS,ITEM_FLAGS_BINDED,val); }
         bool IsSoulBound() const { return HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_BINDED); }
-        bool IsBoundAccountWide() const { return HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAGS_BOA); }
+        bool IsBoundAccountWide() const { return (GetProto()->Flags & ITEM_FLAGS_BOA); }
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
         virtual void SaveToDB();
