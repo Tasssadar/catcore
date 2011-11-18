@@ -23,7 +23,7 @@ SDComment:
 SDAuthor: Spammca
 SDCategory: trial_of_the_crusader
 EndScriptData */
-
+#include "precompiled.h"
 #include "npc_toc_announcer.h"
 #include "ObjectMgr.h"
 
@@ -963,6 +963,62 @@ void npc_toc_announcerAI::UpdateAI(const uint32 /*diff*/)
         else
             customTimer->SetValue(TIMER_VALUE_DELETE_AT_FINISH, true);
     }
+}
+
+bool GossipHello_npc_toc_announcer(Player* pPlayer, Creature* pCreature)
+{
+    ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    if (!m_pInstance)
+        return false;
+
+    //bool isHeroic = pCreature->GetMap()->IsHeroicRaid();
+    char const* _message = "We are ready!";
+
+    if (!pPlayer->getAttackers().empty() ||
+        m_pInstance->IsEncounterInProgress())
+        return true;
+
+    uint8 i = 0;
+    for(; i < NUM_MESSAGES; i++)
+    {
+        if (m_pInstance->GetData(i) != DONE )
+        {
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, _message, GOSSIP_SENDER_MAIN,GOSSIP_ACTION_INFO_DEF+1);
+            break;
+        }
+    };
+
+    pPlayer->SEND_GOSSIP_MENU(MSG_BEASTS+i, pCreature->GetGUID());
+    return true;
+}
+
+bool GossipSelect_npc_toc_announcer(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+{
+    ScriptedInstance* m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+    if (!m_pInstance || !pPlayer)
+        return false;
+
+    pPlayer->CLOSE_GOSSIP_MENU();
+
+    switch(uiAction)
+    {
+        case GOSSIP_ACTION_INFO_DEF+1: // used for starting event
+        {
+            for(uint8 i = 0; i < NUM_MESSAGES; i++)
+            {
+                if (m_pInstance->GetData(i) != DONE )
+                {
+                    ((npc_toc_announcerAI*)pCreature->AI())->ChooseEvent(i, pPlayer);
+                    break;
+                }
+            }
+            break;
+        }
+        default:
+            break;
+
+    }
+    return true;
 }
 
 CreatureAI* GetAI_npc_toc_announcer(Creature* pCreature)
