@@ -14807,12 +14807,14 @@ QuestStatus Player::GetQuestStatus( uint32 quest_id ) const
 {
     if ( quest_id )
     {
-        if(IsQuestRewarded(quest_id))
-            return QUEST_STATUS_COMPLETE;
-
         QuestStatusMap::const_iterator itr = mQuestStatus.find( quest_id );
         if ( itr != mQuestStatus.end() )
             return itr->second.m_status;
+
+        Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
+        if(pQuest && !pQuest->IsDailyOrWeekly() && !pQuest->IsRepeatable()
+           && !pQuest->IsLfgQuest() && IsQuestRewarded(quest_id))
+            return QUEST_STATUS_COMPLETE;
     }
     return QUEST_STATUS_NONE;
 }
