@@ -286,7 +286,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 }
 
                 // swimming creature
-                float x,y,z;
+                /*float x,y,z;
                 unit->GetPosition(x,y,z);
                 if(((Creature*)unit)->canSwim() && unit->GetMap()->GetTerrain()->IsInWater(x,y,z))
                 {
@@ -296,7 +296,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
 
                     if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
                         ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-                }
+                }*/
 
                 if (unit->GetVehicleGUID() || unit->GetTransport())
                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
@@ -1590,7 +1590,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
     //if(z != 0.0f && GetBaseMap()->IsInWater(x, y, z))
     //    return;
 
-    maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
+    //maxDiff = maxDiff >= 100.0f ? 10.0f : maxDiff;
     bool useVmaps = false;
     //float mapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), false, maxDiff);
     //float vmapZ = GetBaseMap()->GetHeight(x, y, z+(maxDiff/2.0f-2.0f), true, maxDiff);

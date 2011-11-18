@@ -14285,18 +14285,20 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
         SetDailyQuestStatus(quest_id);
         GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_DAILY_QUEST, 1);
     }
-
-    if (pQuest->IsWeekly())
+    else if (pQuest->IsWeekly())
         SetWeeklyQuestStatus(quest_id);
+
+    if(!IsQuestRewarded(quest_id))
+    {
+        q_status.uState = QUEST_DELETED;
+        mRewardedQuest.insert(quest_id);
+        mRewardedQuestSave.insert(std::make_pair<uint32, uint8>(quest_id, QUEST_NEW));
+    }
 
     if (!pQuest->IsRepeatable())
         SetQuestStatus(quest_id, QUEST_STATUS_COMPLETE);
     else
         SetQuestStatus(quest_id, QUEST_STATUS_NONE);
-
-    q_status.uState = QUEST_DELETED;
-    mRewardedQuest.insert(quest_id);
-    mRewardedQuestSave.insert(std::make_pair<uint32, uint8>(quest_id, QUEST_NEW));
 
     if (announce)
         SendQuestReward( pQuest, XP, questGiver );
