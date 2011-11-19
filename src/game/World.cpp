@@ -795,6 +795,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED, "TeamBG.Faction.Red", 2);
     setConfig(CONFIG_UINT32_TEAM_BG_BUFF_BLUE, "TeamBG.Buff.Blue", 0);
     setConfig(CONFIG_UINT32_TEAM_BG_BUFF_RED, "TeamBG.Buff.Red", 0);
+    setConfig(CONFIG_UINT32_TEAM_BG_MIN_LEVEL, "TeamBG.MinLevel", 0);
 
     //Make some maps friendly for all
     std::string factionedMapIds = sConfig.GetStringDefault("FactionedMap.Ids", "");
