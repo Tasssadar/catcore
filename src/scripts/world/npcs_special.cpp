@@ -2222,7 +2222,7 @@ struct MANGOS_DLL_DECL npc_ebon_gargoyleAI : public ScriptedAI
     {
         if (HandleTimer(m_uiGargoyleTimer, uiDiff))
         {
-            Unit* target;
+            Unit* target = NULL;
             Unit* creator = m_creature->GetCreator();
 
             if (fixedTarget && fixedTarget->IsInWorld() && fixedTarget->isTargetableForAttack() && fixedTarget->IsWithinDist(m_creature, 40.0f))
