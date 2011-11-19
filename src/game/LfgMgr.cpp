@@ -62,6 +62,12 @@ LfgMgr::~LfgMgr()
         delete itr->second;
 }
 
+void LfgMgr::ReloadConfig()
+{
+    m_updateQueuesBaseTime = sWorld.getConfig(CONFIG_UINT32_LFG_QUEUE_UPDATETIME);
+    log = sWorld.getConfig(CONFIG_BOOL_LFG_LOG);
+}
+
 void LfgMgr::Update(uint32 diff)
 {
     //Update queues

@@ -918,6 +918,7 @@ void World::LoadConfigSettings(bool reload)
 
     if (reload)
     {
+        sLfgMgr.ReloadConfig();
         if (dataPath!=m_dataPath)
             sLog.outError("DataDir option can't be changed at mangosd.conf reload, using current value (%s).",m_dataPath.c_str());
     }
