@@ -159,19 +159,22 @@ struct BattleGroundObjectInfo
 // handle the queue types and bg types separately to enable joining queue for different sized arenas at the same time
 enum BattleGroundQueueTypeId
 {
-    BATTLEGROUND_QUEUE_NONE     = 0,
-    BATTLEGROUND_QUEUE_AV       = 1,
-    BATTLEGROUND_QUEUE_WS       = 2,
-    BATTLEGROUND_QUEUE_AB       = 3,
-    BATTLEGROUND_QUEUE_EY       = 4,
-    BATTLEGROUND_QUEUE_SA       = 5,
-    BATTLEGROUND_QUEUE_IC       = 6,
-    BATTLEGROUND_QUEUE_RB       = 7,
-    BATTLEGROUND_QUEUE_2v2      = 8,
-    BATTLEGROUND_QUEUE_3v3      = 9,
-    BATTLEGROUND_QUEUE_5v5      = 10
+    BATTLEGROUND_QUEUE_NONE         = 0,
+    BATTLEGROUND_QUEUE_AV           = 1,
+    BATTLEGROUND_QUEUE_WS           = 2,
+    BATTLEGROUND_QUEUE_AB           = 3,
+    BATTLEGROUND_QUEUE_EY           = 4,
+    BATTLEGROUND_QUEUE_SA           = 5,
+    BATTLEGROUND_QUEUE_IC           = 6,
+    BATTLEGROUND_QUEUE_RB           = 7,
+    BATTLEGROUND_QUEUE_RATED_2v2    = 8,
+    BATTLEGROUND_QUEUE_RATED_3v3    = 9,
+    BATTLEGROUND_QUEUE_RATED_5v5    = 10,
+    BATTLEGROUND_QUEUE_SKIRMISH_2v2 = 11,
+    BATTLEGROUND_QUEUE_SKIRMISH_3v3 = 12,
+    BATTLEGROUND_QUEUE_SKIRMISH_5v5 = 13,
+    MAX_BATTLEGROUND_QUEUE_TYPES    = 14
 };
-#define MAX_BATTLEGROUND_QUEUE_TYPES 11
 
 enum ScoreType
 {

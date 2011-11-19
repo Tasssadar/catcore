@@ -3656,3 +3656,5 @@ src/wardend/WardenSocket.cpp
 src/wardend/WardenSocket.h
 src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/npc_toc_announcer.h
 src/scripts/northrend/crusaders_coliseum/trial_of_the_crusader/npc_toc_announcer.cpp
+src/game/BattleGroundQueue.h
+src/game/BattleGroundQueue.cpp
