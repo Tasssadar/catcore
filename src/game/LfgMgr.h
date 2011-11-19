@@ -254,6 +254,7 @@ class MANGOS_DLL_SPEC LfgMgr
         LfgMgr();
         ~LfgMgr();
 
+        void ReloadConfig();
         void Update(uint32 diff);
 
         void AddToQueue(Player *player, bool updateQueue = true);
