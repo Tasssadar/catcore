@@ -185,7 +185,8 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
         index++;
     DEBUG_LOG("Adding Group to BattleGroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
     // --- TEAM BG ---
-    if (!ArenaType && !isRated && !isPremade)
+    if(!ArenaType && !isRated && !isPremade &&
+       bracketEntry->minLevel >= sWorld.getConfig(CONFIG_UINT32_TEAM_BG_MIN_LEVEL))
     {
         bool isAllowed = false;
         switch(BgTypeId)
