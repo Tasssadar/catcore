@@ -144,7 +144,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if (m_uiVanishPhase == 1 && m_creature->IsNonMeleeSpellCasted(false))
+        if (m_uiVanishPhase == 2 && m_creature->IsNonMeleeSpellCasted(false))
         {
             m_uiDamageTaken += uiDamage;
             uint32 m_uiMinDamage = m_bIsRegularMode ? 20000 : 40000;
@@ -179,18 +179,23 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                     case 1: DoScriptText(SAY_FEED_2, m_creature); break;
                 }
 
-                m_creature->SetVisibility(VISIBILITY_ON);
                 if (m_uEmbraceTarget && m_uEmbraceTarget->isAlive())
                 {
                     float x, y, z;
                     m_uEmbraceTarget->GetPosition(x, y, z);
                     m_uEmbraceTarget->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 1.0f, M_PI_F);
                     m_creature->NearTeleportTo(x, y, z, 0);
+                    m_creature->SetVisibility(VISIBILITY_ON);
                     DoCast(m_uEmbraceTarget, m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H);
+                    m_uiDamageTaken = 0;
+                    m_uiVanishPhase = 2;
                 }
-                m_uiDamageTaken = 0;
-                m_uiVanishPhase = 2;
-            }else m_uiEmbrace_Timer -= uiDiff;    
+                else
+                {
+                    m_creature->SetVisibility(VISIBILITY_ON);
+                    StopEmbrace();
+                }
+            }else m_uiEmbrace_Timer -= uiDiff;
             return;
         }
 
@@ -286,7 +291,7 @@ struct MANGOS_DLL_DECL mob_flame_orbAI : public ScriptedAI
         DoCast(m_creature, SPELL_FLAME_ORB_SPAWN_EFFECT);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        m_creature->SetVisibility(VISIBILITY_OFF);
+        m_creature->SetDisplayId(16925);
     }
     void AttackStart(Unit* pWho)
     {
