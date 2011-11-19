@@ -30,11 +30,14 @@ enum spells
 {
     //Algalon's abillities
     SPELL_QUANTUMSTRIKE = 64395,
+    SPELL_QUANTUMSTRIKE_H = 64592,
     SPELL_BIGBANG = 64443,
+    SPELL_BIGBANG_H = 64584,
     SPELL_PHASE_PUNCH = 64412,
     SPELL_PHASE_SHIFT = 64417,
     SPELL_ALGALONS_BERSERK = 47008,
     SPELL_COSMIC_SMASH_MISSILE = 62304,
+    SPELL_COSMIC_SHASH_MISSILE_H = 64597,
     SPELL_COSMIC_SMASH_VISUAL = 62300,
     SPELL_COSMIC_SMASH_DAMAGE = 62311,
     SPELL_DUAL_WIELD = 42459,
@@ -42,6 +45,7 @@ enum spells
 
     //Black hole's abillities
     SPELL_BLACK_HOLE_EXPLOSION = 64122,
+    SPELL_BLACK_HOLE_EXPLOSION_H = 65108,
     SPELL_CONSTELLATION_PHASE_EFFECT = 65509,
     SPELL_SHADOW_FISURE         = 27810,
     SPELL_COSMIC_SMASH_DBM    = 64598,
@@ -636,7 +640,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
         //Quantum strike
         if (m_uiQuantumStrikeTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_QUANTUMSTRIKE);
+            DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_QUANTUMSTRIKE : SPELL_QUANTUMSTRIKE_H);
             m_uiQuantumStrikeTimer = urand(3000, 6000);
         }
         else
@@ -665,7 +669,7 @@ struct MANGOS_DLL_DECL boss_algalonAI : public ScriptedAI
                 case 1: DoScriptText(SAY_BIG_BANG_2, m_creature); break;
             }
             m_creature->InterruptNonMeleeSpells(false);
-            DoCast(m_creature->getVictim(), SPELL_BIGBANG);
+            DoCast(m_creature->getVictim(), m_bIsRegularMode ? SPELL_BIGBANG : SPELL_BIGBANG_H);
             m_uiBigBangTimer = 90000;
             m_uiCosmicSmashTimer = 32000;
         }
@@ -810,7 +814,7 @@ struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
     {
 //        if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f,
           if(Creature *hole = m_creature->SummonCreature(NPC_BLACK_HOLE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0))
-            hole->CastSpell(hole, SPELL_BLACK_HOLE_EXPLOSION, true);
+            hole->CastSpell(hole, m_bIsRegularMode ? SPELL_BLACK_HOLE_EXPLOSION : SPELL_BLACK_HOLE_EXPLOSION, true);
         
         m_creature->SummonCreature(NPC_VOID_ZONE, m_creature->GetPositionX(), m_creature->GetPositionY(), 417.327f, 0.0f, TEMPSUMMON_MANUAL_DESPAWN, 0);
         ((TemporarySummon*)m_creature)->UnSummon();
@@ -936,7 +940,7 @@ struct MANGOS_DLL_DECL mob_Algalon_Stalker_Asteroid_Target_02_AI : public Script
     {
         if (m_uiCosmicSmashDamageTimer < uiDiff)
         {
-            DoCast(m_creature, SPELL_COSMIC_SMASH_MISSILE, true);
+            DoCast(m_creature, m_bIsRegularMode ? SPELL_COSMIC_SMASH_MISSILE : SPELL_COSMIC_SMASH_MISSILE_H, true);
             m_uiCosmicSmashDamageTimer = 4000;
         }
         else
