@@ -912,35 +912,6 @@ void BattleGroundMgr::ToggleArenaTesting()
         sWorld.SendWorldText(LANG_DEBUG_ARENA_OFF);
 }
 
-void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id)
-{
-    return;
-
-    //ACE_Guard<ACE_Thread_Mutex> guard(SchedulerLock);
-    //we will use only 1 number created of bgTypeId and bracket_id
-    uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
-    bool found = false;
-    for (uint32 i = 0; i < m_QueueUpdateScheduler.size(); i++)
-    {
-        if (m_QueueUpdateScheduler[i] == schedule_id)
-        {
-            found = true;
-            break;
-        }
-    }
-    if (!found)
-        m_QueueUpdateScheduler.push_back(schedule_id);
-}
-
-/*uint32 BattleGroundMgr::GetMaxRatingDifference() const
-{
-    // this is for stupid people who can't use brain and set max rating difference to 0
-    uint32 diff = sWorld.getConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE);
-    if (diff == 0)
-        diff = 5000;
-    return diff;
-}*/
-
 uint32 BattleGroundMgr::GetStartMaxChanceDiff() const
 {
     return sWorld.getConfig(CONFIG_FLOAT_START_MAX_CHANCE_DIFFERENCE);
@@ -1206,26 +1177,18 @@ uint8 BattleGroundMgr::GetTypeBySlot( uint32 slot )
     return 0xFF;
 }
 
-float GroupQueueInfo::GetMinChance()
+BGQueueRated* BattleGroundMgr::GetRatedQueue(uint32 queueTypeId)
 {
-    if (EQUAL_CHANCE > CurrentMaxChanceDiff)
-        return EQUAL_CHANCE - CurrentMaxChanceDiff;
+    if (!IsRatedQueue(queueTypeId))
+        return NULL;
 
-    return 0;
+    return (BGQueueRated*)&m_BGQueueMap[queueTypeId];
 }
 
-float GroupQueueInfo::GetMaxChance()
+BGQueueNonRated* BattleGroundMgr::GetNonRatedQueue(uint32 queueTypeId)
 {
-    return EQUAL_CHANCE + CurrentMaxChanceDiff;
-}
+    if (IsRatedQueue(queueTypeId))
+        return NULL;
 
-bool GroupQueueInfo::ChanceOK(uint32 mmr)
-{
-    float chance = GetWinChanceValue(ArenaTeamMMR, mmr);
-    return chance >= GetMinChance() && chance <= GetMaxChance();
-}
-
-float GroupQueueInfo::GetWinChanceValue(uint16 ratA, uint16 ratB)
-{
-    return (pow((float)limRat(ratA),2.f)-3000.f*limRat(ratA)+6750000.f)/225000*1.0f/(1.0f+exp(log(10.0f)*(float)((float)ratB - (float)ratA)/400.0f));
+    return (BGQueueNonRated*)&m_BGQueueMap[queueTypeId];
 }

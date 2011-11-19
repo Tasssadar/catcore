@@ -84,8 +84,9 @@ class BattleGroundMgr
 
         /* Battleground queues */
         //these queues are instantiated when creating BattlegroundMrg
-        BattleGroundQueueMap m_BGQueueMap[MAX_BATTLEGROUND_QUEUE_TYPES]; // public, because we need to access them in BG handler code
-
+        BattleGroundQueueMap m_BGQueueMap; // public, because we need to access them in BG handler code
+        BGQueueRated* GetRatedQueue(uint32 queueTypeId);
+        BGQueueNonRated* GetNonRatedQueue(uint32 queueTypeId);
         BGFreeSlotQueueType BGFreeSlotQueue[MAX_BATTLEGROUND_TYPE_ID];
 
         void ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id);

@@ -56,30 +56,23 @@ class BattleGroundQueue
         ~BattleGroundQueue();
 
         virtual void Update(BattleGroundBracketId bracket_id);
-        //void UpdateNonrated(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenaType = 0);
-        //void UpdateRated(BattleGroundBracketId bracket_id, uint8 arenaType = 0);
 
-        void FillPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id);
         bool CheckPremadeMatch(BattleGroundBracketId bracket_id, uint32 MinPlayersPerTeam, uint32 MaxPlayersPerTeam);
         bool CheckNormalMatch(BattleGround* bg_template, BattleGroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers);
         bool CheckSkirmishForSameFaction(BattleGroundBracketId bracket_id, uint32 minPlayersPerTeam);
-        GroupQueueInfo * AddGroup(Player* leader, Group* group, BattleGroundTypeId bgTypeId, PvPDifficultyEntry const*  bracketEntry, uint8 ArenaType, bool isRated, bool isPremade, uint32 ArenaRating, uint32 ArenaTeamId = 0, uint32 ArenaMMR = 0);
         void RemovePlayer(const uint64& guid, bool decreaseInvitedCount);
         bool IsPlayerInvited(const uint64& pl_guid, const uint32 bgInstanceGuid, const uint32 removeTime);
         bool GetPlayerGroupInfoData(const uint64& guid, GroupQueueInfo* ginfo);
         void PlayerInvitedToBGUpdateAverageWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
 
+        BattleGroundTypeId GetBattleGroundTypeId() const { return sBattleGroundMgr.BGTemplateId(m_QueueTypeId); }
+
     protected:
         BattleGroundQueueTypeId m_QueueTypeId;
 
         typedef std::map<uint64, PlayerQueueInfo> QueuedPlayersMap;
         QueuedPlayersMap m_QueuedPlayers;
-
-        typedef std::list<GroupQueueInfo*> GroupsQueueType;
-
-        GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
-        GroupsQueueType m_QueuedRatedArenas[MAX_BATTLEGROUND_BRACKETS];
 
         // class to select and invite groups to bg
         struct SelectionPool
@@ -107,7 +100,13 @@ class BGQueueNonRated : public BattleGroundQueue
         ~BGQueueNonRated();
 
         void Update(BattleGroundBracketId bracket_id);
+        void AddGroup(PlayerPool* pPool, PvPDifficultyEntry const* bracketEntry);
+        void FillPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id);
 
+        typedef std::list<PlayerPool*> PoolsQueuedType;
+        PoolsQueuedType m_QueuedPools[MAX_BATTLEGROUND_BRACKETS][BG_QUEUE_GROUP_TYPES_COUNT];
+
+        void GetQueuedPlayersPerTeams(uint32& qAlliance, uint32& qHorde, BattleGroundBracketId bracketId);
 };
 
 class BGQueueRated : public BattleGroundQueue
@@ -117,8 +116,21 @@ class BGQueueRated : public BattleGroundQueue
         ~BGQueueRated();
 
         void Update(BattleGroundBracketId bracket_id);
+
+        typedef std::list<GroupQueueInfo*> GroupsQueueType;
+        GroupsQueueType m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS];
+
+    private:
         void StartRatedArena(GroupQueueInfo* ginfo1, GroupQueueInfo* ginfo2, PvPDifficultyEntry const* bracketEntry, uint8 arenaType);
 
+};
+
+typedef std::list<Player*> PlrList;
+struct PlayerPool
+{
+    PlrList Players;
+    PlayerPool(Player* plr);
+    PlayerPool(Group* grp);
 };
 
 class BGQueueInviteEvent : public BasicEvent
