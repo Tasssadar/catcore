@@ -276,13 +276,13 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                     else
                         unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
 
-                    if (!((Creature*)unit)->canWalk()
-                        || !unit->IsAtGroundLevel())
+                    if (!((Creature*)unit)->canWalk())
+                    //    || !unit->IsAtGroundLevel())
                     {
                         unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
                     }
-                    else
-                        unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+                    //else
+                     //   unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
                 }
 
                 // swimming creature
@@ -1623,7 +1623,7 @@ bool WorldObject::IsAtGroundLevel(Coords coord) const
     if (coord.isNULL())
         coord = m_coords;
 
-    float groundZ = GetTerrain()->GetHeight(coord.x, coord.y, coord.z, true, 50);
+    float groundZ = GetTerrain()->GetHeight(coord.x, coord.y, coord.z, false, 50);
     if (groundZ <= INVALID_HEIGHT || fabs(groundZ-coord.z) > 5.0f)
         return false;
     return true;
