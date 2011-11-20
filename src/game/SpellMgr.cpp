@@ -2082,6 +2082,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     // Improved Wing Clip -> Wing Clip (multi-family check)
                     if ( (spellInfo_2->SpellFamilyFlags & UI64LIT(0x40)) && spellInfo_1->Id == 19229 )
                         return false;
+
+                    // Sunreaver Dragonhawk  and Aspect of the Dragonhaw
+                    if(spellInfo_2->ID == 66088 && spellInfo_1->ID == 61847 )
+                        return false;
                     break;
                 }
                 case SPELLFAMILY_PALADIN:
@@ -2477,6 +2481,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 if ( spellInfo_1->SpellIconID == 1680 && spellInfo_2->SpellIconID == 1680 )
                     return false;
             }
+
+            // Sunreaver Dragonhawk  and Aspect of the Dragonhaw
+            if(spellInfo_1->ID == 66088 && spellInfo_2->ID == 61847)
+                return false;
             // Repentance and Track Humanoids
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_1->SpellIconID == 316 && spellInfo_2->SpellIconID == 316)
                     return false;
