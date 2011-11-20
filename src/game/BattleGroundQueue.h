@@ -68,6 +68,9 @@ class BattleGroundQueue
 
         BattleGroundTypeId GetBattleGroundTypeId() const { return sBattleGroundMgr.BGTemplateId(m_QueueTypeId); }
 
+        Team GetTeamForQueueType(uint8 queueType);
+
+
     protected:
         BattleGroundQueueTypeId m_QueueTypeId;
 

@@ -694,12 +694,15 @@ bool BattleGroundQueue::CheckSkirmishForSameFaction(BattleGroundBracketId bracke
     return true;
 }
 
-/*
-this method is called when group is inserted, or player / group is removed from BG Queue - there is only one player's status changed, so we don't use while(true) cycles to invite whole queue
-it must be called after fully adding the members of a group to ensure group joining
-should be called from BattleGround::RemovePlayer function in some cases
-*/
-
+Team BattleGroundQueue::GetTeamForQueueType(uint8 queueType)
+{
+    switch(queueType)
+    {
+        case BG_QUEUE_ALLIANCE: return ALLIANCE;
+        case BG_QUEUE_HORDE:    return HORDE;
+        default:                return 0;
+    }
+}
 
 void BGQueueNonRated::AddGroup(PlayerPool* pPool, const PvPDifficultyEntry *bracketEntry)
 {
@@ -920,48 +923,40 @@ void BGQueueNonRated::FillPlayersToBG(BattleGround* bg, BattleGroundBracketId br
     uint32 qAlliance, qHorde;
     GetQueuedPlayersPerTeams(qAlliance, qHorde, bracket_id);
 
-    PoolsQueuedType qA, qH, queuePoolA, queuePoolH;
-    queuePoolA = &m_QueuedPools[bracket_id][BG_QUEUE_ALLIANCE];
-    queuePoolH = &m_QueuedPools[bracket_id][BG_QUEUE_HORDE];
-
-    //PoolsQueuedType::const_iterator aItr = queuePoolA.begin();
-    //PoolsQueuedType::const_iterator hItr = queuePoolH.begin();
+    PoolsQueuedType queue[BG_QUEUE_GROUP_TYPES_COUNT];
 
     // try to fill the max of each faction
     PoolsQueuedType::const_iterator itr;
-    int32 remainAli, remainHorde;
-    for (remainAli = aliFree, itr = queuePoolA.begin(); remainAli != 0 && itr != queuePoolA.end(); ++itr)
+    int32 remain[BG_QUEUE_GROUP_TYPES_COUNT];
+    for(uint8 queueType = BG_QUEUE_ALLIANCE; queueType < BG_QUEUE_GROUP_TYPES_COUNT; ++queueType)
     {
-        if ((*itr)->Players.size() <= remainAli)
+        remain[queueType] = bg->GetFreeSlotsForTeam(GetTeamForQueueType(queueType));
+        if (!remain[queueType])
+            continue;
+
+        for (itr = m_QueuedPools[bracket_id][queueType].begin(); remain[queueType] != 0 && itr != m_QueuedPools[bracket_id][queueType].end(); ++itr)
         {
-            qA.push_back(*itr);
-            remainAli -= (*itr)->Players.size();
+            if ((*itr)->Players.size() <= remain[queueType])
+            {
+                queue[queueType].push_back(*itr);
+                remain[queueType] -= (*itr)->Players.size();
+            }
         }
     }
-
-    for (remainHorde = hordeFree, itr = queuePoolH.begin(); remainHorde != 0 && itr != queuePoolH.end(); ++itr)
-    {
-        if ((*itr)->Players.size() <= remainHorde)
-        {
-            qH.push_back(itr);
-            remainHorde -= (*itr)->Players.size();
-        }
-    }
-
-    int32 factionDiff = remainAli - remainHorde; // if > 0 more ali in queue if < 0 more horde in queue
+    int32 factionDiff = remain[BG_QUEUE_ALLIANCE] - remain[BG_QUEUE_HORDE]; // if > 0 more ali in queue if < 0 more horde in queue
+    int32 mustRemove = abs(factionDiff);
     // found approximatly same amount of players in each faction
-    if (abs(factionDiff) <= 1)
+    if (mustRemove <= 1)
         return;
 
     // firstly try to found group with same amount of players as is diff
-    PoolsQueuedType& reducingPool = factionDiff > 0 ? qA : qH;
-    PoolsQueuedType::const_reverse_iterator ritr = reducingPool.rbegin();
-    for(uint32 remainToBeRemoved = abs(factionDiff); remainToBeRemoved > 1 && ritr != reducingPool.rend(); )
+    PoolsQueuedType& reducingPool = queue[factionDiff > 0 ? BG_QUEUE_ALLIANCE : BG_QUEUE_HORDE];
+    for(PoolsQueuedType::const_reverse_iterator ritr = reducingPool.rbegin(); mustRemove > 1 && ritr != reducingPool.rend(); )
     {
-        if ((*ritr)->Players.size() <= remainToBeRemoved)
+        if (mustRemove - (*ritr)->Players.size() >= -1)
         {
             itr = reducingPool.erase(ritr);
-            remainToBeRemoved -= (*ritr)->Players.size();
+            mustRemove -= (*ritr)->Players.size();
         }
         else
             ++ritr;
