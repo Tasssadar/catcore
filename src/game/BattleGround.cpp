@@ -2225,7 +2225,7 @@ void ArenaLog::writeMember(Player *plr, uint8 ratingChange, bool win)
     if (++count <= arenaType)
     {
         // get ip
-        QueryResult *result = LoginDatabase.PQuery("SELECT last_ip FROM realmd.account WHERE id in (SELECT account FROM characters.characters WHERE guid = %u)", plr->GetGUIDLow());
+        QueryResult *result = LoginDatabase.PQuery("SELECT last_ip FROM account WHERE id in (SELECT account FROM characters.characters WHERE guid = %u)", plr->GetGUIDLow());
         const char* ip = result ? result->Fetch()[0].GetString() : "IP not found";
         delete result;
 

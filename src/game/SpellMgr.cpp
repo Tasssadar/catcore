@@ -2482,7 +2482,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     return false;
             }
 
-            // Sunreaver Dragonhawk  and Aspect of the Dragonhaw
+            // Sunreaver Dragonhawk and Aspect of the Dragonhaw
             if(spellInfo_1->ID == 66088 && spellInfo_2->ID == 61847)
                 return false;
             // Repentance and Track Humanoids
