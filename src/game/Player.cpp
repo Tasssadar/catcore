@@ -14288,17 +14288,18 @@ void Player::RewardQuest( Quest const *pQuest, uint32 reward, Object* questGiver
     else if (pQuest->IsWeekly())
         SetWeeklyQuestStatus(quest_id);
 
-    if(!IsQuestRewarded(quest_id))
-    {
-        q_status.uState = QUEST_DELETED;
-        mRewardedQuest.insert(quest_id);
-        mRewardedQuestSave.insert(std::make_pair<uint32, uint8>(quest_id, QUEST_NEW));
-    }
-
     if (!pQuest->IsRepeatable())
         SetQuestStatus(quest_id, QUEST_STATUS_COMPLETE);
     else
         SetQuestStatus(quest_id, QUEST_STATUS_NONE);
+
+    if(!IsQuestRewarded(quest_id))
+    {
+        q_status.uState = QUEST_DELETED;
+        q_status.m_status = QUEST_STATUS_NONE;
+        mRewardedQuest.insert(quest_id);
+        mRewardedQuestSave.insert(std::make_pair<uint32, uint8>(quest_id, QUEST_NEW));
+    }
 
     if (announce)
         SendQuestReward( pQuest, XP, questGiver );
