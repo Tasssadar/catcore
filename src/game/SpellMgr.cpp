@@ -2084,7 +2084,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         return false;
 
                     // Sunreaver Dragonhawk  and Aspect of the Dragonhaw
-                    if(spellInfo_2->ID == 66088 && spellInfo_1->ID == 61847 )
+                    if(spellInfo_2->Id == 66088 && spellInfo_1->Id == 61847 )
                         return false;
                     break;
                 }
@@ -2483,7 +2483,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             }
 
             // Sunreaver Dragonhawk and Aspect of the Dragonhaw
-            if(spellInfo_1->ID == 66088 && spellInfo_2->ID == 61847)
+            if(spellInfo_1->Id == 66088 && spellInfo_2->Id == 61847)
                 return false;
             // Repentance and Track Humanoids
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_1->SpellIconID == 316 && spellInfo_2->SpellIconID == 316)
