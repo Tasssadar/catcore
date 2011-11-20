@@ -275,7 +275,7 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     if (!m_WaterfallCollision || !m_WaterfallCollision->IsInWorld())
         return false;
 
-    const Coords wCoord = m_WaterfallCollision->GetPosition();
+    const Coords& wCoord = m_WaterfallCollision->GetPosition();
     const float bounding = m_WaterfallCollision->GetObjectBoundingRadius();
     const float angle = caster->GetAngle(target);
     const float x_per_i = cos(angle);
