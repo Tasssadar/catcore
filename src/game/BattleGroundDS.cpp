@@ -139,6 +139,8 @@ void BattleGroundDS::HandleWatterfall()
                 m_WaterfallEffect->Delete();
             if (m_WaterfallCollision)
                 m_WaterfallCollision->Delete();
+            m_WaterfallEffect = NULL;
+            m_WaterfallCollision = NULL;
             m_uiWaterfall = 25000;
             break;
     }
@@ -273,17 +275,19 @@ bool BattleGroundDS::ObjectInLOS(Unit* caster, Unit* target)
     if (!m_WaterfallCollision || !m_WaterfallCollision->IsInWorld())
         return false;
 
-    float angle = caster->GetAngle(target);
-    float x_per_i = cos(angle);
-    float y_per_i = sin(angle);
-    float distance = caster->GetDistance(target);
+    const Coords wCoord = m_WaterfallCollision->GetPosition();
+    const float bounding = m_WaterfallCollision->GetObjectBoundingRadius();
+    const float angle = caster->GetAngle(target);
+    const float x_per_i = cos(angle);
+    const float y_per_i = sin(angle);
+    const uint32 distance = floor(caster->GetDistance(target));
     float x = caster->GetPositionX();
     float y = caster->GetPositionY();
-    for (int32 i = 0; i < distance; ++i)
+    for (uint32 i = 0; i < distance; ++i)
     {
         x += x_per_i;
         y += y_per_i;
-        if (!m_WaterfallCollision->GetDistance2d(x,y))
+        if (wCoord.GetDistance2d(x,y) < bounding)
             return true;
     }
     return false;

@@ -99,6 +99,13 @@ struct Coords
         return sqrt((xd*xd) + (yd*yd));
     }
 
+    float GetDistance2d(float _x, float _y) const
+    {
+        float xd = _x - x;
+        float yd = _y - y;
+        return sqrt((xd*xd) + (yd*yd));
+    }
+
     float GetDistance(const Coords _coord) const
     {
         float xd = _coord.x - x;
