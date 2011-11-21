@@ -932,12 +932,12 @@ struct MANGOS_DLL_DECL mob_Algalon_Stalker_Asteroid_Target_02_AI : public Script
     mob_Algalon_Stalker_Asteroid_Target_02_AI (Creature* pCreature) : ScriptedAI(pCreature)
     {
         Reset();
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
     }
 
     void Reset()
     {
         m_uiCosmicSmashDamageTimer = 4000;
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
     }
 
     void UpdateAI(const uint32 uiDiff)

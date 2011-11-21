@@ -43,7 +43,7 @@
 
 bool MapSessionFilter::Process(WorldPacket * packet)
 {
-    //return false;
+    return false;
 
     OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
     //let's check if our opcode can be really processed in Map::Update()
@@ -66,7 +66,7 @@ bool MapSessionFilter::Process(WorldPacket * packet)
 //OR packet handler is not thread-safe!
 bool WorldSessionFilter::Process(WorldPacket* packet)
 {
-    //return true;
+    return true;
     OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
     //check if packet handler is supposed to be safe
     if(opHandle.packetProcessing == PROCESS_INPLACE)
