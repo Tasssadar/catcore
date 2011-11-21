@@ -14809,7 +14809,7 @@ QuestStatus Player::GetQuestStatus( uint32 quest_id ) const
     if ( quest_id )
     {
         QuestStatusMap::const_iterator itr = mQuestStatus.find( quest_id );
-        if ( itr != mQuestStatus.end() )
+        if ( itr != mQuestStatus.end() && itr->second.m_status != QUEST_STATUS_NONE)
             return itr->second.m_status;
 
         Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
