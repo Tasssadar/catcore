@@ -326,7 +326,9 @@ void Item::SaveToDB()
             for (uint8 i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
                 ss << GetSpellCharges(i) << ' ';
 
-            ss << "'," << GetUInt32Value(ITEM_FIELD_FLAGS) << ",'";
+            uint32 flags = GetUInt32Value(ITEM_FIELD_FLAGS);
+            while(flags > 0xFFFFFF) { flags -= 0xFFFFFF; }
+            ss << "'," << flags << ",'";
 
             for (uint8 i = 0; i < MAX_ENCHANTMENT_SLOT; ++i)
             {
@@ -361,7 +363,9 @@ void Item::SaveToDB()
             for (uint8 i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
                 ss << GetSpellCharges(i) << ' ';
 
-            ss << "', flags = '" << GetUInt32Value(ITEM_FIELD_FLAGS) << "', enchantments = '";
+            uint32 flags = GetUInt32Value(ITEM_FIELD_FLAGS);
+            while(flags > 0xFFFFFF) { flags -= 0xFFFFFF; }
+            ss << "', flags = '" << flags << "', enchantments = '";
 
             for (uint8 i = 0; i < MAX_ENCHANTMENT_SLOT; ++i)
             {
@@ -451,7 +455,15 @@ bool Item::LoadFromDB(uint32 guid, uint64 owner_guid, uint32 itemid)
         }
     }
 
-    SetUInt32Value(ITEM_FIELD_FLAGS, fields[5].GetUInt32());
+    uint32 flags = fields[5].GetUInt32();
+    if(flags == 0xFFFFFF)
+    {
+        flags = GetProto()->Flags;
+        need_save = true;
+    }
+    else
+        flags |= GetProto()->Flags;
+    SetUInt32Value(ITEM_FIELD_FLAGS, flags);
 
     // Remove bind flag for items vs NO_BIND set
     if (IsSoulBound() && proto->Bonding == NO_BIND)
