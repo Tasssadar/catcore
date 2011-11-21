@@ -2202,6 +2202,7 @@ struct MANGOS_DLL_DECL npc_ebon_gargoyleAI : public ScriptedAI
 
     void Reset()
     {
+        fixedTarget = NULL;
         if (Unit* owner = m_creature->GetCreator())
             if (Spell* gargoyleSpell = owner->FindCurrentSpellBySpellId(49206))
                 if (fixedTarget = gargoyleSpell->m_targets.getUnitTarget())

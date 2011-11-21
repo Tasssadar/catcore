@@ -154,6 +154,8 @@ ObjectMessageDeliverer::Visit(CameraMapType &m)
 void
 MessageDistDeliverer::Visit(CameraMapType &m)
 {
+    bool isPacketMessage = i_message->GetOpcode() == SMSG_MESSAGECHAT;
+    RpState sourceRp = i_player.GetRpState();
     for(CameraMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
     {
         Player * owner = iter->getSource()->GetOwner();
@@ -163,24 +165,6 @@ MessageDistDeliverer::Visit(CameraMapType &m)
             (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_player,i_dist)))
         {
             if (!i_player.InSamePhase(iter->getSource()->GetBody()))
-                continue;
-
-            if (WorldSession* session = owner->GetSession())
-                session->SendPacket(i_message);
-        }
-    }
-}
-
-void
-ObjectMessageDistDeliverer::Visit(CameraMapType &m)
-{
-    bool isPacketMessage = i_message->GetOpcode() == SMSG_MESSAGECHAT;
-    RpState sourceRp = i_object.GetTypeId() == TYPEID_PLAYER ? ((Player*)&i_object)->GetRpState() : RP_STATE_ALL;
-    for(CameraMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
-    {
-        if (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_object,i_dist))
-        {
-            if (!i_object.InSamePhase(iter->getSource()->GetBody()))
                 continue;
 
             if (isPacketMessage)
@@ -213,6 +197,22 @@ ObjectMessageDistDeliverer::Visit(CameraMapType &m)
                 if (shouldStop)
                     continue;
             }
+
+            if (WorldSession* session = owner->GetSession())
+                session->SendPacket(i_message);
+        }
+    }
+}
+
+void
+ObjectMessageDistDeliverer::Visit(CameraMapType &m)
+{
+    for(CameraMapType::iterator iter=m.begin(); iter != m.end(); ++iter)
+    {
+        if (!i_dist || iter->getSource()->GetBody()->IsWithinDist(&i_object,i_dist))
+        {
+            if (!i_object.InSamePhase(iter->getSource()->GetBody()))
+                continue;
 
             if (WorldSession* session = iter->getSource()->GetOwner()->GetSession())
                 session->SendPacket(i_message);
