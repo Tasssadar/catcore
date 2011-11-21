@@ -702,10 +702,10 @@ void BattleGround::RewardReputationToTeam(BattleGroundTypeId bgtype, uint32 Repu
         uint32 faction_id;
         switch(bgtype)
         {
-            case BATTLEGROUND_AB: faction_id = TeamID == ALLIANCE ? 509 : 510;
-            case BATTLEGROUND_AV: faction_id = TeamID == ALLIANCE ? 730 : 729;
-            case BATTLEGROUND_WS: faction_id = TeamID == ALLIANCE ? 890 : 889;
-            default: faction_id = 0;
+            case BATTLEGROUND_AB: faction_id = TeamID == ALLIANCE ? 509 : 510; break;
+            case BATTLEGROUND_AV: faction_id = TeamID == ALLIANCE ? 730 : 729; break;
+            case BATTLEGROUND_WS: faction_id = TeamID == ALLIANCE ? 890 : 889; break;
+            default: faction_id = 0; break;
         }
 
         if (team == TeamID)		

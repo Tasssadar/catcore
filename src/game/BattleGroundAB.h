@@ -136,8 +136,8 @@ enum BG_AB_Sounds
 
 #define BG_AB_NotABBGWeekendHonorTicks      330
 #define BG_AB_ABBGWeekendHonorTicks         200
-#define BG_AB_NotABBGWeekendReputationTicks 200
-#define BG_AB_ABBGWeekendReputationTicks    150
+#define BG_AB_NotABBGWeekendReputationTicks 160
+#define BG_AB_ABBGWeekendReputationTicks    110
 #define BG_AB_ExperiencesTicks              260
 
 // Tick intervals and given points: case 0,1,2,3,4,5 captured nodes
