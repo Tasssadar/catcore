@@ -525,7 +525,7 @@ void Unit::ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags,
 
     va_list vargs;
     va_start(vargs,type);
-    
+
     WorldPacket data( SMSG_MONSTER_MOVE );
     data << GetPackGUID();
     data << uint8(0);

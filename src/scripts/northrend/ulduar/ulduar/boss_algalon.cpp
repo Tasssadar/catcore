@@ -37,7 +37,7 @@ enum spells
     SPELL_PHASE_SHIFT = 64417,
     SPELL_ALGALONS_BERSERK = 47008,
     SPELL_COSMIC_SMASH_MISSILE = 62304,
-    SPELL_COSMIC_SHASH_MISSILE_H = 64597,
+    SPELL_COSMIC_SMASH_MISSILE_H = 64597,
     SPELL_COSMIC_SMASH_VISUAL = 62300,
     SPELL_COSMIC_SMASH_DAMAGE = 62311,
     SPELL_DUAL_WIELD = 42459,
@@ -794,9 +794,11 @@ CreatureAI* GetAI_boss_algalon(Creature* pCreature)
 struct MANGOS_DLL_DECL mob_collapsing_starAI : public ScriptedAI
 {
     uint32 m_uiSetHealthTimer;
+    bool m_bIsRegularMode;
 
     mob_collapsing_starAI(Creature* pCreature) : ScriptedAI(pCreature)  
     {
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
@@ -925,9 +927,11 @@ CreatureAI* GetAI_mob_black_hole(Creature* pCreature)
 struct MANGOS_DLL_DECL mob_Algalon_Stalker_Asteroid_Target_02_AI : public ScriptedAI
 {
     uint32 m_uiCosmicSmashDamageTimer;
+    bool m_bIsRegularMode;
 
     mob_Algalon_Stalker_Asteroid_Target_02_AI (Creature* pCreature) : ScriptedAI(pCreature)
     {
+        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
     }
 
