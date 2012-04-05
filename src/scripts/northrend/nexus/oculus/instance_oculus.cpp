@@ -140,7 +140,7 @@ struct MANGOS_DLL_DECL instance_oculus : public ScriptedInstance
             SaveToDB();
             OUT_SAVE_INST_DATA_COMPLETE;
         }
-        else if(uiData == IN_PROGRESS)
+        else if (uiData == IN_PROGRESS)
             DismountPlayers();
     }
 

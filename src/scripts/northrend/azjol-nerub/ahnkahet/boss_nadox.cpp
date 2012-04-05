@@ -125,13 +125,13 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
 
     Creature* SelectRandomCreatureOfEntryInRange(uint32 uiEntry, float fRange)
     {
-        std::list<Creature* > lCreatureList;
+        CreatureList lCreatureList;
         GetCreatureListWithEntryInGrid(lCreatureList, m_creature, uiEntry, fRange);
 
         if (lCreatureList.empty())
             return NULL;
 
-        std::list<Creature* >::iterator iter = lCreatureList.begin();
+        CreatureList::iterator iter = lCreatureList.begin();
         advance(iter, urand(0, lCreatureList.size()-1));
 
         return *iter;
@@ -168,7 +168,7 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
             if (Creature* pGuardianEgg = SelectRandomCreatureOfEntryInRange(NPC_AHNKAHAR_GUARDIAN_EGG, 75.0))
             {
                 // pGuardianEgg->CastSpell(pGuardianEgg, SPELL_SUMMON_SWARM_GUARDIAN, false);
-                if(Creature *pGuardian = pGuardianEgg->SummonCreature(NPC_AHNKAHAR_GUARDIAN, pGuardianEgg->GetPositionX(), pGuardianEgg->GetPositionY(), pGuardianEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
+                if (Creature *pGuardian = pGuardianEgg->SummonCreature(NPC_AHNKAHAR_GUARDIAN, pGuardianEgg->GetPositionX(), pGuardianEgg->GetPositionY(), pGuardianEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                     pGuardian->AI()->AttackStart(m_creature->getVictim());
             }
 
@@ -182,10 +182,10 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
             if (Creature* pSwarmerEgg = SelectRandomCreatureOfEntryInRange(NPC_AHNKAHAR_SWARM_EGG, 75.0))
             {
                 // pSwarmerEgg->CastSpell(pSwarmerEgg, SPELL_SUMMON_SWARMERS, false);
-                if(Creature *pSwarmer = pSwarmerEgg->SummonCreature(NPC_AHNKAHAR_SWARMER, pSwarmerEgg->GetPositionX(), pSwarmerEgg->GetPositionY(), pSwarmerEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
+                if (Creature *pSwarmer = pSwarmerEgg->SummonCreature(NPC_AHNKAHAR_SWARMER, pSwarmerEgg->GetPositionX(), pSwarmerEgg->GetPositionY(), pSwarmerEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                     pSwarmer->AI()->AttackStart(m_creature->getVictim());
 
-                if(Creature *pSwarmer = pSwarmerEgg->SummonCreature(NPC_AHNKAHAR_SWARMER, pSwarmerEgg->GetPositionX(), pSwarmerEgg->GetPositionY(), pSwarmerEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
+                if (Creature *pSwarmer = pSwarmerEgg->SummonCreature(NPC_AHNKAHAR_SWARMER, pSwarmerEgg->GetPositionX(), pSwarmerEgg->GetPositionY(), pSwarmerEgg->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 3*MINUTE*IN_MILLISECONDS))
                     pSwarmer->AI()->AttackStart(m_creature->getVictim());
             }
 
@@ -204,7 +204,7 @@ struct MANGOS_DLL_DECL boss_nadoxAI : public ScriptedAI
         else
             m_uiBroodPlagueTimer -= uiDiff;
 
-        if(!m_bIsRegularMode)
+        if (!m_bIsRegularMode)
         {
             if (m_uiBroodRageTimer < uiDiff)
             {

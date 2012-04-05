@@ -115,7 +115,7 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_NOTH, NOT_STARTED);
     }
 
@@ -134,7 +134,7 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
         if (who->isTargetableForAttack() && who->isInAccessablePlaceFor(m_creature) && m_creature->IsHostileTo(who))
             AttackStart(who);
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_NOTH, IN_PROGRESS);
     }
 
@@ -175,7 +175,7 @@ struct MANGOS_DLL_DECL boss_nothAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_NOTH, DONE);
     }
 

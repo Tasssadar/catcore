@@ -53,13 +53,13 @@ struct MANGOS_DLL_DECL boss_infinite_corruptorAI : public ScriptedAI
 
    void Aggro(Unit* who)
    {
-      if(m_pInstance)
+      if (m_pInstance)
          m_pInstance->SetData(TYPE_BONUS, SPECIAL);
    }
 
    void JustDied(Unit *killer)
    {
-       if(m_pInstance)
+       if (m_pInstance)
          m_pInstance->SetData(TYPE_BONUS, DONE);
    }
 
@@ -75,16 +75,16 @@ struct MANGOS_DLL_DECL boss_infinite_corruptorAI : public ScriptedAI
 
     void EnterEvadeMode()
     {
-       if(!m_pInstance) return;
+       if (!m_pInstance) return;
 
        m_creature->RemoveAllAuras();
        m_creature->DeleteThreatList();
        m_creature->CombatStop(true);
        m_creature->LoadCreaturesAddon();
-       if(m_pInstance)
+       if (m_pInstance)
          m_pInstance->SetData(TYPE_BONUS, IN_PROGRESS);
 
-       if(m_creature->isAlive())
+       if (m_creature->isAlive())
           m_creature->GetMotionMaster()->MoveTargetedHome();
 
        m_creature->SetLootRecipient(NULL);

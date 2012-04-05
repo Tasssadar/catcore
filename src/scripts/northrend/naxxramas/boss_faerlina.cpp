@@ -133,7 +133,7 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
         m_creature->SummonCreature(NPC_WORSHIPPER, 3344.3, -3618.31, 261.08, 4.69494, TEMPSUMMON_CORPSE_DESPAWN, 0);
         m_creature->SummonCreature(NPC_WORSHIPPER, 3356.71, -3620.05, 261.08, 4.57276, TEMPSUMMON_CORPSE_DESPAWN, 0);
         m_creature->SummonCreature(NPC_WORSHIPPER, 3350.26, -3619.11, 261.08, 4.67748, TEMPSUMMON_CORPSE_DESPAWN, 0);
-        if(!m_bIsRegularMode)
+        if (!m_bIsRegularMode)
         {
             m_creature->SummonCreature(NPC_FOLLOWER, 3359.8, -3620.47, 260.996, 4.59711, TEMPSUMMON_CORPSE_DESPAWN, 0);
             m_creature->SummonCreature(NPC_FOLLOWER, 3347.17, -3618.95, 260.997, 4.6678, TEMPSUMMON_CORPSE_DESPAWN, 0);
@@ -142,20 +142,20 @@ struct MANGOS_DLL_DECL boss_faerlinaAI : public ScriptedAI
 
     void DespawnAdds()
     {
-        std::list<Creature*> pWorshippers;
+        CreatureList pWorshippers;
         GetCreatureListWithEntryInGrid(pWorshippers, m_creature, NPC_WORSHIPPER, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!pWorshippers.empty())
-            for(std::list<Creature*>::iterator itr = pWorshippers.begin(); itr != pWorshippers.end(); ++itr)
+            for(CreatureList::iterator itr = pWorshippers.begin(); itr != pWorshippers.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }
 
-        std::list<Creature*> pFollower;
+        CreatureList pFollower;
         GetCreatureListWithEntryInGrid(pFollower, m_creature, NPC_FOLLOWER, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!pFollower.empty())
-            for(std::list<Creature*>::iterator iter = pFollower.begin(); iter != pFollower.end(); ++iter)
+            for(CreatureList::iterator iter = pFollower.begin(); iter != pFollower.end(); ++iter)
             {
                 (*iter)->ForcedDespawn();
             }

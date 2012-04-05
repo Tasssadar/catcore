@@ -231,11 +231,11 @@ struct MANGOS_DLL_DECL mob_arugal_voidwalkerAI : public ScriptedAI
         }
         else
         {
-            std::list<Creature*> lVoidwalkerList;
+            CreatureList lVoidwalkerList;
             Creature* pNewLeader = NULL;
             uint8 uiHighestPosition = 0;
             GetCreatureListWithEntryInGrid(lVoidwalkerList, m_creature, NPC_VOIDWALKER, 50.0f);
-            for(std::list<Creature*>::iterator itr = lVoidwalkerList.begin(); itr != lVoidwalkerList.end(); ++itr)
+            for(CreatureList::iterator itr = lVoidwalkerList.begin(); itr != lVoidwalkerList.end(); ++itr)
             {
                 if ((*itr)->isAlive())
                 {
@@ -354,9 +354,9 @@ struct MANGOS_DLL_DECL mob_arugal_voidwalkerAI : public ScriptedAI
 
     void SendWaypoint()
     {
-        std::list<Creature*> lVoidwalkerList;
+        CreatureList lVoidwalkerList;
         GetCreatureListWithEntryInGrid(lVoidwalkerList, m_creature, NPC_VOIDWALKER, 50.0f);
-        for(std::list<Creature*>::iterator itr = lVoidwalkerList.begin(); itr != lVoidwalkerList.end(); ++itr)
+        for(CreatureList::iterator itr = lVoidwalkerList.begin(); itr != lVoidwalkerList.end(); ++itr)
         {
             if ((*itr)->isAlive())
                 if (mob_arugal_voidwalkerAI* pVoidwalkerAI = dynamic_cast<mob_arugal_voidwalkerAI*>((*itr)->AI()))

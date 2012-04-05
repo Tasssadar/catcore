@@ -33,7 +33,7 @@ struct RoleCheck;
 enum LfgTimers
 {
     LFG_TIMER_UPDATE_PROPOSAL          = 10*IN_MILLISECONDS,
-    LFG_TIMER_READY_CHECK              = 1*MINUTE*IN_MILLISECONDS,
+    LFG_TIMER_READY_CHECK              = 45*IN_MILLISECONDS,
     LFG_TIMER_DELETE_INVALID_GROUPS    = 5*MINUTE*IN_MILLISECONDS
 };
 
@@ -225,6 +225,7 @@ struct DungeonInfo             //used in db
     float start_z;
     float start_o;
     bool locked;
+    uint32 min_item_level;
 };
 typedef std::map<uint32, DungeonInfo*> DungeonInfoMap;
 
@@ -253,6 +254,7 @@ class MANGOS_DLL_SPEC LfgMgr
         LfgMgr();
         ~LfgMgr();
 
+        void ReloadConfig();
         void Update(uint32 diff);
 
         void AddToQueue(Player *player, bool updateQueue = true);
@@ -319,6 +321,8 @@ class MANGOS_DLL_SPEC LfgMgr
         uint32 GetTotalPlayers() const { return m_queuedPlayers.size(); }
         void SendLfgContinue(Player *player);
         void UpdateFormedGroups(LfgGroup *group = NULL);
+
+        void RemoveRoleCheckGroup(LfgGroup *grp) { rolecheckGroups.erase(grp); }
 
     private:
         ACE_Thread_Mutex m_queueLock;

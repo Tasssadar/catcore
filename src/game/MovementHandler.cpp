@@ -48,10 +48,10 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     WorldLocation &loc = GetPlayer()->GetTeleportDest();
 
     // possible errors in the coordinate validity check
-    if (!MapManager::IsValidMapCoord(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation))
+    if (!MapManager::IsValidMapCoord(loc.mapid, loc.x(), loc.y(), loc.z(), loc.orientation))
     {
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far to a not valid location. (map:%u, x:%f, y:%f, "
-            "z:%f) We port him to his homebind instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+            "z:%f) We port him to his homebind instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.x(), loc.y(), loc.z());
         // stop teleportation else we would try this again and again in LogoutPlayer...
         GetPlayer()->SetSemaphoreTeleportFar(false);
         // and teleport the player to a valid place
@@ -71,10 +71,10 @@ void WorldSession::HandleMoveWorldportAckOpcode()
 
     // relocate the player to the teleport destination
     GetPlayer()->SetMap(sMapMgr.CreateMap(loc.mapid, GetPlayer()));
-    GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
+    GetPlayer()->Relocate(loc.x(), loc.y(), loc.z(), loc.orientation);
 
     // mount allow check, must be before SendInitialPacketsBeforeAddToMap()
-    if (!GetPlayer()->GetTerrain()->IsOutdoors(loc.coord_x, loc.coord_y, loc.coord_z))
+    if (!GetPlayer()->GetTerrain()->IsOutdoors(loc.x(), loc.y(), loc.z()))
     {
         _player->RemoveSpellsCausingAura(SPELL_AURA_FLY);
         _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
@@ -89,7 +89,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         //GetPlayer()->ResetMap();
 
         sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: player %s (%d) was teleported far but couldn't be added to map. (map:%u, x:%f, y:%f, "
-            "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+            "z:%f) We port him to nearest graveyard instead..", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow(), loc.mapid, loc.x(), loc.y(), loc.z());
         // teleport to the graveyard
         GetPlayer()->RepopAtGraveyard();
         return;
@@ -200,7 +200,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
 
     WorldLocation const& dest = plMover->GetTeleportDest();
 
-    plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+    plMover->SetPosition(dest.x(), dest.y(), dest.z(), dest.orientation, true);
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);
@@ -383,7 +383,7 @@ void WorldSession::HandleMoveNotActiveMover(WorldPacket &recv_data)
 
     if (_player->GetMover()->GetObjectGuid() == old_mover_guid)
     {
-        sLog.outError("HandleMoveNotActiveMover: incorrect mover guid: mover is %s and should be %s instead of %s",
+        sLog.outDetail("HandleMoveNotActiveMover: incorrect mover guid: mover is %s and should be %s instead of %s",
             _player->GetMover()->GetObjectGuid().GetString().c_str(),
             _player->GetObjectGuid().GetString().c_str(),
             old_mover_guid.GetString().c_str());
@@ -679,35 +679,41 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo, Unit* mover
         plMover->m_movementInfo = movementInfo;
 
         float minz = plMover->GetBattleGround() ? plMover->GetBattleGround()->GetMinZ() : -500.0f;
-        if(movementInfo.GetPos()->z < minz)
-        {
-            if(plMover->InBattleGround()
-                && plMover->GetBattleGround()
-                && plMover->GetBattleGround()->HandlePlayerUnderMap(_player))
-            {
-                // do nothing, the handle already did if returned true
-            }
-            else
-            {
-                // NOTE: this is actually called many times while falling
-                // even after the player has been teleported away
-                // TODO: discard movement packets after the player is rooted
-                if(plMover->isAlive())
-                {
-                    plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
-                    // pl can be alive if GM/etc
-                    if(!plMover->isAlive())
-                    {
-                        // change the death state to CORPSE to prevent the death timer from
-                        // starting in the next player update
-                        plMover->KillPlayer();
-                        plMover->BuildPlayerRepop();
-                    }
-                }
 
-                // cancel the death timer here if started
-                plMover->RepopAtGraveyard();
+        bool handledInBg = false;
+        if (BattleGround* bg = plMover->GetBattleGround())
+            if (movementInfo.GetPos()->z < minz/* || !bg->IsXYZPositionOK(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z)*/)
+                handledInBg = bg->HandlePlayerUnderMap(_player);
+
+
+        if (movementInfo.GetPos()->z < minz && !handledInBg)
+        {
+            // In Eye of eternity, players should see "release spirit" instead of teleporting to graveyard
+            if(plMover->GetMapId() == 616)
+            {
+                if (plMover->isAlive())
+                    plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
+                // Stop falling
+                plMover->TeleportTo(616, movementInfo.GetPos()->x, movementInfo.GetPos()->y, -490.f, movementInfo.GetPos()->o);
+                return;
             }
+            // NOTE: this is actually called many times while falling
+            // even after the player has been teleported away
+            // TODO: discard movement packets after the player is rooted
+            if (plMover->isAlive())
+            {
+                plMover->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, plMover->GetMaxHealth());
+                // pl can be alive if GM/etc
+                if(!plMover->isAlive())
+                {
+                    // change the death state to CORPSE to prevent the death timer from
+                    // starting in the next player update
+                    plMover->KillPlayer();
+                    plMover->BuildPlayerRepop();
+                }
+            }
+            // cancel the death timer here if started
+            plMover->RepopAtGraveyard();
         }
     }
     else                                                    // creature charmed

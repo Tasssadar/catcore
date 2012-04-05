@@ -3,6 +3,7 @@
 * Please see the included DOCS/LICENSE.TXT for more information */
 
 #include "precompiled.h"
+#include "../../../dep/recastnavigation/RecastDemo/Contrib/stb_image.h"
 
 //battlegrounds
 extern void AddSC_battleground();
@@ -28,6 +29,7 @@ extern void AddSC_npc_professions();
 extern void AddSC_npcs_special();
 extern void AddSC_spell_scripts();
 extern void AddSC_boss_ahune();
+extern void AddSC_boss_coren_direbrew();
 
 //eastern kingdoms
 extern void AddSC_blackrock_depths();                       //blackrock_depths
@@ -284,8 +286,10 @@ extern void AddSC_boss_krikthir();
 extern void AddSC_instance_azjol_nerub();
 extern void AddSC_northrend_beasts();                       //Crusaders' Coliseum, trial_of_the_crusader
 extern void AddSC_boss_jaraxxus();
-/*extern void AddSC_boss_anubarak_trial();
-extern void AddSC_twin_valkyr();*/
+extern void AddSC_boss_faction_champions();
+extern void AddSC_twin_valkyr();
+extern void AddSC_boss_anubarak_trial();
+extern void AddSC_trial_of_the_crusader();
 extern void AddSC_instance_trial_of_the_crusader();
 extern void AddSC_boss_argent_challenge();                 //Crusaders' Coliseum, trial_of_the_champion
 extern void AddSC_boss_black_knight();
@@ -377,6 +381,15 @@ extern void AddSC_boss_xevozz();
 extern void AddSC_boss_erekem();
 extern void AddSC_boss_ichoron();
 extern void AddSC_boss_cyanigosa();
+extern void AddSC_boss_bronjahm();                         // Forge of souls
+extern void AddSC_boss_devourer_of_souls();
+extern void AddSC_forge_of_souls();
+extern void AddSC_instance_forge_of_souls();
+extern void AddSC_boss_forgemaster_gafrost();              // Pit of Saron
+extern void AddSC_boss_ick_and_krick();
+extern void AddSC_boss_scourgelord_tyrannus();
+extern void AddSC_pit_of_saron();
+extern void AddSC_instance_pit_of_saron();
 
 extern void AddSC_borean_tundra();
 extern void AddSC_dalaran();
@@ -492,6 +505,7 @@ void AddScripts()
     AddSC_npcs_special();
     AddSC_spell_scripts();
     AddSC_boss_ahune();
+    AddSC_boss_coren_direbrew();
 
     //eastern kingdoms
     AddSC_blackrock_depths();                               //blackrock_depths
@@ -748,8 +762,10 @@ void AddScripts()
     AddSC_instance_azjol_nerub();
     AddSC_northrend_beasts();                               //Crusaders' Coliseum, trial_of_the_crusader
     AddSC_boss_jaraxxus();
-    /*AddSC_boss_anubarak_trial();
-    AddSC_twin_valkyr();*/
+    AddSC_boss_faction_champions();
+    AddSC_twin_valkyr();
+    AddSC_boss_anubarak_trial();
+    AddSC_trial_of_the_crusader();
     AddSC_instance_trial_of_the_crusader();
     AddSC_boss_argent_challenge();                          //Crusaders' Coliseum, trial_of_the_champion
     AddSC_boss_black_knight();
@@ -841,6 +857,15 @@ void AddScripts()
     AddSC_boss_erekem();
     AddSC_boss_ichoron();
     AddSC_boss_cyanigosa();
+    AddSC_boss_bronjahm();                                  // Forge of souls
+    AddSC_boss_devourer_of_souls();
+    AddSC_forge_of_souls();
+    AddSC_instance_forge_of_souls();
+    AddSC_boss_forgemaster_gafrost();                       // Pit of Saron
+    AddSC_boss_ick_and_krick();
+    AddSC_boss_scourgelord_tyrannus();
+    AddSC_pit_of_saron();
+    AddSC_instance_pit_of_saron();
 
     AddSC_borean_tundra();
     AddSC_dalaran();

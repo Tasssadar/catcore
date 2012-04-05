@@ -6,6 +6,7 @@
 #define SC_INSTANCE_H
 
 #include "InstanceData.h"
+#include "../ScriptMgr.h"
 #include "Map.h"
 
 enum EncounterState
@@ -15,6 +16,13 @@ enum EncounterState
     FAIL          = 2,
     DONE          = 3,
     SPECIAL       = 4
+};
+
+enum InstanceSide
+{
+    INSTANCE_SIDE_NONE  = 0,
+    INSTANCE_SIDE_ALI   = 1,
+    INSTANCE_SIDE_HORDE = 2
 };
 
 #define OUT_SAVE_INST_DATA             debug_log("SD2: Saving Instance Data for Instance %s (Map %d, Instance Id %d)", instance->GetMapName(), instance->GetId(), instance->GetInstanceId())
@@ -42,16 +50,34 @@ class MANGOS_DLL_DECL ScriptedInstance : public InstanceData
         // Handle doors
         void HandleDoorsByData(uint64 uiGuid, uint8 uiData);
 
-        //Respawns a GO having negative spawntimesecs in gameobject-table
+        // Respawns a GO having negative spawntimesecs in gameobject-table
         void DoRespawnGameObject(uint64 uiGuid, uint32 uiTimeToDespawn = MINUTE);
 
-        //sends world state update to all players in instance
+        // sends world state update to all players in instance
         void DoUpdateWorldState(uint32 uiStateId, uint32 uiStateData);
 
-        //complete achievement
+        // complete achievement
         void CompleteAchievement(uint16 uiAchievementId, Player* pKiller, bool bWholeRaid);
 
-        //sends completed achievments to all players in instance
+        // sends completed achievments to all players in instance
         void DoCompleteAchievement(uint32 uiAchievmentId);
+
+        // get creature from instanceData
+        Creature* GetCreature(uint32 Data);
+
+        // get gameobject from instanceData
+        GameObject* GetGameObject(uint32 Data);
+
+        // get all players in map
+        PlrList GetAllPlayers(bool vitalOnly = true);
+
+        // get random player in map
+        Player* GetRandomPlayerInMap(bool vitalOnly = true);
+
+        // get team in instance
+        InstanceSide GetInstanceSide();
+
+        // Update Achievement Criteria for all players in instance
+        void DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 = 0, uint32 miscValue2 = 0, Unit* unit = NULL);
 };
 #endif

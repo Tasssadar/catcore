@@ -67,7 +67,7 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
 
     void Reset()
     {
-        if(!HasEscortState(STATE_ESCORT_ESCORTING))
+        if (!HasEscortState(STATE_ESCORT_ESCORTING))
         {
             m_uiSay = 0;
             m_uiSayTimer = 0;
@@ -76,13 +76,13 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
 
     void JustDied(Unit* pTarget)
     {
-        if(Player* pPlayer = GetPlayerForEscort())
+        if (Player* pPlayer = GetPlayerForEscort())
             pPlayer->SetQuestStatus(QUEST_DUN_DA_DUN,QUEST_STATUS_FAILED);
     }
 
     void JustSummoned(Creature* pSummoned)
     {
-        if(pSummoned->GetEntry() != NPC_TECAHUNA)
+        if (pSummoned->GetEntry() != NPC_TECAHUNA)
         pSummoned->AI()->AttackStart(m_creature);
     }
 
@@ -114,7 +114,7 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
             case 11:
                 {
                 GameObject* pFireDoor = GetClosestGameObjectWithEntry(m_creature,GO_FIRE_DOOR,20.0f);
-                if(m_creature->GetMap()->GetGameObject(pFireDoor->GetGUID()))
+                if (m_creature->GetMap()->GetGameObject(pFireDoor->GetGUID()))
                     pFireDoor->SetGoState(GO_STATE_READY);
                 DoScriptText(SAY_07, m_creature);
                 }
@@ -130,13 +130,13 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
             case 14:
                 {
                 GameObject* pFireDoor = GetClosestGameObjectWithEntry(m_creature,GO_FIRE_DOOR,50.0f);
-                if(m_creature->GetMap()->GetGameObject(pFireDoor->GetGUID()))
+                if (m_creature->GetMap()->GetGameObject(pFireDoor->GetGUID()))
                     pFireDoor->SetGoState(GO_STATE_ACTIVE);
                 }
                 break;
             case 27:
                 DoScriptText(SAY_10, m_creature);
-                if(Player* pPlayer = GetPlayerForEscort())
+                if (Player* pPlayer = GetPlayerForEscort())
                 pPlayer->GroupEventHappens(QUEST_DUN_DA_DUN,m_creature);
                 break;
         }
@@ -144,9 +144,9 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
 
     void UpdateAI(const uint32 diff)
     {
-        if(m_uiSay)
+        if (m_uiSay)
         {
-            if(m_uiSayTimer <= diff)
+            if (m_uiSayTimer <= diff)
             {
                 switch(m_uiSay)
                 {
@@ -162,7 +162,7 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
                     case 3:
                         {
                         GameObject* pAdarrahsCage = GetClosestGameObjectWithEntry(m_creature,GO_ADARRAHS_CAGE,10.0f);
-                        if(m_creature->GetMap()->GetGameObject(pAdarrahsCage->GetGUID()))
+                        if (m_creature->GetMap()->GetGameObject(pAdarrahsCage->GetGUID()))
                             pAdarrahsCage->SetGoState(GO_STATE_ACTIVE);
                         m_uiSay = 4;
                         m_uiSayTimer = 1500;
@@ -206,7 +206,7 @@ struct MANGOS_DLL_DECL npc_harrisonAI : public npc_escortAI
                     case 10:
                         {
                         Creature* pTecahuna = GetClosestCreatureWithEntry(m_creature, NPC_TECAHUNA, 20.0f);
-                        if(m_creature->GetMap()->GetCreature(pTecahuna->GetGUID()))
+                        if (m_creature->GetMap()->GetCreature(pTecahuna->GetGUID()))
                             m_creature->AI()->AttackStart(pTecahuna);
                         m_uiSay = 20;
                         }
@@ -226,7 +226,7 @@ bool QuestAccept_npc_harrison(Player* pPlayer, Creature* pCreature, const Quest*
         pCreature->SetSplineFlags(SPLINEFLAG_WALKMODE);
 
         GameObject* pHarrisonsCage = GetClosestGameObjectWithEntry(pCreature,GO_HARRISONS_CAGE,5.0f);
-        if(pCreature->GetMap()->GetGameObject(pHarrisonsCage->GetGUID()))
+        if (pCreature->GetMap()->GetGameObject(pHarrisonsCage->GetGUID()))
             pHarrisonsCage->SetGoState(GO_STATE_ACTIVE);
        
         if (npc_harrisonAI* pEscortAI = ((npc_harrisonAI*)pCreature->AI()))

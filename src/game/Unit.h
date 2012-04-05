@@ -38,6 +38,8 @@
 #include "SpellMgr.h"
 #include <list>
 
+class Transport;
+
 enum SpellInterruptFlags
 {
     SPELL_INTERRUPT_FLAG_MOVEMENT     = 0x01,
@@ -160,7 +162,7 @@ enum UnitStandFlags
 enum UnitBytes1_Flags
 {
     UNIT_BYTE1_FLAG_ALWAYS_STAND = 0x01,
-    UNIT_BYTE1_FLAG_UNK_2        = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
+    UNIT_BYTE1_FLAG_FLY_ANIM     = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
     UNIT_BYTE1_FLAG_UNTRACKABLE  = 0x04,
     UNIT_BYTE1_FLAG_ALL          = 0xFF
 };
@@ -1441,6 +1443,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             return m_Auras.find(spellEffectPair(spellId, effIndex)) != m_Auras.end();
         }
         bool HasAura(uint32 spellId) const;
+        bool HasAuraOnDifficulty(uint32 spellId);
         bool HasAuras(SpellFamilyNames familyName, uint64 familyFlags) const;
 
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
@@ -1489,13 +1492,18 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendPeriodicAuraLog(SpellPeriodicAuraLogInfo *pInfo);
         void SendSpellMiss(Unit *target, uint32 spellID, SpellMissInfo missInfo);
 
-        void NearTeleportTo(float x, float y, float z, float orientation, bool casting = false);
+        void NearTeleportTo(Coords coord, float orientation, bool casting = false);
+        void NearTeleportTo(float x, float y, float z, float orientation, bool casting = false)
+        {
+            NearTeleportTo(Coords(x,y,z), orientation, casting);
+        }
+
 
         void MonsterMove(float x, float y, float z, uint32 transitTime);
         void MonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0);
         void MonsterMoveByPath(float x, float y, float z, uint32 speed, bool smoothPath = true);
-        template<typename PathElem, typename PathNode>
-        void MonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
+        template<typename PathElem, typename Coords>
+        void MonsterMoveByPath(Path<PathElem,Coords> const& path, uint32 start, uint32 end, uint32 transitTime = 0);
 
         // recommend use MonsterMove/MonsterMoveWithSpeed for most case that correctly work with movegens
         // if used additional args in ... part then floats must explicitly casted to double
@@ -1503,9 +1511,10 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime = 0, Player* player = NULL);
         void SendSplineMove(SplineWayPointMap *pWps, SplineType type, SplineFlags flags, uint32 time, Player* player, ...);
         void SendTrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time, SplineType type, ...);
-
-        template<typename PathElem, typename PathNode>
-        void SendMonsterMoveByPath(Path<PathElem,PathNode> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
+        void TrajMonsterMove(float x, float y, float z, bool knockback, float velocity, uint32 time);
+        void ChargeMonsterMove(PointPath path, SplineType type, SplineFlags flags, uint32 Time, ...);
+        template<typename PathElem, typename Coords>
+        void SendMonsterMoveByPath(Path<PathElem,Coords> const& path, uint32 start, uint32 end, SplineFlags flags, uint32 traveltime);
 
         void SendHighestThreatUpdate(HostileReference* pHostileReference);
         void SendThreatClear();
@@ -1513,6 +1522,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SendThreatUpdate();
 
         void BuildHeartBeatMsg( WorldPacket *data ) const;
+        void SendHeartBeatMsg();
 
         virtual void MoveOutOfRange(Player &) {  };
 
@@ -1796,6 +1806,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint8 GetVisibleAurasCount() { return m_visibleAuras.size(); }
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
+        Aura* GetAuraOnDifficulty(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, uint32 family, uint64 familyFlag, uint32 familyFlag2 = 0, uint64 casterGUID = 0);
 
         AuraMap      & GetAuras()       { return m_Auras; }
@@ -1826,7 +1837,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // those dummy aura links are used to provide unit target for spells with TARGET_PERIODIC_TRIGGER_AURA
         Aura* GetLinkedDummyAura(uint32 spell_id) const;
         void AddDummyAuraLink(Aura* m_Aura) { m_dummyAuraLink.push_back(m_Aura);}
-        void RemoveDummyAuraLink(Aura* m_Aura) { m_dummyAuraLink.remove(m_Aura);}
+        void RemoveDummyAuraLink(Aura* m_Aura);
 
         uint32 m_AuraFlags;
 
@@ -1985,6 +1996,17 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void AddAndLinkAura(uint32 auraId, bool apply);
         Unit* m_attacking;
+
+        // Transports
+        Transport* GetTransport() const { return m_transport; }
+        void SetTransport(Transport * t) { m_transport = t; }
+
+        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
+        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
+        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
+        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
+        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
+        int8 GetTransSeat() const { return m_movementInfo.GetTransportSeat(); }
         
     protected:
         explicit Unit ();
@@ -2037,6 +2059,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint64  m_auraUpdateMask;
         uint64 m_vehicleGUID;
         int32 m_fearDispelHp;                              // hold hp remaining to fear dispel, filled in SetFeared(), calculating in RemoveSpellbyDamageTaken()
+
+        // Transports
+        Transport *m_transport;
 
     private:
         void CleanupDeletedAuras();

@@ -71,7 +71,7 @@ enum
     ACHIEV_NERF_GRAVITY_BOMBS   = 2934,
     ACHIEV_NERF_GRAVITY_BOMBS_H = 2936,
     ACHIEV_NERF_SCRAPBOTS       = 2933,
-    ACHIEV_NERF_SCRAPBOTS_H     = 2935,
+    ACHIEV_NERF_SCRAPBOTS_H     = 2935
 };
 
 //Positional defines 
@@ -167,7 +167,7 @@ struct MANGOS_DLL_DECL mob_lifesparkAI : public ScriptedAI
         m_creature->SetHealth(m_creature->GetMaxHealth());
     }
 
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 /*diff*/)
     {
     }
 };
@@ -229,7 +229,7 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
     {
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         if (uiDamage > m_creature->GetHealth())
         {
@@ -245,7 +245,7 @@ struct MANGOS_DLL_DECL mob_boombotAI : public ScriptedAI
             DoCast(m_creature, SPELL_BOOM);
     }
 
-    void UpdateAI(const uint32 diff)
+    void UpdateAI(const uint32 /*diff*/)
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -283,30 +283,27 @@ struct MANGOS_DLL_DECL mob_xtheartAI : public ScriptedAI
         m_creature->SetHealth(m_creature->GetMaxHealth());
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         m_uiTotalDamage += uiDamage;
-        // double damage --- should work due to aura
-        //uiDamage += uiDamage;
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_XT002_HARD, IN_PROGRESS);
     }
 
     void UpdateAI(const uint32 diff)
     {
         // despawns the creature if not killed in 30 secs
-        if(m_uiDeathTimer < diff)
+        if (m_uiDeathTimer < diff)
         {
             // pass damage to boss
-            if (Creature* pTemp = ((Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_XT002))))
-            {
+            if (Creature* pTemp = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_XT002)))
                 if (pTemp->isAlive())
                     pTemp->DealDamage(pTemp, m_uiTotalDamage, NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
-            }
+
             m_creature->ForcedDespawn();
         }
         else
@@ -332,9 +329,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> m_lScrapbotsGUIDList;
-    std::list<uint64> m_lBoombotsGUIDList;
-    std::list<uint64> m_lPummelerGUIDList;
+    GuidList m_lScrapbotsGUIDList;
+    GuidList m_lBoombotsGUIDList;
+    GuidList m_lPummelerGUIDList;
 
     // spell timers
     uint32 m_uiHeart_Timer;
@@ -407,12 +404,12 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_pInstance->SetData(TYPE_XT002, FAIL);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_XT002, DONE);
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
             {
                 m_pInstance->SetData(TYPE_XT002_HARD, DONE);
                 m_creature->SummonGameobject( m_bIsRegularMode ? LOOT_XT002_HARD : LOOT_XT002_HARD_H, 
@@ -427,60 +424,53 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
 
         if (!m_lScrapbotsGUIDList.empty())
         {
-            for(std::list<uint64>::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
                 if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                     pTemp->ForcedDespawn();
         }
         if (!m_lBoombotsGUIDList.empty())
         {
-            for(std::list<uint64>::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
                 if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                     pTemp->ForcedDespawn();
         }
         if (!m_lPummelerGUIDList.empty())
         {
-            for(std::list<uint64>::iterator itr = m_lPummelerGUIDList.begin(); itr != m_lPummelerGUIDList.end(); ++itr)
+            for(GuidList::iterator itr = m_lPummelerGUIDList.begin(); itr != m_lPummelerGUIDList.end(); ++itr)
                 if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                     pTemp->ForcedDespawn();
         }
 
-        std::list<Creature*> lVoidZone;
+        CreatureList lVoidZone;
         GetCreatureListWithEntryInGrid(lVoidZone, m_creature, NPC_VOIDZONE, DEFAULT_VISIBILITY_INSTANCE);
         if (!lVoidZone.empty())
-        {
-            for(std::list<Creature*>::iterator iter = lVoidZone.begin(); iter != lVoidZone.end(); ++iter)
+            for(CreatureList::iterator iter = lVoidZone.begin(); iter != lVoidZone.end(); ++iter)
                 if (Creature* pTemp = (*iter))
                     pTemp->ForcedDespawn();
-        }
 
-        // Deconstruct Fast
-        if (uiEncounterTimer < 205000)
+
+        if (m_pInstance)
         {
-            if(m_pInstance)
+            // Deconstruct Fast
+            if (uiEncounterTimer < 205000)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_DECONSTRUCT_FAST : ACHIEV_DECONSTRUCT_FAST_H);
-        }
 
-        // Heartbreaker
-        if (m_bIsHardMode)
-        {
-            if(m_pInstance)
+            // Heartbreaker
+            if (m_bIsHardMode)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_HEARTBREAKER : ACHIEV_HEARTBREAKER_H);
-        }
 
-        // Nerf Engineer
-        if(m_bIsEngineer)
-        {
-            if(m_pInstance)
+            // Nerf Engineer
+            if (m_bIsEngineer)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_NERF_ENGINEERING : ACHIEV_NERF_ENGINEERING_H);
         }
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_XT002, IN_PROGRESS);
-            if(m_pInstance->GetData(TYPE_XT002_TP) != DONE)
+            if (m_pInstance->GetData(TYPE_XT002_TP) != DONE)
                 m_pInstance->SetData(TYPE_XT002_TP, DONE);
         }
 
@@ -495,11 +485,11 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_pInstance->SetData(TYPE_XT002_HARD, NOT_STARTED);
         }
 
-        std::list<Creature*> lVoidZone;
+        CreatureList lVoidZone;
         GetCreatureListWithEntryInGrid(lVoidZone, m_creature, NPC_VOIDZONE, DEFAULT_VISIBILITY_INSTANCE);
         if (!lVoidZone.empty())
         {
-            for(std::list<Creature*>::iterator iter = lVoidZone.begin(); iter != lVoidZone.end(); ++iter)
+            for(CreatureList::iterator iter = lVoidZone.begin(); iter != lVoidZone.end(); ++iter)
                 if (Creature* pTemp = (*iter))
                     pTemp->ForcedDespawn();
         }
@@ -509,13 +499,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
-        switch(urand(0, 1))
-        {
-        case 0: DoScriptText(SAY_SLAY_01, m_creature); break;
-        case 1: DoScriptText(SAY_SLAY_02, m_creature); break;
-        }
+        DoScriptText(urand(0,1) ? SAY_SLAY_01 : SAY_SLAY_02, m_creature);
     }
 
     void UpdateAI(const uint32 uiDiff)
@@ -531,7 +517,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             // fix spell range
             DoCast(m_creature, m_bIsRegularMode ? SPELL_LIGHT_BOMB : SPELL_LIGHT_BOMB_H);
                         
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
                 m_uiLifeSparkTimer = 9000;
 
             m_uiLight_Bomb_Timer = urand(10000, 14000);
@@ -542,7 +528,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             // fix spell range
             DoCast(m_creature, m_bIsRegularMode ? SPELL_GRAVITY_BOMB : SPELL_GRAVITY_BOMB_H);
                 
-            if(m_bIsHardMode)
+            if (m_bIsHardMode)
                 m_uiVoidZoneTimer = 9000;
 
             m_uiGravity_Bomb_Timer = urand(25000, 30000); 
@@ -567,9 +553,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         {
             if (!m_lScrapbotsGUIDList.empty())
             {
-                for(std::list<uint64>::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
+                for(GuidList::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
                 {
-                    if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                    if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                     {
                         if (pTemp->isAlive() && m_creature->IsWithinDistInMap(pTemp, ATTACK_DISTANCE))
                         {
@@ -583,9 +569,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             }
             if (!m_lBoombotsGUIDList.empty())
             {
-                for(std::list<uint64>::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
+                for(GuidList::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
                 {
-                    if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                    if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                     {
                         if (pTemp->isAlive() && m_creature->IsWithinDistInMap(pTemp, ATTACK_DISTANCE))
                             pTemp->DealDamage(pTemp, pTemp->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
@@ -609,20 +595,20 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
 
             if (!m_lScrapbotsGUIDList.empty())
             {
-                for(std::list<uint64>::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
-                    if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                for(GuidList::iterator itr = m_lScrapbotsGUIDList.begin(); itr != m_lScrapbotsGUIDList.end(); ++itr)
+                    if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                         pTemp->ForcedDespawn();
             }
             if (!m_lBoombotsGUIDList.empty())
             {
-                for(std::list<uint64>::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
-                    if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                for(GuidList::iterator itr = m_lBoombotsGUIDList.begin(); itr != m_lBoombotsGUIDList.end(); ++itr)
+                    if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                         pTemp->ForcedDespawn();
             }
             if (!m_lPummelerGUIDList.empty())
             {
-                for(std::list<uint64>::iterator itr = m_lPummelerGUIDList.begin(); itr != m_lPummelerGUIDList.end(); ++itr)
-                    if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
+                for(GuidList::iterator itr = m_lPummelerGUIDList.begin(); itr != m_lPummelerGUIDList.end(); ++itr)
+                    if (Creature* pTemp = m_pInstance->instance->GetCreature(*itr))
                         pTemp->ForcedDespawn();
             }
 
@@ -631,38 +617,15 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_bIsHardMode = true;
         }
         
-        if(m_bIsHardMode)
+        if (m_bIsHardMode)
         {
             m_bPhase2 = false;
 
-            if(m_uiHpDelayTimer < uiDiff && m_bHasMoreHealth)
+            if (m_uiHpDelayTimer < uiDiff && m_bHasMoreHealth)
             {
                 m_creature->SetHealth(m_creature->GetMaxHealth()+ (m_creature->GetMaxHealth() * m_bIsRegularMode ? 0.5 : 0.6));
                 m_bHasMoreHealth = false;
             }else m_uiHpDelayTimer -= uiDiff;
-
-            /*if (m_uiLifeSparkTimer < uiDiff)
-            {
-                Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 1);
-                if (!pTarget)
-                    pTarget = m_creature->getVictim();
-                
-                Creature* pLifeSpark = m_creature->SummonCreature(NPC_LIFESPARK, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
-                if (m_bIsRegularMode && pLifeSpark)
-                {
-                    pLifeSpark->SetMaxHealth(50400);
-                    pLifeSpark->SetHealth(pLifeSpark->GetMaxHealth());
-                }
-                m_uiLifeSparkTimer = 60000;
-            }else m_uiLifeSparkTimer -= uiDiff;*/
-
-            // Implemented in core ?
-            /*if (m_uiVoidZoneTimer < uiDiff)
-            {
-                if (Unit* pTarget = Unit::GetUnit(*m_creature, pGravityBombTarGUID))
-                    m_creature->SummonCreature(NPC_VOIDZONE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 180000);         
-                m_uiVoidZoneTimer = 60000;
-            }else m_uiVoidZoneTimer -= uiDiff;*/
         }
 
         if (!m_bPhase2 && m_creature->GetHealthPercent() < m_uiHealthPercent && !m_bIsHardMode)
@@ -689,9 +652,9 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             m_uiBoombotCount        = 0;   
             m_uiPummellerCount      = 0;
 
-            if(Creature* pHeart = m_creature->SummonCreature(NPC_HEART, 0.0f, 0.0f, 0.0f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 900000))
+            if (Creature* pHeart = m_creature->SummonCreature(NPC_HEART, 0.0f, 0.0f, 0.0f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 900000))
             {
-                if(!m_bIsRegularMode)
+                if (!m_bIsRegularMode)
                     pHeart->SetMaxHealth(7199999);
             }
         }
@@ -711,12 +674,12 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
         }else m_uiHeart_Timer -= uiDiff;
 
         //adds
-        if(m_bPhase2 && !m_bIsHardMode)
+        if (m_bPhase2 && !m_bIsHardMode)
         {
             // pummeller
-            if(m_uiPummellerTimer < uiDiff && m_uiPummellerCount < m_uiMaxPumeller)
+            if (m_uiPummellerTimer < uiDiff && m_uiPummellerCount < m_uiMaxPumeller)
             {
-                if(m_uiPummellerCount == 0)
+                if (m_uiPummellerCount == 0)
                     DoScriptText(SAY_ADDS, m_creature);
                 uint8 i = urand(0, 4);
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_PUMMELER, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
@@ -734,7 +697,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             else m_uiPummellerTimer -= uiDiff;
 
             // boombot
-            if(m_uiBoombotTimer < uiDiff && m_uiBoombotCount < m_uiMaxBoombot)
+            if (m_uiBoombotTimer < uiDiff && m_uiBoombotCount < m_uiMaxBoombot)
             {
                 uint8 i = urand(0, 4);
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_BOOMBOT, SummonLoc[i].x + urand(0, 10), SummonLoc[i].y + urand(0, 10), SummonLoc[i].z, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000))
@@ -749,7 +712,7 @@ struct MANGOS_DLL_DECL boss_xt002AI : public ScriptedAI
             else m_uiBoombotTimer -= uiDiff;
 
             // scrapbot
-            if(m_uiScrapbotTimer < uiDiff && m_uiScrapbotCount < m_uiMaxScrapbot)
+            if (m_uiScrapbotTimer < uiDiff && m_uiScrapbotCount < m_uiMaxScrapbot)
             {
                 uint8 i = urand(0, 4);
                 for(int j = 0; j < 5; j++)

@@ -677,14 +677,6 @@ bool ChatHandler::HandleGameObjectClickCommand(const char* args)
         return false;
     }
 
-    char* po = strtok(NULL, " ");
-    int iopen = po ? (int)atof(po) : 0;
-
-    if (iopen && iopen != 1)
-        return false;
-
-    bool open = iopen;
-
     obj->SetLootState(GO_READY);
 
     const char* status;
@@ -4787,10 +4779,10 @@ bool ChatHandler::HandleMmapPathCommand(const char* args)
     PSendSysMessage("Building %s", useStraightPath ? "StraightPath" : "SmoothPath");
     PSendSysMessage("length %i type %u", pointPath.size(), path.getPathType());
 
-    PathNode start = path.getStartPosition();
-    PathNode next = path.getNextPosition();
-    PathNode end = path.getEndPosition();
-    PathNode actualEnd = path.getActualEndPosition();
+    Coords start = path.getStartPosition();
+    Coords next = path.getNextPosition();
+    Coords end = path.getEndPosition();
+    Coords actualEnd = path.getActualEndPosition();
 
     PSendSysMessage("start      (%.3f, %.3f, %.3f)", start.x, start.y, start.z);
     PSendSysMessage("next       (%.3f, %.3f, %.3f)", next.x, next.y, next.z);

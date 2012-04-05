@@ -878,6 +878,17 @@ void Creature::UpdateDamagePhysical(WeaponAttackType attType)
 
     SetStatFloatValue(UNIT_FIELD_MINDAMAGE, mindamage);
     SetStatFloatValue(UNIT_FIELD_MAXDAMAGE, maxdamage);
+
+    dmg_multiplier = GetCreatureInfo()->dmg_offmultiplier;
+
+    weapon_mindamage = GetWeaponDamageRange(OFF_ATTACK, MINDAMAGE);
+    weapon_maxdamage = GetWeaponDamageRange(OFF_ATTACK, MAXDAMAGE);
+
+    mindamage = ((base_value + weapon_mindamage) * dmg_multiplier * base_pct + total_value) * total_pct;
+    maxdamage = ((base_value + weapon_maxdamage) * dmg_multiplier * base_pct + total_value) * total_pct;
+
+    SetStatFloatValue(UNIT_FIELD_MINOFFHANDDAMAGE,mindamage);
+    SetStatFloatValue(UNIT_FIELD_MAXOFFHANDDAMAGE,maxdamage);
 }
 
 /*#######################################

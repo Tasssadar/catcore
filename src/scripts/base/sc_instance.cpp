@@ -64,7 +64,10 @@ void ScriptedInstance::CloseDoor(uint64 uiGuid)
         else
             error_log("SD2: Script call CloseDoor, but gameobject entry %u is type %u.",pGo->GetEntry(),pGo->GetGoType());
     }
+    else
+        error_log("SD2: Doors with guid %u not found, cant close them !", uiGuid);
 }
+
 void ScriptedInstance::HandleDoorsByData(uint64 uiGuid, uint8 uiData)
 {
     if (uiData == IN_PROGRESS)
@@ -106,10 +109,10 @@ void ScriptedInstance::DoUpdateWorldState(uint32 uiStateId, uint32 uiStateData)
 
 void ScriptedInstance::CompleteAchievement(uint16 uiAchievementId, Player* pKiller, bool bWholeRaid)
 {
-    if(!pKiller)
+    if (!pKiller)
         return;
 
-    if(bWholeRaid && pKiller->GetGroup())
+    if (bWholeRaid && pKiller->GetGroup())
     {
         Group *pGroup = pKiller->GetGroup();
         for(GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
@@ -138,4 +141,84 @@ void ScriptedInstance::DoCompleteAchievement(uint32 uiAchievmentId)
     }
     else
         debug_log("SD2: DoCompleteAchievement attempt set data but no players in map.");
+}
+
+Creature* ScriptedInstance::GetCreature(uint32 Data)
+{
+    uint64 guid = GetData64(Data);
+    return instance ? instance->GetCreature(guid) : NULL;
+
+}
+
+GameObject* ScriptedInstance::GetGameObject(uint32 Data)
+{
+    uint64 guid = GetData64(Data);
+    return instance ? instance->GetGameObject(guid) : NULL;
+}
+
+PlrList ScriptedInstance::GetAllPlayers(bool vitalOnly)
+{
+    PlrList plr_list;
+    Map::PlayerList const &players = instance->GetPlayers();
+    if (!players.isEmpty())
+        for(Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+            if (Player* plr = i->getSource())
+                if (!vitalOnly || (plr->isAlive() && plr->IsInWorld()))
+                    plr_list.push_back(plr);
+
+    return plr_list;
+}
+
+Player* ScriptedInstance::GetRandomPlayerInMap(bool vitalOnly)
+{
+    PlrList plr_list = GetAllPlayers(vitalOnly);
+    if (plr_list.empty())
+        return NULL;
+
+    PlrList::iterator iter = plr_list.begin();
+    std::advance(iter, urand(0, plr_list.size()-1));
+    return *iter;
+}
+
+InstanceSide ScriptedInstance::GetInstanceSide()
+{
+    Map::PlayerList const &players = instance->GetPlayers();
+    if (players.isEmpty())
+        return INSTANCE_SIDE_NONE;
+
+    uint8 aliCount = 0;
+    uint8 hordeCount = 0;
+    for(Map::PlayerList::const_iterator i = players.begin(); i != players.end(); ++i)
+    {
+        if (Player* plr = i->getSource())
+        {
+            if (plr->isGameMaster())
+                continue;
+
+            switch(plr->GetTeam())
+            {
+                case ALLIANCE: ++aliCount; break;
+                case HORDE: ++hordeCount; break;
+                default: break;
+            }
+        }
+    }
+
+    if (!aliCount && !hordeCount)
+        return INSTANCE_SIDE_NONE;
+
+    if (aliCount > hordeCount)
+        return INSTANCE_SIDE_ALI;
+
+    return INSTANCE_SIDE_HORDE;
+}
+
+void ScriptedInstance::DoUpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 /*= 0*/, uint32 miscValue2 /*= 0*/, Unit* unit /*= NULL*/)
+{
+    Map::PlayerList const &PlayerList = instance->GetPlayers();
+
+    if (!PlayerList.isEmpty())
+        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            if (Player *pPlayer = i->getSource())
+                pPlayer->UpdateAchievementCriteria(type, miscValue1, miscValue2, unit);
 }

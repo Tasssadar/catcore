@@ -103,8 +103,8 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
         {
             if (group->isRaidGroup())
                 error = LFG_JOIN_MIXED_RAID_DUNGEON;
-            else if (group->GetMembersCount() == 5)
-                error = LFG_JOIN_GROUPFULL;
+            //else if (group->GetMembersCount() == 5)
+            //    error = LFG_JOIN_GROUPFULL;
             else
             {
                 Group::member_citerator citr, citr_next;
@@ -112,14 +112,14 @@ void WorldSession::HandleLfgJoinOpcode(WorldPacket& recv_data)
                 {
                     citr_next = citr;
                     ++citr_next;
-                    
+
                     Player *plr = sObjectMgr.GetPlayer(citr->guid);
                     if (!plr || !plr->GetSession())
                     {
                         error = LFG_JOIN_DISCONNECTED;
                         break;
                     }
-                    
+
                     if (plr->HasAura(LFG_DESERTER))
                         error = LFG_JOIN_PARTY_DESERTER;
                     else if (dungeonInfo->type == LFG_TYPE_RANDOM && plr->HasAura(LFG_RANDOM_COOLDOWN))
@@ -221,7 +221,7 @@ void WorldSession::HandleLfgTeleport(WorldPacket& recv_data)
     }
     //..and out
     WorldLocation teleLoc = _player->m_lookingForGroup.joinLoc;
-    if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+    if (!teleLoc.coords.isNULL())
     {
         _player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
         _player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);

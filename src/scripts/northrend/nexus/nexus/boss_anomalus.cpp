@@ -132,7 +132,7 @@ struct MANGOS_DLL_DECL boss_anomalusAI : public ScriptedAI
         m_creature->GetPosition(fPosX, fPosY, fPosZ);
         m_creature->GetRandomPoint(fPosX, fPosY, fPosZ, urand(15, 25), fPosX, fPosY, fPosZ);
 
-        Creature* pRift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, fPosX, fPosY, fPosZ, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 1000);
+        Creature* pRift = m_creature->SummonCreature(NPC_CHAOTIC_RIFT, fPosX, fPosY, fPosZ, 0, TEMPSUMMON_CORPSE_DESPAWN, 1000);
         DoScriptText(EMOTE_OPEN_RIFT, m_creature);
 
         return pRift?pRift->GetGUID():0;

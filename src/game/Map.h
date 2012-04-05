@@ -115,6 +115,10 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
 
         void PlayerRelocation(Player *, float x, float y, float z, float angl);
         void CreatureRelocation(Creature *creature, float x, float y, float z, float orientation);
+        void CreatureRelocation(Creature *creature, Coords coord, float orientation)
+        {
+            CreatureRelocation(creature, coord.x, coord.y, coord.z, orientation);
+        }
 
         template<class T, class CONTAINER> void Visit(const Cell& cell, TypeContainerVisitor<T, CONTAINER> &visitor);
 
@@ -174,10 +178,12 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         // NOTE: this duplicate of Instanceable(), but Instanceable() can be changed when BG also will be instanceable
         bool IsDungeon() const { return i_mapEntry && i_mapEntry->IsDungeon(); }
         bool IsRaid() const { return i_mapEntry && i_mapEntry->IsRaid(); }
-        bool IsRaidOrHeroicDungeon() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC; }
-        bool IsHeroicRaid10Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC; }
-        bool IsHeroicRaid25Man() const { return IsRaid() || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
-        bool IsHeroicRaid() const {return GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool IsRaidOrHeroicDungeon() const { return IsRaid() || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC; }
+        bool IsRaid10Man() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL || GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC); }
+        bool IsRaid25Man() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC); }
+        bool IsHeroicRaid10Man() const { return IsRaid() && GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC; }
+        bool IsHeroicRaid25Man() const { return IsRaid() && GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC; }
+        bool IsHeroicRaid() const { return IsRaid() && (GetDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC); }
         bool IsBattleGround() const { return i_mapEntry && i_mapEntry->IsBattleGround(); }
         bool IsBattleArena() const { return i_mapEntry && i_mapEntry->IsBattleArena(); }
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
@@ -218,11 +224,14 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         Creature* GetCreature(ObjectGuid guid);
         Vehicle* GetVehicle(ObjectGuid guid);
         Pet* GetPet(ObjectGuid guid);
+        Unit* GetUnit(ObjectGuid guid);
         Creature* GetCreatureOrPetOrVehicle(ObjectGuid guid);
         GameObject* GetGameObject(ObjectGuid guid);
         DynamicObject* GetDynamicObject(ObjectGuid guid);
         Corpse* GetCorpse(ObjectGuid guid);
         WorldObject* GetWorldObject(ObjectGuid guid);
+
+        Creature* GetCreature(uint64 guid) { return GetCreature(ObjectGuid(guid)); }
 
         TypeUnorderedMapContainer<AllMapStoredObjectTypes>& GetObjectsStore() { return m_objectsStore; }
 
@@ -361,6 +370,7 @@ class MANGOS_DLL_SPEC InstanceMap : public Map
         uint32 GetScriptId() { return i_script_id; }
         InstanceData* GetInstanceData() { return i_data; }
         void PermBindAllPlayers(Player *player);
+        void KilledCreature(Creature *creature);
         void KilledCreature(const char* name);
         void UnloadAll(bool pForce);
         bool CanEnter(Player* player);
@@ -369,6 +379,8 @@ class MANGOS_DLL_SPEC InstanceMap : public Map
 
         virtual void InitVisibilityDistance();
     private:
+        int32 GetEncounterMask(const char* name);
+
         bool m_resetAfterUnload;
         bool m_unloadWhenEmpty;
         InstanceData* i_data;

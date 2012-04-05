@@ -62,6 +62,12 @@ LfgMgr::~LfgMgr()
         delete itr->second;
 }
 
+void LfgMgr::ReloadConfig()
+{
+    m_updateQueuesBaseTime = sWorld.getConfig(CONFIG_UINT32_LFG_QUEUE_UPDATETIME);
+    log = sWorld.getConfig(CONFIG_BOOL_LFG_LOG);
+}
+
 void LfgMgr::Update(uint32 diff)
 {
     //Update queues
@@ -309,7 +315,7 @@ void LfgMgr::RemoveFromQueue(Player *player, bool updateQueue)
 
 void LfgMgr::AddCheckedGroup(LfgGroup *group, bool toQueue)
 {
-    rolecheckGroups.erase(group);
+    //rolecheckGroups.erase(group);
     if (!toQueue)
     {
         LfgLog("Group %u UpdateRoleCheck fail", group->GetId());
@@ -1104,7 +1110,7 @@ void LfgMgr::BuildRewardBlock(WorldPacket *data, uint32 dungeon, Player *plr)
     *data << uint32((plr->getLevel() == sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)) ? 0 : reward->questInfo->XPValue( plr ));
     *data << uint32(0);                                      // some "variable" money?
     *data << uint32(0);                                      // some "variable" xp?
-    
+
     ItemPrototype const *rewItem = sObjectMgr.GetItemPrototype(reward->questInfo->RewItemId[0]);   // Only first item is for dungeon finder
     if (!rewItem)
         *data << uint8(0);   // have not reward item
@@ -1202,6 +1208,8 @@ LfgLocksList* LfgMgr::GetDungeonsLock(Player *plr)
             else if ((itemId1 && !plr->HasItemCount(itemId1, 1)) || (itemId2 && !plr->HasItemCount(itemId2, 1)))
                 type = LFG_LOCKSTATUS_MISSING_ITEM;
         }
+        else if(itr->second->min_item_level && itr->second->min_item_level > plr->GetItemLevelValue(ITEM_LEVEL_AVERAGE))
+            type = LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
         //others to be done
 
         if (type != LFG_LOCKSTATUS_OK)
@@ -1290,8 +1298,8 @@ void LfgMgr::LoadDungeonsInfo()
         m_dungeonInfoMap.insert(std::make_pair<uint32, DungeonInfo*>(info->ID, info));
     }
     uint32 count = 0;
-    //                                                0   1     2           3          4        5        6        7        8
-    QueryResult *result = WorldDatabase.Query("SELECT ID, name, lastBossId, start_map, start_x, start_y, start_z, start_o, locked  FROM lfg_dungeon_info");
+    //                                                0   1     2           3          4        5        6        7        8       9
+    QueryResult *result = WorldDatabase.Query("SELECT ID, name, lastBossId, start_map, start_x, start_y, start_z, start_o, locked, min_item_level  FROM lfg_dungeon_info");
 
     if ( !result )
     {
@@ -1317,7 +1325,7 @@ void LfgMgr::LoadDungeonsInfo()
         if (!sObjectMgr.GetCreatureTemplate(fields[2].GetUInt32()) && fields[2].GetUInt32() != 0)
         {
             sLog.outErrorDb("Entry listed in 'lfg_dungeon_info' has non-exist creature_template entry %u, skipping.", fields[2].GetUInt32());
-            continue;   
+            continue;
         }
 
         itr->second->name             = fields[1].GetCppString();
@@ -1328,6 +1336,7 @@ void LfgMgr::LoadDungeonsInfo()
         itr->second->start_z          = fields[6].GetFloat();
         itr->second->start_o          = fields[7].GetFloat();
         itr->second->locked           = fields[8].GetBool();
+        itr->second->min_item_level   = fields[9].GetUInt32();
 
         ++count;
     } while( result->NextRow() );

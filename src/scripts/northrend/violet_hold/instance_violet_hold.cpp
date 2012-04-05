@@ -57,9 +57,9 @@ struct MANGOS_DLL_DECL instance_violethold : public ScriptedInstance
 
         if (Door)
         {
-            std::list<Creature*> Creatures;
+            CreatureList Creatures;
             GetCreatureListWithFactionInGrid(Creatures,Door,FACTION_VIOLET_HOLD_INVADER,1000.0f);
-            for (std::list<Creature*>::const_iterator i=Creatures.begin();i!=Creatures.end();++i)
+            for (CreatureList::const_iterator i=Creatures.begin();i!=Creatures.end();++i)
             {
                 if (CausedByWipe)
                 {
@@ -79,9 +79,9 @@ struct MANGOS_DLL_DECL instance_violethold : public ScriptedInstance
 
         if (Door)
         {
-            std::list<GameObject*> Crystals;
+            GameObjectList Crystals;
             GetGameObjectListWithEntryInGrid(Crystals,Door,193611,1000.0f);
-            for (std::list<GameObject*>::const_iterator i = Crystals.begin();i!=Crystals.end();++i)
+            for (GameObjectList::const_iterator i = Crystals.begin();i!=Crystals.end();++i)
             {
                 (*i)->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
                 (*i)->SetGoState(GO_STATE_READY);
@@ -209,9 +209,9 @@ struct MANGOS_DLL_DECL instance_violethold : public ScriptedInstance
         //set crystals to passive
         if (Door)
         {
-            std::list<GameObject*> Crystals;
+            GameObjectList Crystals;
             GetGameObjectListWithEntryInGrid(Crystals,Door,193611,1000.0f);
-            for (std::list<GameObject*>::const_iterator i = Crystals.begin();i!=Crystals.end();++i)
+            for (GameObjectList::const_iterator i = Crystals.begin();i!=Crystals.end();++i)
             {
                 (*i)->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);
                 (*i)->SetGoState(GO_STATE_ACTIVE);

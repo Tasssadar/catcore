@@ -62,7 +62,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<Creature*> m_pVapors;
+    CreatureList m_pVapors;
 
     float home[3];
     bool HardMode;
@@ -100,7 +100,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         home[1] = m_creature->GetPositionY();
         home[2] = m_creature->GetPositionZ();
 
-        if(pAnimus)
+        if (pAnimus)
             pAnimus->ForcedDespawn();
 
         pAnimus = NULL;
@@ -109,7 +109,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
 
         m_pVapors.clear();
         GetCreatureListWithEntryInGrid(m_pVapors, m_creature, NPC_SARONITE_VAPOR, 200.0f);
-        for(std::list<Creature*>::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
+        for(CreatureList::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
             (*iter)->ForcedDespawn();
 
         m_pVapors.clear();
@@ -123,14 +123,14 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
             m_pInstance->SetData(TYPE_VEZAX, FAIL);
     }
 
-    void KilledUnit(Unit *victim)
+    void KilledUnit(Unit* /*victim*/)
     {
         DoScriptText(urand(0,1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
-    void JustDied(Unit *victim)
+    void JustDied(Unit* /*killer*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_VEZAX, DONE);
             if (HardMode)
@@ -147,7 +147,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         DoScriptText(SAY_DEATH, m_creature);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         m_creature->SetInCombatWithZone();
 
@@ -175,7 +175,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
 
         GetCreatureListWithEntryInGrid(m_pVapors, m_creature, NPC_SARONITE_VAPOR, 200.0f);
 
-        for(std::list<Creature*>::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
+        for(CreatureList::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
         {
             Creature* pVapor = *iter;
             pVapor->RemoveAllAuras();
@@ -193,9 +193,9 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
     }
     void ActivateHardMode()
     {
-        if(pAnimus = m_creature->SummonCreature(NPC_SARONITE_ANIMUS, home[0], home[1], home[2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
+        if (pAnimus = m_creature->SummonCreature(NPC_SARONITE_ANIMUS, home[0], home[1], home[2], 0, TEMPSUMMON_DEAD_DESPAWN, 0))
             pAnimus->AI()->AttackStart(m_creature->getVictim());
-        for(std::list<Creature*>::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
+        for(CreatureList::iterator iter = m_pVapors.begin(); iter != m_pVapors.end(); ++iter)
             (*iter)->ForcedDespawn();
 
         DoScriptText(EMOTE_ANIMUS, m_creature);
@@ -209,32 +209,6 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         AnimusAlive = false;
         m_creature->RemoveAura(SPELL_SARONITE_BARRIER, EFFECT_INDEX_0);
         HasSaroniteBarrier = false;
-    }
-
-    Unit* TargetRandomPreferRanged()
-    {
-        Unit* target = NULL;
-        std::list<Unit*> rangedTargetList;
-        ThreatList tList = m_creature->getThreatManager().getPlayerThreatList();
-        for (ThreatList::const_iterator itr = tList.begin();itr != tList.end(); ++itr)
-        {
-            Unit* pUnit = Unit::GetUnit((*m_creature), (*itr)->getUnitGuid());
-            if (!pUnit || pUnit->GetDistance(m_creature) < 15.0f)
-                continue;
-
-            rangedTargetList.push_back(pUnit);
-        }
-        uint8 minRanged = m_bIsRegularMode ? 4 : 9;
-        if (rangedTargetList.size() >= minRanged)
-        {
-            std::list<Unit*>::iterator i = rangedTargetList.begin();
-            std::advance(i, rand() % rangedTargetList.size());
-            target = *i;
-        }
-        else
-            target = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0);
-
-        return target;
     }
 
     void DoSpawnVapors()
@@ -293,7 +267,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
             DoScriptText(EMOTE_VAPORS, m_creature);
             m_uiSummonVapors_Timer = 30*IN_MILLISECONDS;
             Vapors_Count++;
-            if(Vapors_Count == 6 && !VaporKilled)
+            if (Vapors_Count == 6 && !VaporKilled)
                 PreActivateHardMode();
         }else m_uiSummonVapors_Timer -= diff;
 
@@ -307,7 +281,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         // Shadow Crash
         if (m_uiShadowCrash_Timer < diff)
         {
-            if (Unit* target = SelectRandomPlayerPreferRanged(m_bIsRegularMode ? 4 : 9, 15))
+            if (Unit* target = SelectRandomPlayerInRange(m_bIsRegularMode ? 4 : 9, 15))
                 DoCast(target, SPELL_SHADOW_CRASH);
             m_uiShadowCrash_Timer = urand(20,25)*IN_MILLISECONDS;
         }else m_uiShadowCrash_Timer -= diff;
@@ -315,7 +289,7 @@ struct MANGOS_DLL_DECL boss_generalvezaxAI : public ScriptedAI
         // Mark Of Faceless
         if (m_uiMarkOfFaceless_Timer < diff)
         {
-            if (Unit* target = SelectRandomPlayerPreferRanged(m_bIsRegularMode ? 4 : 9, 15))
+            if (Unit* target = SelectRandomPlayerInRange(m_bIsRegularMode ? 4 : 9, 15))
                 DoCast(target, SPELL_MARK_OF_FACELESS);
             m_uiMarkOfFaceless_Timer = urand(10,45)*IN_MILLISECONDS;
         }else m_uiMarkOfFaceless_Timer -= diff;
@@ -362,14 +336,14 @@ struct MANGOS_DLL_DECL boss_saroniteanimusAI : public ScriptedAI
     {
         m_uiProfoundDarkness_Timer = IN_MILLISECONDS;
         m_creature->CastSpell(m_creature, SPELL_SARONITE_ANIMUS_FORMATION, true);
-        if (pVezax = (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX)))
+        if (pVezax = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_VEZAX)))
             if (pVezax->getVictim())
                 AttackStart(pVezax->getVictim());
     }
 
-    void JustDied(Unit *victim)
+    void JustDied(Unit* /*victim*/)
     {
-        Creature* boss = pVezax ? pVezax : (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX));
+        Creature* boss = pVezax ? pVezax : m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_VEZAX));
         if (!boss)
         {
             Map* pMap = m_creature->GetMap();
@@ -418,14 +392,14 @@ struct MANGOS_DLL_DECL npc_saronitevaporsAI : public ScriptedAI
 
     void Reset()
     {
-        pVezax = (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX));
+        pVezax = m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_VEZAX));
         m_bIsDead = false;
     }
-    void AttackStart(Unit *pWho){return;}
-    void DamageTaken(Unit* pDoneBy, uint32 &damage)
+    void AttackStart(Unit* /*pWho*/){return;}
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &damage)
     {
         // Mana regen pool
-        if(damage >= m_creature->GetHealth())
+        if (damage >= m_creature->GetHealth())
         {
             damage = 0;
             if (!m_bIsDead)
@@ -442,7 +416,7 @@ struct MANGOS_DLL_DECL npc_saronitevaporsAI : public ScriptedAI
                 m_creature->addUnitState(UNIT_STAT_DIED);
                 m_creature->CombatStop();
 
-                Creature* boss = pVezax ? pVezax : (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX));
+                Creature* boss = pVezax ? pVezax : m_creature->GetMap()->GetCreature(m_pInstance->GetData64(NPC_VEZAX));
                 if (!boss)
                 {
                     Map* pMap = m_creature->GetMap();
@@ -461,14 +435,14 @@ struct MANGOS_DLL_DECL npc_saronitevaporsAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit *victim)
+    void JustDied(Unit* /*killer*/)
     {
         Creature* boss = pVezax ? pVezax : (Creature*)Unit::GetUnit((*m_creature), m_pInstance->GetData64(NPC_VEZAX));
-        if(boss)
+        if (boss)
             ((boss_generalvezaxAI*)boss->AI())->VaporKilled = true;
     }
 
-    void UpdateAI(const uint32 diff){}
+    void UpdateAI(const uint32 /*diff*/){}
 };
 
 CreatureAI* GetAI_boss_generalvezax(Creature* pCreature)

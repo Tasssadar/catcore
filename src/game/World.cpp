@@ -795,6 +795,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_TEAM_BG_FACTION_RED, "TeamBG.Faction.Red", 2);
     setConfig(CONFIG_UINT32_TEAM_BG_BUFF_BLUE, "TeamBG.Buff.Blue", 0);
     setConfig(CONFIG_UINT32_TEAM_BG_BUFF_RED, "TeamBG.Buff.Red", 0);
+    setConfig(CONFIG_UINT32_TEAM_BG_MIN_LEVEL, "TeamBG.MinLevel", 0);
 
     //Make some maps friendly for all
     std::string factionedMapIds = sConfig.GetStringDefault("FactionedMap.Ids", "");
@@ -917,6 +918,7 @@ void World::LoadConfigSettings(bool reload)
 
     if (reload)
     {
+        sLfgMgr.ReloadConfig();
         if (dataPath!=m_dataPath)
             sLog.outError("DataDir option can't be changed at mangosd.conf reload, using current value (%s).",m_dataPath.c_str());
     }
@@ -930,10 +932,12 @@ void World::LoadConfigSettings(bool reload)
     bool enableLOS = sConfig.GetBoolDefault("vmap.enableLOS", false);
     bool enableHeight = sConfig.GetBoolDefault("vmap.enableHeight", false);
     std::string ignoreMapIds = sConfig.GetStringDefault("vmap.ignoreMapIds", "");
+    std::string ignoreLoSMapIds = sConfig.GetStringDefault("vmap.ignoreLoSMapIds", "");
     std::string ignoreSpellIds = sConfig.GetStringDefault("vmap.ignoreSpellIds", "");
     VMAP::VMapFactory::createOrGetVMapManager()->setEnableLineOfSightCalc(enableLOS);
     VMAP::VMapFactory::createOrGetVMapManager()->setEnableHeightCalc(enableHeight);
     VMAP::VMapFactory::createOrGetVMapManager()->preventMapsFromBeingUsed(ignoreMapIds.c_str());
+    VMAP::VMapFactory::createOrGetVMapManager()->preventLoSFromBeingUsed(ignoreLoSMapIds.c_str());
     VMAP::VMapFactory::preventSpellsFromBeingTestedForLoS(ignoreSpellIds.c_str());
     sLog.outString( "WORLD: VMap support included. LineOfSight:%i, getHeight:%i",enableLOS, enableHeight);
     sLog.outString( "WORLD: VMap data directory is: %svmaps",m_dataPath.c_str());
@@ -1012,6 +1016,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString( "Loading InstanceTemplate..." );
     sObjectMgr.LoadInstanceTemplate();
+
+    sLog.outString( "Loading Instance Encounters...");
+    sInstanceSaveMgr.LoadInstanceEncounters();
 
     sLog.outString( "Loading SkillLineAbilityMultiMap Data..." );
     sSpellMgr.LoadSkillLineAbilityMap();
@@ -1432,6 +1439,9 @@ void World::SetInitialWorldSettings()
     //Not sure if this can be moved up in the sequence (with static data loading) as it uses MapManager
     sLog.outString( "Loading Transports..." );
     sMapMgr.LoadTransports();
+
+    sLog.outString( "Loading Npcs on transport..." );
+    sMapMgr.LoadTransportNPCs();
 
     sLog.outString("Deleting expired bans..." );
     LoginDatabase.Execute("DELETE FROM ip_banned WHERE unbandate<=UNIX_TIMESTAMP() AND unbandate<>bandate");
@@ -2544,7 +2554,8 @@ void World::UpdateBroadCast()
 }
 void World::SpocitejRepkyCommand()
 {
-    std::list<uint32> guidy;
+    uint64 timeStart = getMSTime();
+    std::list<uint32> lowGuids;
     QueryResult *result = CharacterDatabase.PQuery("SELECT guid FROM characters WHERE level > 68");
     if (!result)
         return;
@@ -2552,39 +2563,45 @@ void World::SpocitejRepkyCommand()
     {
         Field *fields = result->Fetch();
         uint32 guid = fields[0].GetUInt32();
-        guidy.push_back(guid);
+        lowGuids.push_back(guid);
     } while (result->NextRow());
     delete result;
 
-    for(uint8 dvakrat = 0; dvakrat < 2; ++dvakrat)
-    {
-        uint32 frakce[5] = {dvakrat ? 1068 : 1067, dvakrat ? 1126 : 1064, dvakrat ? 1094 : 1085, dvakrat ? 1050 : 1124, dvakrat ? 1037 : 1052};
+    uint16 factionA[5] = { 1068, 1126, 1094, 1050, 1037};
+    uint16 factionH[5] = { 1067, 1064, 1085, 1124, 1052};
 
-        for(std::list<uint32>::iterator itr = guidy.begin(); itr != guidy.end(); ++itr)
+    for(uint8 i = 0; i < 2; ++i)
+    {
+        uint16* faction = i ? factionA : factionH;
+
+        for(std::list<uint32>::iterator itr = lowGuids.begin(); itr != lowGuids.end(); ++itr)
         {
-            int32 hodnoty[4];
+            int32 values[4];
+            bool error = false;
             for (uint32 i = 0; i < 4; ++i)
             {
-                QueryResult* result = CharacterDatabase.PQuery("SELECT standing FROM character_reputation WHERE guid = %u AND faction = %u", *itr, frakce[i]);
-                if (!result)
-                {
-                    hodnoty[i] = 0;
-                    continue;
-                }
-                Field *fields = result->Fetch();
-                hodnoty[i] = fields[0].GetUInt32();
+                QueryResult* result = CharacterDatabase.PQuery("SELECT standing FROM character_reputation WHERE guid = %u AND faction = %u", *itr, faction[i]);
+                values[i] = result ? result->Fetch()[0].GetUInt32() : 0;
+                if (error = values[i] < 0)
+                    break;
+                delete result;
             }
-            int32 soucet = 0;
-            for (uint32 i = 0; i < 4; ++i)
-                soucet += hodnoty[i];
-
-            int32 finalnihodnota = soucet/2;
-            if (finalnihodnota > 42999)
-                finalnihodnota = 42999;
-            if (finalnihodnota < 0)
+            if (error)
                 continue;
 
-            CharacterDatabase.PExecute("UPDATE character_reputation SET standing = %u WHERE guid = %u AND faction = %u", finalnihodnota, *itr, frakce[4]);
+            int32 total = 0;
+            for (uint32 i = 0; i < 4; ++i)
+                total += values[i];
+
+            int32 finalvalue = total/2;
+            if (finalvalue > 42999)
+                finalvalue = 42999;
+            if (finalvalue < 0)
+                continue;
+
+            CharacterDatabase.PExecute("UPDATE character_reputation SET standing = %u WHERE guid = %u AND faction = %u", finalvalue, *itr, faction[4]);
         }
     }
+    float secTime = float(getMSTimeDiff(timeStart, getMSTime()))/1000;
+    sLog.outCatLog("World::SpocitejRepkyCommand: Reputation of HE and AV fixed in %f seconds", secTime);
 }

@@ -911,6 +911,7 @@ enum PlayerDelayedOperations
     DELAYED_LFG_MOUNT_RESTORE   = 0x040,
     DELAYED_LFG_TAXI_RESTORE    = 0x080,
     DELAYED_LFG_CLEAR_LOCKS     = 0x100,
+    DELAYED_WYRMREST_SKYTALON   = 0x200,
     DELAYED_END
 };
 
@@ -1074,7 +1075,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool TeleportTo(WorldLocation const &loc, uint32 options = 0)
         {
-            return TeleportTo(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation, options);
+            return TeleportTo(loc.mapid, loc.x(), loc.y(), loc.z(), loc.orientation, options);
         }
 
         bool TeleportToBGEntryPoint();
@@ -1234,11 +1235,10 @@ class MANGOS_DLL_SPEC Player : public Unit
             return true;
         }
 
-        ItemLevelList GetItemLevelList(bool entire_equip = false, bool count_2h_twice = true);
-        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
-        uint32 GetMaxItemLevel();
-        uint32 GetMinItemLevel();
-        uint32 GetGroupOrPlayerAverageItemLevel() const;
+        ItemLevelList GetItemLevelList(uint32 slot = ITEM_LEVEL_WA, bool count_2h_twice = true);
+        uint32 GetItemLevelValue(uint8 value, uint8 slot = ITEM_LEVEL_WA) const { return m_itemlevel[value][slot]; }
+        uint32 GetGroupOrPlayerItemLevelValue(uint8 value, uint8 slot = ITEM_LEVEL_WA) const;
+        void SetItemLevelValues(uint8 slot, uint32& total, uint32& totalaverage, uint32& minimum, uint32& maximum);
 
         uint8 CanStoreItem( uint8 bag, uint8 slot, ItemPosCountVec& dest, Item *pItem, bool swap = false ) const
         {
@@ -2265,17 +2265,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         ObjectGuid const& GetFarSightGuid() const { return GetGuidValue(PLAYER_FARSIGHT); }
 
-        // Transports
-        Transport * GetTransport() const { return m_transport; }
-        void SetTransport(Transport * t) { m_transport = t; }
-
-        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
-        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
-        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
-        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
-        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
-        int8 GetTransSeat() const { return m_movementInfo.GetTransportSeat(); }
-
         uint32 GetSaveTimer() const { return m_nextSave; }
         void   SetSaveTimer(uint32 timer) { m_nextSave = timer; }
 
@@ -2432,6 +2421,10 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void ModifyMatchmakerRating(int32 mod, uint8 slot);
         uint32 GetMatchmakerRating(uint8 slot) const { return m_matchmaker_rating[slot]; }
+
+        uint32 TalentsInSpec(TalentSpec spec);
+        TalentSpec GetMainSpec();
+        TalentSpec GetMainSpec(TalentSpec spec1, TalentSpec spec2, TalentSpec spec3);
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2536,9 +2529,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;
 
-        void SetItem(Item* item, uint8 slot);
-        void BuildAverageItemLevel();
-        uint32 m_aitemlevel;
+        void SetItem(Item* item, uint8 slot, bool updateItemLevelValues = true);
+
+        void BuildItemLevelValues();
+        uint32 m_itemlevel[ITEM_LEVEL_TYPE_MAX][ITEM_LEVEL_SLOT_MAX];
 
         uint32 m_team;
         uint32 m_nextSave;
@@ -2640,9 +2634,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         float m_rest_bonus;
         RestType rest_type;
         ////////////////////Rest System/////////////////////
-
-        // Transports
-        Transport * m_transport;
 
         uint32 m_resetTalentsCost;
         time_t m_resetTalentsTime;

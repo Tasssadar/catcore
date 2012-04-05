@@ -171,7 +171,7 @@ bool Group::LoadMemberFromDB(uint32 guidLow, uint8 subgroup, bool assistant)
     member.group     = subgroup;
     member.assistant = assistant;
     m_memberSlots.push_back(member);
-    UpdateAverageItemLevel();
+    UpdateItemLevelValues();
 
     SubGroupCounterIncrease(subgroup);
     //set role in lfg group
@@ -1144,7 +1144,7 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
     member.group     = group;
     member.assistant = isAssistant;
     m_memberSlots.push_back(member);
-    UpdateAverageItemLevel();
+    UpdateItemLevelValues();
 
     if(!isLfgGroup())
         SubGroupCounterIncrease(group);
@@ -1202,7 +1202,7 @@ bool Group::_removeMember(const uint64 &guid)
                 player->SpawnCorpseBones();
             }
             WorldLocation teleLoc = player->m_lookingForGroup.joinLoc;
-            if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+            if (!teleLoc.coords.isNULL())
             {
                 player->ScheduleDelayedOperation(DELAYED_LFG_MOUNT_RESTORE);
                 player->ScheduleDelayedOperation(DELAYED_LFG_TAXI_RESTORE);
@@ -1237,7 +1237,7 @@ bool Group::_removeMember(const uint64 &guid)
             SubGroupCounterDecrease(slot->group);
 
         m_memberSlots.erase(slot);
-        UpdateAverageItemLevel();
+        UpdateItemLevelValues();
     }
 
     if (!isBGGroup())
@@ -1898,14 +1898,30 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
     }
 }
 
-void Group::UpdateAverageItemLevel()
+void Group::UpdateItemLevelValues()
 {
-    uint32 total_value = 0;
-    for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
-        if (Player* player = sObjectMgr.GetPlayer(citr->guid))
-            total_value += player->GetAverageItemLevel();
+    for (uint8 slot = 0; slot < ITEM_LEVEL_SLOT_MAX; ++slot)
+    {
+        uint32 averagetotal = 0;
+        uint32 totalvalue = 0;
+        uint32 minvalue = 999;
+        uint32 maxvalue = 0;
 
-    m_aitemlevel = GetMembersCount() ? total_value/GetMembersCount() : 0;
+        if (m_memberSlots.empty())
+            return;
+
+        for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+            if (Player* player = sObjectMgr.GetPlayer(citr->guid))
+                player->SetItemLevelValues(slot, totalvalue, averagetotal, minvalue, maxvalue);
+
+
+        if (averagetotal)
+            m_itemlevel[ITEM_LEVEL_AVERAGE][slot] = averagetotal/GetMembersCount();
+
+        m_itemlevel[ITEM_LEVEL_TOTAL][slot] = totalvalue;
+        m_itemlevel[ITEM_LEVEL_MINIMUM][slot] = minvalue;
+        m_itemlevel[ITEM_LEVEL_MAXIMUM][slot] = maxvalue;
+    }
 }
 
 uint32 Group::GetAverageMMR(uint8 slot)

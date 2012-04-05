@@ -264,7 +264,7 @@ void Log::Initialize()
     arenaLogfile= openLogFile("ArenaRatedLogFile",NULL,"a");
     lfgLogFile  = openLogFile("LfgLogFile","LfgLogTimestamp","a");
     bossLogFile = openLogFile("BossLogFile",NULL,"a");
-    catLogFile  = openLogFile("CatLogFile",NULL,"a");
+    catLogFile  = openLogFile("CatLogFile","CatLogTimestamp","a");
 
     // Main log file settings
     m_includeTime  = sConfig.GetBoolDefault("LogTime", false);
@@ -990,4 +990,18 @@ void error_db_log(const char * str, ...)
     va_end(ap);
 
     sLog.outErrorDb("%s", buf);
+}
+
+void cat_log(const char * str, ...)
+{
+    if (!str)
+        return;
+
+    char buf[256];
+    va_list ap;
+    va_start(ap, str);
+    vsnprintf(buf,256, str, ap);
+    va_end(ap);
+
+    sLog.outCatLog("%s", buf);
 }

@@ -331,6 +331,8 @@ struct MANGOS_DLL_DECL instance_blackrock_depths : public ScriptedInstance
                 return m_uiSpectralChaliceGUID;
             case DATA_GO_TOMB_EXIT:
                 return m_uiGoTombExitGUID;
+            case GO_SHADOW_GIANT_DOOR:
+                return m_uiGoShadowGiantGUID;
         }
         return 0;
     }

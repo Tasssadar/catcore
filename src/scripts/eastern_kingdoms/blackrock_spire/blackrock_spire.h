@@ -64,8 +64,8 @@ class MANGOS_DLL_DECL instance_blackrock_spire : public ScriptedInstance
         void Load(const char* chrIn);
 
         void DoSortRoomEventMobs();
-        void GetIncanceratorGUIDList(std::list<uint64> &lList) { lList = m_lIncanceratorGUIDList; }
-        void GetRookeryEggGUIDList(std::list<uint64> &lList) { lList = m_lRookeryEggGUIDList; }
+        void GetIncanceratorGUIDList(GuidList &lList) { lList = m_lIncanceratorGUIDList; }
+        void GetRookeryEggGUIDList(GuidList &lList) { lList = m_lRookeryEggGUIDList; }
 
     protected:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
@@ -84,10 +84,10 @@ class MANGOS_DLL_DECL instance_blackrock_spire : public ScriptedInstance
         uint64 m_uiGythExitDoorGUID;
 
         uint64 m_auiRoomRuneGUID[MAX_ROOMS];
-        std::list<uint64> m_alRoomEventMobGUIDSorted[MAX_ROOMS];
-        std::list<uint64> m_lRoomEventMobGUIDList;
-        std::list<uint64> m_lIncanceratorGUIDList;
-        std::list<uint64> m_lRookeryEggGUIDList;
+        GuidList m_alRoomEventMobGUIDSorted[MAX_ROOMS];
+        GuidList m_lRoomEventMobGUIDList;
+        GuidList m_lIncanceratorGUIDList;
+        GuidList m_lRookeryEggGUIDList;
 };
 
 #endif

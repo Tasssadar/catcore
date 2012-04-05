@@ -145,20 +145,20 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
 
     void Despawnall()
     {
-        std::list<Creature*> m_pSmall;
+        CreatureList m_pSmall;
         GetCreatureListWithEntryInGrid(m_pSmall, m_creature, NPC_SMALL_SPAWN, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pSmall.empty())
-            for(std::list<Creature*>::iterator itr = m_pSmall.begin(); itr != m_pSmall.end(); ++itr)
+            for(CreatureList::iterator itr = m_pSmall.begin(); itr != m_pSmall.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }
 
-        std::list<Creature*> m_pGuard;
+        CreatureList m_pGuard;
         GetCreatureListWithEntryInGrid(m_pGuard, m_creature, NPC_CRYPT_GUARD, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pGuard.empty())
-            for(std::list<Creature*>::iterator iter = m_pGuard.begin(); iter != m_pGuard.end(); ++iter)
+            for(CreatureList::iterator iter = m_pGuard.begin(); iter != m_pGuard.end(); ++iter)
             {
                 (*iter)->ForcedDespawn();
             }
@@ -166,7 +166,7 @@ struct MANGOS_DLL_DECL boss_anubrekhanAI : public ScriptedAI
     void StartSummonGuard()
     {
         m_creature->SummonCreature(NPC_CRYPT_GUARD, 3307, -3465, 287, 3.5, TEMPSUMMON_CORPSE_DESPAWN, 0);
-        if(!m_bIsRegularMode)
+        if (!m_bIsRegularMode)
             m_creature->SummonCreature(NPC_CRYPT_GUARD, 3304, -3490, 287, 2.5, TEMPSUMMON_CORPSE_DESPAWN, 0);
         
     }

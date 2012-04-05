@@ -87,6 +87,8 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
     void OnPlayerEnter(Player *player)
     {
         SendLightOverride(player);
+        if(m_auiEncounter[0] == DONE)
+            player->ScheduleDelayedOperation(DELAYED_WYRMREST_SKYTALON);
     } 
 
     bool IsEncounterInProgress() const
@@ -112,7 +114,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
                 m_uiCurrentLight = uiData;
                 //Send packet to all players
                 const Map::PlayerList &players = instance->GetPlayers();
-                if(players.isEmpty())
+                if (players.isEmpty())
                     break;
                 for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
                     SendLightOverride(itr->getSource());
@@ -120,7 +122,7 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         }
         OUT_SAVE_INST_DATA;
         std::ostringstream saveStream;
-        saveStream << m_auiEncounter[0] << " " << m_uiOutroCheck;
+        saveStream << m_auiEncounter[0] << " " << m_uiOutroCheck << " ";
 
         strInstData = saveStream.str();
         SaveToDB();
@@ -178,9 +180,10 @@ struct MANGOS_DLL_DECL instance_eye_of_eternity : public ScriptedInstance
         }
         return 0;
     }
+    
     void SendLightOverride(Player *target)
     {
-        if(!target || !target->GetSession())
+        if (!target || !target->GetSession())
             return;
 
         WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);

@@ -29,12 +29,12 @@ PathInfo::PathInfo(const Unit* owner, const float destX, const float destY, cons
     m_polyLength(0), m_type(PATHFIND_BLANK), m_useStraightPath(useStraightPath),
     m_sourceUnit(owner), m_navMesh(NULL), m_navMeshQuery(NULL)
 {
-    PathNode endPoint(destX, destY, destZ);
+    Coords endPoint(destX, destY, destZ);
     setEndPosition(endPoint);
 
     float x,y,z;
     m_sourceUnit->GetPosition(x, y, z);
-    PathNode startPoint(x, y, z);
+    Coords startPoint(x, y, z);
     setStartPosition(startPoint);
 
     DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathInfo::PathInfo for %u \n", m_sourceUnit->GetGUID());
@@ -67,14 +67,11 @@ PathInfo::~PathInfo()
 
 bool PathInfo::Update(const float destX, const float destY, const float destZ, bool useStraightPath)
 {
-    PathNode newDest(destX, destY, destZ);
-    PathNode oldDest = getEndPosition();
+    Coords newDest(destX, destY, destZ);
+    Coords oldDest = getEndPosition();
     setEndPosition(newDest);
 
-    float x, y, z;
-    m_sourceUnit->GetPosition(x, y, z);
-    PathNode newStart(x, y, z);
-    PathNode oldStart = getStartPosition();
+    Coords newStart = m_sourceUnit->GetPosition();
     setStartPosition(newStart);
 
     m_useStraightPath = useStraightPath;
@@ -182,7 +179,7 @@ dtPolyRef PathInfo::getPolyByLocation(const float* point, float *distance)
     return INVALID_POLYREF;
 }
 
-void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
+void PathInfo::BuildPolyPath(Coords startPos, Coords endPos)
 {
     // *** getting start/end poly logic ***
 
@@ -216,7 +213,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
         {
             Creature* owner = (Creature*)m_sourceUnit;
 
-            PathNode p = (distToStartPoly > 7.0f) ? startPos : endPos;
+            Coords p = (distToStartPoly > 7.0f) ? startPos : endPos;
             if (m_sourceUnit->GetTerrain()->IsUnderWater(p.x, p.y, p.z))
             {
                 DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: underWater case\n");
@@ -244,7 +241,7 @@ void PathInfo::BuildPolyPath(PathNode startPos, PathNode endPos)
             if (DT_SUCCESS == m_navMeshQuery->closestPointOnPoly(endPoly, endPoint, closestPoint))
             {
                 dtVcopy(endPoint, closestPoint);
-                setActualEndPosition(PathNode(endPoint[2],endPoint[0],endPoint[1]));
+                setActualEndPosition(Coords(endPoint[2],endPoint[0],endPoint[1]));
             }
 
             m_type = PATHFIND_INCOMPLETE;
@@ -457,7 +454,7 @@ void PathInfo::BuildPointPath(float *startPoint, float *endPoint)
 
     m_pathPoints.resize(pointCount);
     for (uint32 i = 0; i < pointCount; ++i)
-        m_pathPoints.set(i, PathNode(pathPoints[i*VERTEX_SIZE+2], pathPoints[i*VERTEX_SIZE], pathPoints[i*VERTEX_SIZE+1]));
+        m_pathPoints.set(i, Coords(pathPoints[i*VERTEX_SIZE+2], pathPoints[i*VERTEX_SIZE], pathPoints[i*VERTEX_SIZE+1]));
 
     // first point is always our current location - we need the next one
     setNextPosition(m_pathPoints[1]);

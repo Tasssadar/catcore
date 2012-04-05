@@ -420,8 +420,6 @@ UpdateMask Player::updateVisualBits;
 
 Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputationMgr(this), m_mover(this), m_camera(this)
 {
-    m_transport = 0;
-
     m_speakTime = 0;
     m_speakCount = 0;
 
@@ -618,6 +616,10 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
 
     for(uint8 i = 0; i < MAX_ARENA_SLOT; ++i)
         m_matchmaker_rating[i] = 1500;
+
+    for(uint8 type = 0; type < ITEM_LEVEL_TYPE_MAX; ++type)
+        for(uint8 slot = 0; slot < ITEM_LEVEL_SLOT_MAX; ++slot)
+            m_itemlevel[type][slot] = 0;
 }
 
 Player::~Player ()
@@ -1247,11 +1249,6 @@ void Player::Update( uint32 p_time )
         setAttackTimer(RANGED_ATTACK, (p_time >= ranged_att ? 0 : ranged_att - p_time) );
     }
 
-    if (uint32 off_att = getAttackTimer(OFF_ATTACK))
-    {
-        setAttackTimer(OFF_ATTACK, (p_time >= off_att ? 0 : off_att - p_time) );
-    }
-
     UpdatePvPFlag(now);
 
     UpdateContestedPvP(p_time);
@@ -1795,6 +1792,8 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         DEBUG_LOG("Player %s is being teleported to map %u", GetName(), mapid);
     }
 
+    ExitVehicle();
+
     // if we were on a transport, leave
     if (!(options & TELE_TO_NOT_LEAVE_TRANSPORT) && m_transport)
     {
@@ -1802,7 +1801,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         m_transport = NULL;
         m_movementInfo.ClearTransportData();
     }
-    ExitVehicle();
 
     // The player was ported to another map and looses the duel immediately.
     // We have to perform this check before the teleport, otherwise the
@@ -2090,6 +2088,20 @@ void Player::ProcessDelayedOperations()
     {
         sLfgMgr.SendLfgUpdatePlayer(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
         sLfgMgr.SendLfgUpdateParty(this, LFG_UPDATETYPE_CLEAR_LOCK_LIST);
+    }
+
+    if(m_DelayedOperations & DELAYED_WYRMREST_SKYTALON)
+    {
+         if (Vehicle *pTemp = SummonVehicle(30161, GetPositionX(), GetPositionY(), GetPositionZ(), 0))
+         {
+
+            EnterVehicle(pTemp, 0, false);
+
+            uint32 health = ((Creature*)pTemp)->GetHealth() + (GetMaxHealth()*2); // may be wrong
+            ((Creature*)pTemp)->SetCreatorGUID(GetGUID());
+            ((Creature*)pTemp)->SetMaxHealth(health);
+            ((Creature*)pTemp)->SetHealth(health);
+         }
     }
 
     //we have executed ALL delayed ops, so clear the flag
@@ -8312,9 +8324,12 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
                 permission = NONE_PERMISSION;
             break;
         }
+        case HIGHGUID_VEHICLE:
         case HIGHGUID_UNIT:
         {
             Creature *creature = GetMap()->GetCreature(guid);
+            if(guid.GetHigh() == HIGHGUID_VEHICLE)
+                creature = GetMap()->GetVehicle(guid);
 
             // must be in range and creature must be alive for pickpocket and must be dead for another loot
             if (!creature || creature->isAlive()!=(loot_type == LOOT_PICKPOCKETING) || !creature->IsWithinDistInMap(this,INTERACTION_DISTANCE))
@@ -12560,7 +12575,7 @@ void Player::RemoveItemFromBuyBackSlot( uint32 slot, bool del )
 void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid /*= 0*/ ) const
 {
     DEBUG_LOG( "WORLD: Sent SMSG_INVENTORY_CHANGE_FAILURE (%u)", msg);
-    WorldPacket data(SMSG_INVENTORY_CHANGE_FAILURE, 1+8+8+1);
+    WorldPacket data(SMSG_INVENTORY_CHANGE_FAILURE, 38);
     data << uint8(msg);
 
     if (msg != EQUIP_ERR_OK)
@@ -12590,7 +12605,10 @@ void Player::SendEquipError( uint8 msg, Item* pItem, Item *pItem2, uint32 itemid
             case EQUIP_ERR_ITEM_MAX_LIMIT_CATEGORY_EQUIPPED_EXCEEDED_IS:
             {
                 ItemPrototype const* proto = pItem ? pItem->GetProto() : sObjectMgr.GetItemPrototype(itemid);
-                data << uint32(proto ? proto->ItemLimitCategory : 0);
+                uint32 limitCat = 2; // if we send 0, client crashes
+                if(proto && proto->ItemLimitCategory != 0)
+                    limitCat = proto->ItemLimitCategory;
+                data << uint32(limitCat);
                 break;
             }
             default:
@@ -15689,9 +15707,11 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if (m_items[slot])
         {
             delete m_items[slot];
-            SetItem(NULL,slot);
+            SetItem(NULL,slot,false);
         }
     }
+
+    BuildItemLevelValues();
 
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "Load Basic value of player %s is: ", m_name.c_str());
     outDebugStatsValues();
@@ -15800,7 +15820,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
             // move to bg enter point
             const WorldLocation& _loc = GetBattleGroundEntryPoint();
             SetLocationMapId(_loc.mapid);
-            Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
+            Relocate(_loc.x(), _loc.y(), _loc.z(), _loc.orientation);
 
             // We are not in BG anymore
             m_bgData.bgInstanceID = 0;
@@ -15815,7 +15835,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         {
             const WorldLocation& _loc = GetBattleGroundEntryPoint();
             SetLocationMapId(_loc.mapid);
-            Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
+            Relocate(_loc.x(), _loc.y(), _loc.z(), _loc.orientation);
         }
     }
 
@@ -17505,9 +17525,9 @@ void Player::SaveToDB()
     {
         ss << GetTeleportDest().mapid << ", "
         << (uint32)GetDungeonDifficulty() << ", "
-        << finiteAlways(GetTeleportDest().coord_x) << ", "
-        << finiteAlways(GetTeleportDest().coord_y) << ", "
-        << finiteAlways(GetTeleportDest().coord_z) << ", "
+        << finiteAlways(GetTeleportDest().x()) << ", "
+        << finiteAlways(GetTeleportDest().y()) << ", "
+        << finiteAlways(GetTeleportDest().z()) << ", "
         << finiteAlways(GetTeleportDest().orientation) << ", ";
     }
 
@@ -22824,7 +22844,7 @@ void Player::_SaveBGData()
     {
         /* guid, bgInstanceID, bgTeam, x, y, z, o, map, taxi[0], taxi[1], mountSpell */
         CharacterDatabase.PExecute("INSERT INTO character_battleground_data VALUES ('%u', '%u', '%u', '%f', '%f', '%f', '%f', '%u', '%u', '%u', '%u', '%u')",
-            GetGUIDLow(), m_bgData.bgInstanceID, m_bgData.bgTeam, m_bgData.joinPos.coord_x, m_bgData.joinPos.coord_y, m_bgData.joinPos.coord_z,
+            GetGUIDLow(), m_bgData.bgInstanceID, m_bgData.bgTeam, m_bgData.joinPos.x(), m_bgData.joinPos.y(), m_bgData.joinPos.z(),
             m_bgData.joinPos.orientation, m_bgData.joinPos.mapid, m_bgData.taxiPath[0], m_bgData.taxiPath[1], m_bgData.mountSpell, m_fakeTeam);
     }
 }
@@ -23110,9 +23130,9 @@ void Player::SetHomebindToLocation(WorldLocation const& loc, uint32 area_id)
 {
     m_homebindMapId = loc.mapid;
     m_homebindAreaId = area_id;
-    m_homebindX = loc.coord_x;
-    m_homebindY = loc.coord_y;
-    m_homebindZ = loc.coord_z;
+    m_homebindX = loc.x();
+    m_homebindY = loc.y();
+    m_homebindZ = loc.z();
 
     // update sql homebind
     CharacterDatabase.PExecute("UPDATE character_homebind SET map = '%u', zone = '%u', position_x = '%f', position_y = '%f', position_z = '%f' WHERE guid = '%u'",
@@ -23246,76 +23266,103 @@ uint32 Player::GetBGLoseExtraHonor()
     return MaNGOS::Honor::hk_honor_at_level(getLevel(), 5);
 }
 
-ItemLevelList Player::GetItemLevelList(bool entire_equip, bool count_2h_twice)
+ItemLevelList Player::GetItemLevelList(uint32 slot, bool count_2h_twice)
 {
     ItemLevelList list;
     for(uint16 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
     {
-        if (!entire_equip && (i == EQUIPMENT_SLOT_BODY || i == EQUIPMENT_SLOT_TABARD))
+        bool isItemCountable = false;
+        switch(slot)
+        {
+            case ITEM_LEVEL_WEAPON:
+                if (EQUIPMENT_SLOT_MAINHAND <= i && i <= EQUIPMENT_SLOT_RANGED)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_ARMOR:
+                if (EQUIPMENT_SLOT_HEAD <= i && i <= EQUIPMENT_SLOT_BACK && i != EQUIPMENT_SLOT_BODY)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_WA:
+                if (EQUIPMENT_SLOT_HEAD <= i && i <= EQUIPMENT_SLOT_RANGED && i != EQUIPMENT_SLOT_BODY)
+                    isItemCountable = true;
+                break;
+            case ITEM_LEVEL_ALL:
+                isItemCountable = true;
+                break;
+            default:
+                break;
+        }
+        if (!isItemCountable)
             continue;
 
-        uint32 itemlevel = 0;
         Item *item = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (!item)
-            continue;
+        uint32 itemlevel = item ? item->GetProto()->ItemLevel : 0;
 
-        itemlevel = item->GetProto()->ItemLevel;
-        if (count_2h_twice && !itemlevel && i == EQUIPMENT_SLOT_OFFHAND)
+        if (i == EQUIPMENT_SLOT_OFFHAND && count_2h_twice && !itemlevel)
             if (Item* mainHand = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
                 if (mainHand->GetProto()->InventoryType == INVTYPE_2HWEAPON)
                     itemlevel = mainHand->GetProto()->ItemLevel;
 
         list.push_back(itemlevel);
     }
+
     return list;
 }
 
-void Player::BuildAverageItemLevel()
+void Player::BuildItemLevelValues()
 {
-    uint32 totalvalue = 0;
+    for (uint8 slot = 0; slot < ITEM_LEVEL_SLOT_MAX; ++slot)
+    {
+        uint32 totalvalue = 0;
+        uint32 minvalue = 0;
+        uint32 maxvalue = 0;
 
-    ItemLevelList list = GetItemLevelList();
-    if (!list.empty())
+        ItemLevelList list = GetItemLevelList(slot);
+        if (list.empty())
+            return;
+
         for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
+        {
             totalvalue += *itr;
+            if (!minvalue || minvalue > *itr)
+                minvalue = *itr;
+            if (maxvalue < *itr)
+                maxvalue = *itr;
+        }
 
-    m_aitemlevel = totalvalue ? totalvalue/list.size() : totalvalue;
+
+        if (totalvalue)
+            m_itemlevel[ITEM_LEVEL_AVERAGE][slot] = totalvalue/list.size();
+
+        m_itemlevel[ITEM_LEVEL_TOTAL][slot] = totalvalue;
+        m_itemlevel[ITEM_LEVEL_MINIMUM][slot] = minvalue;
+        m_itemlevel[ITEM_LEVEL_MAXIMUM][slot] = maxvalue;
+    }
 
     if (GetGroup())
-        GetGroup()->UpdateAverageItemLevel();
+        GetGroup()->UpdateItemLevelValues();
 }
 
-uint32 Player::GetMaxItemLevel()
+uint32 Player::GetGroupOrPlayerItemLevelValue(uint8 value, uint8 slot) const
 {
-    uint32 maxvalue = 0;
-    ItemLevelList list = GetItemLevelList();
-    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
-        if (*itr > maxvalue)
-            maxvalue = *itr;
-
-    return maxvalue;
+    return GetGroup() ? GetGroup()->GetItemLevelValue(value, slot) : GetItemLevelValue(value, slot);
 }
 
-uint32 Player::GetMinItemLevel()
+void Player::SetItemLevelValues(uint8 slot, uint32 &total, uint32 &totalaverage, uint32 &minimum, uint32 &maximum)
 {
-    uint32 minvalue = 0;
-    ItemLevelList list = GetItemLevelList();
-    for(ItemLevelList::iterator itr = list.begin(); itr != list.end(); ++itr)
-        if (*itr < minvalue)
-            minvalue = *itr;
-
-    return minvalue;
+    total += m_itemlevel[ITEM_LEVEL_TOTAL][slot];
+    totalaverage += m_itemlevel[ITEM_LEVEL_AVERAGE][slot];
+    if (minimum > m_itemlevel[ITEM_LEVEL_MINIMUM][slot])
+        minimum = m_itemlevel[ITEM_LEVEL_MINIMUM][slot];
+    if (maximum < m_itemlevel[ITEM_LEVEL_MAXIMUM][slot])
+        maximum = m_itemlevel[ITEM_LEVEL_MAXIMUM][slot];
 }
 
-uint32 Player::GetGroupOrPlayerAverageItemLevel() const
-{
-    return GetGroup() ? GetGroup()->GetAverageItemLevel() : m_aitemlevel;
-}
-
-void Player::SetItem(Item* item, uint8 slot)
+void Player::SetItem(Item *item, uint8 slot, bool updateItemLevelValues)
 {
     m_items[slot] = item;
-    BuildAverageItemLevel();
+    if (updateItemLevelValues)
+        BuildItemLevelValues();
 }
 
 void Player::_LoadMMR(const char *data)
@@ -23348,4 +23395,58 @@ void Player::ModifyMatchmakerRating(int32 mod, uint8 slot)
         m_matchmaker_rating[slot] = 1000;
     else
         m_matchmaker_rating[slot] += mod;
+}
+
+uint32 Player::TalentsInSpec(TalentSpec spec)
+{
+    uint32 talentsInSpec = 0;
+    for (PlayerTalentMap::iterator iter = m_talents[m_activeSpec].begin(); iter != m_talents[m_activeSpec].end(); ++iter)
+    {
+        if (iter->second.state == PLAYERSPELL_REMOVED)
+            continue;
+
+        if (TalentEntry const *talentInfo = iter->second.m_talentEntry)
+            if (talentInfo->TalentTab == spec)
+                talentsInSpec += iter->second.currentRank+1;
+    }
+
+    return talentsInSpec;
+}
+
+TalentSpec Player::GetMainSpec()
+{
+    switch (getClass())
+    {
+        case CLASS_WARRIOR:     return GetMainSpec(TALENT_SPEC_WARRIOR_ARMS, TALENT_SPEC_WARRIOR_PROTECTION, TALENT_SPEC_WARRIOR_FURY);
+        case CLASS_PALADIN:     return GetMainSpec(TALENT_SPEC_PALADIN_RETRIBUTION, TALENT_SPEC_PALADIN_HOLY, TALENT_SPEC_PALADIN_PROTECTION);
+        case CLASS_HUNTER:      return GetMainSpec(TALENT_SPEC_HUNTER_BEAST_MASTERY, TALENT_SPEC_HUNTER_SURVIVAL, TALENT_SPEC_HUNTER_MARKSMANSHIP);
+        case CLASS_ROGUE:       return GetMainSpec(TALENT_SPEC_ROGUE_COMBAT, TALENT_SPEC_ROGUE_ASSASSINATION, TALENT_SPEC_ROGUE_SUBTLETY);
+        case CLASS_PRIEST:      return GetMainSpec(TALENT_SPEC_PRIEST_DISCIPLINE, TALENT_SPEC_PRIEST_HOLY, TALENT_SPEC_PRIEST_SHADOW);
+        case CLASS_DEATH_KNIGHT:return GetMainSpec(TALENT_SPEC_DEATH_KNIGHT_BLOOD, TALENT_SPEC_DEATH_KNIGHT_FROST, TALENT_SPEC_DEATH_KNIGHT_UNHOLY);
+        case CLASS_SHAMAN:      return GetMainSpec(TALENT_SPEC_SHAMAN_ELEMENTAL, TALENT_SPEC_SHAMAN_RESTORATION, TALENT_SPEC_SHAMAN_ENHANCEMENT);
+        case CLASS_MAGE:        return GetMainSpec(TALENT_SPEC_MAGE_FIRE, TALENT_SPEC_MAGE_FROST, TALENT_SPEC_MAGE_ARCANE);
+        case CLASS_WARLOCK:     return GetMainSpec(TALENT_SPEC_WARLOCK_DESTRUCTION, TALENT_SPEC_WARLOCK_AFFLICTION, TALENT_SPEC_WARLOCK_DEMONTOLOGY);
+        case CLASS_DRUID:       return GetMainSpec(TALENT_SPEC_DRUID_FERAL_COMBAT, TALENT_SPEC_DRUID_RESTORATION, TALENT_SPEC_DRUID_BALANCE);
+        default:                return TALENT_SPEC_NO_SPEC;
+    }
+}
+
+TalentSpec Player::GetMainSpec(TalentSpec spec1, TalentSpec spec2, TalentSpec spec3)
+{
+    uint32 p1 = TalentsInSpec(spec1);
+    uint32 p2 = TalentsInSpec(spec2);
+    uint32 p3 = TalentsInSpec(spec3);
+
+    if (!p1 && !p2 && !p3)
+        return TALENT_SPEC_NO_SPEC;
+
+    if (p1 >= p2 && p1 >= p3)
+        return spec1;
+    else if (p2 >= p1 && p2 >= p3)
+        return spec2;
+    else if (p3 >= p1 && p3 >= p2)
+        return spec3;
+
+    ASSERT(false);
+    return TALENT_SPEC_NO_SPEC;
 }

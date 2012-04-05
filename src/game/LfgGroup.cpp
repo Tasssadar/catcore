@@ -106,6 +106,7 @@ LfgGroup::LfgGroup(bool premade, bool mixed) : Group()
         m_lfgFlags |= LFG_GRP_PREMADE;
     if(mixed)
         m_lfgFlags |= LFG_GRP_MIXED;
+    m_awarded = false;
 }
 
 LfgGroup::~LfgGroup()
@@ -167,7 +168,7 @@ bool LfgGroup::AddMember(const uint64 &guid, const char* name)
     member.group     = 0;
     member.assistant = false;
     m_memberSlots.push_back(member);
-    UpdateAverageItemLevel();
+    UpdateItemLevelValues();
 
     if (!GetDungeonInfo(true))
          SetOriginalDungeonInfo(GetDungeonInfo());
@@ -182,7 +183,7 @@ uint32 LfgGroup::RemoveMember(const uint64 &guid, const uint8 &method)
     if (slot != m_memberSlots.end())
     {
         m_memberSlots.erase(slot);
-        UpdateAverageItemLevel();
+        UpdateItemLevelValues();
     }
 
     sLfgMgr.LfgLog("Remove member %u , guid %u", GetId(), guid);
@@ -248,7 +249,9 @@ bool LfgGroup::RemoveOfflinePlayers()  // Return true if group is empty after ch
     {
         sLfgMgr.LfgLog("guid %u", citr->guid);
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
-        if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()))
+        if (!plr || (!plr->GetSession() && !plr->IsBeingTeleported()) ||
+           (plr->GetGroup() && plr->GetGroup() != this && plr->GetGroup()->isLfgGroup() &&
+           ((LfgGroup*)plr->GetGroup())->IsInDungeon()))
         {
             sLfgMgr.LfgLog("Add to remove");
             toRemove.insert(citr->guid);
@@ -298,9 +301,10 @@ void LfgGroup::KilledCreature(Creature *creature)
     if ((creature->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND) &&
         m_instanceStatus == INSTANCE_NOT_SAVED)
     {
-            m_instanceStatus = INSTANCE_SAVED;
+        m_instanceStatus = INSTANCE_SAVED;
     }
-    if (creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
+    
+    if (!m_awarded && creature->GetEntry() == sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID)->lastBossId)
     {
         //Last boss
         m_instanceStatus = INSTANCE_COMPLETED;
@@ -324,6 +328,7 @@ void LfgGroup::KilledCreature(Creature *creature)
             if (IsRandom())
                 plr->RemoveAurasDueToSpell(LFG_RANDOM_COOLDOWN);
         }
+        m_awarded = true;
     }  
     SendUpdate();
 }
@@ -335,6 +340,7 @@ bool LfgGroup::UpdateCheckTimer(uint32 time)
         return false;
     return true;
 }
+
 void LfgGroup::TeleportToDungeon()
 {
     if (IsInDungeon())
@@ -364,7 +370,7 @@ void LfgGroup::TeleportToDungeon()
 
     DungeonInfo* dungeonInfo = sLfgMgr.GetDungeonInfo(m_dungeonInfo->ID);
     //Set Leader
-    m_leaderGuid = 0;   
+    m_leaderGuid = 0;
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
     {
         Player *plr = sObjectMgr.GetPlayer(citr->guid);
@@ -384,11 +390,13 @@ void LfgGroup::TeleportToDungeon()
             break;
         }
     }
+
     if (m_leaderGuid == 0)
     {
         m_leaderGuid = m_memberSlots.begin()->guid;
         m_leaderName = m_memberSlots.begin()->name;
     }
+
     m_lootMethod = GROUP_LOOT;
     m_lootThreshold = ITEM_QUALITY_UNCOMMON;
     m_looterGuid = m_leaderGuid;
@@ -407,11 +415,11 @@ void LfgGroup::TeleportToDungeon()
         if (!plr || !plr->GetSession())
             continue;
 
-        plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);   
+        plr->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_LFD_TO_GROUP_WITH_PLAYERS, GetMembersCount()-1);
         TeleportPlayer(plr, dungeonInfo, GetDungeonInfo(true)->ID);
     }
     m_lfgFlags |= LFG_GRP_IN_DUNGEON;
-    
+
     //Save to DB
     CharacterDatabase.PExecute("DELETE FROM groups WHERE groupId ='%u' OR leaderGuid='%u'", m_Id, GUID_LOPART(m_leaderGuid));    
     CharacterDatabase.PExecute("INSERT INTO groups (groupId,leaderGuid,mainTank,mainAssistant,lootMethod,looterGuid,lootThreshold,icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,groupType,difficulty,raiddifficulty,healGuid,LfgId,LfgRandomEntry,LfgInstanceStatus,LfgFlags) "
@@ -481,18 +489,18 @@ void LfgGroup::TeleportPlayer(Player *plr, DungeonInfo *dungeonInfo, uint32 orig
             if (plr->GetMap()->IsDungeon())
             {
                 if (const WorldSafeLocsEntry* entry = sObjectMgr.GetClosestGraveYard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId(), plr->GetTeam()))
-                    joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.0f);
+                    joinLoc = WorldLocation(entry->map_id, entry->x, entry->y, entry->z, 0.f);
                 else
-                    joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+                    joinLoc = plr->GetLocation();
             }
             else
-                joinLoc = WorldLocation(plr->GetMapId(), plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetOrientation());
+                joinLoc = plr->GetLocation();
         }
         CharacterDatabase.PExecute("DELETE FROM group_member WHERE memberGuid='%u'", GUID_LOPART(plr->GetGUID()));
         CharacterDatabase.PExecute("INSERT INTO group_member(groupId,memberGuid,assistant,subgroup,lfg_join_x,lfg_join_y,lfg_join_z,lfg_join_o,lfg_join_map,taxi_start,taxi_end,mount_spell) "
             "VALUES('%u','%u','%u','%u','%f','%f','%f','%f','%u','%u','%u','%u')",
-            m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.coord_x, joinLoc.coord_y, joinLoc.coord_z, joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
-        
+            m_Id, GUID_LOPART(plr->GetGUID()), 0, 1, joinLoc.x(), joinLoc.y(), joinLoc.z(), joinLoc.orientation, joinLoc.mapid, taxi_start, taxi_end, mount_spell);
+
         //Set info to player
         plr->m_lookingForGroup.joinLoc = joinLoc;
         plr->m_lookingForGroup.taxi_start = taxi_start;
@@ -586,7 +594,7 @@ bool LfgGroup::SelectRandomDungeon()
                 {
                     options.erase(itrDung);
                     break;
-                }                   
+                }
             }
         }
     }
@@ -940,7 +948,11 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
     }
     m_lfgFlags &= ~LFG_GRP_ROLECHECK;
     SendUpdate();
-    sLfgMgr.AddCheckedGroup(this, true);
+    sLfgMgr.RemoveRoleCheckGroup(this);
+    if(GetMembersCount() == LFG_GROUP)
+        TeleportToDungeon();
+    else
+        sLfgMgr.AddCheckedGroup(this, true);
 }
 
 void LfgGroup::SendRoleCheckFail(uint8 error)
@@ -957,6 +969,7 @@ void LfgGroup::SendRoleCheckFail(uint8 error)
         if (player->GetGUID() == GetLeaderGUID())
             sLfgMgr.SendJoinResult(player, LFG_JOIN_FAILED, error);
     }
+    sLfgMgr.RemoveRoleCheckGroup(this);
     sLfgMgr.AddCheckedGroup(this, false);
 }
 
@@ -1109,7 +1122,7 @@ bool LfgGroup::UpdateVoteToKick(uint32 diff)
             victim->ScheduleDelayedOperation(DELAYED_LFG_CLEAR_LOCKS);
             victim->RemoveAurasDueToSpell(LFG_BOOST);
             WorldLocation teleLoc = victim->m_lookingForGroup.joinLoc;
-            if (teleLoc.coord_x != 0 && teleLoc.coord_y != 0 && teleLoc.coord_z != 0)
+            if (!teleLoc.coords.isNULL())
                 victim->TeleportTo(teleLoc);
             else
                 victim->TeleportToHomebind();

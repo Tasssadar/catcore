@@ -23,6 +23,7 @@
 #include <stack>
 #include <vector>
 #include "Path.h"
+#include "Object.h"
 
 class MovementGenerator;
 class Unit;
@@ -105,6 +106,11 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator *>
         void MoveConfused();
         void MoveFleeing(Unit* enemy, uint32 timeLimit = 0);
         void MovePoint(uint32 id, float x, float y, float z, bool usePathfinding = true);
+        void MovePoint(uint32 id, const Coords coord, bool usePathfinding = true)
+        {
+            MovePoint(id, coord.x, coord.y, coord.z, usePathfinding);
+        }
+
         void MoveSeekAssistance(float x,float y,float z);
         void MoveSeekAssistanceDistract(uint32 timer);
         void MoveWaypoint();

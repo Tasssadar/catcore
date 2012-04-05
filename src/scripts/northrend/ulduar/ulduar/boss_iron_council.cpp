@@ -210,7 +210,7 @@ struct MANGOS_DLL_DECL mob_rune_of_summoningAI : public ScriptedAI
     {
         pSummoned->SetInCombatWithZone();
         if (Creature* pTemp = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM)))
-            if (Unit* pTarget = m_creature->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = pTemp->SelectAttackingPlayer(ATTACKING_TARGET_RANDOM, 0))
                 pSummoned->AddThreat(pTarget, 100.0f);
     }
 
@@ -303,10 +303,12 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
     }
 
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell)
     {
         for(uint8 i = 0; i < 3; ++i)
+        {
             if (pSpell->Effect[i] == SPELL_EFFECT_INTERRUPT_CAST)
+            {
                 if (m_creature->IsNonMeleeSpellCasted(false))
                 {
                     m_uiChain_Lightning_Timer += 5000;
@@ -315,12 +317,14 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                     if (m_uiOverload_Timer < 5000)
                         m_uiOverload_Timer = 5000;
                 }
+            }
+        }
     }
 
-    void SpellHitTarget(Unit* target, const SpellEntry* spell)
+    void SpellHitTarget(Unit* /*target*/, const SpellEntry* spell)
     {
         if (spell->Id == SPELL_OVERLOAD)
-            m_creature->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_STUN, false);
+            m_creature->ApplySpellImmune(SPELL_OVERLOAD, IMMUNITY_STATE, SPELL_AURA_MOD_STUN, false);
     }
 
     void OnYourSide()
@@ -342,7 +346,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if (m_pInstance)
@@ -385,13 +389,13 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
                 pSteelbreaker->SetHealth(pSteelbreaker->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_BRUNDIR_DEATH1, m_creature);
         else
             DoScriptText(SAY_BRUNDIR_DEATH2, m_creature);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         pSteelbreaker = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER));
         pMolgeim = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM));
@@ -407,7 +411,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
 
@@ -428,14 +432,14 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
 
-    void KilledUnit(Unit *who)
+    void KilledUnit(Unit* /*who*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_BRUNDIR_SLAY1, m_creature);
         else
             DoScriptText(SAY_BRUNDIR_SLAY2, m_creature);
@@ -457,7 +461,7 @@ struct MANGOS_DLL_DECL boss_brundirAI : public ScriptedAI
         if (m_uiOverload_Timer < uiDiff && !m_bIsTendrils)
         {
             m_creature->CastStop();
-            m_creature->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_STUN, true);
+            m_creature->ApplySpellImmune(SPELL_OVERLOAD, IMMUNITY_STATE, SPELL_AURA_MOD_STUN, true);
             DoCast(m_creature, SPELL_OVERLOAD);
             m_uiOverload_Timer = 40000;
         }else m_uiOverload_Timer -= uiDiff;  
@@ -648,7 +652,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
             m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         if (uiDamage > m_creature->GetHealth() && !m_bMustDie)
         {
@@ -680,7 +684,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if (m_pInstance)
@@ -723,13 +727,13 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
                 pSteelbreaker->SetHealth(pSteelbreaker->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_MOLGEIM_DEATH1, m_creature);
         else
             DoScriptText(SAY_MOLGEIM_DEATH2, m_creature);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         pSteelbreaker = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_STEELBREAKER));
         pBrundir = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_BRUNDIR));
@@ -745,7 +749,7 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
         }
 
@@ -766,14 +770,14 @@ struct MANGOS_DLL_DECL boss_molgeimAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }
 
-    void KilledUnit(Unit *who)
+    void KilledUnit(Unit* /*who*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_MOLGEIM_SLAY1, m_creature);
         else
             DoScriptText(SAY_MOLGEIM_SLAY2, m_creature);
@@ -966,18 +970,18 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
             m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
         if (m_bSupercharge2)
             m_creature->CastSpell(m_creature, SPELL_ELECTRICAL_CHARGE_2, true);
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_STEEL_SLAY1, m_creature);
         else
             DoScriptText(SAY_STEEL_SLAY2, m_creature);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         if (uiDamage > m_creature->GetHealth() && !m_bMustDie)
         {
@@ -1009,7 +1013,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
         if (m_pInstance)
@@ -1060,21 +1064,17 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
                 pBrundir->SetHealth(pBrundir->GetMaxHealth());
         }
 
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_STEEL_DEATH1, m_creature);
         else
             DoScriptText(SAY_STEEL_DEATH2, m_creature);
     }
 
-    void Aggro(Unit* pWho)
-    {
-        
+    void Aggro(Unit* /*pWho*/)
+    {        
         DoCast(m_creature, m_bIsRegularMode ? SPELL_HIGH_VOLTAGE : SPELL_HIGH_VOLTAGE_H);
-        if (m_pInstance)
-        {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
-                m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
-        }
+        if (m_pInstance && m_pInstance->GetData(TYPE_ASSEMBLY) != IN_PROGRESS)
+            m_pInstance->SetData(TYPE_ASSEMBLY, IN_PROGRESS);
 
         DoScriptText(SAY_STEEL_AGGRO, m_creature);
         pMogleim = m_pInstance->instance->GetCreature(m_pInstance->GetData64(NPC_MOLGEIM));
@@ -1105,7 +1105,7 @@ struct MANGOS_DLL_DECL boss_steelbreakerAI : public ScriptedAI
         }
         if (m_pInstance)
         {
-            if(m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
+            if (m_pInstance->GetData(TYPE_ASSEMBLY) != FAIL)
                 m_pInstance->SetData(TYPE_ASSEMBLY, FAIL);
         }
     }

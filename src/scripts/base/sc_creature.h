@@ -39,87 +39,6 @@ enum SCEquip
     EQUIP_UNEQUIP   = 0
 };
 
-/*struct SpellCastTimer
-{
-    SpellCastTimer(Creature* m_creature, Unit* m_target, uint32 m_uiSpellId, uint32 m_uiSpellInterval, uint32 m_uiSpellIntervalFirst, bool m_bIsForcedCast) :
-    caster(m_creature), target(m_target), SpellInterval(m_uiSpellInterval), SpellIntervalFirst(m_uiSpellIntervalFirst), SpellId(m_uiSpellId), IsForcedCast(m_bIsForcedCast), SpellTimer(0),  IsFirstCast(true) {}
-    
-    public:
-        uint32 SpellId, SpellInterval, SpellIntervalFirst;
-        bool IsFirstCast, IsForcedCast;
-        Unit* target;
-
-        void UpdateTimer(uint32 uiDiff) { SpellTimer += uiDiff; }
-        uint32 GetCurrentTimer() { return SpellTimer; }
-        bool CheckAndUpdate(uint32 const uiDiff);
-        Creature* GetCaster() { return caster; }
-        uint32 GetCurrentInterval()
-        {
-            return (SpellIntervalFirst && IsFirstCast) ? SpellIntervalFirst : SpellInterval;
-        }		
-        void ResetTimer()
-        {
-            SpellTimer = 0;
-            if (IsFirstCast)
-                IsFirstCast = false;
-        }
-    private:
-        uint32 SpellTimer;
-        Creature* caster;
-};
-
-typedef std::list<SpellCastTimer*> SpellCastTimerList;*/
-
-#define DBC_COOLDOWN -1
-
-struct SpellTimer
-{
-    SpellTimer(uint32 initialSpellId, uint32 initialTimer, int32 cooldown, bool check_cast = true) :
-            initialSpellId_m(initialSpellId), initialTimer_m(initialTimer), check_cast_m(check_cast)
-    {
-        SetInitialCooldown(cooldown);
-        ResetTimerToInitialValue();
-        ResetSpellId();
-    }
-    SpellTimer() :
-            initialSpellId_m(0), initialTimer_m(0), cooldown_m(0), check_cast_m(0) {}
-
-    SpellTimer(uint32 initialSpellId) { SpellTimer(initialSpellId, 0, DBC_COOLDOWN, true); }
-    /*SpellTimer(uint32 initialSpellId) :
-        initialSpellId_m(initialSpellId), initialTimer_m(0), check_cast_m(true)
-    {
-        SetInitialCooldown(DBC_COOLDOWN);
-        ResetTimerToInitialValue();
-        ResetSpellId();
-    }*/
-
-    public:
-        void SetInitialCooldown(int32 cooldown);
-        void ResetTimerToInitialValue() { currentTimer = initialTimer_m; }
-        void ResetSpellId() { spellId_m = initialSpellId_m; }
-
-        void SetTimer(uint32 newTimer) { currentTimer = newTimer; }
-        void ChangeSpellId(uint32 newId) { spellId_m = newId; }
-
-        void Update(uint32 diff);
-        void AddCooldown() { currentTimer = cooldown_m; }
-
-        bool CheckAndUpdate(uint32 diff, bool is_casting);
-        bool IsReady() const { return currentTimer == 0; }
-        uint32 GetSpellId() const { return spellId_m; }
-
-    private:
-        uint32  currentTimer;
-
-        uint32  spellId_m;
-        uint32  cooldown_m;
-
-        uint32  initialTimer_m;
-        uint32  initialSpellId_m;
-
-        bool    check_cast_m;
-};
-
 struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
 {
     explicit ScriptedAI(Creature* pCreature);
@@ -226,16 +145,16 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     Unit* DoSelectLowestHpFriendly(float fRange, uint32 uiMinHPDiff = 1);
 
     //Returns a list of friendly CC'd units within range
-    std::list<Creature*> DoFindFriendlyCC(float fRange);
+    CreatureList DoFindFriendlyCC(float fRange);
 
     //Returns a list of all friendly units missing a specific buff within range
-    std::list<Creature*> DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId);
+    CreatureList DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId);
 
     //Return a player with at least minimumRange from m_creature
     Player* GetPlayerAtMinimumRange(float fMinimumRange);
 
     //Spawns a creature relative to m_creature
-    Creature* DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime);
+    Creature* DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime, bool update_z = false);
 
     //Returns spells that meet the specified criteria from the creatures spell list
     SpellEntry const* SelectSpell(Unit* pTarget, int32 uiSchool, int32 uiMechanic, SelectTarget selectTargets, uint32 uiPowerCostMin, uint32 uiPowerCostMax, float fRangeMin, float fRangeMax, SelectEffect selectEffect);
@@ -255,10 +174,10 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     PlrList GetRandomPlayers(uint8 count, bool not_select_current_victim = false);
 
     // select random players prefer ranged (list of Players)
-    PlrList GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, float min_range, bool not_select_current_victim = false);
+    PlrList GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // select random player prefer ranged (Player)
-    Player* SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim = false);
+    Player* SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range = DEFAULT_VISIBILITY_INSTANCE, bool not_select_current_victim = false);
 
     // fill players list from threatlist
     PlrList GetAttackingPlayers(bool not_select_current_victim = false);
@@ -269,18 +188,23 @@ struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
     // handles timer, if is timer prepared return true, else return false
     bool HandleTimer(uint32 &timer, const uint32 diff, bool force = false);
 
-    // called when timed spell is casted
-    void HandleTimedSpellCast(Unit* target, uint32 SpellId);
+    // despawns all creatures or gameobject in range with target entry
+    void DespawnAllWithEntry(uint32 entry, TypeID type = TYPEID_OBJECT);
 
-    // called after a successfull cast through periodic cast handler
-    void TimedSpellCasted(Unit* target, uint32 spellId) {}
+    //****************
+    // Timer specific
+    //****************
 
-    // called to insert spell into automatic timed casting system
-    void InsertTimedCast(uint32 m_uiSpellId, uint32 m_uiSpellInterval, Unit* target = NULL, uint32 m_uiSpellInvervalFirst = NULL, bool m_bForceCast = false);
+    // creating timer only for summon
+    void AddNonCastTimer(uint32 timerId, RV initialTimer, RV cooldown);
 
-    //SpellCastTimerList m_lCastTimerList;
+    // used for adding timer in reset, if timer exist just reset
+    void AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType = UNIT_SELECT_NONE, CastType castType = CAST_TYPE_NONCAST, uint64 targetInfo = 0, Unit* caster = NULL);
 
-    private:
+    // Pointer to spell timer manager of creature
+    SpellTimerMgr* m_TimerMgr;
+
+    protected:
         bool   m_bCombatMovement;
         uint32 m_uiEvadeCheckCooldown;
         bool   m_bAttackEnabled;

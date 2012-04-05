@@ -112,7 +112,7 @@ class MANGOS_DLL_DECL MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::
 
         static bool IsValidMapCoord(WorldLocation const& loc)
         {
-            return IsValidMapCoord(loc.mapid,loc.coord_x,loc.coord_y,loc.coord_z,loc.orientation);
+            return IsValidMapCoord(loc.mapid,loc.x(),loc.y(),loc.z(),loc.orientation);
         }
 
         // modulos a radian orientation to the range of 0..2PI
@@ -133,6 +133,7 @@ class MANGOS_DLL_DECL MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::
         void RemoveAllObjectsInRemoveList();
 
         void LoadTransports();
+        void LoadTransportNPCs();
 
         typedef std::set<Transport *> TransportSet;
         TransportSet m_Transports;

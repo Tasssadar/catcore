@@ -358,7 +358,7 @@ struct MANGOS_DLL_DECL boss_twinemperorsAI : public ScriptedAI
 
     Creature *RespawnNearbyBugsAndGetOne()
     {
-        std::list<Creature*> lUnitList;
+        CreatureList lUnitList;
         GetCreatureListWithEntryInGrid(lUnitList,m_creature,15316,150.0f);
         GetCreatureListWithEntryInGrid(lUnitList,m_creature,15317,150.0f);
 
@@ -367,7 +367,7 @@ struct MANGOS_DLL_DECL boss_twinemperorsAI : public ScriptedAI
 
         Creature *nearb = NULL;
 
-        for(std::list<Creature*>::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
+        for(CreatureList::iterator iter = lUnitList.begin(); iter != lUnitList.end(); ++iter)
         {
             Creature *c = (Creature *)(*iter);
             if (c->isDead())

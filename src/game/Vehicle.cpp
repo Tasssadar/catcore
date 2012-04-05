@@ -491,20 +491,20 @@ void Vehicle::AddPassenger(Unit *unit, int8 seatId, bool force)
     }
     if (seat->second.vs_flags & SF_MAIN_RIDER)
     {
+        if(unit->GetTypeId() == TYPEID_UNIT && canFly())
+        {
+            m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+            m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+            m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+            SendHeartBeatMsg();
+        }
+
         if (!(GetVehicleFlags() & VF_MOVEMENT))
         {
             GetMotionMaster()->Clear(false);
             GetMotionMaster()->MoveIdle();
             SetCharmerGUID(unit->GetGUID());
             unit->SetUInt64Value(UNIT_FIELD_CHARM, GetGUID());
-            
-            if (canFly() || HasAuraType(SPELL_AURA_FLY) || HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED))
-            {
-                WorldPacket data3(SMSG_MOVE_SET_CAN_FLY, 12);
-                data3 << GetPackGUID();
-                data3 << uint32(1);
-                unit->SendMessageToSet(&data3,true);
-            }
         }
 
         SpellClickInfoMapBounds clickPair = sObjectMgr.GetSpellClickInfoMapBounds(GetEntry());
@@ -566,17 +566,18 @@ void Vehicle::RemovePassenger(Unit *unit)
             }
             if (seat->second.vs_flags & SF_MAIN_RIDER)
             {
+                if(canFly())
+                {
+                    m_movementInfo.RemoveMovementFlag(MOVEFLAG_LEVITATING);
+                    m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+                }
                 RemoveSpellsCausingAura(SPELL_AURA_CONTROL_VEHICLE);
                 if (unit->GetTypeId() == TYPEID_PLAYER)
                 {
                     ((Player*)unit)->SetMover(unit);
                     ((Player*)unit)->SetClientControl(unit, 1);
                     ((Player*)unit)->RemovePetActionBar();
-
-                    WorldPacket data3(SMSG_MOVE_SET_CAN_FLY, 12);
-                    data3 << GetPackGUID();
-                    data3 << uint32(2);
-                    unit->SendMessageToSet(&data3,true);
 
                     if (((Player*)unit)->GetGroup())
                         ((Player*)unit)->SetGroupUpdateFlag(GROUP_UPDATE_VEHICLE);
@@ -615,6 +616,9 @@ void Vehicle::RemovePassenger(Unit *unit)
 
             unit->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
             unit->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+            unit->m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+            unit->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+
             EmptySeatsCountChanged();
             break;
         }
@@ -746,7 +750,7 @@ void Vehicle::InstallAllAccessories()
                 }
                 entry = data->id;
             }     
-            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, 0))
+            if (!pPassenger->Create(guid, GetMap(), GetPhaseMask(), entry, ALLIANCE))
             {
                 delete pPassenger;
                 continue;
@@ -768,6 +772,7 @@ void Vehicle::InstallAllAccessories()
             pPassenger->Relocate(GetPositionX(), GetPositionY(), GetPositionZ());
             GetMap()->Add(pPassenger);
             pPassenger->AIM_Initialize();
+            pPassenger->SetSummonPoint(GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation());
         }
         else
             pPassenger = (Creature*)SummonVehicle(cPassanger->entry, GetPositionX(), GetPositionY(), GetPositionZ(), 0, 0, this, cPassanger->seat_idx);
@@ -779,12 +784,27 @@ void Vehicle::InstallAllAccessories()
         SendMessageToSet(&data, false);
     }
 }
+
 Unit *Vehicle::GetPassenger(int8 seatId) const
 {
     SeatMap::const_iterator seat = m_Seats.find(seatId);
     if (seat == m_Seats.end()) return NULL;
     return seat->second.passenger;
 }
+
+bool Vehicle::HasCreatureDriver()
+{
+    for(SeatMap::iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)
+    {
+        if ((itr->second.flags & SEAT_FULL) && (itr->second.vs_flags & SF_MAIN_RIDER))
+        {
+            Unit *passenger = itr->second.passenger;
+            return (passenger && passenger->GetTypeId() == TYPEID_UNIT);
+        }
+    }
+    return false;
+}
+
 void Vehicle::Die()
 {
     for (SeatMap::iterator itr = m_Seats.begin(); itr != m_Seats.end(); ++itr)

@@ -469,8 +469,8 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000002190))
                 return SPELL_HAND;
 
-            // skip Heart of the Crusader that have also same spell family mask
-            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000821180400)) && (spellInfo->AttributesEx3 & 0x200) && (spellInfo->SpellIconID != 237))
+            // Judgement of Justice /Judgement of Light /Judgement of Wisdom
+            if (spellInfo->Id == 20184 || spellInfo->Id == 20185 || spellInfo->Id == 20186)
                 return SPELL_JUDGEMENT;
 
             // only paladin auras have this (for palaldin class family)
@@ -667,9 +667,11 @@ bool IsPositiveEffect(uint32 spellId, SpellEffectIndex effIndex)
         case 52988:                                         // Penance heal effect trigger - Rank 4
         case 64844:                                         // Divine Hymn
         case 64904:                                         // Hymn of Hope
+        case 66129:                                         // Spider Frenzy
             return true;
         case 56266:
         case 63355:
+        case 65509:
             return false;
     }
 
@@ -1844,7 +1846,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
     if (!spellInfo_1 || !spellInfo_2)
         return false;
-    if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
+
+    if (spellInfo_1->SpellIconID == 1 || spellInfo_2->SpellIconID == 1)
+        return false;
+
+   /* if (spellInfo_1->SpellFamilyName == SPELLFAMILY_PALADIN && spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN)
     {
         // Judgement of Light and Judgement of Light     
         if(spellInfo_2->SpellIconID == 205 && spellInfo_1->SpellIconID == 205 )
@@ -1855,7 +1861,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         // Judgement of Justice
         if(spellInfo_2->SpellIconID == 3013 && spellInfo_1->SpellIconID == 3013 )
             return true;
-    }
+    }*/
     if (spellId_1 == spellId_2)
         return false;
 
@@ -2045,9 +2051,14 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     if (spellInfo_1->Id == 60530 && spellInfo_2->SpellIconID == 64)
                         return false;
 
-                   // Frenzied Regeneration and Darkmoon Card Berserker
+                    // Frenzied Regeneration and Darkmoon Card Berserker
                     if (spellInfo_2->Id == 22842 && spellInfo_1->Id == 60196 )
                         return false;
+
+                    // Totem of Electrifying Wind and Innervate
+                    if (spellInfo_2->Id == 29166 && spellInfo_1->Id == 67385 )
+                        return false;
+
                     break;
                 }
                 case SPELLFAMILY_ROGUE:
@@ -2407,6 +2418,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             if (spellInfo_1->Id == 22842 && spellInfo_2->Id == 60196 )
                 return false;
 
+            // Innervate and Totem of Electrifying Wind
+            if (spellInfo_1->Id == 29166 && spellInfo_2->Id == 67385 )
+                return false;
+
             break;
         case SPELLFAMILY_ROGUE:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_ROGUE )
@@ -2477,6 +2492,11 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PALADIN:
             if ( spellInfo_2->SpellFamilyName == SPELLFAMILY_PALADIN )
             {
+                // Judgement of Light / Judgements of the Just
+                if ((spellInfo_1->Id == 20185 && spellInfo_2->Id == 68055) ||
+                    (spellInfo_2->Id == 20185 && spellInfo_1->Id == 68055))
+                    return false;
+
                 // Paladin Seals
                 if (IsSealSpell(spellInfo_1) && IsSealSpell(spellInfo_2))
                     return true;
@@ -4554,6 +4574,51 @@ SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty)
     if (!spellDiff->spellId[difficulty])
         return NULL;
 
-    SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
-    return spellEntry;
+    return sSpellStore.LookupEntry(spellDiff->spellId[difficulty]);
+}
+
+SpellEntry const* GetDifficultySpellEntry(const SpellEntry *spellEntry, Difficulty difficulty)
+{
+    if (!spellEntry)
+        return NULL;
+
+    if (!spellEntry->SpellDifficultyId)
+        return spellEntry;
+
+    return GetSpellEntryByDifficulty(spellEntry->SpellDifficultyId, difficulty);
+}
+
+SpellEntry const* GetDifficultySpellEntry(uint32 spellId, Difficulty difficulty)
+{
+    return GetDifficultySpellEntry(sSpellStore.LookupEntry(spellId), difficulty);
+}
+
+uint32 GetDifficultySpellId(const SpellEntry *spellEntry, Difficulty difficulty)
+{
+    if (SpellEntry const* entry = GetDifficultySpellEntry(spellEntry, difficulty))
+        return entry->Id;
+
+    return 0;
+}
+
+uint32 GetDifficultySpellId(uint32 spellId, Difficulty difficulty)
+{
+    if (SpellEntry const* entry = GetDifficultySpellEntry(spellId, difficulty))
+        return entry->Id;
+
+    return 0;
+}
+
+bool SpellMgr::IsSelfOnlyCast(SpellEntry const *spellInfo)
+{
+    for(uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        if (spellInfo->EffectImplicitTargetA[i] != TARGET_SELF &&
+            spellInfo->EffectImplicitTargetB[i] != TARGET_SELF &&
+            spellInfo->EffectImplicitTargetA[i] != TARGET_SELF2 &&
+            spellInfo->EffectImplicitTargetB[i] != TARGET_SELF2)
+            return false;
+    }
+
+    return true;
 }

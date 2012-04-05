@@ -23,6 +23,7 @@
 
 CreatureAI::~CreatureAI()
 {
+
 }
 
 void CreatureAI::AttackedBy( Unit* attacker )

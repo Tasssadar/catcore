@@ -20,13 +20,13 @@ enum
     EMOTE_DEFENDER  = -1603359,
 
     //auriaya
-    SPELL_BERSERK				= 47008,
+    SPELL_BERSERK			= 47008,
     SPELL_GUARDIAN_SWARM		= 64396,    // broken
     SPELL_SENTINEL_BLAST		= 64389,
     SPELL_SENTINEL_BLAST_H		= 64678,
     SPELL_SONIC_SCREECH			= 64422,
     SPELL_SONIC_SCREECH_H		= 64688,
-    SPELL_FEAR					= 64386,
+    SPELL_FEAR				= 64386,
 
     //feral defender
     SPELL_FEIGN_DEATH			= 57685,
@@ -37,24 +37,24 @@ enum
     SPELL_FERAL_RUSH_H			= 64674,
 
     //sanctum sentry
-    SPELL_RIP_FLESH				= 64375,
+    SPELL_RIP_FLESH			= 64375,
     SPELL_RIP_FLESH_H			= 64667,
     SPELL_SAVAGE_POUNCE			= 64666,
     SPELL_SAVAGE_POUNCE_H		= 64374,
     SPELL_STRENGHT_OF_PACK		= 64369,
     //seeping feral essence
-    AURA_VOID_ZONE				= 64458,
+    AURA_VOID_ZONE			= 64458,
     AURA_VOID_ZONE_H			= 64676,
     //NPC ids
-    MOB_VOID_ZONE				= 34098,
+    MOB_VOID_ZONE			= 34098,
     MOB_FERAL_DEFENDER			= 34035,
-    MOB_GUARDIAN_SWARN          = 34034,
+    MOB_GUARDIAN_SWARN                  = 34034,
 
-    ACHIEV_CRAZY_CAT_LADY       = 3006,
-    ACHIEV_CRAZY_CAT_LADY_H     = 3007,
+    ACHIEV_CRAZY_CAT_LADY               = 3006,
+    ACHIEV_CRAZY_CAT_LADY_H             = 3007,
 
-    ACHIEV_NINE_LIVES           = 3076,
-    ACHIEV_NINE_LIVES_H         = 3077,
+    ACHIEV_NINE_LIVES                   = 3076,
+    ACHIEV_NINE_LIVES_H                 = 3077
 };
 
 bool m_bCrazyCatLady;
@@ -84,9 +84,6 @@ struct MANGOS_DLL_DECL mob_seeping_feral_essenceAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);
     }
 
-    void UpdateAI(const uint32 diff)
-    {
-    }
 };
 
 CreatureAI* GetAI_mob_seeping_feral_essence(Creature* pCreature)
@@ -110,7 +107,7 @@ struct MANGOS_DLL_DECL mob_sanctum_sentryAI : public ScriptedAI
     uint32 m_uiRip_Flesh_Timer;
     uint32 m_uiJump_Timer;
 
-    std::list<Creature*> lSentrys;
+    CreatureList lSentrys;
 
     void Reset()
     {
@@ -120,7 +117,7 @@ struct MANGOS_DLL_DECL mob_sanctum_sentryAI : public ScriptedAI
         lSentrys.clear();
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
         {
@@ -134,7 +131,7 @@ struct MANGOS_DLL_DECL mob_sanctum_sentryAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lSentrys, m_creature, NPC_SANCTUM_SENTRY, DEFAULT_VISIBILITY_INSTANCE);
         if (!lSentrys.empty())
         {
-            for(std::list<Creature*>::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
+            for(CreatureList::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
                     (*iter)->SetInCombatWithZone();
@@ -144,7 +141,7 @@ struct MANGOS_DLL_DECL mob_sanctum_sentryAI : public ScriptedAI
         DoCast(m_creature, SPELL_STRENGHT_OF_PACK);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_bCrazyCatLady = false;
     }
@@ -220,18 +217,18 @@ struct MANGOS_DLL_DECL mob_feral_defenderAI : public ScriptedAI
         m_creature->SetRespawnDelay(DAY);
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         DoCast(m_creature, SPELL_FERAL_ESSENCE);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         m_bNineLives = true;
     }
 
     // feign death
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage)
     {
         if (uiDamage > m_creature->GetHealth())
         {
@@ -245,9 +242,9 @@ struct MANGOS_DLL_DECL mob_feral_defenderAI : public ScriptedAI
             if (m_creature->HasAura(SPELL_FERAL_ESSENCE))
             {
                 // remove 1 stack of the aura
-                if(Aura* strenght = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
+                if (Aura* strenght = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
                 {
-                    if(strenght->modStackAmount(-1))
+                    if (strenght->modStackAmount(-1))
                         m_creature->RemoveAurasDueToSpell(SPELL_FERAL_ESSENCE);
                 }
 
@@ -266,9 +263,9 @@ struct MANGOS_DLL_DECL mob_feral_defenderAI : public ScriptedAI
             return;
 
         // hacky way of stacking aura, needs fixing
-        if(Aura* essence = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
+        if (Aura* essence = m_creature->GetAura(SPELL_FERAL_ESSENCE, EFFECT_INDEX_0))
         {
-            if(essence->GetStackAmount() < 9 && !m_bHasAura)
+            if (essence->GetStackAmount() < 9 && !m_bHasAura)
             {
                 m_bHasAura = true;
                 essence->SetStackAmount(9);
@@ -354,7 +351,7 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
     uint32 m_uiSummon_Timer;
     uint8 m_uiSwarmcount;
 
-    std::list<Creature*> lSentrys;
+    CreatureList lSentrys;
 
     bool m_bHasBerserk;
     bool m_bIsDefender;
@@ -382,7 +379,7 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
             m_pInstance->SetData(TYPE_AURIAYA, FAIL);
     }
 
-    void JustDied(Unit* pKiller)
+    void JustDied(Unit* /*pKiller*/)
     {
         //death yell
         DoScriptText(SAY_DEATH, m_creature);
@@ -393,19 +390,19 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         /* hacky way to complete achievements; use only if you have this function
         if (m_bCrazyCatLady)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_CRAZY_CAT_LADY : ACHIEV_CRAZY_CAT_LADY_H);
         }
 
         if (m_bNineLives)
         {
-            if(m_pInstance)
+            if (m_pInstance)
                 m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHIEV_NINE_LIVES : ACHIEV_NINE_LIVES_H);
         }
         */
     }
 
-    void Aggro(Unit* pWho)
+    void Aggro(Unit* /*pWho*/)
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_AURIAYA, IN_PROGRESS);
@@ -413,7 +410,7 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lSentrys, m_creature, NPC_SANCTUM_SENTRY, DEFAULT_VISIBILITY_INSTANCE);
         if (!lSentrys.empty())
         {
-            for(std::list<Creature*>::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
+            for(CreatureList::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
             {
                 if ((*iter) && (*iter)->isAlive())
                     (*iter)->SetInCombatWithZone();
@@ -423,9 +420,9 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim)
+    void KilledUnit(Unit* /*pVictim*/)
     {
-        if(irand(0,1))
+        if (irand(0,1))
             DoScriptText(SAY_SLAY1, m_creature);
         else
             DoScriptText(SAY_SLAY2, m_creature);
@@ -439,7 +436,7 @@ struct MANGOS_DLL_DECL boss_auriayaAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lSentrys, m_creature, NPC_SANCTUM_SENTRY, DEFAULT_VISIBILITY_INSTANCE);
         if (!lSentrys.empty())
         {
-            for(std::list<Creature*>::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
+            for(CreatureList::iterator iter = lSentrys.begin(); iter != lSentrys.end(); ++iter)
             {
                 if ((*iter) && !(*iter)->isAlive())
                     (*iter)->Respawn();

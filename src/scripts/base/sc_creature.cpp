@@ -18,7 +18,8 @@ struct TSpellSummary
 ScriptedAI::ScriptedAI(Creature* pCreature) : CreatureAI(pCreature),
     m_bCombatMovement(true),
     m_uiEvadeCheckCooldown(2500),
-    m_bAttackEnabled(true)
+    m_bAttackEnabled(true),
+    m_TimerMgr(pCreature->CreateTimerMgr())
 {}
 
 bool ScriptedAI::IsVisible(Unit* pWho) const
@@ -77,30 +78,17 @@ void ScriptedAI::EnterCombat(Unit* pEnemy)
     Aggro(pEnemy);
 }
 
-void ScriptedAI::Aggro(Unit* pEnemy)
+void ScriptedAI::Aggro(Unit*)
 {
 }
 
-void ScriptedAI::UpdateAI(const uint32 uiDiff)
+void ScriptedAI::UpdateAI(const uint32 )
 {
     //Check if we have a current target
     if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
         return;
 
-    if (m_creature->isAttackReady())
-    {
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
-        {
-            m_creature->AttackerStateUpdate(m_creature->getVictim());
-            m_creature->resetAttackTimer();
-        }
-    }
-
-    //if (!m_lCastTimerList.empty())
-    //    for (SpellCastTimerList::iterator itr = m_lCastTimerList.begin(); itr != m_lCastTimerList.end(); ++itr)
-    //        if((*itr)->CheckAndUpdate(uiDiff))
-    //            HandleTimedSpellCast((*itr)->target, (*itr)->SpellId);
+    DoMeleeAttackIfReady();
 }
 
 void ScriptedAI::EnterEvadeMode()
@@ -140,11 +128,23 @@ void ScriptedAI::DoStartNoMovement(Unit* pVictim)
 
 void ScriptedAI::DoMeleeAttackIfReady()
 {
-    //Make sure our attack is ready before checking distance
-    if (m_creature->isAttackReady())
+    if (!m_bAttackEnabled)
+        return;
+
+    if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
     {
-        //If we are within range melee the target
-        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
+        if (m_creature->haveOffhandWeapon() && m_creature->isAttackReady(OFF_ATTACK))
+        {
+            if(m_creature->isAttackReady())
+                m_creature->setAttackTimer(OFF_ATTACK, m_creature->GetCreatureInfo()->offattacktime/2);
+            else
+            { 
+                m_creature->AttackerStateUpdate(m_creature->getVictim(), OFF_ATTACK);
+                m_creature->resetAttackTimer(OFF_ATTACK);
+            }
+        }
+
+        if (m_creature->isAttackReady())
         {
             m_creature->AttackerStateUpdate(m_creature->getVictim());
             m_creature->resetAttackTimer();
@@ -188,9 +188,9 @@ void ScriptedAI::DoPlaySoundToSet(WorldObject* pSource, uint32 uiSoundId)
     pSource->PlayDirectSound(uiSoundId);
 }
 
-Creature* ScriptedAI::DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime)
+Creature* ScriptedAI::DoSpawnCreature(uint32 uiId, float fX, float fY, float fZ, float fAngle, uint32 uiType, uint32 uiDespawntime, bool update_z)
 {
-    return m_creature->SummonCreature(uiId,m_creature->GetPositionX()+fX, m_creature->GetPositionY()+fY, m_creature->GetPositionZ()+fZ, fAngle, (TempSummonType)uiType, uiDespawntime);
+    return m_creature->SummonCreature(uiId,m_creature->GetPositionX()+fX, m_creature->GetPositionY()+fY, m_creature->GetPositionZ()+fZ, fAngle, (TempSummonType)uiType, uiDespawntime, update_z);
 }
 
 SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 uiMechanic, SelectTarget selectTargets, uint32 uiPowerCostMin, uint32 uiPowerCostMax, float fRangeMin, float fRangeMax, SelectEffect selectEffects)
@@ -434,9 +434,9 @@ Unit* ScriptedAI::DoSelectLowestHpFriendly(float fRange, uint32 uiMinHPDiff)
     return pUnit;
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float fRange)
+CreatureList ScriptedAI::DoFindFriendlyCC(float fRange)
 {
-    std::list<Creature*> pList;
+    CreatureList pList;
 
     MaNGOS::FriendlyCCedInRange u_check(m_creature, fRange);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyCCedInRange> searcher(m_creature, pList, u_check);
@@ -446,9 +446,9 @@ std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float fRange)
     return pList;
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId)
+CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float fRange, uint32 uiSpellId)
 {
-    std::list<Creature*> pList;
+    CreatureList pList;
 
     MaNGOS::FriendlyMissingBuffInRange u_check(m_creature, fRange, uiSpellId);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRange> searcher(m_creature, pList, u_check);
@@ -547,22 +547,6 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 uiDiff)
     return true;
 }
 
-void ScriptedAI::InsertTimedCast(uint32 m_uiSpellId, uint32 m_uiSpellInterval, Unit* target, uint32 m_uiSpellInvervalFirst, bool m_bForceCast)
-{
-    /*if (!m_uiSpellId)
-        return;
-    
-    Unit* SpellTarget = target ? target : m_creature;
-
-    // TODO: Select spell by difficulty
-    uint32 SpellId = m_uiSpellId;
-
-    SpellCastTimer* castTimer = new SpellCastTimer(m_creature, SpellTarget, SpellId, m_uiSpellInterval, m_uiSpellInvervalFirst, m_bForceCast);
-    m_lCastTimerList.push_back(castTimer);
-    */
-    return;
-}
-
 bool ScriptedAI::HandleTimer(uint32 &timer, const uint32 diff, bool force)
 {
     if (timer < diff)
@@ -580,27 +564,6 @@ bool ScriptedAI::HandleTimer(uint32 &timer, const uint32 diff, bool force)
     }
 }
 
-void ScriptedAI::HandleTimedSpellCast(Unit* target, uint32 SpellId)
-{
-    m_creature->CastSpell(target, SpellId, true);
-    TimedSpellCasted(target, SpellId);
-}
-
-/*bool SpellCastTimer::CheckAndUpdate(uint32 const uiDiff)
-{
-    if((GetCurrentTimer() + uiDiff) < GetCurrentInterval())          // update
-    {
-        UpdateTimer(uiDiff);
-        return false;
-    }
-    else                                                             // check
-    {
-        if (GetCaster()->IsNonMeleeSpellCasted(false) && !IsForcedCast)
-            return false;
-        
-        return true;
-    }
-}*/
 void Scripted_NoMovementAI::AttackStart(Unit* pWho)
 {
     if (!pWho)
@@ -622,7 +585,7 @@ PlrList ScriptedAI::GetAttackingPlayers(bool not_select_current_victim)
     ThreatList const& t_list = m_creature->getThreatManager().getPlayerThreatList();
     for(ThreatList::const_iterator itr = t_list.begin(); itr != t_list.end(); ++itr)
         if (Player* plr = sObjectMgr.GetPlayer((*itr)->getUnitGuid()))
-            if (plr != m_creature->getVictim() || !not_select_current_victim)
+            if (plr->IsInWorld() && plr->isAlive() && (plr != m_creature->getVictim() || !not_select_current_victim))
                 pList.push_back(plr);
 
     return pList;
@@ -643,18 +606,20 @@ PlrList ScriptedAI::GetRandomPlayers(uint8 count, bool not_select_current_victim
     return pList;
 }
 
-PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, float min_range, bool not_select_current_victim)
+PlrList ScriptedAI::GetRandomPlayersInRange(uint8 count, uint8 min_count, float min_range, float max_range, bool not_select_current_victim)
 {
     // fill list of all player
     PlrList fullList = GetAttackingPlayers(not_select_current_victim);
+    if (fullList.empty())
+        return fullList;
     
-    PlrList distantList;
+    PlrList inRangeList;
     // fill list of players in range
     for(PlrList::iterator itr = fullList.begin(); itr != fullList.end(); ++itr)
-        if (m_creature->GetDistance(*itr) > min_range)
-            distantList.push_back(*itr);
+        if (m_creature->IsInRange(m_creature, min_range, max_range))
+            inRangeList.push_back(*itr);
 
-    PlrList& finalList = (distantList.size() < min_count) ? fullList : distantList;
+    PlrList& finalList = (inRangeList.size() < min_count) ? fullList : inRangeList;
     uint8 erase_count = (finalList.size() > count) ? (finalList.size() - count) : 0;
     for(uint8 i = 0; i < erase_count; ++i)
     {
@@ -666,51 +631,44 @@ PlrList ScriptedAI::GetRandomPlayersPreferRanged(uint8 count, uint8 min_count, f
     return finalList;
 }
 
-Player* ScriptedAI::SelectRandomPlayerPreferRanged(uint8 min_ranged_count, float min_range, bool not_select_current_victim)
+Player* ScriptedAI::SelectRandomPlayerInRange(uint8 min_ranged_count, float min_range, float max_range, bool not_select_current_victim)
 {
-    return *(GetRandomPlayersPreferRanged(1, min_ranged_count, min_range, not_select_current_victim).begin());
+    PlrList inRangeList = GetRandomPlayersInRange(1, min_ranged_count, min_range, max_range, not_select_current_victim);
+    if (!inRangeList.empty())
+        return inRangeList.front();
+
+    return NULL;
 }
 
-bool SpellTimer::CheckAndUpdate(uint32 diff, bool isCreatureCurrentlyCasting)
+void ScriptedAI::DespawnAllWithEntry(uint32 entry, TypeID type)
 {
-    if (currentTimer < diff)
+    if (!type || type == TYPEID_UNIT)
     {
-        currentTimer = 0;
-        if (check_cast_m && isCreatureCurrentlyCasting)
-            return false;
-
-        return true;
+        CreatureList list;
+        GetCreatureListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(CreatureList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->ForcedDespawn();
     }
-    else
+    if (!type || type == TYPEID_GAMEOBJECT)
     {
-        currentTimer -= diff;
-        return false;
+        GameObjectList list;
+        GetGameObjectListWithEntryInGrid(list, m_creature, entry, DEFAULT_VISIBILITY_INSTANCE);
+        for(GameObjectList::iterator itr = list.begin(); itr != list.end(); ++itr)
+            (*itr)->Delete();
     }
 }
-
-void SpellTimer::Update(uint32 diff)
+void ScriptedAI::AddTimer(uint32 timerId, uint32 initialSpellId, RV initialTimer, RV initialCooldown, UnitSelectType targetType, CastType castType, uint64 targetInfo, Unit *caster)
 {
-    if (currentTimer < diff)
-        currentTimer = 0;
+    if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
+        timer->Reset(TIMER_VALUE_ALL);
     else
-        currentTimer -= diff;
+        m_TimerMgr->AddTimer(timerId, initialSpellId, initialTimer, initialCooldown, targetType, castType, targetInfo, caster);
 }
 
-void SpellTimer::SetInitialCooldown(int32 cooldown)
+void ScriptedAI::AddNonCastTimer(uint32 timerId, RV initialTimer, RV cooldown)
 {
-    if (cooldown == DBC_COOLDOWN)
-    {
-        SpellEntry const* spellEntry = sSpellStore.LookupEntry(GetSpellId());
-        if (spellEntry)
-            cooldown_m = spellEntry->RecoveryTime;
-        else
-            cooldown_m = 0;
-    }
-    else if (cooldown < 0)
-    {
-        cooldown_m = 0;
-        return;
-    }
+    if (SpellTimer* timer = m_TimerMgr->GetTimer(timerId))
+        timer->Reset(TIMER_VALUE_ALL);
     else
-        cooldown_m = cooldown;
+        m_TimerMgr->AddTimer(timerId, 0, initialTimer, cooldown, UNIT_SELECT_NONE, CAST_TYPE_IGNORE);
 }

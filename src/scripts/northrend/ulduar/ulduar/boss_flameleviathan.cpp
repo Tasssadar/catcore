@@ -28,7 +28,7 @@ enum say
     SAY_ENERGY_TOWER    = -1603215,
     SAY_NATURE_TOWER    = -1603216,
 
-    EMOTE_PURSUE        = -1603352,
+    EMOTE_PURSUE        = -1603352
 };
 
 enum spells
@@ -86,7 +86,7 @@ enum spells
     AURA_DUMMY_BLUE                             = 63294,
     AURA_DUMMY_GREEN                            = 63295,
     AURA_DUMMY_YELLOW                           = 63292,
-    SPELL_LIQUID_PYRITE                         = 62494,
+    SPELL_LIQUID_PYRITE                         = 62494
 };
 
 enum Mobs
@@ -110,7 +110,7 @@ enum Creatures
     NPC_FREYA_TARGET_BEACON                     = 33366,
     NPC_LOREKEEPER                              = 33686, //Hard mode starter
     NPC_BRANZ_BRONZBEARD                        = 33579,
-    NPC_DELORAH                                 = 33701,
+    NPC_DELORAH                                 = 33701
 };
 
 enum Towers
@@ -118,14 +118,14 @@ enum Towers
     GO_TOWER_OF_STORMS = 194377,
     GO_TOWER_OF_FLAMES = 194371,
     GO_TOWER_OF_FROST  = 194370,
-    GO_TOWER_OF_LIFE   = 194375,
+    GO_TOWER_OF_LIFE   = 194375
 };
 
 enum Seats
 {
     SEAT_PLAYER = 0,
     SEAT_TURRET = 1,
-    SEAT_DEVICE = 2,
+    SEAT_DEVICE = 2
 };
 
 enum eAchievementData
@@ -147,7 +147,7 @@ enum eAchievementData
     ACHIEV_10_THREE_CAR_GARAGE                  = 2907, //no core support for using a vehicle
     ACHIEV_25_THREE_CAR_GARAGE                  = 2908, //no core support for using a vehicle
     ACHIEV_10_UNBROKEN                          = 2905,
-    ACHIEV_25_UNBROKEN                          = 2906,
+    ACHIEV_25_UNBROKEN                          = 2906
 };
 
 //Positional defines 
@@ -250,24 +250,24 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
             m_pInstance->SetData(TYPE_LEVIATHAN, FAIL);
     }
 
-    void Aggro(Unit *who) 
+    void Aggro(Unit* /*who*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_LEVIATHAN, IN_PROGRESS);
-            if(m_pInstance->GetData(TYPE_LEVIATHAN_TP) != DONE)
+            if (m_pInstance->GetData(TYPE_LEVIATHAN_TP) != DONE)
                 m_pInstance->SetData(TYPE_LEVIATHAN_TP, DONE);
         }
 
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void JustDied(Unit *killer)
+    void JustDied(Unit* /*killer*/)
     {
-        if(m_pInstance) 
+        if (m_pInstance)
         {
             m_pInstance->SetData(TYPE_LEVIATHAN, DONE);
-            if(isHardMode)
+            if (isHardMode)
                 m_pInstance->SetData(TYPE_LEVIATHAN_HARD, DONE);
         }
 
@@ -280,7 +280,7 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
             m_pInstance->SetData(TYPE_LEVIATHAN, FAIL);
     }
 
-    void KilledUnit(Unit *who)
+    void KilledUnit(Unit* /*who*/)
     {
         DoScriptText(SAY_SLAY, m_creature);
     }
@@ -292,17 +292,17 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
             AttackStart(pTarget);
     }
 
-    void SpellHit(Unit *caster, const SpellEntry *spell)
+    void SpellHit(Unit* /*caster*/, const SpellEntry* /*spell*/)
     {
-        /*if(spell->Id == 62472)
+        /*if (spell->Id == 62472)
         vehicle->InstallAllAccessories();
-        else if(spell->Id == SPELL_ELECTROSHOCK)
+        else if (spell->Id == SPELL_ELECTROSHOCK)
         m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL);*/
     }
 
-    void DamageTaken(Unit *pDoneBy, uint32 &uiDamage)
+    void DamageTaken(Unit* /*pDoneBy*/, uint32 &uiDamage)
     {
-        if(m_creature->HasAura(SPELL_SYSTEMS_SHUTDOWN, EFFECT_INDEX_0))
+        if (m_creature->HasAura(SPELL_SYSTEMS_SHUTDOWN, EFFECT_INDEX_0))
             uiDamage += uiDamage/2;
     }
     void UpdateAI(const uint32 uiDiff)
@@ -311,7 +311,7 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
             return;
 
         // pursue
-        if(m_uiPursueTimer < uiDiff)
+        if (m_uiPursueTimer < uiDiff)
         {
             switch(urand(0, 3))
             {
@@ -331,7 +331,7 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         else m_uiPursueTimer -= uiDiff;
 
         // flame vents
-        if(m_uiFlameVentsTimer < uiDiff)
+        if (m_uiFlameVentsTimer < uiDiff)
         {
             DoCast(m_creature->getVictim(), SPELL_FLAME_VENTS);
             m_uiFlameVentsTimer = 30000 + rand()%20000;
@@ -339,7 +339,7 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         else m_uiFlameVentsTimer -= uiDiff;
 
         // battering ram
-        if(m_uiBatteringRamTimer < uiDiff)
+        if (m_uiBatteringRamTimer < uiDiff)
         {
             DoCast(m_creature->getVictim(), SPELL_BATTERING_RAM);
             m_uiBatteringRamTimer = 25000 + rand()%15000;
@@ -347,7 +347,7 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         else m_uiBatteringRamTimer -= uiDiff;
 
         /* flyers
-        if(m_uiSummonFlyerTimer < uiDiff)
+        if (m_uiSummonFlyerTimer < uiDiff)
         {
             m_creature->SummonCreature(MOB_MECHANOLIFT, m_creature->GetPositionX() + rand()%20, m_creature->GetPositionY() + rand()%20, m_creature->GetPositionZ() + 50, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 40000);
             m_uiSummonFlyerTimer = 2000;
@@ -355,14 +355,14 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         else m_uiSummonFlyerTimer -= uiDiff;*/
 
         // missile barrage
-        if(m_uiMissileBarrageTimer < uiDiff)
+        if (m_uiMissileBarrageTimer < uiDiff)
         {
             DoCast(m_creature, SPELL_MISSILE_BARRAGE);
             m_uiMissileBarrageTimer = 3000 + rand()%2000;
         }
         else m_uiMissileBarrageTimer -= uiDiff;
 
-        if(m_uiGatheringSpeedTimer < uiDiff)
+        if (m_uiGatheringSpeedTimer < uiDiff)
         {
             DoCast(m_creature, SPELL_GATHERING_SPEED);
             m_uiGatheringSpeedTimer = urand(50000, 60000);
@@ -370,11 +370,11 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         else m_uiGatheringSpeedTimer -= uiDiff;
 
         // tower of freya
-        if(isFreyasTower)
+        if (isFreyasTower)
         {
             DoCast(m_creature, SPELL_TOWER_OF_LIFE);
 
-            if(m_uiFreyaWardTimer < uiDiff)
+            if (m_uiFreyaWardTimer < uiDiff)
             {
                 DoCast(m_creature, SPELL_FREYAS_WARD);
                 m_uiFreyaWardTimer = 40000 + urand(1000, 10000);
@@ -383,11 +383,11 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         }
 
         // tower of mimiron
-        if(isMimironsTower)
+        if (isMimironsTower)
         {
             DoCast(m_creature, SPELL_TOWER_OF_FLAMES);
 
-            if(m_uiMimironInfernoTimer < uiDiff)
+            if (m_uiMimironInfernoTimer < uiDiff)
             {
                 DoCast(m_creature, SPELL_FREYAS_WARD);
                 m_uiMimironInfernoTimer = 40000 + urand(1000, 10000);
@@ -396,11 +396,11 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         }
 
         // tower of hodir
-        if(isHodirsTower)
+        if (isHodirsTower)
         {
             m_creature->SetHealth(m_creature->GetHealth() + 0.1* m_creature->GetHealth());
 
-            if(m_uiHodirFuryTimer < uiDiff)
+            if (m_uiHodirFuryTimer < uiDiff)
             {
                 DoCast(m_creature, SPELL_HODIR_FURY);
                 m_uiHodirFuryTimer = 40000 + urand(1000, 10000);
@@ -409,11 +409,11 @@ struct MANGOS_DLL_DECL boss_flame_leviathan : public ScriptedAI
         }
 
         // tower of thorim
-        if(isThorimsTower)
+        if (isThorimsTower)
         {
             DoCast(m_creature, SPELL_TOWER_OF_STORMS);
 
-            if(m_uiThorimHammerTimer < uiDiff)
+            if (m_uiThorimHammerTimer < uiDiff)
             {
                 DoCast(m_creature, SPELL_THORIMS_HAMMER);
                 m_uiThorimHammerTimer = 40000 + urand(1000, 10000);
@@ -436,9 +436,9 @@ struct MANGOS_DLL_DECL mob_defense_turretAI : public ScriptedAI
         m_uiSpell_Timer = urand(10000, 15000);
     }
 
-    void SpellHit(Unit *caster, const SpellEntry *spell)
+    void SpellHit(Unit* /*caster*/, const SpellEntry *spell)
     {
-        if(spell->Id == SPELL_SYSTEMS_SHUTDOWN)
+        if (spell->Id == SPELL_SYSTEMS_SHUTDOWN)
             m_creature->ForcedDespawn();
     }
 

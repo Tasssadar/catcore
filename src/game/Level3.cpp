@@ -6207,6 +6207,40 @@ bool ChatHandler::HandleInstanceSaveDataCommand(const char * /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleInstanceSetDataCommand(const char *args)
+{
+    Player* pl = m_session->GetPlayer();
+
+    Map* map = pl->GetMap();
+    if (!map->IsDungeon())
+    {
+        PSendSysMessage("Map is not a dungeon.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    InstanceData* iData = ((InstanceMap*)map)->GetInstanceData();
+    if (!iData)
+    {
+        PSendSysMessage("Map has no instance data.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    char* cType = strtok((char*)args, " ");
+    char* cData = strtok(NULL, " ");
+    if (!cType || !cData)
+        return false;
+
+    uint32 Type = atoi(cType);
+    uint32 Data = atoi(cData);
+    if (!Type || !Data)
+        return false;
+
+    iData->SetData(Type, Data);
+    return true;
+}
+
 /// Display the list of GMs
 bool ChatHandler::HandleGMListFullCommand(const char* /*args*/)
 {

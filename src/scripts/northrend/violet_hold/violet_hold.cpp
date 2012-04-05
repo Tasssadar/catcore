@@ -42,10 +42,8 @@ const float BossPortal[4]=
 
 const float CyanigosaPortal[2][4]= // portal + her coordinates
 {
-    /*{1936.07f, 803.198f, 53.3749f, 3.12414f},
-    {1930.07f, 803.198f, 53.3749f, 3.12414f} upper, no jump -> spawn her down instead*/
-    {1905.40f, 803.012f, 38.64513f, 3.12414f},
-    {1896.11f, 803.063f, 38.49596f, 3.12414f}
+    {1936.07f, 803.198f, 53.3749f, 3.12414f},
+    {1930.07f, 803.198f, 53.3749f, 3.12414f}
 };
 
 const float SinclariWP[5][4]=
@@ -769,7 +767,7 @@ struct MANGOS_DLL_DECL npc_violetholdportalAI : public Scripted_NoMovementAI
         {
             if (SummonTimer)
             {
-                if(SummonTimer<=diff)
+                if (SummonTimer<=diff)
                 {
                     float x,y,z;
                     m_creature->GetPosition(x,y,z);
@@ -1025,7 +1023,7 @@ struct MANGOS_DLL_DECL npc_sinclariAI : public npc_escortAI
         {
             if (LockTimer<=diff)
             {
-                if(m_instance)
+                if (m_instance)
                 {
                     Creature* Door=m_creature->GetMap()->GetCreature(m_instance->GetData64(DOOR_GUID));
                     if (Door)
@@ -1135,6 +1133,10 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
         case BOSS_DEAD:
             PortalSpawnTimer=35000;
             isBoss=false;
+            if (PortalCounter <= 6)
+                ((InstanceMap*)m_instance->instance)->KilledCreature("First Prisoner");
+            else if (PortalCounter <= 12)
+                ((InstanceMap*)m_instance->instance)->KilledCreature("Second Prisoner");
             break;
         case EVENT_START: //start event
             m_instance->SetData(DATA_CANWIPEAGAIN,0);
@@ -1323,12 +1325,13 @@ struct MANGOS_DLL_DECL npc_violetholddoorAI : public Scripted_NoMovementAI
             }
             else
             {
-                if(PortalCounter==17)
+                if (PortalCounter==17)
                 {
                     if (Creature* Portal = m_creature->SummonCreature(C_PORTAL,CyanigosaPortal[0][0],CyanigosaPortal[0][1],CyanigosaPortal[0][2],CyanigosaPortal[0][3],TEMPSUMMON_TIMED_DESPAWN,10000))
                         Portal->AI()->DoAction(CYANIGOSA);
                     if (Creature* Cyanigosa = m_creature->SummonCreature(C_CYANIGOSA,CyanigosaPortal[1][0],CyanigosaPortal[1][1],CyanigosaPortal[1][2],CyanigosaPortal[1][3],TEMPSUMMON_CORPSE_TIMED_DESPAWN,60000))
                     {
+                        Cyanigosa->setFaction(35);
                         Cyanigosa->AI()->DoAction(BOSS_PULL);
                     }
                     PortalSpawnTimer=(uint32)-1;

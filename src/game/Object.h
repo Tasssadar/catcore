@@ -77,17 +77,53 @@ class TerrainInfo;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
 
+struct Coords
+{
+    float x;
+    float y;
+    float z;
+    explicit Coords(float _x = 0, float _y = 0, float _z = 0)
+        : x(_x), y(_y), z(_z) {}
+    Coords(Coords const &coord)
+        : x(coord.x), y(coord.y), z(coord.z) {}
+
+    bool isNULL() const
+    {
+        return x == 0.f && y == 0.f && z == 0.f;
+    }
+
+    float GetDistance2d(const Coords _coord) const
+    {
+        float xd = _coord.x - x;
+        float yd = _coord.y - y;
+        return sqrt((xd*xd) + (yd*yd));
+    }
+
+    float GetDistance(const Coords _coord) const
+    {
+        float xd = _coord.x - x;
+        float yd = _coord.y - y;
+        float zd = _coord.z - z;
+        return sqrt((xd*xd) + (yd*yd) + (zd*zd));
+    }
+
+};
+
 struct WorldLocation
 {
     uint32 mapid;
-    float coord_x;
-    float coord_y;
-    float coord_z;
+    Coords coords;
     float orientation;
     explicit WorldLocation(uint32 _mapid = 0, float _x = 0, float _y = 0, float _z = 0, float _o = 0)
-        : mapid(_mapid), coord_x(_x), coord_y(_y), coord_z(_z), orientation(_o) {}
+        : mapid(_mapid), coords(_x,_y,_z), orientation(_o) {}
+    WorldLocation(uint32 _mapid, Coords _coords, float _o)
+        : mapid(_mapid), coords(_coords), orientation(_o) {}
     WorldLocation(WorldLocation const &loc)
-        : mapid(loc.mapid), coord_x(loc.coord_x), coord_y(loc.coord_y), coord_z(loc.coord_z), orientation(loc.orientation) {}
+        : mapid(loc.mapid), coords(loc.coords), orientation(loc.orientation) {}
+
+    float x() const { return coords.x; }
+    float y() const { return coords.y; }
+    float z() const { return coords.z; }
 };
 
 class MANGOS_DLL_SPEC Object
@@ -353,20 +389,21 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         void SetOrientation(float orientation);
 
-        float GetPositionX( ) const { return m_positionX; }
-        float GetPositionY( ) const { return m_positionY; }
-        float GetPositionZ( ) const { return m_positionZ; }
+        float GetPositionX( ) const { return m_coords.x; }
+        float GetPositionY( ) const { return m_coords.y; }
+        float GetPositionZ( ) const { return m_coords.z; }
         void GetPosition( float &x, float &y, float &z ) const
-            { x = m_positionX; y = m_positionY; z = m_positionZ; }
+            { x = m_coords.x; y = m_coords.y; z = m_coords.z; }
         void GetPosition( WorldLocation &loc ) const
-            { loc.mapid = m_mapId; GetPosition(loc.coord_x, loc.coord_y, loc.coord_z); loc.orientation = GetOrientation(); }
+            { loc = GetLocation(); }
+        Coords GetPosition() const { return m_coords; }
 
         float GetOrientation( ) const { return m_orientation; }
         float GetFixedOrientation( ) const { return m_fOrientation; }
         bool HasFixedOrientation() const { return m_fOrientation != -1.0f;}
         void FixOrientation( float ori = -1);
 
-        WorldLocation GetLocation() const { return WorldLocation(m_mapId, m_positionX, m_positionY, m_positionZ, m_orientation); }
+        WorldLocation GetLocation() const { return WorldLocation(m_mapId, m_coords, m_orientation); }
         void GetNearPoint2D( float &x, float &y, float distance, float absAngle) const;
         void GetNearPoint(WorldObject const* searcher, float &x, float &y, float &z, float searcher_bounding_radius, float distance2d, float absAngle) const;
         void GetClosePoint(float &x, float &y, float &z, float bounding_radius, float distance2d = 0, float angle = 0) const
@@ -380,11 +417,11 @@ class MANGOS_DLL_SPEC WorldObject : public Object
             GetNearPoint(obj, x, y, z, obj->GetObjectBoundingRadius(), distance2d, GetAngle(obj));
         }
 
-        virtual float GetObjectBoundingRadius() const { return DEFAULT_WORLD_OBJECT_SIZE; }
+        virtual float GetObjectBoundingRadius(bool /*is3D*/ = false) const { return DEFAULT_WORLD_OBJECT_SIZE; }
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float &z, float maxDiff = 10.0f) const;
-        bool IsAtGroundLevel(float x, float y, float z) const;
+        bool IsAtGroundLevel(Coords coord = Coords()) const;
 
         void GetRandomPoint( float x, float y, float z, float distance, float &rand_x, float &rand_y, float &rand_z ) const;
 
@@ -500,8 +537,11 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void RemoveFromClientUpdateList();
         void BuildUpdateData(UpdateDataMapType &);
 
-        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime);
-        Creature* SummonCreature(uint32 id, WorldLocation loc, TempSummonType spwtype,uint32 despwtime)	{ return SummonCreature(id, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation, spwtype, despwtime); }
+        Creature* SummonCreature(uint32 id, Coords coord, float ori, TempSummonType spwtype,uint32 despwtime, bool update_z = false);
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime, bool update_z = false)
+        {
+            return SummonCreature(id, Coords(x,y,z), ang, spwtype, despwtime, update_z);
+        }
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
 
@@ -509,6 +549,11 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         Vehicle* SummonVehicle(uint32 id, float x, float y, float z, float ang, uint32 vehicleId = NULL, Vehicle *transport = NULL, uint8 seatId = 0);
         GameObject* SummonGameobject(uint32 id, float x, float y, float z, float ang, uint32 respawnTime);
+        GameObject* SummonGameobject(uint32 id, const Coords coord, float ang, uint32 respawnTime)
+        {
+            return SummonGameobject(id, coord.x, coord.y, coord.z, ang, respawnTime);
+        }
+
         GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime) {return SummonGameobject(entry,x,y,z,ang,respawnTime);}
     protected:
         explicit WorldObject();
@@ -529,9 +574,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         uint32 m_InstanceId;                                // in map copy with instance id
         uint32 m_phaseMask;                                 // in area phase state
 
-        float m_positionX;
-        float m_positionY;
-        float m_positionZ;
+        Coords m_coords;
         float m_orientation;
         float m_fOrientation;
 

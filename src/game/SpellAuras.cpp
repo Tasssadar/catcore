@@ -850,6 +850,9 @@ void AreaAura::Update(uint32 diff)
                     // recalculate basepoints for lower rank (all AreaAura spell not use custom basepoints?)
                     if (actualSpellInfo != GetSpellProto())
                         actualBasePoints = actualSpellInfo->CalculateSimpleValue(m_effIndex);
+                    // check immunity
+                    if ((*tIter)->IsImmunedToSpellEffect(actualSpellInfo, m_effIndex))
+                        continue;
                     AreaAura *aur = new AreaAura(actualSpellInfo, m_effIndex, &actualBasePoints, (*tIter), caster, NULL);
                     aur->SetAuraDuration(GetAuraDuration());
                     (*tIter)->AddAura(aur);
@@ -868,9 +871,10 @@ void AreaAura::Update(uint32 diff)
         // or caster is isolated or caster no longer has the aura
         // or caster is (no longer) friendly
         bool needFriendly = (m_areaAuraType == AREA_AURA_ENEMY ? false : true);
-        if ( !caster || caster->hasUnitState(UNIT_STAT_ISOLATED) ||
+        if (!caster || caster->hasUnitState(UNIT_STAT_ISOLATED) ||
             !caster->IsWithinDistInMap(m_target, m_radius)      ||
             !caster->HasAura(GetId(), GetEffIndex())            ||
+            m_target->IsImmunedToSpellEffect(GetSpellProto(), m_effIndex) ||
             caster->IsFriendlyTo(m_target) != needFriendly
            )
         {
@@ -1437,15 +1441,38 @@ bool Aura::IsEffectStacking()
 
     switch(GetModifier()->m_auraname)
     {
-        // case SPELL_AURA_MOD_DAMAGE_DONE:
-        // case SPELL_AURA_MOD_HEALING_DONE:
-            // break;
+        case SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE:
+            // Winter's Chill / Improved Scorch / Improved Shadow Bolt
+            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
+                GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK)
+                return false;
+            break;
+        case SPELL_AURA_MOD_DAMAGE_PERCENT_DONE:
+        case SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE:
+            // Sanctified Retribution
+            // Heart of the Crusader / Totem of Wrath
+            if (GetSpellProto()->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x0000000020000008)))
+            {
+                return false;
+            }
+            break;
+        case SPELL_AURA_MOD_DAMAGE_DONE:
+        case SPELL_AURA_MOD_HEALING_DONE:
+            // Demonic Pact
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
+                return false;
+            break;
         case SPELL_AURA_MOD_STAT:
             // Horn of Winter / Arcane Intellect / Divine Spirit
             if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26 &&
                 (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_MAGE ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_PRIEST) )
+                return false;
+            break;
+        case SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE:
+            // Blessing of Kings / Blessing of Sanctuary
+            if (GetSpellProto()->AttributesEx6 & SPELL_ATTR_EX6_UNK26)
                 return false;
             break;
         case SPELL_AURA_MOD_CRIT_PERCENT:
@@ -1506,8 +1533,8 @@ bool Aura::IsEffectStacking()
             // Commanding Shout
             return false;
         case SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT:
-            // Trauma / Mangle
-            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR ||
+            // Trauma / Mangle (Trauma has SPELLFAMILY_GENERIC and no flags)
+            if (GetSpellProto()->Id == 46856 || GetSpellProto()->Id == 46857 ||
                 GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID)
                 return false;
             break;
@@ -2218,6 +2245,14 @@ void Aura::TriggerSpell()
                 return;
             }
         }
+
+        // Impale - Anu'barak encounter
+        if (triggeredSpellInfo->SpellDifficultyId == 722)
+        {
+            // if has Permafrost aura cast one more spell
+            if (triggerTarget->HasAura(66193))
+                triggerTarget->CastSpell(triggerTarget, 66181, true, NULL, this, casterGUID);
+        }
     }
 
     // some triggered spells require specific equipment
@@ -2777,6 +2812,27 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             case 64621:                                     // Mimiron - at blue effect drop spawn Emergency Fire Bot
             {
                 target->CastSpell(target, 64622, false);
+                return;
+            }
+            case 68839:
+            {
+                if (Unit* pCaster = GetCaster())
+                {
+                    float x, y, z;
+                    target->GetPosition(x, y, z);
+                    pCaster->SummonCreature(36535, x, y, z, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+                }
+                return;
+            }
+            case 62485: // Brightleaf's Essence Channel
+            case 65587: // Brightleaf's Essence Channel (h)
+            case 62484: // Ironbranch's Essence Channel
+            case 65588: // Ironbranch's Essence Channel (h)
+            case 62483: // Stonebark's Essence Channel
+            case 65589: // Stonebark's Essence Channel (h)
+            {
+                if (Unit* pCaster = GetCaster())
+                    pCaster->CastSpell(pCaster, 62467, true);
                 return;
             }
         }
@@ -4725,6 +4781,17 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             target->SendMessageToSet(&data, true);
         }
 
+        // Seduction (Succubus spell)
+        if (m_spellProto->Id == 6358)
+        {
+            Unit* pCaster = GetCaster();
+            if(!pCaster)
+                return;
+
+            pCaster->InterruptSpell(CURRENT_CHANNELED_SPELL,false);
+            return;
+        }
+
         // Wyvern Sting
         if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellFamilyFlags & UI64LIT(0x0000100000000000))
         {
@@ -4755,21 +4822,40 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             caster->CastSpell(target,spellInfo,true,NULL,this);
             return;
         }
-        // Stone Grip
-        else if (GetId() == 62056 || GetId() == 63981)
+
+        switch(GetId())
         {
-            WorldPacket data(12);
-            data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
-            data << target->GetPackGUID();
-            data << uint32(0);
-            target->SendMessageToSet(&data, true);
-        }
-        // Surge of Adrenaline
-        else if (GetId() == 66683)
-        {
-            if (target->GetMap() && !target->GetMap()->IsHeroicRaid())
-                target->CastSpell(target, 68667, true);
-            return;
+            // Stone Grip
+            case 62056:
+            case 63981:
+            {
+                WorldPacket data(12);
+                data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                data << target->GetPackGUID();
+                data << uint32(0);
+                target->SendMessageToSet(&data, true);
+                break;
+            }
+            // Surge of Adrenaline
+            case 66683:
+            {
+                if (Map* map = target->GetMap())
+                    if (!map->IsHeroicRaid())
+                        target->CastSpell(target, 68667, true);
+                break;
+            }
+            case 65981: // Submerge Anub'arak
+            case 67322: // Submerge - Burrower
+                target->CastSpell(target, 65982, false); // on submerge aura drop, emerge
+                break;
+            case 66845: // Two Jormungars - Submerge 0
+                target->CastSpell(target, 66947, false);
+                break;
+            case 66948: // Two Jormungars - Submerge 0
+                target->CastSpell(target, 66949, false);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -5289,11 +5375,27 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
 
     if (apply)
     {
-        // Gronn Lord's Grasp, becomes stoned
-        if (GetId() == 33572)
+        switch(GetId())
         {
-            if (GetStackAmount() >= 5 && !target->HasAura(33652))
-                target->CastSpell(target, 33652, true);
+            // Gronn Lord's Grasp, becomes stoned
+            case 33572:
+                if (GetStackAmount() >= 5 && !target->HasAura(33652))
+                    target->CastSpell(target, 33652, true);
+                break;
+            // Soulstorm
+            case 69049:
+            case 68921:
+            {
+                Unit* caster = GetCaster();
+                if(caster)
+                {
+                    float x,y,z;
+                    caster->GetPosition(x, y, z);
+                    if(m_target->IsWithinDist2d(x, y, 10.0f))
+                        return;
+                }else  return;
+                break;
+            }
         }
     }
 
@@ -6255,9 +6357,9 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     {
         if (m_modifier.m_miscvalue == i || m_modifier.m_miscvalue == -1)
         {
-            target->HandleStatModifier(UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply);
-            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet())
-                target->ApplyStatPercentBuffMod(Stats(i), float(m_modifier.m_amount), apply );
+            float change = target->CheckAuraStackingAndApply(this, UnitMods(UNIT_MOD_STAT_START + i), TOTAL_PCT, float(m_modifier.m_amount), apply, 0, i+1);
+            if (target->GetTypeId() == TYPEID_PLAYER || ((Creature*)target)->isPet() && change != 0)
+                target->ApplyStatPercentBuffMod(Stats(i), (change < 0 && !IsStacking() ? -change : change), apply );
         }
     }
 
@@ -8969,6 +9071,7 @@ void Aura::PeriodicDummyTick()
     switch (spell->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
+        {
             switch (spell->Id)
             {
                 // Drink
@@ -9411,8 +9514,25 @@ void Aura::PeriodicDummyTick()
                     if (target->GetCurrentSpell(CurrentSpellTypes(i)))
                         target->CastSpell(target, 66359, true);
             }
-            break;            
+            // Leeching Swarm
+            else if (spell->SpellDifficultyId == 609)
+            {
+                Unit* caster = GetCaster();
+                if (!caster)
+                    return;
 
+                uint32 healId = 66125;
+                uint32 dmgId = 66240;
+                float  leachMultiplier = m_spellProto->CalculateSimpleValue(m_effIndex)/100.f;
+                int32 leachAmount = target->GetHealth()*leachMultiplier;
+                if (leachAmount < 250)
+                    leachAmount = 250;
+
+                caster->CastCustomSpell(target, dmgId, &leachAmount, 0, 0, true);
+                target->CastCustomSpell(caster, healId, &leachAmount, 0, 0, true);
+            }
+            break;
+        }
         case SPELLFAMILY_MAGE:
         {
             // Mirror Image

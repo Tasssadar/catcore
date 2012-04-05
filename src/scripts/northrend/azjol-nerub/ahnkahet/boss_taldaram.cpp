@@ -134,11 +134,11 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32 &uiDamage)
     {
-        if(m_creature->IsNonMeleeSpellCasted(false))
+        if (m_creature->IsNonMeleeSpellCasted(false))
         {
             m_uiDamageTaken += uiDamage;
             uint32 m_uiMinDamage = m_bIsRegularMode ? 20000 : 40000;
-            if(m_uiDamageTaken >= m_uiMinDamage)
+            if (m_uiDamageTaken >= m_uiMinDamage)
             {
                 m_uiVanishPhase = 0; 
                 m_creature->InterruptNonMeleeSpells(false);
@@ -150,21 +150,21 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_uiVanishPhase != 0)
+        if (m_uiVanishPhase != 0)
         {
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
-            if(m_uiVanishPhase_Timer <= uiDiff)
+            if (m_uiVanishPhase_Timer <= uiDiff)
             {
                 m_creature->InterruptNonMeleeSpells(false);
                 m_uiVanishPhase = 0;
             }else m_uiVanishPhase_Timer -= uiDiff;
 
-            if(m_uiVanishPhase != 1)
+            if (m_uiVanishPhase != 1)
                 return;
 
             // Embrace of the Vampyr
-            if(m_uiEmbrace_Timer <= uiDiff)
+            if (m_uiEmbrace_Timer <= uiDiff)
             {
                 switch(urand(0, 1))
                 {
@@ -172,7 +172,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
                     case 1: DoScriptText(SAY_FEED_2, m_creature); break;
                 }
                 m_creature->SetVisibility(VISIBILITY_ON);
-                if(m_uEmbraceTarget && m_uEmbraceTarget->isAlive())
+                if (m_uEmbraceTarget && m_uEmbraceTarget->isAlive())
                     DoCast(m_uEmbraceTarget, m_bIsRegularMode ? SPELL_EMBRACE_OF_THE_VAMPYR : SPELL_EMBRACE_OF_THE_VAMPYR_H);
                 m_uiDamageTaken = 0;
                 m_uiVanishPhase = 2;
@@ -181,19 +181,19 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         }
 
         // Bloodthirst
-        if(m_uiBloodthirst_Timer <= uiDiff)
+        if (m_uiBloodthirst_Timer <= uiDiff)
         {
             DoCast(m_creature->getVictim(), SPELL_BLOODTHIRST);
             m_uiBloodthirst_Timer = 8000 + rand()%6000;
         }else m_uiBloodthirst_Timer -= uiDiff;
 
         // Summon Flame Orb
-        if(m_uiSummonOrb_Timer <= uiDiff)
+        if (m_uiSummonOrb_Timer <= uiDiff)
         {
             for(int i = 0; i <= 3; ++i)
             {
                 m_creature->SummonCreature(NPC_FLAME_ORB, m_creature->GetPositionX(), m_creature->GetPositionY(), FLAME_ORB_Z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0);
-                if(m_bIsRegularMode)
+                if (m_bIsRegularMode)
                     break;
             }
             DoCast(m_creature, SPELL_CONJURE_FLAME_ORB);
@@ -202,7 +202,7 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
         }else m_uiSummonOrb_Timer -= uiDiff;
 
         // Vanish
-        if(m_uiVanish_Timer <= uiDiff)
+        if (m_uiVanish_Timer <= uiDiff)
         {
             switch(urand(0, 1))
             {
@@ -216,12 +216,12 @@ struct MANGOS_DLL_DECL boss_taldaramAI : public ScriptedAI
             while(!stop)
             {
                 m_uEmbraceTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-                if(m_uEmbraceTarget && m_uEmbraceTarget->isAlive() && m_uEmbraceTarget->GetTypeId() == TYPEID_PLAYER)
+                if (m_uEmbraceTarget && m_uEmbraceTarget->isAlive() && m_uEmbraceTarget->GetTypeId() == TYPEID_PLAYER)
                     stop = true;
                 else
                     continue;
 
-                m_creature->GetMotionMaster()->MoveChase(m_uEmbraceTarget);
+                m_creature->GetMotionMaster()->MoveFollow(m_uEmbraceTarget, 0, 0);
                 break;
             }
 
@@ -279,23 +279,22 @@ struct MANGOS_DLL_DECL mob_flame_orbAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff)
     {
         // Despawn Timer
-        if(m_uiDespawn_Timer <= uiDiff)
+        if (m_uiDespawn_Timer <= uiDiff)
         {
             DoCast(m_creature, SPELL_FLAME_ORB_DEATH);
             m_creature->ForcedDespawn();
         }else m_uiDespawn_Timer -= uiDiff;
 
         // Fly timer
-        if(m_uiCast_Timer <= uiDiff)
+        if (m_uiCast_Timer <= uiDiff)
         {
-            if(m_bIsFlying)
+            if (m_bIsFlying)
                 return;
 
             DoCast(m_creature, m_bIsRegularMode ? SPELL_FLAME_ORB : SPELL_FLAME_ORB_H);
             m_creature->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-            WorldPacket heart;
-            m_creature->BuildHeartBeatMsg(&heart);
-            m_creature->SendMessageToSet(&heart, false);
+            m_creature->SendHeartBeatMsg();
+
             direction = rand()%3;
             switch(direction)
             {

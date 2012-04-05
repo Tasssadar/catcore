@@ -33,6 +33,24 @@
 #define MAX_RAID_SUBGROUPS (MAX_RAID_SIZE / MAX_GROUP_SIZE)
 #define TARGET_ICON_COUNT 8
 
+enum ItemLevelType
+{
+    ITEM_LEVEL_AVERAGE  = 0,
+    ITEM_LEVEL_TOTAL    = 1,
+    ITEM_LEVEL_MAXIMUM  = 2,
+    ITEM_LEVEL_MINIMUM  = 3,
+    ITEM_LEVEL_TYPE_MAX = 4
+};
+
+enum ItemLevelSlot
+{
+    ITEM_LEVEL_WEAPON   = 0,
+    ITEM_LEVEL_ARMOR    = 1,
+    ITEM_LEVEL_WA       = 2,
+    ITEM_LEVEL_ALL      = 3,
+    ITEM_LEVEL_SLOT_MAX = 4
+};
+
 enum LootMethod
 {
     FREE_FOR_ALL      = 0,
@@ -357,8 +375,8 @@ class MANGOS_DLL_SPEC Group
         InstanceSave* GetBoundInstance(Map* aMap, Difficulty difficulty);
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
 
-        void UpdateAverageItemLevel();
-        uint32 GetAverageItemLevel() const { return m_aitemlevel; }
+        void UpdateItemLevelValues();
+        uint32 GetItemLevelValue(uint8 value, uint8 slot = ITEM_LEVEL_WA) const { return m_itemlevel[value][slot]; }
 
         uint32 GetAverageMMR(uint8 slot);
 
@@ -455,6 +473,6 @@ class MANGOS_DLL_SPEC Group
         Rolls               RollId;
         BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
-        uint32              m_aitemlevel;
+        uint32              m_itemlevel[ITEM_LEVEL_TYPE_MAX][ITEM_LEVEL_SLOT_MAX];
 };
 #endif

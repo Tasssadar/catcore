@@ -264,22 +264,25 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                 /*if (((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
                     unit->m_movementInfo.SetMovementFlags(MOVEFLAG_FORWARD);*/
 
-                if (((Creature*)unit)->canFly() && !(((Creature*)unit)->canWalk()
-                    && unit->IsAtGroundLevel(unit->GetPositionX(), unit->GetPositionY(), unit->GetPositionZ())))
+                if (((Creature*)unit)->canFly())
                 {
                     // (ok) most seem to have this
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
-
-                    // Add flying effect. This should be in db, but...
-                    if(!((Creature*)unit)->HasSplineFlag(SPLINEFLAG_UNKNOWN7))
-                        ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
-
-                    if (!((Creature*)unit)->hasUnitState(UNIT_STAT_MOVING))
+                    //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                    if(((Creature*)unit)->isVehicle() && !((Vehicle*)unit)->HasCreatureDriver())
                     {
-                        // (ok) possibly some "hover" mode
-                        //unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT); //problems sometimes...
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
                     }
+                    else
+                        unit->m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+
+                    if (!((Creature*)unit)->canWalk()
+                        || !unit->IsAtGroundLevel())
+                    {
+                        unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                    }
+                    else
+                        unit->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
                 }
 
                 // swimming creature
@@ -295,7 +298,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
                         ((Creature*)unit)->AddSplineFlag(SPLINEFLAG_UNKNOWN7);
                 }
 
-                if (unit->GetVehicleGUID())
+                if (unit->GetVehicleGUID() || unit->GetTransport())
                    unit->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
 
                 if (unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == RANDOM_CIRCLE_MOTION_TYPE)
@@ -340,9 +343,9 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint16 updateFlags) const
         // Unit speeds
         *data << float(unit->GetSpeed(MOVE_WALK));
         *data << float(unit->GetSpeed(MOVE_RUN));
-        *data << float(unit->GetSpeed(MOVE_SWIM_BACK));
-        *data << float(unit->GetSpeed(MOVE_SWIM));
         *data << float(unit->GetSpeed(MOVE_RUN_BACK));
+        *data << float(unit->GetSpeed(MOVE_SWIM));
+        *data << float(unit->GetSpeed(MOVE_SWIM_BACK));
         *data << float(unit->GetSpeed(MOVE_FLIGHT));
         *data << float(unit->GetSpeed(MOVE_FLIGHT_BACK));
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
@@ -1180,24 +1183,24 @@ void Object::BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_play
 void Object::AddToClientUpdateList()
 {
     sLog.outError("Unexpected call of Object::AddToClientUpdateList for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 void Object::RemoveFromClientUpdateList()
 {
     sLog.outError("Unexpected call of Object::RemoveFromClientUpdateList for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 void Object::BuildUpdateData( UpdateDataMapType& /*update_players */)
 {
     sLog.outError("Unexpected call of Object::BuildUpdateData for object (TypeId: %u Update fields: %u)",GetTypeId(), m_valuesCount);
-    ASSERT(false);
+    //ASSERT(false);
 }
 
 WorldObject::WorldObject()
     : m_isActiveObject(false), m_currMap(NULL), m_mapId(0), m_InstanceId(0), m_phaseMask(PHASEMASK_NORMAL),
-    m_positionX(0.0f), m_positionY(0.0f), m_positionZ(0.0f), m_orientation(0.0f), m_fOrientation(-1.0f)
+      m_coords(), m_orientation(0.0f), m_fOrientation(-1.0f)
 {
 }
 
@@ -1214,9 +1217,9 @@ void WorldObject::_Create( uint32 guidlow, HighGuid guidhigh, uint32 phaseMask )
 
 void WorldObject::Relocate(float x, float y, float z, float orientation)
 {
-    m_positionX = x;
-    m_positionY = y;
-    m_positionZ = z;
+    m_coords.x = x;
+    m_coords.y = y;
+    m_coords.z = z;
     m_orientation = HasFixedOrientation() ? m_fOrientation : orientation;
 
     if (isType(TYPEMASK_UNIT))
@@ -1229,16 +1232,7 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
 
 void WorldObject::Relocate(float x, float y, float z)
 {
-    m_positionX = x;
-    m_positionY = y;
-    m_positionZ = z;
-
-    if (isType(TYPEMASK_UNIT))
-    {
-        ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
-        if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->isVehicle())
-            ((Vehicle*)this)->RellocatePassengers(GetMap());
-    }
+    Relocate(x,y,z, 0);
 }
 
 void WorldObject::SetOrientation(float orientation)
@@ -1250,17 +1244,17 @@ void WorldObject::SetOrientation(float orientation)
 
 uint32 WorldObject::GetZoneId() const
 {
-    return GetTerrain()->GetZoneId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetZoneId(m_coords.x, m_coords.y, m_coords.z);
 }
 
 uint32 WorldObject::GetAreaId() const
 {
-    return GetTerrain()->GetAreaId(m_positionX, m_positionY, m_positionZ);
+    return GetTerrain()->GetAreaId(m_coords.x, m_coords.y, m_coords.z);
 }
 
 void WorldObject::GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const
 {
-    GetTerrain()->GetZoneAndAreaId(zoneid, areaid, m_positionX, m_positionY, m_positionZ);
+    GetTerrain()->GetZoneAndAreaId(zoneid, areaid, m_coords.x, m_coords.y, m_coords.z);
 }
 
 InstanceData* WorldObject::GetInstanceData() const
@@ -1268,14 +1262,13 @@ InstanceData* WorldObject::GetInstanceData() const
     Map *map = GetMap();
     return (map && map->IsDungeon()) ? ((InstanceMap*)map)->GetInstanceData() : NULL;
 }
-
                                                             //slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {
     float dx = GetPositionX() - obj->GetPositionX();
     float dy = GetPositionY() - obj->GetPositionY();
     float dz = GetPositionZ() - obj->GetPositionZ();
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetObjectBoundingRadius(true) + obj->GetObjectBoundingRadius(true);
     float dist = sqrt((dx*dx) + (dy*dy) + (dz*dz)) - sizefactor;
     return ( dist > 0 ? dist : 0);
 }
@@ -1368,7 +1361,7 @@ bool WorldObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool
         float dz = GetPositionZ() - obj->GetPositionZ();
         distsq += dz*dz;
     }
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetObjectBoundingRadius(is3D) + obj->GetObjectBoundingRadius(is3D);
     float maxdist = dist2compare + sizefactor;
 
     return distsq < maxdist * maxdist;
@@ -1499,7 +1492,7 @@ float WorldObject::GetAngle( const float x, const float y ) const
 bool WorldObject::HasInArc(const float arcangle, const float x, const float y) const
 {
     // always have self in arc
-    if(x == m_positionX && y == m_positionY)
+    if(x == m_coords.x && y == m_coords.y)
         return true;
 
         float arc = arcangle;
@@ -1622,13 +1615,16 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float &z, float maxDif
 
 bool WorldObject::IsPositionValid() const
 {
-    return MaNGOS::IsValidMapCoord(m_positionX,m_positionY,m_positionZ,m_orientation);
+    return MaNGOS::IsValidMapCoord(m_coords.x, m_coords.y, m_coords.z,m_orientation);
 }
 
-bool WorldObject::IsAtGroundLevel(float x, float y, float z) const
+bool WorldObject::IsAtGroundLevel(Coords coord) const
 {
-    float groundZ = GetTerrain()->GetHeight(x, y, z, true, 50);
-    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-z) > 0.5f)
+    if (coord.isNULL())
+        coord = m_coords;
+
+    float groundZ = GetTerrain()->GetHeight(coord.x, coord.y, coord.z, true, 50);
+    if (groundZ <= INVALID_HEIGHT || fabs(groundZ-coord.z) > 5.0f)
         return false;
     return true;
 }
@@ -1828,7 +1824,7 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
-Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime)
+Creature* WorldObject::SummonCreature(uint32 id, Coords coord, float ori, TempSummonType spwtype, uint32 despwtime, bool update_z)
 {
     TemporarySummon* pCreature = new TemporarySummon(GetObjectGuid());
 
@@ -1842,11 +1838,17 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
         return NULL;
     }
 
-    if (x == 0.0f && y == 0.0f && z == 0.0f)
-        GetClosePoint(x, y, z, pCreature->GetObjectBoundingRadius());
+    if (coord.isNULL())
+        GetClosePoint(coord.x, coord.y, coord.z, pCreature->GetObjectBoundingRadius());
 
-    pCreature->Relocate(x, y, z, ang);
-    pCreature->SetSummonPoint(x, y, z, ang);
+    if (update_z)
+    {
+        coord.z += 5.f;
+        UpdateGroundPositionZ(coord.x, coord.y, coord.z, 15.f);
+    }
+
+    pCreature->Relocate(coord.x, coord.y, coord.z, ori);
+    pCreature->SetSummonPoint(coord.x, coord.y, coord.z, ori);
 
     if (!pCreature->IsPositionValid())
     {
@@ -1901,6 +1903,7 @@ Vehicle* WorldObject::SummonVehicle(uint32 id, float x, float y, float z, float 
     }
 
     v->Relocate(x, y, z, ang);
+    v->SetSummonPoint(x, y, z, ang);
 
     if (!v->IsPositionValid())
     {

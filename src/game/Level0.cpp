@@ -124,6 +124,9 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
     PSendSysMessage(LANG_UPTIME, str.c_str());
     PSendSysMessage("World diff time: %u", sWorld.GetDiffTime());
     PSendSysMessage("Total players joined in Dungeon Finder: %u", sLfgMgr.GetTotalPlayers());
+    if(m_session && m_session->GetPlayer())
+        PSendSysMessage("Your or your party's average item level as seen by server: %u", m_session->GetPlayer( )->GetGroupOrPlayerItemLevelValue(ITEM_LEVEL_AVERAGE));
+    
     if (sWorld.IsShutdowning())
     {
         const char *type = (sWorld.GetShutdownMask() & SHUTDOWN_MASK_RESTART) ? "Restart" : "Shutdown";
@@ -364,8 +367,33 @@ bool ChatHandler::HandleLitakCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleTestCommand(const char * /*args*/)
+bool ChatHandler::HandleTestCommand(const char * args)
 {
+    if (!*args)
+        return false;
+
+    /*Unit* target = getSelectedUnit();
+
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+    uint32 emote = extractSpellIdFromLink((char*)args);
+    if (!emote)
+        return false;
+
+    target->HandleEmote(emote);*/
+    uint32 tspec = extractSpellIdFromLink((char*)args);
+    if (!tspec)
+        return false;
+
+    TalentSpec spec = TalentSpec(tspec);
+
+    PSendSysMessage("You talent points in spec %u is %u", tspec, m_session->GetPlayer()->TalentsInSpec(spec));
     return true;
 }
 

@@ -25,196 +25,266 @@
 
 void SpellMgr::ApplySpellHacks()
 {
+    SpellEntry *sfix = NULL;
+
     //Shaman totem bar hack-fix
-    SpellEntry *sfix1 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66842));
-    sfix1->EffectImplicitTargetA[0] = TARGET_SELF;
-    SpellEntry *sfix2 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66843));
-    sfix2->EffectImplicitTargetA[0] = TARGET_SELF;
-    SpellEntry *sfix3 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66844));
-    sfix3->EffectImplicitTargetA[0] = TARGET_SELF;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66842));
+        sfix->EffectImplicitTargetA[0] = TARGET_SELF;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66843));
+        sfix->EffectImplicitTargetA[0] = TARGET_SELF;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(66844));
+        sfix->EffectImplicitTargetA[0] = TARGET_SELF;
 
     //Surge of power spells should be longer
-    SpellEntry *sfix4 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57407));
-    sfix4->DurationIndex = 28;
-    SpellEntry *sfix5 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(60936));
-    sfix5->DurationIndex = 28;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57407));
+        sfix->DurationIndex = 28;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(60936));
+        sfix->DurationIndex = 28;
 
     //Lifebloom final heal
-    SpellEntry *sfix6 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(33778));
-    sfix6->DmgClass = SPELL_DAMAGE_CLASS_MAGIC;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(33778));
+        sfix->DmgClass = SPELL_DAMAGE_CLASS_MAGIC;
 
     //Spirit of Redemption has AURA_INTERRUPT_FLAG_CAST, what the...? Maybe blizz changed this flag
-    SpellEntry *sfix7 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(27827));
-    sfix7->AuraInterruptFlags = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(27827));
+        sfix->AuraInterruptFlags = 0;
 
     //Twilight Torment - relly dunno what blizzard intended to do
-    SpellEntry *sfix8 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57935));
-    sfix8->AttributesEx = 0;
-    sfix8->AttributesEx4 = SPELL_ATTR_EX4_NOT_STEALABLE;
-    sfix8->CastingTimeIndex = 1;
-    sfix8->RecoveryTime = 0;
-    sfix8->procFlags = (PROC_FLAG_TAKEN_MELEE_HIT | PROC_FLAG_TAKEN_MELEE_SPELL_HIT | PROC_FLAG_TAKEN_RANGED_HIT | PROC_FLAG_TAKEN_RANGED_SPELL_HIT | PROC_FLAG_TAKEN_NEGATIVE_SPELL_HIT);
-    sfix8->procChance = 100;
-    sfix8->procCharges = 0;
-    sfix8->rangeIndex = 1;
-    sfix8->StackAmount = 0;
-    sfix8->Effect[EFFECT_INDEX_1] = 0;
-    sfix8->EffectDieSides[EFFECT_INDEX_1] = 0;
-    sfix8->EffectBasePoints[EFFECT_INDEX_0] = -1;
-    sfix8->EffectImplicitTargetA[EFFECT_INDEX_0] = 6;
-    sfix8->EffectImplicitTargetA[EFFECT_INDEX_1] = 0;
-    sfix8->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
-    sfix8->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
-    sfix8->EffectRadiusIndex[EFFECT_INDEX_0] = 0;
-    sfix8->EffectRadiusIndex[EFFECT_INDEX_1] = 0;
-    sfix8->EffectApplyAuraName[EFFECT_INDEX_0] = SPELL_AURA_PROC_TRIGGER_SPELL;
-    sfix8->EffectApplyAuraName[EFFECT_INDEX_1] = 0;
-    sfix8->EffectAmplitude[EFFECT_INDEX_0] = 0;
-    sfix8->EffectAmplitude[EFFECT_INDEX_1] = 0;
-    sfix8->EffectMiscValue[EFFECT_INDEX_0] = 0;
-    sfix8->EffectMiscValue[EFFECT_INDEX_1] = 0;
-    sfix8->EffectMiscValueB[EFFECT_INDEX_0] = 0;
-    sfix8->EffectMiscValueB[EFFECT_INDEX_1] = 0;
-    sfix8->EffectTriggerSpell[EFFECT_INDEX_0] = 57988;
-    sfix8->EffectTriggerSpell[EFFECT_INDEX_1] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57935));
+        sfix->AttributesEx = 0;
+        sfix->AttributesEx4 = SPELL_ATTR_EX4_NOT_STEALABLE;
+        sfix->CastingTimeIndex = 1;
+        sfix->RecoveryTime = 0;
+        sfix->procFlags = (PROC_FLAG_TAKEN_MELEE_HIT | PROC_FLAG_TAKEN_MELEE_SPELL_HIT | PROC_FLAG_TAKEN_RANGED_HIT | PROC_FLAG_TAKEN_RANGED_SPELL_HIT | PROC_FLAG_TAKEN_NEGATIVE_SPELL_HIT);
+        sfix->procChance = 100;
+        sfix->procCharges = 0;
+        sfix->rangeIndex = 1;
+        sfix->StackAmount = 0;
+        sfix->Effect[EFFECT_INDEX_1] = 0;
+        sfix->EffectDieSides[EFFECT_INDEX_1] = 0;
+        sfix->EffectBasePoints[EFFECT_INDEX_0] = -1;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 6;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+        sfix->EffectRadiusIndex[EFFECT_INDEX_0] = 0;
+        sfix->EffectRadiusIndex[EFFECT_INDEX_1] = 0;
+        sfix->EffectApplyAuraName[EFFECT_INDEX_0] = SPELL_AURA_PROC_TRIGGER_SPELL;
+        sfix->EffectApplyAuraName[EFFECT_INDEX_1] = 0;
+        sfix->EffectAmplitude[EFFECT_INDEX_0] = 0;
+        sfix->EffectAmplitude[EFFECT_INDEX_1] = 0;
+        sfix->EffectMiscValue[EFFECT_INDEX_0] = 0;
+        sfix->EffectMiscValue[EFFECT_INDEX_1] = 0;
+        sfix->EffectMiscValueB[EFFECT_INDEX_0] = 0;
+        sfix->EffectMiscValueB[EFFECT_INDEX_1] = 0;
+        sfix->EffectTriggerSpell[EFFECT_INDEX_0] = 57988;
+        sfix->EffectTriggerSpell[EFFECT_INDEX_1] = 0;
 
     //Hurl Boulder
-    SpellEntry *sfix9 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62307));
-    sfix9->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
-    sfix9->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
-    sfix9->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62307));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
 
     //Hurl Pyrite boulder
-    SpellEntry *sfix10 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62489));
-    sfix10->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
-    sfix10->EffectImplicitTargetA[EFFECT_INDEX_1] = 16;
-    sfix10->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62489));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = 16;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
 
     //Anti-air rocket
-    SpellEntry *sfix11 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62363));
-    sfix11->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
-    sfix11->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62363));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
     
     //Mortar
-    SpellEntry *sfix12 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62635));
-    sfix12->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
-    sfix12->EffectImplicitTargetA[EFFECT_INDEX_1] = 52;
-    sfix12->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
-    sfix12->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
-    sfix12->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
-    sfix12->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62635));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = 52;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
 
     //Fire cannon 62357
-    SpellEntry *sfix13 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62357));
-    sfix13->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
-    sfix13->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
-    sfix13->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62357));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_2] = 16;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
 
     //Blue pyrite
-    SpellEntry *sfix14 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68605));
-    sfix14->EffectImplicitTargetA[EFFECT_INDEX_0] = 8;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68605));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 8;
 
     //Flames
-    SpellEntry *sfix15 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65045));
-    sfix15->EffectImplicitTargetA[EFFECT_INDEX_0] = 8;
-    sfix15->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65045));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 8;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
 
     // Searing Light - implicit target change
-    SpellEntry *sfix16 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63023));
-    sfix16->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
-    sfix16->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63023));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
 
     // Searing Light (h) - implicit target change
-    SpellEntry *sfix17 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65120));
-    sfix17->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
-    sfix17->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65120));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
 
     // Gravity Bomb - implicit target change
-    SpellEntry *sfix18 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63025));
-    sfix18->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
-    sfix18->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
-    sfix18->EffectImplicitTargetA[EFFECT_INDEX_1] = 53;
-    sfix18->EffectImplicitTargetB[EFFECT_INDEX_1] = 16;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63025));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 16;
 
     // Gravity Bomb (h) - implicit target change
-    SpellEntry *sfix19 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64233));
-    sfix19->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
-    sfix19->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
-    sfix19->EffectImplicitTargetA[EFFECT_INDEX_1] = 53;
-    sfix19->EffectImplicitTargetB[EFFECT_INDEX_1] = 16;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64233));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 16;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = 53;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 16;
 
     // Searing Flames - make it interruptable spell
-    SpellEntry *sfix20 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62661));
-    sfix20->InterruptFlags = 13;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62661));
+        sfix->InterruptFlags = 13;
     
     // Supercharge - should hit only allies
-    SpellEntry *sfix21 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(61920));
-    sfix21->EffectImplicitTargetB[EFFECT_INDEX_0] = 31;
-    sfix21->EffectImplicitTargetB[EFFECT_INDEX_1] = 31;
-    sfix21->EffectImplicitTargetB[EFFECT_INDEX_2] = 31;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(61920));
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 31;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 31;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_2] = 31;
 
     // Stone Grip
-    SpellEntry *sfix22 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62166));
-    sfix22->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
-    sfix22->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
-    sfix22->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
-    sfix22->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
-    sfix22->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
-    sfix22->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62166));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
 
     // Stone Grip (h)
-    SpellEntry *sfix23 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63981));
-    sfix23->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
-    sfix23->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
-    sfix23->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
-    sfix23->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
-    sfix23->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
-    sfix23->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(63981));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_2] = TARGET_CHAIN_DAMAGE;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_0] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1] = 0;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_2] = 0;
 
     // Slam triggered - needs to set rage requierement to 0 otherwise total cost is 30 rage instead of 15...
-    SpellEntry *sfix24 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(50782));
-    sfix24->powerType = 0;
-    sfix24->manaCost = 0;
-    sfix24->CastingTimeIndex = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(50782));
+        sfix->powerType = 0;
+        sfix->manaCost = 0;
+        sfix->CastingTimeIndex = 0;
 
     // Item - Warrior T8 Protection 4P Bonus bonus triggered - spell icon and spell name
-    /*SpellEntry *sfix25 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64934));
-    sfix25->SpellIconID = 2097;
-    sfix25->SpellName[0] = "Hustej spell co snizi magical spell dymydz";*/
+    /*sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64934));
+        sfix->SpellIconID = 2097;
+        sfix->SpellName[0] = "Hustej spell co snizi magical spell dymydz";*/
 
-    // Fish Fest
-    SpellEntry *sfix26 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57292));
-    sfix26->EffectTriggerSpell[EFFECT_INDEX_2] = 57399;
-
-    // Giddyup!
-    SpellEntry *sfix27 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42924));
-    sfix27->EffectAmplitude[EFFECT_INDEX_0] = 1000;
+    // Fish Feast
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(57292));
+        sfix->EffectTriggerSpell[EFFECT_INDEX_2] = 57399;
 
     // Giddyup!
-    SpellEntry *sfix28 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42436));
-    sfix28->EffectImplicitTargetA[EFFECT_INDEX_0] = 21;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42924));
+        sfix->EffectAmplitude[EFFECT_INDEX_0] = 1000;
+
+    // Giddyup!
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(42436));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_0] = 21;
 
     // Ice Block - probably wrong mechanic, disabling its usage while afflicted by Forbearance
-    SpellEntry *sfix29 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(45438));
-    sfix29->Mechanic = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(45438));
+        sfix->Mechanic = 0;
 
     // Bladestorm, zkurvena immunita na nulu...
-    SpellEntry *sfix30 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(46924));
-    sfix30->EffectMiscValue[1]= 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(46924));
+        sfix->EffectMiscValue[1]= 0;
 
     // magnetic core nechce se mì s tim srat v scriptu takže nasrat a rozmazat
-    SpellEntry *sfix31 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64436));
-    sfix31->EffectImplicitTargetA[EFFECT_INDEX_1]= 1;
-    sfix31->EffectImplicitTargetB[EFFECT_INDEX_1]= 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64436));
+        sfix->EffectImplicitTargetA[EFFECT_INDEX_1]= 1;
+        sfix->EffectImplicitTargetB[EFFECT_INDEX_1]= 0;
 
     // Fan of knives - rychlost (ma to bejt hned je to jakysi zpoždìny)
-    SpellEntry *sfix32 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(51723));
-    sfix32->speed = 0;
-    SpellEntry *sfix33 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
-    sfix33->speed = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(51723));
+        sfix->speed = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(52874));
+        sfix->speed = 0;
 
     // Forbearance
     // in DBC wrong mechanic immune since 3.0.x
-    SpellEntry *sfix34 = const_cast<SpellEntry*>(sSpellStore.LookupEntry(25771));
-    sfix34->EffectMiscValue[0] = MECHANIC_IMMUNE_SHIELD;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(25771));
+        sfix->EffectMiscValue[0] = MECHANIC_IMMUNE_SHIELD;
+
+    // Soulstorm - remove root effect, it does not work and causes trouble
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68872));
+        sfix->Effect[2] = 0;
+
+    // Brightleaf's Essence - why the fuck has this spell two exactly same auras ?
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62968));
+        sfix->Effect[1] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65761));
+        sfix->Effect[1] = 0;
+
+    // Wrong target type...
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(68987));
+        sfix->EffectImplicitTargetA[0] = 6;
+        sfix->EffectImplicitTargetA[0] = 0;
+        sfix->EffectImplicitTargetA[1] = 6;
+        sfix->EffectImplicitTargetB[1] = 0;
+        sfix->EffectImplicitTargetA[2] = 1;
+
+    // Wrong target type...
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69232));
+        sfix->EffectTriggerSpell[0] = 69233;
+        sfix->EffectTriggerSpell[1] = 69238;
+
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69238));
+        sfix->EffectImplicitTargetA[0] = 28;
+        sfix->EffectImplicitTargetB[0] = 0;
+        sfix->EffectImplicitTargetA[1] = 28;
+        sfix->EffectImplicitTargetB[1] = 0;
+
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(69628));
+        sfix->EffectImplicitTargetA[0] = 28;
+        sfix->EffectImplicitTargetB[0] = 0;
+        sfix->EffectImplicitTargetA[1] = 28;
+        sfix->EffectImplicitTargetB[1] = 0;
+
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65509));
+        sfix->Effect[1] = 6;
+        sfix->EffectImplicitTargetA[1] = 22;
+        sfix->EffectImplicitTargetB[1] = 7;
+        sfix->EffectBasePoints[1] = 1900;
+        sfix->EffectRadiusIndex[1] = 29;
+        sfix->EffectApplyAuraName[1] = 3;
+        sfix->EffectAmplitude[1] = 2000;
+
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64598));
+        sfix->Effect[0] = 6;
+        sfix->Effect[1] = 0;
+        sfix->Effect[2] = 0;
+        sfix->EffectApplyAuraName[0] = 4;
+
+    // Stonebark's Essence - remove visual effect
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62385));
+        sfix->EffectTriggerSpell[2] = 0;
+    sfix  = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65585));
+        sfix->EffectTriggerSpell[2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62387));
+        sfix->EffectTriggerSpell[2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65586));
+        sfix->EffectTriggerSpell[2] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(62386));
+        sfix->EffectTriggerSpell[1] = 0;
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(65590));
+        sfix->EffectTriggerSpell[1] = 0;
+
+    // Item - Druid T8 Balance 4P Bonus
+    sfix = const_cast<SpellEntry*>(sSpellStore.LookupEntry(64823));
+        sfix->procCharges = 1;
 }

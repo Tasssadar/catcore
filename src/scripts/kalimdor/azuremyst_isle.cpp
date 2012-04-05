@@ -351,11 +351,11 @@ struct MANGOS_DLL_DECL npc_engineer_spark_overgrindAI : public npc_escortAI
 
     void DoComplete()
     {
-        std::list<Player*> players;
+        PlrList players;
         MaNGOS::AnyPlayerInObjectRangeCheck checker(m_creature,50.0f);
         MaNGOS::PlayerListSearcher<MaNGOS::AnyPlayerInObjectRangeCheck> searcher(m_creature,players,checker);
         Cell::VisitAllObjects(m_creature,searcher,50.0f);
-        for (std::list<Player*>::const_iterator i=players.begin();i!=players.end();++i)
+        for (PlrList::const_iterator i=players.begin();i!=players.end();++i)
         {
             if ((*i)->GetQuestStatus(Q_TREE_COMPANY) == QUEST_STATUS_INCOMPLETE &&(*i)->HasAura(AURA_TREE_DISGUISE))
             {

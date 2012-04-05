@@ -84,12 +84,16 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
 {
     public:
         typedef std::map<uint32, InstanceSave*> InstanceSaveMap;
+        typedef std::map<uint32, const char*> InstanceEncounterMap;
         InstanceSaveManager();
         ~InstanceSaveManager();
 
         void CheckResetTime();
         void LoadSavesFromDb();
+        void LoadInstanceEncounters();
         void PackInstances();
+
+        const char *GetEncounterName(Creature *creature);
 
         InstanceSave* CreateInstanceSave(uint16 mapId, uint32 id, Difficulty difficulty, bool perm);
         void DeleteSave(uint32 id)
@@ -113,7 +117,7 @@ class MANGOS_DLL_DECL InstanceSaveManager : public MaNGOS::Singleton<InstanceSav
 
     private:
         InstanceSaveMap m_saves;
-        
+        InstanceEncounterMap m_encounters;
 };
 
 #define sInstanceSaveMgr MaNGOS::Singleton<InstanceSaveManager>::Instance()

@@ -214,7 +214,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
 
     void JustDied(Unit* pKiller)                                                      
     {
-        if(m_pInstance && m_bGainMoreDots)
+        if (m_pInstance && m_bGainMoreDots)
            m_pInstance->DoCompleteAchievement(m_bIsRegularMode ? ACHI_MORE_DOTS_10 : ACHI_MORE_DOTS_25);                              
     }
                                                                                                                                                                                                                                    
@@ -262,9 +262,9 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(m_bGainMoreDots)
+        if (m_bGainMoreDots)
         {
-            if(m_uiMoreDotsTimer <= uiDiff)
+            if (m_uiMoreDotsTimer <= uiDiff)
                 m_bGainMoreDots = false;
             else
                 m_uiMoreDotsTimer -= uiDiff;
@@ -325,7 +325,7 @@ struct MANGOS_DLL_DECL boss_onyxiaAI : public ScriptedAI
                     DoScriptText(SAY_PHASE_2_TRANS, m_creature);
 
                     // sort of a hack, it is unclear how this really work but the values appear to be valid
-                    m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_UNK_2);
+                    m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND | UNIT_BYTE1_FLAG_FLY_ANIM);
                     m_creature->AddSplineFlag(SPLINEFLAG_FLYING);
 
                     if (m_pPointData)

@@ -25,6 +25,8 @@ enum
     SPELL_CYANIGOSA_TRANSFORM                 = 58668,
 };
 
+const Coords jumpPos(1883.90f, 805.69f, 38.402f);
+
 struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
 {
     boss_cyanigosaAI(Creature *pCreature) : ScriptedAI(pCreature)
@@ -79,11 +81,15 @@ struct MANGOS_DLL_DECL boss_cyanigosaAI : public ScriptedAI
             {
                 switch (RPPhase)
                 {
-                case 0: 
+                case 0:
+                {
+                    m_creature->TrajMonsterMove(jumpPos.x, jumpPos.y, jumpPos.z, false, 80.f, 1000);
+
                     //she should jump here, no spell aviable for that, it doesn't work
                     RPPhase++;
                     RPTimer=5000;//10000;
                     break;
+                }
                 case 1:
                     DoCast(m_creature,58668);
                     RPPhase++;

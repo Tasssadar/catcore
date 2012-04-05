@@ -497,6 +497,8 @@ void Map::MessageDistBroadcast(WorldObject *obj, WorldPacket *msg, float dist)
 
 bool Map::loaded(const GridPair &p) const
 {
+    //if((p.x_coord == 33 || p.x_coord == 34) && p.y_coord == 32)
+        //return false;
     return ( getNGrid(p.x_coord, p.y_coord) && isGridObjectDataLoaded(p.x_coord, p.y_coord) );
 }
 
@@ -787,13 +789,16 @@ Map::CreatureRelocation(Creature *creature, float x, float y, float z, float ang
     CellPair new_val = MaNGOS::ComputeCellPair(x, y);
     Cell new_cell(new_val);
 
+    if (creature->GetTransport() && !getNGrid(new_cell.GridX(), new_cell.GridY()))
+        return;
+
     bool moved_to_resp = false;
     if (old_cell.DiffCell(new_cell) || old_cell.DiffGrid(new_cell))
     {
         DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) added to moving list from grid[%u,%u]cell[%u,%u] to grid[%u,%u]cell[%u,%u].", creature->GetGUIDLow(), creature->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
 
         // try to move to the new cell or move it to respawn -- do nothing if both operations failed
-        if (!CreatureCellRelocation(creature,new_cell) && !(moved_to_resp = CreatureRespawnRelocation(creature)))
+        if (!CreatureCellRelocation(creature,new_cell) && !creature->GetTransport() && !(moved_to_resp = CreatureRespawnRelocation(creature)))
         {
             DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u ) can't be move to unloaded respawn grid.",creature->GetGUIDLow(),creature->GetEntry());
             return;
@@ -834,7 +839,7 @@ bool Map::CreatureCellRelocation(Creature *c, Cell new_cell)
     }
 
     // in diff. grids but active creature
-    if (c->isActiveObject())
+    if (c->isActiveObject() || c->GetTransport())
     {
         EnsureGridLoadedAtEnter(new_cell);
 
@@ -904,6 +909,8 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
             return false;
 
         DEBUG_LOG("Unloading grid[%u,%u] for map %u", x,y, i_id);
+
+        
         ObjectGridUnloader unloader(*grid);
 
         // Finish remove and delete all creatures with delayed remove before moving to respawn grids
@@ -915,10 +922,9 @@ bool Map::UnloadGrid(const uint32 &x, const uint32 &y, bool pForce)
 
         // Finish remove and delete all creatures with delayed remove before unload
         RemoveAllObjectsInRemoveList();
-
-        unloader.UnloadN();
-        delete getNGrid(x, y);
         setNGrid(NULL, x, y);
+        unloader.UnloadN();
+        delete grid;
     }
 
     int gx = (MAX_NUMBER_OF_GRIDS - 1) - x;
@@ -1340,18 +1346,22 @@ bool InstanceMap::CanEnter(Player *player)
     uint32 maxPlayers = GetMaxPlayers();
     if (!player->isGameMaster() && GetPlayersCountExceptGMs() >= maxPlayers)
     {
-        DETAIL_LOG("MAP: Instance '%u' of map '%s' cannot have more than '%u' players. Player '%s' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
+        sLog.outError("MAP: Instance '%u' of map '%s' cannot have more than '%u' players. Player '%s' rejected", GetInstanceId(), GetMapName(), maxPlayers, player->GetName());
         player->SendTransferAborted(GetId(), TRANSFER_ABORT_MAX_PLAYERS);
         return false;
     }
 
     // cannot enter while players in the instance are in combat
     Group *pGroup = player->GetGroup();
-    if (GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
-        return false;
-
-    if (pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
+    if (GetId() != 658 && GetInstanceData() && GetInstanceData()->IsLocked() && !player->isGameMaster())
     {
+        sLog.outError("MAP: Instance '%u' of map '%s' is locked. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
+        return false;
+    }
+
+    if (GetId() != 658 && pGroup && pGroup->InCombatToInstance(GetInstanceId(), true) && player->GetMapId() != GetId())
+    {
+        sLog.outError("MAP: Instance '%u' of map '%s' is in combat. Player '%s' rejected", GetInstanceId(), GetMapName(), player->GetName());
         player->SendTransferAborted(GetId(), TRANSFER_ABORT_ZONE_IN_COMBAT);
         return false;
     }
@@ -1549,11 +1559,30 @@ void InstanceMap::PermBindAllPlayers(Player *player)
     }
 }
 
+void InstanceMap::KilledCreature(Creature *creature)
+{
+    if(!GetInstanceSave())
+        return;
+
+    const char* name = sInstanceSaveMgr.GetEncounterName(creature);
+    KilledCreature(name);
+}
+
 void InstanceMap::KilledCreature(const char* name)
 {
     if(!GetInstanceSave())
         return;
 
+    int32 mask = GetEncounterMask(name);
+    if(mask != -1)
+    {
+         GetInstanceSave()->AddEncounter(mask);
+         return;
+    }
+}
+
+int32 InstanceMap::GetEncounterMask(const char* name)
+{
     DungeonEncounterEntry const *cur = NULL;
     for (uint32 i = 0; i < sDungeonEncounterStore.GetNumRows(); ++i)
     {
@@ -1564,11 +1593,12 @@ void InstanceMap::KilledCreature(const char* name)
         if(cur->Map == GetId() && Difficulty(cur->difficulty) == GetDifficulty() &&
             *(cur->Name[0]) == *(name))
         {
-            GetInstanceSave()->AddEncounter(1 << cur->order);
-            break;
+            return (1 << cur->order);
         }
     }
+    return -1;
 }
+
 
 void InstanceMap::UnloadAll(bool pForce)
 {
@@ -2517,6 +2547,20 @@ void Map::ScriptsProcess()
 Creature* Map::GetCreature(ObjectGuid guid)
 {
     return m_objectsStore.find<Creature>(guid.GetRawValue(), (Creature*)NULL);
+}
+
+Unit* Map::GetUnit(ObjectGuid guid)
+{
+    switch(guid.GetHigh())
+    {
+        case HIGHGUID_PLAYER:       return ObjectAccessor::FindPlayer(guid);
+        case HIGHGUID_UNIT:         return GetCreature(guid);
+        case HIGHGUID_PET:          return GetPet(guid);
+        case HIGHGUID_VEHICLE:      return GetVehicle(guid);
+        default:                    break;
+    }
+
+    return NULL;
 }
 
 Vehicle* Map::GetVehicle(ObjectGuid guid)

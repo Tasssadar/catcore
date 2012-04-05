@@ -113,6 +113,7 @@ struct RoleCheck
             case DAMAGE: dps.insert(guid); break;
         }
     }
+
     uint8 GetPlayerRole(uint64 guid) const
     {
         if(guid == tank)
@@ -166,7 +167,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         void SendProposalUpdate(uint8 state);
         void SendRoleCheckUpdate(uint8 state);
         LfgLocksMap *GetLocksList() const;
-        
+
         //Override these methods
         bool AddMember(const uint64 &guid, const char* name);
         uint32 RemoveMember(const uint64 &guid, const uint8 &method);
@@ -246,6 +247,7 @@ class MANGOS_DLL_SPEC LfgGroup : public Group
         uint8 m_lfgFlags;
         VoteToKick m_voteToKick;
         RoleCheck m_roleCheck;
+        bool m_awarded;
 };
 
 #endif

@@ -81,11 +81,11 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
 
     void Reset()
     {
-        if(m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         phase = 0;
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_HEIGAN, NOT_STARTED);
     }
 
@@ -94,7 +94,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
         if (!pWho)
             return;
 
-        if(phase != 1)
+        if (phase != 1)
             return;
 
         if (m_creature->Attack(pWho, true))
@@ -106,13 +106,13 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
     }
     void SetPhase(uint8 tPhase)
     {
-        if(tPhase == 0)
+        if (tPhase == 0)
         {
-            if(phase == 1)
+            if (phase == 1)
             {
                 phase++;
             }
-            else if(phase == 2)
+            else if (phase == 2)
             {
                 phase--;
             }
@@ -121,17 +121,17 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
 
         eruptSection = rand()%4;
 
-        if(phase == 1)
+        if (phase == 1)
         {
             m_creature->InterruptNonMeleeSpells(false);
             Feaver_Timer = 20000;
             Phase_Timer = 85000;
             Erupt_Timer = 10000;
             Disruption_Timer = 5000+rand()%10000;
-            if(m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             DoStartMovement(m_creature->getVictim());
-        }else if(phase == 2)
+        }else if (phase == 2)
         {
             m_creature->InterruptNonMeleeSpells(true);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -157,7 +157,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
             case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
         }
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_HEIGAN, IN_PROGRESS);
 
         m_creature->SetInCombatWithZone();
@@ -172,13 +172,13 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if(m_pInstance)
+        if (m_pInstance)
             m_pInstance->SetData(TYPE_HEIGAN, DONE);
     }
 
     void UpdateAI(const uint32 diff)
     {
-        if(phase == 0)
+        if (phase == 0)
             return;
 
         if (Phase_Timer < diff)
@@ -196,7 +196,7 @@ struct MANGOS_DLL_DECL boss_heiganAI : public ScriptedAI
                 eruptDirection = false;
 
             eruptDirection ? ++eruptSection : --eruptSection;
-            if(phase == 1)
+            if (phase == 1)
             {
                 Erupt_Timer = 10000;
             }else Erupt_Timer = 3000;
@@ -236,14 +236,14 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     uint32 phaseTimer;
     uint32 slowTimer;
     bool forward;
-    std::list<GameObject*> GetGameObjectsByEntry(uint32 entry)
+    GameObjectList GetGameObjectsByEntry(uint32 entry)
     {
         CellPair pair(MaNGOS::ComputeCellPair(m_creature->GetPositionX(), m_creature->GetPositionY()));
         Cell cell(pair);
         //cell.data.Part.reserved = ALL_DISTRICT;
         cell.SetNoCreate();
  
-        std::list<GameObject*> gameobjectList;
+        GameObjectList gameobjectList;
  
         AllGameObjectsWithEntryInRange check(m_creature, entry, 100);
         MaNGOS::GameObjectListSearcher<AllGameObjectsWithEntryInRange> searcher(m_creature, gameobjectList, check);
@@ -261,18 +261,18 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         if (PlList.isEmpty())
             return;
  
-        if(safePlace != 1)
+        if (safePlace != 1)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181678);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181678);
             //Visual part of eruption
             for (int32 i = 181510; i <= 181526; i++)
             {
                 if (i == 181513 || i == 181512 || i == 181511 || i == 181525 || i == 181514 || i == 181515 || i == 181516)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
-                    if((*itr))
+                    if ((*itr))
                         //Required GO Custom Animation Patch for this
                     {
                         WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
@@ -283,9 +283,9 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                 }
             }
             //Damage part of eruption
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
-                if(!(*itr))
+                if (!(*itr))
                     continue;
                 for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
                 {
@@ -296,7 +296,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
  
                         if (pPlayer->isAlive())
                         {
-                            if(pPlayer->GetDistance((*itr)) <= 4.0f)
+                            if (pPlayer->GetDistance((*itr)) <= 4.0f)
                                 //We use originalCaster for deal damage by Plague Fissure
                                 DoCast(pPlayer, SPELL_ERUPTION, true);
                         }
@@ -306,17 +306,17 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
         }
         //Change direction of dance
         else forward = true;
-        if(safePlace != 2)
+        if (safePlace != 2)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181676);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181676);
             for (int32 i = 181511; i <= 181531; i++)
             {
                 if ((i > 181516 && i < 181525) || (i == 181526))
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
-                    if((*itr))
+                    if ((*itr))
                     {
                         WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
                         data << (*itr)->GetGUID();
@@ -325,9 +325,9 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
-                if(!(*itr))
+                if (!(*itr))
                     continue;
                 for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
                 {
@@ -338,24 +338,24 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
  
                         if (pPlayer->isAlive())
                         {
-                            if(pPlayer->GetDistance((*itr)) <= 4.0f)
+                            if (pPlayer->GetDistance((*itr)) <= 4.0f)
                                 DoCast(pPlayer, SPELL_ERUPTION, true);
                         }
                     }
                 }
             }
         }
-        if(safePlace != 3)
+        if (safePlace != 3)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181677);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181677);
             for (int32 i = 181532; i <= 181545; i++)
             {
                 if (i >= 181537 && i <= 181539)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
-                    if((*itr))
+                    if ((*itr))
                     {
                         WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
                         data << (*itr)->GetGUID();
@@ -364,9 +364,9 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
-                if(!(*itr))
+                if (!(*itr))
                     continue;
                 for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
                 {
@@ -377,24 +377,24 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
  
                         if (pPlayer->isAlive())
                         {
-                            if(pPlayer->GetDistance((*itr)) <= 4.0f)
+                            if (pPlayer->GetDistance((*itr)) <= 4.0f)
                                 DoCast(pPlayer, SPELL_ERUPTION, true);
                         }
                     }
                 }
             }
         }
-        if(safePlace != 4)
+        if (safePlace != 4)
         {
-            std::list<GameObject*> eruptGOs = GetGameObjectsByEntry(181695);
+            GameObjectList eruptGOs = GetGameObjectsByEntry(181695);
             for (int32 i = 181537; i <= 181552; i++)
             {
                 if (i > 181539 && i < 181545)
                     continue;
-                std::list<GameObject*> visualGO = GetGameObjectsByEntry(i);
-                for (std::list<GameObject*>::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
+                GameObjectList visualGO = GetGameObjectsByEntry(i);
+                for (GameObjectList::iterator itr = visualGO.begin(); itr != visualGO.end(); ++itr)
                 {
-                    if((*itr))
+                    if ((*itr))
                     {
                         WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM,8+4);
                         data << (*itr)->GetGUID();
@@ -403,9 +403,9 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                     }
                 }
             }
-            for (std::list<GameObject*>::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
+            for (GameObjectList::iterator itr = eruptGOs.begin(); itr != eruptGOs.end(); ++itr)
             {
-                if(!(*itr))
+                if (!(*itr))
                     continue;
                 for(Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
                 {
@@ -416,7 +416,7 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
  
                         if (pPlayer->isAlive())
                         {
-                            if(pPlayer->GetDistance((*itr)) <= 4.0f)
+                            if (pPlayer->GetDistance((*itr)) <= 4.0f)
                                 DoCast(pPlayer, SPELL_ERUPTION, true);
                         }
                     }
@@ -447,36 +447,36 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
     }
     void UpdateAI(const uint32 diff)
     {
-        if(m_creature->GetMapId() != 533)
+        if (m_creature->GetMapId() != 533)
             return;
 
-        if(pInstance->GetData(TYPE_HEIGAN) != IN_PROGRESS)
+        if (pInstance->GetData(TYPE_HEIGAN) != IN_PROGRESS)
         {
             m_creature->ForcedDespawn();
         }
  
         if (phase == 1)
         {
-            if(phaseTimer < diff)
+            if (phaseTimer < diff)
             {
                 // Let's fast dance
                 phase = 2;
                 phaseTimer = 45000;
                 safeSpot = 1;
             }else phaseTimer-=diff;
-            if(slowTimer < diff)
+            if (slowTimer < diff)
             {
                 DoErupt(safeSpot);
-                if(forward)
+                if (forward)
                     safeSpot++;
                 else
                     safeSpot--;
                 slowTimer = 10500;
             }else slowTimer-=diff;
         }
-        else if(phase == 2)
+        else if (phase == 2)
         {
-            if(phaseTimer < diff)
+            if (phaseTimer < diff)
             {
                 // Slow dance again
                 phase = 1;
@@ -484,10 +484,10 @@ struct MANGOS_DLL_DECL npc_heigan_eruptionAI : public ScriptedAI
                 phaseTimer = 90000;
                 safeSpot = 1;
             }else phaseTimer-=diff;
-            if(fastTimer < diff)
+            if (fastTimer < diff)
             {
                 DoErupt(safeSpot);
-                if(forward)
+                if (forward)
                     safeSpot++;
                 else
                     safeSpot--;

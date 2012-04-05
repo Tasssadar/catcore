@@ -119,7 +119,7 @@ m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
 m_regenHealth(true), m_AI_locked(false), m_isDeadByDefault(false),
 m_isHardModeKill(false), m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
 m_creatureInfo(NULL), m_splineFlags(SPLINEFLAG_WALKMODE),
-m_DoNotInsertToInstanceCombatList(false)
+m_DoNotInsertToInstanceCombatList(false), m_groundOffset(0)
 {
     m_regenTimer = 200;
     m_CombatWithPlayerIntervalCheck = 30000; // 30 sec by default
@@ -132,6 +132,7 @@ m_DoNotInsertToInstanceCombatList(false)
     m_CreatureCategoryCooldowns.clear();
 
     m_splineFlags = SPLINEFLAG_WALKMODE;
+    m_TimerMgr = NULL;
 }
 
 Creature::~Creature()
@@ -142,6 +143,12 @@ Creature::~Creature()
 
     delete i_AI;
     i_AI = NULL;
+
+    if (m_TimerMgr)
+    {
+        delete m_TimerMgr;
+        m_TimerMgr = NULL;
+    }
 }
 
 void Creature::AddToWorld()
@@ -307,7 +314,7 @@ bool Creature::UpdateEntry(uint32 Entry, uint32 team, const CreatureData *data, 
     SetUInt32Value(UNIT_NPC_FLAGS,GetCreatureInfo()->npcflag);
 
     SetAttackTime(BASE_ATTACK,  GetCreatureInfo()->baseattacktime);
-    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->baseattacktime);
+    SetAttackTime(OFF_ATTACK,   GetCreatureInfo()->offattacktime);
     SetAttackTime(RANGED_ATTACK,GetCreatureInfo()->rangeattacktime);
 
     uint32 unitFlags = GetCreatureInfo()->unit_flags;
@@ -440,7 +447,8 @@ void Creature::Update(uint32 diff)
                 //Call AI respawn virtual function
                 i_AI->JustRespawned();
 
-                GetMap()->Add(this);
+                if(!IsInWorld())
+                    GetMap()->Add(this);
             }
             break;
         }
@@ -513,6 +521,10 @@ void Creature::Update(uint32 diff)
             {
                 // do not allow the AI to be changed during update
                 m_AI_locked = true;
+
+                if (m_TimerMgr)
+                    m_TimerMgr->UpdateTimers(diff);
+
                 i_AI->UpdateAI(diff);
                 m_AI_locked = false;
             }
@@ -1057,6 +1069,9 @@ void Creature::SelectLevel(const CreatureInfo *cinfo, float percentHealth, float
     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, cinfo->mindmg * damagemod);
     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, cinfo->maxdmg * damagemod);
 
+    SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, cinfo->minoffdmg * damagemod);
+    SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, cinfo->maxoffdmg * damagemod);
+
     SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE,cinfo->minrangedmg * damagemod);
     SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE,cinfo->maxrangedmg * damagemod);
 
@@ -1453,6 +1468,9 @@ void Creature::EnterCombat(Unit* pEnemy)
 
     if (isWorldBoss() && !m_DoNotInsertToInstanceCombatList)
         InsertIntoInstanceCombatList();
+
+    if (m_TimerMgr)
+        m_TimerMgr->SetUpdatable(true);
 }
 
 void Creature::InsertIntoInstanceCombatList()
@@ -1484,7 +1502,7 @@ bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIn
         return true;
 
     // Taunt immunity special flag check
-    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE)
+    if (GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_NOT_TAUNTABLE || HasAura(70850))
     {
         // Taunt aura apply check
         if (spellInfo->Effect[index] == SPELL_EFFECT_APPLY_AURA)
@@ -2050,6 +2068,26 @@ void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
     m_CreatureCategoryCooldowns[category] = apply_time;
 }
 
+void Creature::FarTeleportTo(Map* map, float X, float Y, float Z, float O)
+{
+    InterruptNonMeleeSpells(true);
+    CombatStop();
+    DeleteThreatList();
+    GetMotionMaster()->Clear(false);
+    
+    WorldPacket data(SMSG_DESTROY_OBJECT, 8 + 1);
+    data << uint64(GetGUID());
+    data << uint8(0);
+    SendMessageToSet(&data, false);
+
+    RemoveFromWorld();
+    ResetMap();
+    SetMap(map);
+    AddToWorld();
+
+    Relocate(X, Y, Z, O);
+}
+
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
 {
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
@@ -2408,4 +2446,26 @@ void Creature::LogKill(Unit *killer, int32 icomments)
         << icomments << "')";
 
     CharacterDatabase.Execute(sql.str().c_str());
+}
+
+SpellTimerMgr* Creature::CreateTimerMgr()
+{
+    if(!m_TimerMgr)
+        m_TimerMgr = new SpellTimerMgr((Unit*)this);
+    return m_TimerMgr;
+}
+
+void Creature::ProhibitSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs )
+{
+    // currently handled only in m_TimerMgr, not full core support
+    if (m_TimerMgr)
+        m_TimerMgr->ProhibitSpellSchool(idSchoolMask, unTimeMs);
+}
+
+float Creature::GetObjectBoundingRadius(bool is3D) const
+{
+    if (is3D && m_groundOffset && IsAtGroundLevel())
+        return sqrt(Unit::GetObjectBoundingRadius()*Unit::GetObjectBoundingRadius() + GetGroundOffset()*GetGroundOffset());
+
+    return Unit::GetObjectBoundingRadius();
 }

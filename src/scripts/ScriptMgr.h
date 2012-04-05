@@ -29,6 +29,7 @@ typedef std::list<Creature*> CreatureList;
 typedef std::list<GameObject*> GameObjectList;
 typedef std::list<Player*> PlrList;
 typedef std::list<uint64> GuidList;
+typedef std::map<uint32, uint64> GuidMap;
 
 struct Script
 {

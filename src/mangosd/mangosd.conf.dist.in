@@ -398,6 +398,7 @@ LfgLogFile = "LfgLog.log"
 LfgLogTimestamp = 0
 BossLogFile = "BossKill.log"
 CatLogFile = "CatLog.log"
+CatLogTimestamp = 0
 LogColors = ""
 
 ###################################################################################################################
@@ -1783,6 +1784,10 @@ BG.BonusHonor.Holiday = 5
 #        could be some red/blue coloration
 #        Default: 0 (disable)
 #
+#    TeamBG.MinLevel
+#       Minimum bracket level for TeamBG
+#       Default: 0 (disable)
+#
 ###################################################################################################################
 
 TeamBG.AllowAB = 0
@@ -1794,6 +1799,7 @@ TeamBG.TeamBG.Faction.Blue = 1
 TeamBG.TeamBG.Faction.Red = 2
 TeamBG.Buff.Blue = 0
 TeamBG.Buff.Red = 0
+TeamBG.MinLevel = 0
 
 ###################################################################################################################
 # FACTIONED MAPS CONFIG

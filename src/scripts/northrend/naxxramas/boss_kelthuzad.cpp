@@ -117,8 +117,8 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
     ScriptedInstance *m_pInstance;
     bool m_bIsRegularMode;
 
-    std::list<uint64> m_lSummonsGUIDList;
-    std::list<uint64>::iterator m_uiSendSummon;
+    GuidList m_lSummonsGUIDList;
+    GuidList::iterator m_uiSendSummon;
 
     uint32 GuardiansOfIcecrown_Timer;
     uint32 GuardiansOfIcecrown_Count;
@@ -257,7 +257,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
         if (m_lSummonsGUIDList.empty())
             return;
 
-        for(std::list<uint64>::iterator itr = m_lSummonsGUIDList.begin(); itr != m_lSummonsGUIDList.end(); ++itr)
+        for(GuidList::iterator itr = m_lSummonsGUIDList.begin(); itr != m_lSummonsGUIDList.end(); ++itr)
         {
             if (Creature* pTemp = (Creature*)Unit::GetUnit(*m_creature, *itr))
                 if (pTemp->isAlive())
@@ -266,11 +266,11 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
 
         m_lSummonsGUIDList.clear();
 
-        std::list<Creature*> m_pGuardian;
+        CreatureList m_pGuardian;
         GetCreatureListWithEntryInGrid(m_pGuardian, m_creature, NPC_GUARDIAN, DEFAULT_VISIBILITY_INSTANCE);
 
         if (!m_pGuardian.empty())
-            for(std::list<Creature*>::iterator itr = m_pGuardian.begin(); itr != m_pGuardian.end(); ++itr)
+            for(CreatureList::iterator itr = m_pGuardian.begin(); itr != m_pGuardian.end(); ++itr)
             {
                 (*itr)->ForcedDespawn();
             }
@@ -326,7 +326,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             return;
 
         //Spell casting for second and third Phase
-        if(Phase2)
+        if (Phase2)
         {
             //start phase 3 when we are 40% health
             if (!PhaseGuardian && (m_creature->GetHealth()*100 / m_creature->GetMaxHealth()) < 40)
@@ -454,7 +454,7 @@ struct MANGOS_DLL_DECL boss_kelthuzadAI : public ScriptedAI
             if (GuardiansOfIcecrown_Timer < diff)
             {
                 int8 Pos = rand()%6;
-                if( Creature* pGuardian = m_creature->SummonCreature(NPC_GUARDIAN, AddPos[Pos][0], AddPos[Pos][1], AddPos[Pos][2], AddPos[Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
+                if ( Creature* pGuardian = m_creature->SummonCreature(NPC_GUARDIAN, AddPos[Pos][0], AddPos[Pos][1], AddPos[Pos][2], AddPos[Pos][3], TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 300000))
                 {
                     pGuardian->Attack(m_creature->getVictim(),true);
                     pGuardian->GetMotionMaster()->MoveChase(m_creature->getVictim());
@@ -500,7 +500,7 @@ struct MANGOS_DLL_DECL mob_shadow_issureAI : public ScriptedAI
             if (m_uiShadowIssure_Timer < uiDiff)
             {
                 Map *map = m_creature->GetMap();
-                if (map->IsDungeon())
+                if (map->IsDungeon() && m_creature->GetMapId() != 603)
                 {
                     Map::PlayerList const &PlayerList = map->GetPlayers();
 

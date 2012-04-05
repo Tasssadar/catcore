@@ -964,7 +964,11 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 
             SetCreateMana(28 + 10*petlevel);
             SetCreateHealth(28 + 30*petlevel);
-
+            // Ebon Gargoyle
+            if (GetEntry() == 27829)
+            {
+                SetCreateHealth(owner->GetMaxHealth()*80/100);
+            }
             // FIXME: this is wrong formula, possible each guardian pet have own damage formula
             //these formula may not be correct; however, it is designed to be close to what it should be
             //this makes dps 0.5 of pets level

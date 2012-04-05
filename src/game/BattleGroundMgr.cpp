@@ -185,7 +185,8 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
         index++;
     DEBUG_LOG("Adding Group to BattleGroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
     // --- TEAM BG ---
-    if (!ArenaType && !isRated && !isPremade)
+    if(!ArenaType && !isRated && !isPremade &&
+       bracketEntry->minLevel >= sWorld.getConfig(CONFIG_UINT32_TEAM_BG_MIN_LEVEL))
     {
         bool isAllowed = false;
         switch(BgTypeId)
@@ -1174,8 +1175,8 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
             plr->RemoveBattleGroundQueueId(m_BgQueueTypeId);
             bgQueue.RemovePlayer(m_PlayerGuid, true);
             //update queues if battleground isn't ended
-            if (bg && bg->isBattleGround() && bg->GetStatus() != STATUS_WAIT_LEAVE)
-                sBattleGroundMgr.ScheduleQueueUpdate(0, 0, m_BgQueueTypeId, m_BgTypeId, bg->GetBracketId());
+            //if (bg && bg->isBattleGround() && bg->GetStatus() != STATUS_WAIT_LEAVE)
+            //    sBattleGroundMgr.ScheduleQueueUpdate(0, 0, m_BgQueueTypeId, m_BgTypeId, bg->GetBracketId());
 
             WorldPacket data;
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, queueSlot, STATUS_NONE, 0, 0, 0);
@@ -2065,11 +2066,13 @@ void BattleGroundMgr::ToggleArenaTesting()
 
 void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, uint8 arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id)
 {
+    return;
+
     //ACE_Guard<ACE_Thread_Mutex> guard(SchedulerLock);
     //we will use only 1 number created of bgTypeId and bracket_id
     uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
     bool found = false;
-    for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); i++)
+    for (uint32 i = 0; i < m_QueueUpdateScheduler.size(); i++)
     {
         if (m_QueueUpdateScheduler[i] == schedule_id)
         {

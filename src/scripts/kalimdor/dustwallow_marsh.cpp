@@ -426,7 +426,7 @@ struct MANGOS_DLL_DECL npc_ogronAI : public npc_escortAI
         Reset();
     }
 
-    std::list<Creature*> lCreatureList;
+    CreatureList lCreatureList;
 
     uint32 m_uiPhase;
     uint32 m_uiPhaseCounter;
@@ -459,7 +459,7 @@ struct MANGOS_DLL_DECL npc_ogronAI : public npc_escortAI
     {
         if (!lCreatureList.empty())
         {
-            for(std::list<Creature*>::iterator itr = lCreatureList.begin(); itr != lCreatureList.end(); ++itr)
+            for(CreatureList::iterator itr = lCreatureList.begin(); itr != lCreatureList.end(); ++itr)
             {
                 if ((*itr)->GetEntry() == uiCreatureEntry && (*itr)->isAlive())
                     return (*itr);
@@ -509,7 +509,7 @@ struct MANGOS_DLL_DECL npc_ogronAI : public npc_escortAI
     {
         if (!lCreatureList.empty())
         {
-            for(std::list<Creature*>::iterator itr = lCreatureList.begin(); itr != lCreatureList.end(); ++itr)
+            for(CreatureList::iterator itr = lCreatureList.begin(); itr != lCreatureList.end(); ++itr)
             {
                 if ((*itr)->GetEntry() == NPC_REETHE)
                     continue;

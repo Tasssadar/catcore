@@ -472,7 +472,7 @@ struct MANGOS_DLL_DECL npc_doctorAI : public ScriptedAI
 
     bool Event;
 
-    std::list<uint64> Patients;
+    GuidList Patients;
     std::vector<Location*> Coordinates;
 
     void Reset()
@@ -682,7 +682,7 @@ void npc_doctorAI::PatientSaved(Creature* soldier, Player* pPlayer, Location* Po
             {
                 if (!Patients.empty())
                 {
-                    std::list<uint64>::iterator itr;
+                    GuidList::iterator itr;
                     for(itr = Patients.begin(); itr != Patients.end(); ++itr)
                     {
                         if (Creature* Patient = ((Creature*)Unit::GetUnit((*m_creature), *itr)))
@@ -1751,7 +1751,7 @@ struct MANGOS_DLL_DECL npc_onyxian_whelplingAI : public ScriptedAI
     void Reset()
     {
         owner = m_creature->GetOwner();
-        if(owner)
+        if (owner)
             m_creature->GetMotionMaster()->MoveFollow(owner, 1, (M_PI_F/2)); 
         m_uiEmoteTimer = 5000;
     }
@@ -1801,7 +1801,7 @@ struct MANGOS_DLL_DECL npc_wormholeAI : public ScriptedAI
     void Reset()
     {
         despawnTimer = 60000;
-        if(roll_chance_f(1))
+        if (roll_chance_f(1))
         {
             DoScriptText(SAY_WORMHOLE_ANOMALY, m_creature);
             for(int i = 0; i <= 2; i++)
@@ -1828,7 +1828,7 @@ CreatureAI* GetAI_npc_wormhole(Creature* pCreature)
 bool GossipHello_npc_wormhole(Player* pPlayer, Creature* pCreature)
 {    
     
-    if(urand(0,1)) {
+    if (urand(0,1)) {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_WORMHOLE2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
     } else {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_WORMHOLE1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
@@ -1940,23 +1940,23 @@ struct MANGOS_DLL_DECL npc_time_lost_drake_controllerAI : public ScriptedAI
     }
     bool IsDrakeAlive()
     {
-        if(!pProtoDrake)
+        if (!pProtoDrake)
             return false;
 
-        if(pProtoDrake->isAlive())
+        if (pProtoDrake->isAlive())
             return true;
 
         return false;
     }
     bool IsDrakeInCombat()
     {
-        if(!pProtoDrake)
+        if (!pProtoDrake)
             return false;
 
-        if(!pProtoDrake->isAlive())
+        if (!pProtoDrake->isAlive())
             return false;
 
-        if(pProtoDrake->isInCombat())
+        if (pProtoDrake->isInCombat())
             return true;
         
         return false;
@@ -1969,10 +1969,10 @@ struct MANGOS_DLL_DECL npc_time_lost_drake_controllerAI : public ScriptedAI
         while(tmp == m_uiLastSpawn)
             tmp = rand()%12;
 
-        if(spawnLoc != -1)
+        if (spawnLoc != -1)
             tmp = spawnLoc;
 
-        if(Creature *pTemp = m_creature->SummonCreature(NPC_TIME_LOST_PROTO_DRAKE, SpawnLoc[tmp].x, SpawnLoc[tmp].y, SpawnLoc[tmp].z, SpawnLoc[tmp].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 50000))
+        if (Creature *pTemp = m_creature->SummonCreature(NPC_TIME_LOST_PROTO_DRAKE, SpawnLoc[tmp].x, SpawnLoc[tmp].y, SpawnLoc[tmp].z, SpawnLoc[tmp].o, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 50000))
         {
             pProtoDrake = pTemp;
             m_uiLastSpawn = tmp;
@@ -1982,12 +1982,12 @@ struct MANGOS_DLL_DECL npc_time_lost_drake_controllerAI : public ScriptedAI
     {
            if (m_uiRelocationTimer < uiDiff)
         {
-            if(IsDrakeAlive() && !IsDrakeInCombat())
+            if (IsDrakeAlive() && !IsDrakeInCombat())
             {
                 pProtoDrake->ForcedDespawn();
                 SpawnDrake();
             }
-            else if(!IsDrakeAlive())
+            else if (!IsDrakeAlive())
             {
                 SpawnDrake();
             }            
@@ -2119,9 +2119,9 @@ struct MANGOS_DLL_DECL mob_mirror_imageAI : public ScriptedAI
                 fDist = m_creature->GetDistance(pOwner);
                 fAngle = m_creature->GetAngle(pOwner);
 
-                if(pOwner->IsPvP())
+                if (pOwner->IsPvP())
                     m_creature->SetPvP(true);
-                if(pOwner->IsFFAPvP())
+                if (pOwner->IsFFAPvP())
                     m_creature->SetFFAPvP(true);
 
                 pOwner->CastSpell(m_creature, 57507, true); // Not right spell, but it has both auras we need
@@ -2159,9 +2159,9 @@ struct MANGOS_DLL_DECL mob_mirror_imageAI : public ScriptedAI
             return;
         }
         //It cant cast spell if target is polymorphed or controled
-        if(pTarget->isCharmed() || pTarget->isFeared() || pTarget->IsPolymorphed())
+        if (pTarget->isCharmed() || pTarget->isFeared() || pTarget->IsPolymorphed())
         {
-            if(m_creature->IsNonMeleeSpellCasted(false))
+            if (m_creature->IsNonMeleeSpellCasted(false))
                 m_creature->InterruptNonMeleeSpells(false);
             return;
         }
@@ -2222,7 +2222,7 @@ struct MANGOS_DLL_DECL npc_ebon_gargoyleAI : public ScriptedAI
     {
         if (HandleTimer(m_uiGargoyleTimer, uiDiff))
         {
-            Unit* target;
+            Unit* target = NULL;
             Unit* creator = m_creature->GetCreator();
 
             if (fixedTarget && fixedTarget->IsInWorld() && fixedTarget->isTargetableForAttack() && fixedTarget->IsWithinDist(m_creature, 40.0f))
@@ -2243,7 +2243,7 @@ struct MANGOS_DLL_DECL npc_ebon_gargoyleAI : public ScriptedAI
             else
                 target = m_creature->getVictim();
 
-            if(target && target->IsInWorld())
+            if (target && target->IsInWorld())
             {
                 DoCast(target, SPELL_GARGOYLE_STRIKE);
                 m_uiGargoyleTimer = 2000;
@@ -2278,15 +2278,15 @@ bool GossipHello_npc_experience_eliminator(Player* pPlayer, Creature* pCreature)
 
 bool GossipSelect_npc_experience_eliminator(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
 {
-    if(uiAction == GOSSIP_ACTION_INFO_DEF+1)
+    if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
     {
         // cheater(?) passed through client limitations
-        if(pPlayer->GetMoney() < 100000)
+        if (pPlayer->GetMoney() < 100000)
             return true;
 
         pPlayer->ModifyMoney(-100000);
 
-        if(pPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
+        if (pPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
             pPlayer->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED);
         else
             pPlayer->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED);
@@ -2354,12 +2354,12 @@ bool GossipHello_npc_arena_spectator(Player* pPlayer, Creature* pCreature)
     BattleGroundSet::iterator itr = bg.begin();
     for(++itr; itr != bg.end(); ++itr)
     {
-        if(!itr->second || itr->second->GetStatus() == STATUS_WAIT_LEAVE)
+        if (!itr->second || itr->second->GetStatus() == STATUS_WAIT_LEAVE)
             continue;
         uint32 teamIdA = itr->second->GetArenaTeamIdForTeam(ALLIANCE);
         uint32 teamIdH = itr->second->GetArenaTeamIdForTeam(HORDE);
         std::stringstream ss;
-        if(itr->second->GetArenaTeamName(teamIdA) != "")
+        if (itr->second->GetArenaTeamName(teamIdA) != "")
             ss << itr->second->GetArenaTeamName(teamIdA) << " VS " << itr->second->GetArenaTeamName(teamIdH);
         else
             ss << "Nezname tymy - asi scrim arena, klikni a koukni se kdo :)";
@@ -2378,17 +2378,17 @@ bool GossipSelect_npc_arena_spectator(Player* pPlayer, Creature* pCreature, uint
     bool found = false;
     for(BattleGroundSet::iterator itr = bg.begin(); itr != bg.end() && !found; ++itr)
     {
-        if(!itr->second || itr->second->GetStatus() == STATUS_WAIT_LEAVE)
+        if (!itr->second || itr->second->GetStatus() == STATUS_WAIT_LEAVE)
             continue;
         
-        if(itr->first == uiAction)
+        if (itr->first == uiAction)
         {
             itr->second->AddSpectator(pPlayer);
             found = true;
         }
     }
     pPlayer->CLOSE_GOSSIP_MENU();
-    if(!found)
+    if (!found)
         pPlayer->GetSession()->SendNotification("Vybrana arena uz skoncila");
 */
     return true;

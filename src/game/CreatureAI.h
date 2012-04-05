@@ -24,10 +24,12 @@
 #include "Policies/Singleton.h"
 #include "Dynamic/ObjectRegistry.h"
 #include "Dynamic/FactoryHolder.h"
+#include "SpellTimerMgr.h"
+#include "Creature.h"
 
 class WorldObject;
 class Unit;
-class Creature;
+//class Creature;
 class Player;
 struct SpellEntry;
 
@@ -62,6 +64,8 @@ class MANGOS_DLL_SPEC CreatureAI
         explicit CreatureAI(Creature* creature) : m_creature(creature) {}
 
         virtual ~CreatureAI();
+
+        typedef std::list<Unit*> UnitList;
 
         ///== Reactions At =================================
 
@@ -131,6 +135,9 @@ class MANGOS_DLL_SPEC CreatureAI
         // Called at text emote receive from player
         virtual void ReceiveEmote(Player* /*pPlayer*/, uint32 /*text_emote*/) {}
 
+        // Called when filling target map for creature's cast
+        virtual void CastTargets(const SpellEntry* /*spellEntry*/, UnitList& /*list*/, SpellEffectIndex /*idx*/) {}
+
         ///== Triggered Actions Requested ==================
 
         // Called when creature attack expected (if creature can and no have current victim)
@@ -157,6 +164,7 @@ class MANGOS_DLL_SPEC CreatureAI
 
         // Pointer to controlled by AI creature
         Creature* const m_creature;
+
 };
 
 struct SelectableAI : public FactoryHolder<CreatureAI>, public Permissible<Creature>

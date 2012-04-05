@@ -157,8 +157,8 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         for(uint8 i=0; i<(urand(5,6)); ++i)
         {
             Creature* pAdd = m_creature->SummonCreature(m_uiSkadiAdds[urand(0,2)], m_creature->GetPositionX()+urand(5,10), m_creature->GetPositionY()+urand(5,10), m_creature->GetPositionZ(), m_creature->GetOrientation(), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 25000);
-            if(pAdd)
-                if(Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (pAdd)
+                if (Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pAdd->AI()->AttackStart(pPlayer);
         }
        ++m_uiNextWaveCount;
@@ -169,13 +169,13 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if(!m_bIsLandPhase)
+        if (!m_bIsLandPhase)
         {
-            if(m_uiNextWaveCount > 4)
+            if (m_uiNextWaveCount > 4)
             {
-                if(m_pInstance && m_pInstance->GetData(TYPE_HARPOONLUNCHER) != (m_bIsRegularMode ? DONE : SPECIAL))
+                if (m_pInstance && m_pInstance->GetData(TYPE_HARPOONLUNCHER) != (m_bIsRegularMode ? DONE : SPECIAL))
                 {
-                    if(m_uiIsInHarpoonRangeTimer < uiDiff)
+                    if (m_uiIsInHarpoonRangeTimer < uiDiff)
                     {
                         DoScriptText(EMOTE_HARPOON_RANGE, m_creature);
 
@@ -191,7 +191,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                     DoScriptText(SAY_DRAKE_DEATH, m_creature);
                     m_bIsLandPhase = true;
                     m_creature->SetVisibility(VISIBILITY_ON);
-                    if(m_pInstance)
+                    if (m_pInstance)
                     {
                         m_pInstance->SetData(TYPE_SKADI, IN_PROGRESS);
                         m_pInstance->SetData(TYPE_HARPOONLUNCHER, 0);
@@ -199,13 +199,13 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                 }
             }
 
-            if(m_uiNextWaveTimer < uiDiff)
+            if (m_uiNextWaveTimer < uiDiff)
             {
                 SendNextWeave();
                 m_uiNextWaveTimer = urand(20000,30000);
             }else m_uiNextWaveTimer -= uiDiff;
 
-            if(m_uiGraufBrathTimer < uiDiff)
+            if (m_uiGraufBrathTimer < uiDiff)
             {
                 switch(urand(0, 2))
                 {
@@ -214,7 +214,7 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                     case 2: DoScriptText(SAY_DRAKEBREATH_3, m_creature); break;
                 }
                 //breath ID missing
-                if(Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     m_creature->CastSpell(pPlayer, m_bIsRegularMode ? SPELL_POISONED_SPEAR : SPELL_POISONED_SPEAR_H, false);
                     pPlayer->CastSpell(pPlayer, m_bIsRegularMode ? SPELL_POISONED : SPELL_POISONED_H, true);
@@ -226,9 +226,9 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
         }
         else
         {
-            if(m_uiPoisonedSpearTimer < uiDiff)
+            if (m_uiPoisonedSpearTimer < uiDiff)
             {
-                if(Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (Unit* pPlayer = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     m_creature->CastSpell(pPlayer, m_bIsRegularMode ? SPELL_POISONED_SPEAR : SPELL_POISONED_SPEAR_H, false);
                     pPlayer->CastSpell(pPlayer, m_bIsRegularMode ? SPELL_POISONED : SPELL_POISONED_H, true);
@@ -236,16 +236,16 @@ struct MANGOS_DLL_DECL boss_skadiAI : public ScriptedAI
                 m_uiPoisonedSpearTimer = urand(5000,10000);
             }else m_uiPoisonedSpearTimer -= uiDiff;
             
-            if(m_uiCrushTimer < uiDiff)
+            if (m_uiCrushTimer < uiDiff)
             {
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     m_creature->CastSpell(m_creature->getVictim(), m_bIsRegularMode ? SPELL_CRUSH : SPELL_CRUSH_H, false);
                 m_uiCrushTimer = urand(10000,15000);
             }else m_uiCrushTimer -= uiDiff;
 
-            if(m_uiWirlwhindTimer < uiDiff)
+            if (m_uiWirlwhindTimer < uiDiff)
             {
-                if(m_creature->getVictim())
+                if (m_creature->getVictim())
                     m_creature->CastSpell(m_creature->getVictim(), m_bIsRegularMode ? SPELL_WHIRLWIND : SPELL_WHIRLWIND_H, false);
                 m_uiWirlwhindTimer = urand(30000,35000);
             }else m_uiWirlwhindTimer -= uiDiff;
@@ -278,7 +278,7 @@ bool GOHello_go_skaldi_harpoonluncher(Player* pPlayer, GameObject* pGo)
     if (!pInstance)
         return false;
 
-    if(pPlayer->HasItemCount(ITEM_HARPOON,1))
+    if (pPlayer->HasItemCount(ITEM_HARPOON,1))
     {
         pInstance->SetData(TYPE_HARPOONLUNCHER, IN_PROGRESS);
         pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK1);

@@ -272,4 +272,5 @@ void MANGOS_DLL_SPEC detail_log(const char * str, ...) ATTR_PRINTF(1,2);
 void MANGOS_DLL_SPEC debug_log(const char * str, ...) ATTR_PRINTF(1,2);
 void MANGOS_DLL_SPEC error_log(const char * str, ...) ATTR_PRINTF(1,2);
 void MANGOS_DLL_SPEC error_db_log(const char * str, ...) ATTR_PRINTF(1,2);
+void MANGOS_DLL_SPEC cat_log(const char * str, ...) ATTR_PRINTF(1,2);
 #endif
