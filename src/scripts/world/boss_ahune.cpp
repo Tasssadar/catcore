@@ -124,7 +124,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
             data << fx << fy << fz;
             plr->SendMessageToSet(&data, true);
             
-            m_creature->CastSpell(plr, SPELL_GRIP, true);
+            //m_creature->CastSpell(plr, SPELL_GRIP, true);
         }
     }
     
@@ -157,7 +157,7 @@ struct MANGOS_DLL_DECL boss_ahuneAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiPhase == 1 || m_uiPhase == 2)
+        if (m_uiPhase == 1 || m_uiPhase == 3)
         {
             // tank out of range
             if (m_creature->GetDistance2d(m_creature->getVictim()) > m_creature->GetAttackDistance(m_creature->getVictim()))
