@@ -17,6 +17,7 @@
 #   include <pthread.h>
 #   include <signal.h>
 #endif
+#include <unistd.h>
 
 
 namespace G3D {
