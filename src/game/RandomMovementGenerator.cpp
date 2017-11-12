@@ -210,7 +210,7 @@ RandomCircleMovementGenerator<Creature>::fillSplineWayPoints(Creature &creature)
     firstwp->x = x;
     firstwp->y = y;
     firstwp->z = z;
-    m_splineMap.insert(std::make_pair<uint32, SplineWayPointInfo*>(0, firstwp)); */
+    m_splineMap.insert(std::pair<uint32, SplineWayPointInfo*>(0, firstwp)); */
 
     //calculate other ones
     float m_fDistance = creature.GetDistance2d(spawnX, spawnY);
@@ -261,7 +261,7 @@ RandomCircleMovementGenerator<Creature>::fillSplineWayPoints(Creature &creature)
         wp->y = lasty;
         wp->z = z;
         wp->o = m_fAngle;
-        m_splineMap.insert(std::make_pair<uint32, Position*>(wpId, wp));
+        m_splineMap.insert(std::pair<uint32, Position*>(wpId, wp));
     }
     i_nextMoveTime.Reset(500);
 }

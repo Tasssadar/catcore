@@ -425,7 +425,7 @@ enum SpellCastTargetFlags
     TARGET_FLAG_UNK4            = 0x00080000                // uint32, loop { vec3, guid -> if guid == 0 break }
 };
 
-enum SpellEffectIndex
+enum SpellEffectIndex : uint8
 {
     EFFECT_INDEX_0     = 0,
     EFFECT_INDEX_1     = 1,

@@ -17195,7 +17195,7 @@ void Player::_LoadBoundInstances(QueryResult *result)
                     itr->second->RemovePlayer(GetGUID());
                     m_boundInstances[save->GetDifficulty()].erase(itr);
                 }
-                m_boundInstances[uint8(save->GetDifficulty())].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save)); 
+                m_boundInstances[uint8(save->GetDifficulty())].insert(std::pair<uint32, InstanceSave*>(save->GetMapId(), save)); 
             }
         } while(result->NextRow());
         delete result;
@@ -17239,7 +17239,7 @@ void Player::BindToInstance(InstanceSave* save, bool permanent, bool sendNotice)
 {
     BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
     if(itr == m_boundInstances[save->GetDifficulty()].end())
-        m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
+        m_boundInstances[save->GetDifficulty()].insert(std::pair<uint32, InstanceSave*>(save->GetMapId(), save));
     else if(save->GetGUID() != itr->second->GetGUID())
     {
         if(itr->second->IsPermanent())

@@ -1,0 +1,1 @@
+cmake .. -Wno-dev -DPCH=true -DACE_USE_EXTERNAL=true -DCMAKE_INSTALL_PREFIX=/opt/catcore
