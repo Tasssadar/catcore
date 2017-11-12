@@ -270,8 +270,9 @@ MapManager::Update(uint32 diff)
     for (uint32 i = 0; iter != i_maps.end(); ++iter, ++i)
         update_queue[i] = iter->second;
 
+    uint32 i = 0;
     #pragma omp parallel for schedule(dynamic) private(i) shared(update_queue)
-    for (uint32 i = 0; i < i_maps.size(); ++i)
+    for (i = 0; i < i_maps.size(); ++i)
         update_queue[i]->Update(i_timer.GetCurrent());
 
     for (TransportSet::iterator iter = m_Transports.begin(); iter != m_Transports.end(); ++iter)

@@ -265,7 +265,7 @@ void WorldSession::HandleLfgSetRoles(WorldPacket& recv_data)
 
         sLfgMgr.LfgLog("Set roles dung %u, group %u, player %u", itr->first, itr->second, _player->GetGUID());   
 
-        group->GetRoleAnswers()->insert(std::make_pair<uint64, uint8>(_player->GetGUID(), roles));
+        (*group->GetRoleAnswers())[_player->GetGUID()] = roles;
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
         data << uint64(_player->GetGUID());
         data << uint8(1);
@@ -287,7 +287,7 @@ void WorldSession::HandleLfgSetBootVote(WorldPacket& recv_data)
     if (!group || !group->isLfgGroup())
         return;
 
-    ((LfgGroup*)group)->GetVoteToKick()->votes.insert(std::make_pair<uint64, uint8>(_player->GetGUID(), agree));
+    ((LfgGroup*)group)->GetVoteToKick()->votes[_player->GetGUID()] = agree;
     ((LfgGroup*)group)->UpdateVoteToKick();
 }
 

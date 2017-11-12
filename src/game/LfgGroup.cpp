@@ -56,7 +56,7 @@ bool RoleCheck::TryRoles(LfgGroup *group)
             }   
         }
         if(!isSingleRole)
-            more_roles.insert(std::make_pair<uint64, uint8>(itr->first, itr->second));
+            more_roles[itr->first] = itr->second;
     }
 
     if(error)
@@ -901,7 +901,7 @@ void LfgGroup::UpdateRoleCheck(uint32 diff)
         if (m_roleCheck.m_rolesProposal.find(citr->guid) != m_roleCheck.m_rolesProposal.end() || !player || !player->GetSession() ||
             player->m_lookingForGroup.roles == 0)
             continue;
-        m_roleCheck.m_rolesProposal.insert(std::make_pair<uint64, uint8>(player->GetGUID(), player->m_lookingForGroup.roles));
+        m_roleCheck.m_rolesProposal[player->GetGUID()] = player->m_lookingForGroup.roles;
         WorldPacket data(SMSG_LFG_ROLE_CHOSEN, 13);
         data << uint64(player->GetGUID());
         data << uint8(1);
@@ -1060,7 +1060,7 @@ void LfgGroup::InitVoteKick(uint64 who, Player *initiator, std::string reason)
     m_voteToKick.victim = who;
     m_voteToKick.beginTime = getMSTime();
     m_voteToKick.reason = reason;
-    m_voteToKick.votes.insert(std::make_pair<uint64, uint8>(initiator->GetGUID(), 1));  // initiator agrees automatically
+    m_voteToKick.votes[initiator->GetGUID()] = 1;  // initiator agrees automatically
     m_voteKickTimer = 0;
 
     for(member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)

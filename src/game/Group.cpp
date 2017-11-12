@@ -1712,7 +1712,7 @@ void Group::ResetInstances(uint8 method, bool isRaid, Player* SendMsgTo)
 void Group::AddBind(InstanceSave *save)
 {
     if( m_boundInstances[save->GetDifficulty()].find(save->GetMapId()) == m_boundInstances[save->GetDifficulty()].end())
-        m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
+        m_boundInstances[save->GetDifficulty()][save->GetMapId()] = save;
 }
 
 InstanceSave* Group::GetBoundInstance(uint32 mapid, Player* player)
@@ -1756,7 +1756,7 @@ void Group::BindToInstance(InstanceSave *save, bool permanent, bool sendNotice)
 
     BoundInstancesMap::iterator itr = m_boundInstances[save->GetDifficulty()].find(save->GetMapId());
     if (itr == m_boundInstances[save->GetDifficulty()].end())
-        m_boundInstances[save->GetDifficulty()].insert(std::make_pair<uint32, InstanceSave*>(save->GetMapId(), save));
+        m_boundInstances[save->GetDifficulty()][save->GetMapId()] = save;
     else
         itr->second = save;
 

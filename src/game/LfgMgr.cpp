@@ -182,7 +182,7 @@ void LfgMgr::AddToQueue(Player *player, bool updateQueue)
         {
             QueuedDungeonsMap::iterator queue = GetOrCreateQueueEntry(*it, side);
             queue->second->players.insert(player->GetGUID());
-            m_queuedPlayers.insert(std::make_pair<uint64, uint32>(player->GetGUID(), (*it)->ID));
+            m_queuedPlayers[player->GetGUID()] = (*it)->ID;
         }
 
         SendJoinResult(player, LFG_JOIN_OK);
@@ -712,7 +712,7 @@ bool LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck
         if(tmpRoles->HasFreeRole(role))
         {
             tmpRoles->SetAsRole(role, guid);
-            map->insert(std::make_pair<uint64, LfgGroup*>(guid, from));
+            (*map)[guid] = from;
             return true;
         }
         // Try method No. 2
@@ -750,7 +750,7 @@ bool LfgMgr::CanPlayerMerge(LfgGroup *from, LfgGroup *to, uint64 guid, RoleCheck
                 // all good, move out current player in *role* and put new player to it
                 tmpRoles->SetAsRole(y, mergeGuid);
                 tmpRoles->SetAsRole(role, guid);
-                map->insert(std::make_pair<uint64, LfgGroup*>(guid, from));
+                (*map)[guid] = from;
                 cont = false;
                 return true;
             }
@@ -885,7 +885,7 @@ bool LfgMgr::CheckFormedGroup(LfgGroup *group, uint8 side, bool checkTime)
             group->RemoveMember(*rnd, 0);
             QueuedDungeonsMap::iterator queue = GetOrCreateQueueEntry(group->GetDungeonInfo(true),side);
             queue->second->players.insert(*rnd);
-            m_queuedPlayers.insert(std::make_pair<uint64, uint32>(*rnd, group->GetDungeonInfo(true)->ID));
+            m_queuedPlayers[*rnd] = group->GetDungeonInfo(true)->ID;
         }
         group->GetRandomPlayers()->clear();
         group->SetOriginalDungeonInfo(NULL);
@@ -948,7 +948,7 @@ void LfgMgr::MoveGroupToQueue(LfgGroup *group, uint8 side, uint32 DungId)
             SendLfgUpdateParty(member,  LFG_UPDATETYPE_ADDED_TO_QUEUE);
         else
             SendLfgUpdatePlayer(member, LFG_UPDATETYPE_ADDED_TO_QUEUE);
-        m_queuedPlayers.insert(std::make_pair<uint64, uint32>(member->GetGUID(), entry->ID));
+        m_queuedPlayers[member->GetGUID()] = entry->ID;
     }
     
     itr->second->groups.insert(group);
@@ -1295,7 +1295,7 @@ void LfgMgr::LoadDungeonsInfo()
         DungeonInfo *info = new DungeonInfo();
         info->ID = currentRow->ID;
         info->locked = true;
-        m_dungeonInfoMap.insert(std::make_pair<uint32, DungeonInfo*>(info->ID, info));
+        m_dungeonInfoMap[info->ID] = info;
     }
     uint32 count = 0;
     //                                                0   1     2           3          4        5        6        7        8       9
@@ -1388,7 +1388,7 @@ void LfgMgr::AssembleRandomInfo()
         }
         if(!list->empty())
         {
-            m_randomsList.insert(std::make_pair<uint32, LfgDungeonList*>(random->ID, list));
+            m_randomsList[random->ID] = list;
             ++count;
         }
     }
@@ -1563,7 +1563,7 @@ QueuedDungeonsMap::iterator LfgMgr::GetOrCreateQueueEntry(LFGDungeonEntry const 
         //fill some default data into wait times
         if (m_waitTimes[0].find(info->ID) == m_waitTimes[0].end())
             for(int i = 0; i < LFG_WAIT_TIME_SLOT_MAX; ++i)
-                m_waitTimes[i].insert(std::make_pair<uint32, uint32>(info->ID, 0));
+                m_waitTimes[i][info->ID] = 0;
         return m_queuedDungeons[side].find(info->ID);
     }
     return m_queuedDungeons[side].end();

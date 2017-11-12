@@ -419,7 +419,7 @@ class MANGOS_DLL_SPEC Aura
         AuraRemoveMode m_removeMode:8;                      // Store info for know remove aura reason
         DiminishingGroup m_AuraDRGroup:8;                   // Diminishing
 
-        SpellEffectIndex m_effIndex :8;                     // Aura effect index in spell
+        SpellEffectIndex m_effIndex;                        // Aura effect index in spell
         uint8 m_auraSlot;                                   // Aura slot on unit (for show in client)
         uint8 m_auraFlags;                                  // Aura info flag (for send data to client)
         uint8 m_auraLevel;                                  // Aura level (store caster level for correct show level dep amount)

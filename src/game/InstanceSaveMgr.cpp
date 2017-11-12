@@ -274,7 +274,7 @@ void InstanceSaveManager::LoadSavesFromDb()
             save->SaveToDb(false,true);
         else
             save->SetResetTime(fields[3].GetUInt32());
-        m_saves.insert(std::make_pair<uint32, InstanceSave*>(save->GetGUID(), save));
+        m_saves[save->GetGUID()] = save;
         ++count;
     } while( result->NextRow() );
 
@@ -306,7 +306,7 @@ void InstanceSaveManager::LoadInstanceEncounters()
         Field *fields = result->Fetch();
         uint32 entry = fields[0].GetUInt32();
         const char *encounter  = fields[1].GetCppString().c_str();
-        m_encounters.insert(std::make_pair<uint32, const char*>(entry, encounter));
+        m_encounters[entry] = encounter;
         bar.step();
         ++count;
     } while( result->NextRow() );
@@ -343,7 +343,7 @@ void InstanceSaveManager::PackInstances()
         {
             itr->second->UpdateId(InstanceNumber);
             m_saves.erase(itr->first);
-            m_saves.insert(std::make_pair<uint32, InstanceSave*>(InstanceNumber, itr->second));
+            m_saves[InstanceNumber] = itr->second;
         }
 
         ++InstanceNumber;
@@ -366,7 +366,7 @@ InstanceSave* InstanceSaveManager::CreateInstanceSave(uint16 mapId, uint32 id, D
     save = new InstanceSave(mapId, id, difficulty, perm);
     save->SaveToDb();
 
-    m_saves.insert(std::make_pair<uint32, InstanceSave*>(id, save));
+    m_saves[id] = save;
     return save;
 }
 
