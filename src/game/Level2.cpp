@@ -278,7 +278,7 @@ bool ChatHandler::HandleGoCreatureCommand(const char* args)
         {
             std::string name = pParam1;
             WorldDatabase.escape_string(name);
-            QueryResult *result = WorldDatabase.PQuery("SELECT guid FROM creature, creature_template WHERE creature.id = creature_template.entry AND creature_template.name "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), name.c_str());
+            QueryResult *result = WorldDatabase.PQuery("SELECT guid FROM creature, creature_template WHERE creature.id = creature_template.entry AND creature_template.name " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), name.c_str());
             if (!result)
             {
                 SendSysMessage(LANG_COMMAND_GOCREATNOTFOUND);
@@ -388,7 +388,7 @@ bool ChatHandler::HandleGoObjectCommand(const char* args)
         {
             std::string name = pParam1;
             WorldDatabase.escape_string(name);
-            QueryResult *result = WorldDatabase.PQuery("SELECT guid FROM gameobject, gameobject_template WHERE gameobject.id = gameobject_template.entry AND gameobject_template.name "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), name.c_str());
+            QueryResult *result = WorldDatabase.PQuery("SELECT guid FROM gameobject, gameobject_template WHERE gameobject.id = gameobject_template.entry AND gameobject_template.name " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), name.c_str());
             if (!result)
             {
                 SendSysMessage(LANG_COMMAND_GOOBJNOTFOUND);
@@ -450,7 +450,7 @@ bool ChatHandler::HandleGameObjectTargetCommand(const char* args)
             WorldDatabase.escape_string(name);
             result = WorldDatabase.PQuery(
                 "SELECT guid, id, position_x, position_y, position_z, orientation, map, (POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ "
-                "FROM gameobject,gameobject_template WHERE gameobject_template.entry = gameobject.id AND map = %i AND name "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'")" ORDER BY order_ ASC LIMIT 1",
+                "FROM gameobject,gameobject_template WHERE gameobject_template.entry = gameobject.id AND map = %i AND name " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'")" ORDER BY order_ ASC LIMIT 1",
                 pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ(), pl->GetMapId(),name.c_str());
         }
     }
@@ -2392,7 +2392,7 @@ bool ChatHandler::HandleTicketCommand(const char* args)
     int num = atoi(px);
     if (num > 0)
     {
-        QueryResult *result = CharacterDatabase.PQuery("SELECT guid,ticket_text,ticket_lastchange FROM character_ticket ORDER BY ticket_id ASC "_OFFSET_, num-1);
+        QueryResult *result = CharacterDatabase.PQuery("SELECT guid,ticket_text,ticket_lastchange FROM character_ticket ORDER BY ticket_id ASC " _OFFSET_, num-1);
 
         if (!result)
         {
@@ -2448,7 +2448,7 @@ bool ChatHandler::HandleDelTicketCommand(const char *args)
     // delticket #num
     if (num > 0)
     {
-        QueryResult* result = CharacterDatabase.PQuery("SELECT guid FROM character_ticket ORDER BY ticket_id ASC "_OFFSET_,num-1);
+        QueryResult* result = CharacterDatabase.PQuery("SELECT guid FROM character_ticket ORDER BY ticket_id ASC " _OFFSET_,num-1);
         if (!result)
         {
             PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST, num);
@@ -4184,7 +4184,7 @@ bool ChatHandler::HandleLookupAccountEmailCommand(const char* args)
 
     LoginDatabase.escape_string (email);
     //                                                 0   1         2        3        4
-    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE email "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), email.c_str ());
+    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE email " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), email.c_str ());
 
     return ShowAccountListHelper(result,&limit);
 }
@@ -4202,7 +4202,7 @@ bool ChatHandler::HandleLookupAccountIpCommand(const char* args)
     LoginDatabase.escape_string (ip);
 
     //                                                 0   1         2        3        4
-    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE last_ip "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), ip.c_str ());
+    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE last_ip " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), ip.c_str ());
 
     return ShowAccountListHelper(result,&limit);
 }
@@ -4221,7 +4221,7 @@ bool ChatHandler::HandleLookupAccountNameCommand(const char* args)
 
     LoginDatabase.escape_string (account);
     //                                                 0   1         2        3        4
-    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE username "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), account.c_str ());
+    QueryResult *result = LoginDatabase.PQuery("SELECT id, username, last_ip, gmlevel, expansion FROM account WHERE username " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), account.c_str ());
 
     return ShowAccountListHelper(result,&limit);
 }
@@ -4290,7 +4290,7 @@ bool ChatHandler::HandleLookupPlayerIpCommand(const char* args)
 
     LoginDatabase.escape_string (ip);
 
-    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE last_ip "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), ip.c_str ());
+    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE last_ip " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), ip.c_str ());
 
     return LookupPlayerSearchCommand (result,&limit);
 }
@@ -4309,7 +4309,7 @@ bool ChatHandler::HandleLookupPlayerAccountCommand(const char* args)
 
     LoginDatabase.escape_string (account);
 
-    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE username "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), account.c_str ());
+    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE username " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), account.c_str ());
 
     return LookupPlayerSearchCommand (result,&limit);
 }
@@ -4326,7 +4326,7 @@ bool ChatHandler::HandleLookupPlayerEmailCommand(const char* args)
 
     LoginDatabase.escape_string (email);
 
-    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE email "_LIKE_" "_CONCAT3_("'%%'","'%s'","'%%'"), email.c_str ());
+    QueryResult* result = LoginDatabase.PQuery ("SELECT id,username FROM account WHERE email " _LIKE_ " " _CONCAT3_("'%%'","'%s'","'%%'"), email.c_str ());
 
     return LookupPlayerSearchCommand (result,&limit);
 }

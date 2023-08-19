@@ -61,6 +61,12 @@ include_directories(
   ${MYSQL_INCLUDE_DIR}
 )
 
+if(WIN32)
+  include_directories(
+    ${CMAKE_SOURCE_DIR}/dep/include/win
+  )
+endif()
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SystemConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/SystemConfig.h)
 
 add_library(shared STATIC

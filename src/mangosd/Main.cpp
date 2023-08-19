@@ -30,6 +30,9 @@
 #include "revision_nr.h"
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <openssl/provider.h>
+#include <openssl/err.h>
+
 #include <ace/Version.h>
 #include <ace/Get_Opt.h>
 
@@ -145,8 +148,28 @@ extern int main(int argc, char **argv)
     {
         sLog.outError("Could not find configuration file %s.", cfg_file);
         Log::WaitBeforeContinueIfNeed();
-        return 1;
+       return 1 ;
     }
+    
+    OSSL_PROVIDER *legacy;
+    OSSL_PROVIDER *deflt;
+
+    legacy = OSSL_PROVIDER_load(NULL, "legacy");
+    if (legacy == NULL) {
+        ERR_print_errors_fp(stdout);
+        sLog.outError("failed to load legacy openssl provider for RC4");
+        Log::WaitBeforeContinueIfNeed();
+        return 1 ;
+    }
+    
+    deflt = OSSL_PROVIDER_load(NULL, "default");
+    if (deflt == NULL) {
+         sLog.outError("failed to load default openssl provider for RC4");
+        Log::WaitBeforeContinueIfNeed();
+        return 1 ;
+    }
+    
+    
 
     sLog.outString( "%s [world-daemon]", _FULLVERSION(REVISION_DATE,REVISION_TIME,REVISION_NR,REVISION_ID) );
     sLog.outString( "<Ctrl-C> to stop.\n\n" );
